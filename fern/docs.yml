@@ -1,0 +1,37 @@
+instances:
+  - url: https://agentmail.docs.buildwithfern.com
+
+title: AgentMail | Documentation
+
+layout:
+  searchbar-placement: header
+  tabs-placement: header
+  content-alignment: left
+
+colors:
+  accentPrimary: "#ffffff"
+  background: "#000000"
+
+navbar-links:
+  - type: filled
+    text: Request access
+    href: mailto:access@agentmail.com
+
+tabs:
+  overview:
+    display-name: Overview
+    icon: home
+  api:
+    display-name: API Reference
+    icon: puzzle
+
+navigation:
+  - tab: overview
+    layout:
+      - section: Getting Started
+        contents:
+          - page: Welcome
+            path: pages/welcome.mdx
+  - tab: api
+    layout:
+      - api: API Reference

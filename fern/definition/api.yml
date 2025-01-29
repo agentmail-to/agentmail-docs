@@ -1,0 +1,15 @@
+name: api
+
+environments:
+  Production: https://api.agentmail.to
+
+auth: Bearer
+auth-schemes:
+  Bearer:
+    scheme: bearer
+    token:
+      name: apiKey
+      env: AGENTMAIL_API_KEY
+
+error-discrimination:
+  strategy: status-code
