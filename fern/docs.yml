@@ -3,30 +3,33 @@ instances:
 
 title: AgentMail | Documentation
 
+colors:
+  accentPrimary: "#e4e4e7"
+  background: "#18181b"
+
 layout:
   searchbar-placement: header
   tabs-placement: header
   content-alignment: left
 
-colors:
-  accentPrimary: "#ffffff"
-  background: "#000000"
-
 navbar-links:
+  - type: minimal
+    text: View demo
+    href: https://chat.agentmail.to
   - type: filled
     text: Request access
     href: mailto:access@agentmail.com
 
 tabs:
-  overview:
-    display-name: Overview
+  docs:
+    display-name: Documentation
     icon: home
   api:
     display-name: API Reference
     icon: puzzle
 
 navigation:
-  - tab: overview
+  - tab: docs
     layout:
       - section: Getting Started
         contents:

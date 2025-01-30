@@ -1,58 +1,52 @@
 service:
-  auth: false
-  base-path: /movies
-  endpoints:
-    createMovie:
-      docs: Add a movie to the database
-      method: POST
-      path: /create-movie
-      request: CreateMovieRequest
-      response: MovieId
+  base-path: /inboxes
+  auth: true
 
-    getMovie:
-      docs: Retrieve a movie from the database based on the ID
-      method: GET
-      path: /{id}
-      path-parameters:
-        id: MovieId
-      response: Movie
-      errors:
-        - MovieDoesNotExistError
+  endpoints:
+    createInbox:
+      docs: |
+        If `username` is not specified, one will be randomly generated.
+
+        `domain` must be one of your organization's verified domains or `agentmail.to`. If `domain` is not specified, it will default to `agentmail.to`.
+      method: POST
+      path: /
+      request: CreateInboxRequest
+      response: Inbox
       examples:
-        # Success response
-        - path-parameters:
-            id: tt0111161
+        - request:
+            username: inbox
           response:
             body:
-              id: tt0111161
-              title: The Shawshank Redemption
-              rating: 9.3
-        # Error response
-        - path-parameters:
-            id: tt1234
+              address: inbox@agentmail.to
+        - request:
+            domain: yourdomain.com
           response:
-            error: MovieDoesNotExistError
-            body: tt1234
+            body:
+              address: helpfulagent123@yourdomain.com
+
+    deleteInbox:
+      docs: Deletes inbox and all of its threads and messages.
+      method: DELETE
+      path: /{address}
+      path-parameters:
+        address: string
+      errors:
+        - InboxDoesNotExistError
+      examples:
+        - path-parameters:
+            address: inbox@agentmail.to
 
 types:
-  MovieId:
-    type: string
-    docs: The unique identifier for a Movie in the database
-
-  Movie:
+  Inbox:
     properties:
-      id: MovieId
-      title: string
-      rating:
-        type: double
-        docs: The rating scale out of ten stars
+      address: string
 
-  CreateMovieRequest:
+  CreateInboxRequest:
     properties:
-      title: string
-      rating: double
+      username: optional<string>
+      domain: optional<string>
 
 errors:
-  MovieDoesNotExistError:
+  InboxDoesNotExistError:
     status-code: 404
-    type: MovieId
+    type: string
