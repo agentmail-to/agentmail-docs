@@ -17,29 +17,29 @@ service:
             username: inbox
           response:
             body:
-              address: inbox@agentmail.to
+              id: inbox@agentmail.to
         - request:
             domain: yourdomain.com
           response:
             body:
-              address: helpfulagent123@yourdomain.com
+              id: helpfulagent123@yourdomain.com
 
     deleteInbox:
       docs: Deletes inbox and all of its threads and messages.
       method: DELETE
-      path: /{address}
+      path: /{id}
       path-parameters:
-        address: string
+        id: string
       errors:
         - InboxDoesNotExistError
       examples:
         - path-parameters:
-            address: inbox@agentmail.to
+            id: inbox@agentmail.to
 
 types:
   Inbox:
     properties:
-      address: string
+      id: string
 
   CreateInboxRequest:
     properties:

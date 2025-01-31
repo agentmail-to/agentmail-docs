@@ -1,0 +1,56 @@
+service:
+  base-path: /inboxes/{inbox_id}/threads
+  path-parameters:
+    inbox_id: string
+
+  auth: true
+
+  endpoints:
+    listThreads:
+      docs: Ordered by `last_activity` descending.
+      method: GET
+      path: /
+      request:
+        name: ListThreadsRequest
+        query-parameters:
+          limit: optional<integer>
+          last_key: optional<string>
+      response: ListThreadsResponse
+
+    getThread:
+      docs: Ordered by `last_activity` descending.
+      method: GET
+      path: /{id}
+      path-parameters:
+        id: string
+      request:
+        name: ListThreadsRequest
+        query-parameters:
+          limit: optional<integer>
+          last_key: optional<string>
+      response: ListThreadsResponse
+
+types:
+  Message:
+    properties:
+      message_id: string
+
+  ThreadItem:
+    properties:
+      id: string
+      participants: list<string>
+      subject: string
+      preview: string
+      last_activity: datetime
+
+  Thread:
+    extends: ThreadItem
+    properties:
+      messages:
+
+  ListThreadsResponse:
+    properties:
+      threads: list<ThreadItem>
+      limit: integer
+      count: integer
+      last_key: optional<string>
