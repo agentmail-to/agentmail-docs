@@ -1,0 +1,102 @@
+imports:
+  inboxes: inboxes.yml
+
+service:
+  base-path: /inboxes/{inbox_id}/messages
+  path-parameters:
+    inbox_id: string
+
+  auth: true
+
+  endpoints:
+    listMessages:
+      docs: Ordered by `sent_at` descending.
+      method: GET
+      path: /
+      request:
+        name: ListMessagesRequest
+        query-parameters:
+          limit: optional<integer>
+          last_key: optional<string>
+      response: ListMessagesResponse
+      errors:
+        - inboxes.InboxDoesNotExistError
+
+    getMessage:
+      method: GET
+      path: /{message_id}
+      path-parameters:
+        message_id: string
+      response: Message
+      errors:
+        - inboxes.InboxDoesNotExistError
+        - MessageDoesNotExistError
+
+    replyToMessage:
+      method: POST
+      path: /{message_id}
+      path-parameters:
+        message_id: string
+      request: ReplyToMessageRequest
+      response: inboxes.SendEmailResponse
+      errors:
+        - inboxes.InboxDoesNotExistError
+        - MessageDoesNotExistError
+
+types:
+  Attachment:
+    properties:
+      id: string
+      name: string
+      type: string
+      size: integer
+
+  MessageItem:
+    properties:
+      id: string
+      sent_at: datetime
+      from: string
+      subject: string
+      preview: string
+      to: optional<list<string>>
+      cc: optional<list<string>>
+      bcc: optional<list<string>>
+      attachments: optional<list<Attachment>>
+
+  Message:
+    properties:
+      id: string
+      thread_id: string
+      sent_at: datetime
+      recieved_at: datetime
+      from: string
+      subject: string
+      preview: string
+      to: optional<list<string>>
+      cc: optional<list<string>>
+      bcc: optional<list<string>>
+      text: optional<string>
+      html: optional<string>
+      in_reply_to: optional<string>
+      references: optional<list<string>>
+      attachments: optional<list<Attachment>>
+
+  ListMessagesResponse:
+    properties:
+      messages: list<MessageItem>
+      limit: integer
+      count: integer
+      last_key: optional<string>
+
+  ReplyToMessageRequest:
+    properties:
+      to: optional<list<string>>
+      cc: optional<list<string>>
+      bcc: optional<list<string>>
+      text: optional<string>
+      html: optional<string>
+
+errors:
+  MessageDoesNotExistError:
+    status-code: 404
+    type: string

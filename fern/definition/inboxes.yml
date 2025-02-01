@@ -27,14 +27,25 @@ service:
     deleteInbox:
       docs: Deletes inbox and all of its threads and messages.
       method: DELETE
-      path: /{id}
+      path: /{inbox_id}
       path-parameters:
-        id: string
+        inbox_id: string
       errors:
         - InboxDoesNotExistError
       examples:
         - path-parameters:
-            id: inbox@agentmail.to
+            inbox_id: inbox@agentmail.to
+
+    sendEmail:
+      docs: Sends email from inbox address.
+      method: POST
+      path: /{inbox_id}/send
+      path-parameters:
+        inbox_id: string
+      request: SendEmailRequest
+      response: SendEmailResponse
+      errors:
+        - InboxDoesNotExistError
 
 types:
   Inbox:
@@ -45,6 +56,20 @@ types:
     properties:
       username: optional<string>
       domain: optional<string>
+
+  SendEmailRequest:
+    properties:
+      to: list<string>
+      cc: optional<list<string>>
+      bcc: optional<list<string>>
+      subject: optional<string>
+      text: optional<string>
+      html: optional<string>
+
+  SendEmailResponse:
+    properties:
+      thread_id: string
+      message_id: string
 
 errors:
   InboxDoesNotExistError:
