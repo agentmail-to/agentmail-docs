@@ -61,7 +61,7 @@ navigation:
             path: pages/handling-attachments.mdx
       - section: Examples
         contents:
-          - page: Virtual Discount Code Scraper
+          - page: Shopper Agent
             path: pages/shopper-agent.mdx
   - tab: api
     layout:

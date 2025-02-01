@@ -1,0 +1,359 @@
+---
+title: Shopper Agent
+subtitle: Creating an agent that monitors incoming emails and sends most relevant emails to user
+slug: shopper-agent
+description: An introduction to AgentMail, its features, use cases, market potential, and the team behind it.
+---
+
+### Creating a Shopper Agent with AgentMail
+
+This is an example implementation of how Agent's can be equipped with their own inbox and interact with internet resources autonomously, and do the heavy duty lifting of tedious tasks.
+
+Here we will be creating a shopper agent that monitors incoming emails(to its own inbox of course) and sends the most relevant emails regarding coupon codes and deals tailored to the user's preferences straight to their inbox.
+
+## Quick Start
+
+<Steps>
+  <Step title="Install Dependencies">
+    ```bash
+    pip install agentmail asyncio websockets json typing dotenv langchain langchain-openai langgraph playwright fastapi browser-use python-dotenv 
+    ```
+  </Step>
+
+{" "}
+
+<Step title="Set up Environment">
+ Create a `.env` file in your project root, and add your API key to an LLM. The
+    most common models are 4o with OpenAI or 3.5 sonnet from Anthropic. Feel free
+    to choose one that aligns with your needs but for the sake of this demo we
+    will be using OpenAI
+
+    ```bash
+
+OPENAI_API_KEY=your_api_key_here
+
+````
+
+  </Step>
+
+  <Step title="Set up AgentMail API Key">
+   Add to your `.env` file your AgentMail API Key credentials
+
+    ```bash
+    AGENTMAIL_API_KEY=your_api_key_here
+    ```
+
+  </Step>
+</Steps>
+
+## Creating the Websocket Connection
+
+It seems counterintuitive to have an email sitting in the inbox and just have the agent read the email sitting in the inbox and react to it.
+
+So what we will do is create a websocket connection to the AgentMail inbox, and have it listen for incoming emails. Once the email regarding the coupon code is received, the agent will then be spun up to perform the task outlined.
+
+Lets create a connect.py file and start by importing the necessary libraries.
+
+```python title="connect.py" wordWrap
+import asyncio
+import websockets
+import json
+import agentmail  # Import the AgentMail client
+```
+Lets create a function that will connect to the AgentMail inbox and listen for incoming emails.
+
+```python title="connect.py" wordWrap
+async def connect_to_agent(email_address: str):
+    uri = f"ws://localhost:8000/ws/{email_address}"
+    client = AgentMail(base_url="https://api.agentmail.to")
+```
+
+Websocket is hosted locally, but if you plan on deploying this to production, you will need to host on your own server/domain.
+
+We created the Agentmail client instance, and can interact with the service via SDK calls.
+
+```python title="connect.py" wordWrap
+
+async def connect_to_agent(email_address: str):
+    uri = f"ws://localhost:8000/ws/{email_address}"
+    client = AgentMail(base_url="https://api.agentmail.to")
+
+    async with websockets.connect(uri) as websocket:
+        print(f"Connected to agent for {email_address}")
+        print("Waiting for new emails...")
+        while True:
+            try:
+                # Check for new emails
+                emails = client.get_emails(email_address)
+
+                # If there are new emails, send notification through websocket
+                if emails.emails:
+                    # creating our own message / notification type sending it to our own server.
+                    notification = {
+                        "type": "new_email",
+                        "data": {
+                            "email_address": email_address,
+                            "emails": [{"id": email.id, "subject": email.subject} for email in emails.emails]
+                        }
+                    }
+                    # Sending notification through websocket
+                    await websocket.send(json.dumps(notification))
+
+                    # Wait for response from agent
+                    response = await websocket.recv()
+                    response_data = json.loads(response)
+
+                    if response_data.get('status') == 'success':
+                        print("Email processing completed successfully. Closing connection.")
+                        return
+                else:
+                    # print("No emails found")
+                    await asyncio.sleep(5)
+
+            except websockets.ConnectionClosed:
+                print("Connection closed")
+                break
+            except Exception as e:
+                print(f"Error: {e}")
+                # Here we are basically just waiting for the email to come in and check in 5 second intervals.
+                await asyncio.sleep(5)
+```
+
+What this code does is it creates a websocket connection to the AgentMail inbox and constatly checks for new emails in 5 second intervals via the get_emails() function.
+
+Once the email is received, it sends a notification through the websocket to our own server to spin the agent up to perform the task outlined.
+
+## Creating the Agent
+
+Lets get the imports out of the way first.
+
+```python title="agent.py" wordWrap
+from langchain_openai import ChatOpenAI
+from browser_use import Agent, BrowserConfig, Browser
+from browser_use.browser.context import BrowserContextConfig
+from playwright.async_api import BrowserContext
+from dotenv import load_dotenv
+from browser_use.controller.service import Controller
+from client import AgentMail
+from typing import Optional, List
+from fastapi import FastAPI, WebSocket
+
+from fastapi.middleware.cors import CORSMiddleware
+
+
+import agentmail
+```
+
+## Browser
+We will be using the Browser-use library to create a browser instance and give our agent access to our browser so it can browse the web and sign up for the coupon codes.
+
+The implementation of the browser-use library is a bit complex, but the basic idea is that we are creating a browser instance and then passing it to the agent and for the sake of this demo we will give it the following configurations:
+
+1. Headless mode is set to false, so the browser will be visible to the user.
+2. Disable security is set to true, so the browser will not be secure.
+3. Chrome instance path is set to the path of the chrome browser on your machine.
+4. New context config is set to the following:
+
+You can play around with the configurations and see what works best for you. Here is the [browser-use documentation](https://browser-use.readthedocs.io/en/latest/) for more information.
+
+
+Lets load the `.env` file and create the browser instance.
+
+```python title="agent.py" wordWrap
+load_dotenv()
+
+browser = Browser(
+    config=BrowserConfig(
+        headless=False,
+        disable_security=True,
+        chrome_instance_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        new_context_config=BrowserContextConfig(
+        wait_for_network_idle_page_load_time=3.0,
+        browser_window_size={'width': 1280, 'height': 1100},
+    )
+    )
+)
+```
+
+Lets create the instance that will manage the email inbox and websocket connection.
+
+```python title="agent.py" wordWrap
+llm = ChatOpenAI(model="gpt-4o")
+
+class EmailManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+        self.agents: Dict[str, Agent] = {}
+
+    async def connect(self, email_address: str, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections[email_address] = websocket
+
+        # Create agent instance for this connection
+        self.agents[email_address] = Agent(
+           task=task,
+            llm=llm,
+            use_vision=True,
+            save_conversation_path=f"logs/conversation_{email_address}.json",
+            browser=browser,
+            controller=controller
+        )
+
+    async def disconnect(self, email_address: str):
+        if email_address in self.active_connections:
+            del self.active_connections[email_address]
+        if email_address in self.agents:
+            del self.agents[email_address]
+
+    async def process_email_update(self, email_address: str, data: dict):
+        if email_address in self.agents:
+            agent = self.agents[email_address]
+            await agent.run()
+```
+
+The task is an f string that will be passed to the agent as instructions. Here is the task that we will be passing:
+```python title="agent.py"
+task = f"""
+You are Agent Kelly, an email and web assistant. Your personal email url is {email_address}
+        You must follow these strict rules:
+        1. ALWAYS use the provided tool calls for ANY email operations - never try to access emails directly via URLs
+        2. Use 'Get all emails' tool to check for new emails
+        3. When you receive emails, first get their IDs from the emails.emails list returned by 'Get all emails'
+        4. When you find the Newsletter Signup Request email, read it by calling 'Get email content' with the email ID.
+        5. Use the browser-aware 'Sign up for newsletter' tool for each brand's website. When you do scroll to the very bottom of the page, usually 5000px. The newsletter signup button is usually there.
+        6. Be sure to not click the check box to confirm before clicking submit since it is already checked.
+        6. Use 'reply_to_email' tool to reply to the original email with promotions. Use the original email ID you used earlier. For new lines, don't use double slash n. Use a single slash n. In the message, say that you are subscribed to the newsletter, and will be forwarding the best deals that align with the user's interests in the future.
+
+        Your goal is to:
+        1. Monitor your inbox for a Newsletter Signup Request email
+        2. When found, sign up for the requested fashion brand newsletters
+        3. Reply with a kind email using the reply_to_email tool with the original email ID and titled 'Best Promotions' including a summary of each of the brands emails.
+
+
+        Remember: You must ONLY interact with emails through the provided tools.
+        Example workflow:
+        1. emails = Get all emails
+        2. if emails.emails exists and has items:
+           - email_id = emails.emails[0].id
+           - Use 'Get specific email' with email_id to read it
+
+        Remember: Never call 'Get all emails' repeatedly without processing the results.
+        """
+```
+
+Thats quite lengthy, but it ensures accuracy and the agent will not deviate from the task.
+
+With that out of the way, we will create the following:
+
+1. Browser Instance (to browse the web)
+2. Controller Instance (browser-use way of defining tools to give to the agent)
+3. App Instance (to host the websocket connection)
+4. AgenetMail Instance (to interact with the inbox)
+
+```python title="agent.py" wordWrap
+
+
+email_manager = EmailManager()
+
+browser = Browser()
+controller = Controller()
+client = AgentMail(base_url="https://api.agentmail.to")
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+## Tool Calls
+
+Here is the fun part. Tool calls.
+
+We will be creating tool calls for all the necessary endpoints, but feel free to play around with the code and create your own.
+
+Browser-use has a specific way to define custom functions(tools) that will be passed to the agent. This is in the form of controller.action(). It effectively is the `@tool` decorator in langchain.
+
+<Warning> Make sure to add succinct but descriptive docstrings if you are creating complex tools.</Warning>
+
+```python title="agent.py" wordWrap
+
+
+@controller.action('Create new email inbox')
+def create_inbox(username: Optional[str] = None) -> str:
+    result = client.create_inbox(username)
+    return f"Created inbox: {result.address}"
+
+@controller.action('Delete email inbox')
+def delete_inbox(address: str) -> str:
+    result = client.delete_inbox(address)
+    return f"Deleted inbox: {address}"
+
+
+```
+
+
+Finally, lets define the websocket endpoint that will be used to receive the notification a new email just came in, so we can spin up the agent to perform the task outlined.
+
+```python title="agent.py" wordWrap
+
+
+@app.websocket("/ws/{email_address}")
+async def websocket_endpoint(websocket: WebSocket, email_address: str):
+    await email_manager.connect(email_address, websocket)
+    try:
+        while True:
+            print("Waiting for WebSocket message...")
+            data = await websocket.receive_json()
+            print(f"Received data: {data}")
+
+            if data.get('type') == 'new_email':
+                await email_manager.process_email_update(email_address, data)
+                await websocket.send_json({
+                    "status": "success",
+                    "message": "Email processed successfully"
+                })
+                print("Processing complete, closing connection")
+                await websocket.close()
+                break  # Exit the loop
+    except Exception as e:
+        print(f"Error in websocket connection: {e}")
+    finally:
+        await email_manager.disconnect(email_address)
+```
+We communicate via these json messages, but feel free to play around with what information is sent over the websocket.
+
+
+Finally, lets run the app:
+
+```python title="agent.py" wordWrap
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+```
+
+# BOOM!
+
+You're done. Open up 2 terminals and run the following:
+
+```bash
+python connect.py
+python agent.py
+```
+
+Connect will be listening for new emails and when it receives one, it will send a notification to the agent.py file, which will spin up the agent and perform the task outlined.
+
+To see everything happen in real time, open up the browser and go to the inbox of the email you are monitoring on the [AgentMail demo site](https://app.agentmail.to/)
+
+Feel free to play around with the code and see what you can come up with!
+
+You can find here the full code for the [Shopper Agent](https://github.com/agentmail-ai/agent-mail-demo-shopper)
+
+# Happy coding!
+
+````

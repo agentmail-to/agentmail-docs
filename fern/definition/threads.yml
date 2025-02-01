@@ -1,0 +1,75 @@
+service:
+  base-path: /inboxes/{inbox_id}/threads
+  path-parameters:
+    inbox_id: string
+
+  auth: true
+
+  endpoints:
+    listThreads:
+      docs: Ordered by `updated_at` descending.
+      method: GET
+      path: /
+      request:
+        name: ListThreadsRequest
+        query-parameters:
+          limit: optional<integer>
+          last_key: optional<string>
+      response: ListThreadsResponse
+
+    getThread:
+      docs: Messages ordered by `sent_at` ascending.
+      method: GET
+      path: /{thread_id}
+      path-parameters:
+        thread_id: string
+      response: Thread
+      errors:
+        - ThreadDoesNotExistError
+
+types:
+  Attachment:
+    properties:
+      id: string
+      name: string
+      type: string
+      size: integer
+
+  Message:
+    properties:
+      id: string
+      sent_at: datetime
+      recieved_at: datetime
+      from: string
+      reply_to: optional<string>
+      to: optional<list<string>>
+      cc: optional<list<string>>
+      bcc: optional<list<string>>
+      text: optional<string>
+      html: optional<string>
+      in_reply_to: optional<string>
+      references: optional<list<string>>
+      attachments: optional<list<Attachment>>
+
+  ThreadItem:
+    properties:
+      id: string
+      subject: string
+      updated_at: datetime
+
+  Thread:
+    extends: ThreadItem
+    properties:
+      messages: list<Message>
+
+  ListThreadsResponse:
+    properties:
+      threads: list<ThreadItem>
+      limit: integer
+      count: integer
+      last_key: optional<string>
+
+errors:
+  ThreadDoesNotExistError:
+    status-code: 404
+    type: string
