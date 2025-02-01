@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+navigation:
+  - inboxes.yml
+  - threads.yml
+  - messages.yml
+
+types:
+  QueryLimit:
+    type: optional<integer>
+    docs: Limit of number of items returned.
+
+  Limit:
+    type: integer
+    docs: Limit of number of items returned.
+
+  Count:
+    type: integer
+    docs: Number of items returned.
+
+  LastKey:
+    type: optional<string>
+    docs: Key of last item.

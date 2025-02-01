@@ -1,52 +1,113 @@
-service:
-  base-path: /inboxes
-  auth: true
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
-  endpoints:
-    createInbox:
-      docs: |
-        If `username` is not specified, one will be randomly generated.
-
-        `domain` must be one of your organization's verified domains or `agentmail.to`. If `domain` is not specified, it will default to `agentmail.to`.
-      method: POST
-      path: /
-      request: CreateInboxRequest
-      response: Inbox
-      examples:
-        - request:
-            username: inbox
-          response:
-            body:
-              id: inbox@agentmail.to
-        - request:
-            domain: yourdomain.com
-          response:
-            body:
-              id: helpfulagent123@yourdomain.com
-
-    deleteInbox:
-      docs: Deletes inbox and all of its threads and messages.
-      method: DELETE
-      path: /{id}
-      path-parameters:
-        id: string
-      errors:
-        - InboxDoesNotExistError
-      examples:
-        - path-parameters:
-            id: inbox@agentmail.to
+imports:
+  shared: __package__.yml
 
 types:
+  InboxId:
+    type: string
+    docs: ID (address) of inbox.
+
   Inbox:
     properties:
-      id: string
+      id: InboxId
+      display_name:
+        type: string
+        docs: "Display name for address: `display_name <address>`."
+      created_at:
+        type: datetime
+        docs: Time at which inbox was created.
+    examples:
+      - name: CustomName
+        value:
+          id: yourinbox@agentmail.to
+          display_name: Your Inbox
+          created_at: 2024-01-15T09:30:00Z
+      - name: CustomDomain
+        value:
+          id: helpfulagent123@yourdomain.com
+          display_name: Helpful Agent
+          created_at: 2024-01-15T09:30:00Z
+
+  ListInboxesResponse:
+    properties:
+      inboxes:
+        type: list<Inbox>
+        docs: List of inbox items. Ordered by `created_at` ascending.
+      limit: shared.Limit
+      count: shared.Count
+      last_key: shared.LastKey
 
   CreateInboxRequest:
     properties:
-      username: optional<string>
-      domain: optional<string>
+      username:
+        type: optional<string>
+        docs: Username of address. Randomly generated if not specified.
+      domain:
+        type: optional<string>
+        docs: Domain of address. Must be verified domain. Defaults to `agentmail.to`.
+      display_name:
+        type: optional<string>
+        docs: "Display name of address: `display_name <address>`."
+    examples:
+      - name: CustomName
+        value:
+          username: yourinbox
+          display_name: Your Inbox
+      - name: CustomDomain
+        value:
+          domain: yourdomain.com
 
 errors:
   InboxDoesNotExistError:
     status-code: 404
     type: string
+
+service:
+  base-path: /inboxes
+  auth: true
+
+  endpoints:
+    listInboxes:
+      method: GET
+      path: /
+      request:
+        name: ListInboxesRequest
+        query-parameters:
+          limit: shared.QueryLimit
+          last_key: shared.LastKey
+      response: ListInboxesResponse
+
+    getInbox:
+      method: GET
+      path: /{inbox_id}
+      path-parameters:
+        inbox_id: InboxId
+      response: Inbox
+      errors:
+        - InboxDoesNotExistError
+
+    createInbox:
+      method: POST
+      path: /
+      request: CreateInboxRequest
+      response: Inbox
+      examples:
+        - request: $CreateInboxRequest.CustomName
+          response:
+            body: $Inbox.CustomName
+        - request: $CreateInboxRequest.CustomDomain
+          response:
+            body: $Inbox.CustomDomain
+
+    deleteInbox:
+      method: DELETE
+      path: /{inbox_id}
+      path-parameters:
+        inbox_id: InboxId
+      docs: Delete inbox and all of its threads and messages.
+      errors:
+        - InboxDoesNotExistError
+      examples:
+        - path-parameters:
+            inbox_id: inbox@agentmail.to

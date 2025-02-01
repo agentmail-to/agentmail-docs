@@ -1,3 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  inboxes: inboxes.yml
+  messages: messages.yml
+
 service:
   base-path: /inboxes/{inbox_id}/threads
   path-parameters:
@@ -16,6 +22,8 @@ service:
           limit: optional<integer>
           last_key: optional<string>
       response: ListThreadsResponse
+      errors:
+        - inboxes.InboxDoesNotExistError
 
     getThread:
       docs: Messages ordered by `sent_at` ascending.
@@ -25,42 +33,33 @@ service:
         thread_id: string
       response: Thread
       errors:
+        - inboxes.InboxDoesNotExistError
+        - ThreadDoesNotExistError
+
+    deleteThread:
+      docs: Deletes thread and all of its messages.
+      method: DELETE
+      path: /{thread_id}
+      path-parameters:
+        thread_id: string
+      errors:
+        - inboxes.InboxDoesNotExistError
         - ThreadDoesNotExistError
 
 types:
-  Attachment:
-    properties:
-      id: string
-      name: string
-      type: string
-      size: integer
-
-  Message:
-    properties:
-      id: string
-      sent_at: datetime
-      recieved_at: datetime
-      from: string
-      reply_to: optional<string>
-      to: optional<list<string>>
-      cc: optional<list<string>>
-      bcc: optional<list<string>>
-      text: optional<string>
-      html: optional<string>
-      in_reply_to: optional<string>
-      references: optional<list<string>>
-      attachments: optional<list<Attachment>>
-
   ThreadItem:
     properties:
       id: string
-      subject: string
       updated_at: datetime
+      subject: string
 
   Thread:
-    extends: ThreadItem
     properties:
-      messages: list<Message>
+      id: string
+      created_at: datetime
+      updated_at: datetime
+      subject: string
+      messages: list<messages.Message>
 
   ListThreadsResponse:
     properties:
