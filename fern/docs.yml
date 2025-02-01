@@ -35,6 +35,34 @@ navigation:
         contents:
           - page: Welcome
             path: pages/welcome.mdx
+          - page: What is AgentMail?
+            path: pages/what-is-agentmail.mdx
+          # - page: Use Cases
+          #   path: pages/use-cases.mdx
+          - page: Installation
+            path: pages/installation.mdx
+            # sdk installation guides
+            # system requirements
+          - page: Frequently Asked Questions
+            path: pages/faq.mdx
+      - section: How To
+        contents:
+          - page: Creating Your First Inbox
+            path: pages/first-inbox.mdx
+          - page: Sending emails
+            path: pages/sending-emails.mdx
+          - page: Recieving emails
+            path: pages/recieving-emails.mdx
+          - page: Using Agents
+            path: pages/using-agents.mdx
+          - page: Webhooks
+            path: pages/webhooks.mdx
+          - page: Handling Attachments
+            path: pages/handling-attachments.mdx
+      - section: Examples
+        contents:
+          - page: Virtual Discount Code Scraper
+            path: pages/shopper-agent.mdx
   - tab: api
     layout:
       - api: API Reference

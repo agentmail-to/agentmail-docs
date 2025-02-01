@@ -35,6 +35,86 @@ service:
       examples:
         - path-parameters:
             address: inbox@agentmail.to
+    getEmails:
+      docs: |
+        Gets all emails in a specified inbox.
+
+        <Warning>Authorization required: You must be authorized to access the specified inbox. The inbox must belong to your organization.</Warning>
+      method: GET
+      path: /{address}/emails
+      response: EmailList
+      path-parameters:
+        address: string
+      errors:
+        - EmailDoesNotExistError
+        - NotAuthorizedError
+        - InboxDoesNotExistError
+    getEmail:
+      docs: |
+        Gets a specific email in a specified inbox.
+
+        <Warning>Authorization required: You must be authorized to access the specified inbox. The inbox must belong to your organization.</Warning>
+      method: GET
+      path: /{address}/emails/{id}
+      # TODO: should be a single object, but listing out all the properties looks messy.
+      response: EmailObject
+      path-parameters:
+        address: string
+        id: string
+      errors:
+        - EmailDoesNotExistError
+        - NotAuthorizedError
+        - InboxDoesNotExistError
+    getSentEmails:
+      docs: |
+        Gets all sent emails for a specified inbox.
+
+        <Warning>Authorization required: You must be authorized to access the specified inbox. The inbox must belong to your organization.</Warning>
+      method: GET
+      path: /{address}/sent
+      response: EmailList
+      path-parameters:
+        address: string
+      errors:
+        - NotAuthorizedError
+        - InboxDoesNotExistError
+    getSentEmail:
+      docs: |
+        Gets a specific sent email for a specified inbox.
+
+        <Warning>This endpoint is not yet implemented.</Warning>
+      method: GET
+      path: /{address}/sent/{id}
+      response: Email
+      path-parameters:
+        address: string
+        id: string
+      errors:
+        - EmailDoesNotExistError
+        - NotAuthorizedError
+        - InboxDoesNotExistError
+    sendEmail:
+      docs: |
+        Sends an email from a specified inbox.
+
+        <Warning>This endpoint is not yet implemented.</Warning>
+      method: POST
+      path: /{address}/send
+      request: SendEmailRequest
+      path-parameters:
+        address: string
+      response: Email
+      # examples:
+      #   - request:
+      #       username: inbox
+      #     response:
+      #       body:
+      #         address: inbox@agentmail.to
+      #   - request:
+      #       domain: yourdomain.com
+      #     response:
+      #       body:
+      #         address: helpfulagent123@yourdomain.com
 
 types:
   Inbox:
@@ -46,7 +126,54 @@ types:
       username: optional<string>
       domain: optional<string>
 
+  SendEmailRequest:
+    properties:
+      address: string
+      to: list<EmailAddress>
+      cc: optional<string>
+      bcc: optional<string>
+      subject: optional<string>
+      text: optional<string>
+
+  EmailList:
+    properties:
+      emails:
+        type: list<Email>
+
+  Email:
+    properties:
+      id: string
+      timestamp: string
+      from: EmailAddress
+      to: optional<list<EmailAddress>>
+      subject: optional<string>
+      text: optional<string>
+      created_at: string
+      message_id: optional<string>
+      in_reply_to: optional<string>
+      references: optional<list<string>>
+      reply_to: optional<EmailAddress>
+      cc: optional<list<EmailAddress>>
+      bcc: optional<list<EmailAddress>>
+      html: optional<string>
+
+  EmailObject:
+    properties:
+      Email:
+        type: Email
+
+  EmailAddress:
+    properties:
+      address: string
+      name: optional<string>
+
 errors:
   InboxDoesNotExistError:
     status-code: 404
+    type: string
+  EmailDoesNotExistError:
+    status-code: 400
+    type: string
+  NotAuthorizedError:
+    status-code: 403
     type: string
