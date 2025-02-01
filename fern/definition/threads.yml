@@ -7,7 +7,7 @@ service:
 
   endpoints:
     listThreads:
-      docs: Ordered by `last_activity` descending.
+      docs: Ordered by `updated_at` descending.
       method: GET
       path: /
       request:
@@ -18,35 +18,47 @@ service:
       response: ListThreadsResponse
 
     getThread:
-      docs: Ordered by `last_activity` descending.
+      docs: Messages ordered by `sent_at` ascending.
       method: GET
-      path: /{id}
+      path: /{thread_id}
       path-parameters:
-        id: string
-      request:
-        name: ListThreadsRequest
-        query-parameters:
-          limit: optional<integer>
-          last_key: optional<string>
-      response: ListThreadsResponse
+        thread_id: string
+      response: Thread
 
 types:
+  Attachment:
+    properties:
+      id: string
+      name: string
+      type: string
+      size: integer
+
   Message:
     properties:
-      message_id: string
+      id: string
+      sent_at: datetime
+      recieved_at: datetime
+      from: string
+      reply_to: optional<string>
+      to: optional<list<string>>
+      cc: optional<list<string>>
+      bcc: optional<list<string>>
+      text: optional<string>
+      html: optional<string>
+      in_reply_to: optional<string>
+      references: optional<list<string>>
+      attachments: optional<list<Attachment>>
 
   ThreadItem:
     properties:
       id: string
-      participants: list<string>
       subject: string
-      preview: string
-      last_activity: datetime
+      updated_at: datetime
 
   Thread:
     extends: ThreadItem
     properties:
-      messages:
+      messages: list<Message>
 
   ListThreadsResponse:
     properties:
