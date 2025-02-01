@@ -1,0 +1,21 @@
+service:
+  base-path: /inboxes/{inbox_id}/attachments/{attachment_id}
+  path-parameters:
+    inbox_id: string
+    attachment_id: string
+  auth: true
+
+  endpoints:
+    getAttachment:
+      method: GET
+      path: /
+      # response:
+      #   type: bytes
+      #   docs: The binary contents of the attachment file
+
+types:
+
+errors:
+  AttachmentDoesNotExistError:
+    status-code: 404
+    type: string

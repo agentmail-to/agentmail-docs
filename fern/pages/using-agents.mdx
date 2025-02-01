@@ -1,0 +1,255 @@
+---
+title: Agent Application
+subtitle: Creating Agents that can send and receive emails
+slug: using-agents
+description: An introduction to AgentMail, its features, use cases, market potential, and the team behind it.
+---
+
+### Using Agents with AgentMail
+
+AgentMail can be easily integrated with LangChain to create AI agents that can send, receive, and manage emails. This guide will walk you through creating an agent with access to AgentMail via tools.
+
+## Quick Start
+
+<Steps>
+  <Step title="Install Dependencies">
+    ```bash
+    pip install langchain langchain-openai langgraph python-dotenv agentmail
+    ```
+  </Step>
+
+{" "}
+
+<Step title="Set up Environment">
+ Create a `.env` file in your project root, and add your API key to an LLM. The
+    most common models are 4o with OpenAI or 3.5 sonnet from Anthropic. Feel free
+    to choose one that aligns with your needs but for the sake of this demo we
+    will be using OpenAI
+
+    ```bash
+
+OPENAI_API_KEY=your_api_key_here
+
+````
+
+  </Step>
+
+  <Step title="Set up AgentMail API Key">
+   Add to your `.env` file your AgentMail API Key credentials
+
+    ```bash
+    AGENTMAIL_API_KEY=your_api_key_here
+    ```
+
+  </Step>
+</Steps>
+
+## Creating Email Tools
+
+To enable your agent to interact with email, you'll need to create tools using LangChain's `@tool` decorator. Here's how to create basic email management tools.
+
+
+
+## Defining methods
+
+Per the API documentation, we have the following methods:
+TODO: fix methods
+
+- `create_inbox`
+- `delete_inbox`
+- `get_threads`
+- `get_messages_in_thread`
+- `get_sent_messages`
+- `send_message`
+- `reply_to_message`
+
+TODO: fix link
+
+These are individual API endpoints that you can use to interact with AgentMail, and you can see how to use them in the [API Reference](https://docs.agentmail.dev/reference/api).
+
+But here we will use the AgentMail SDK to create the tools so we don't need to define the methods ourselves.
+
+<Tip>
+  Reminder: you can find full implementation of this agent implementation with
+  the AgentMail Client
+  [here](https://github.com/agentmail/agentmail-python/blob/main/agent.py)
+</Tip>
+
+## Defining the Tools
+
+This is the fun part. We will be using LangChain's `@tool` decorator to define the tools that your agent will be able to use, and thus gain access to AgentMail.
+
+Lets import the necessary packages.
+
+```python title="agent.py" wordWrap
+from typing import Optional, List
+
+from dotenv import load_dotenv
+from langchain.tools import tool
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.prebuilt import create_react_agent
+
+from AgentMail import AgentMailClient
+
+```
+
+The key thing to note here is that you can define as many or as little tools as your agent needs.
+
+Lets first initalize an AgentMail Client that can make the API requests to AgentMail alongside the necessary environment variables.
+
+```python title="agent.py" wordWrap
+
+BASE_URL = "https://api.agentmail.dev"
+load_dotenv()
+client = AgentMail(BASE_URL)
+```
+You can find the full list of methods you can use with the AgentMail Client [here](https://docs.agentmail.dev/reference/api).
+
+This is how you can define tools for your agent with LangChain.
+
+```python title="agent.py" wordWrap
+
+@tool
+def create_inbox(username: Optional[str] = None):
+    """Create email inbox"""
+    return client.create_inbox(username)
+
+@tool
+def delete_inbox(address: str):
+    """Delete email inbox"""
+    return client.delete_inbox(address)
+
+
+```
+
+Make sure to create succinct docstrings for your tools so that the agent can clearly understand what the tool does.
+
+You can create custom tools that utilize the API endpoints in a way that tailors to your agents needs. For this tutorial we simply define straightfoward tools for each API endpoint.
+
+## Creating the Agent
+
+<Note>
+  If you already have an agent that you need to give access to the tools, you
+  can disregard this part where we create a new agent and give the tools to it.
+</Note>
+
+We will be doing the following:
+1. Create a fresh new inbox
+2. Create a new agent with `create_react_agent` from Langchain
+3. Pass in the tools we defined earlier
+4. Start the agent
+
+```python title="agent.py" wordWrap
+
+def main():
+    inbox = client.create_inbox()
+
+```
+
+Clean. Fresh. New. Inbox.
+
+TODO: change the tools passed in to the agent
+
+```python title="agent.py" wordWrap
+
+
+    agent = create_react_agent(
+        model=ChatOpenAI(model="gpt-4o", temperature=0),
+        tools=[create_inbox, delete_inbox, get_emails, get_email, get_sent_emails, get_sent_email, send_email, reply_to_email],
+        state_modifier=SystemMessage(
+            content=f"You are an agent that can send, receive, and manage emails. You were created by AgentMail. Your email address is {inbox.address}."
+        ),
+        checkpointer=MemorySaver(),
+    )
+
+    def invoke_agent(message: str):
+        input = {"messages": [message]}
+        config = {"configurable": {"thread_id": "0"}}
+        for output in agent.stream(input, config, stream_mode="values"):
+            message = output["messages"][-1]
+            message.pretty_print()
+            print("\n")
+
+    print("\nAgent inbox:", inbox.address, "\n")
+
+```
+Here we are creating a new agent with `create_react_agent` from Langchain. We are passing in the tools we defined earlier, and the state modifier is a system message that tells the agent who it is and what it can do.
+
+
+Lets start the agent.
+
+We will be using Langchains HumanMessage and and MemorsySaver to start. If you would like to learn more about how Langchain works, you can check out the [Langchain documentation](https://python.langchain.com/docs/get_started/introduction).
+
+```python title="agent.py" wordWrap
+while True:
+        prompt = input("Prompt:\n\n")
+        print(f"\n")
+
+        if prompt.lower() == "quit":
+            break
+
+        message = HumanMessage(content=prompt)
+        invoke_agent(message)
+
+    client.delete_inbox(inbox.address)
+
+    print("Inbox deleted\n")
+
+```
+
+<Warning>
+  Common Pitfalls:
+  1. Make sure your API key has the correct permissions to this specific organization and inbox.
+  2. The agent's inbox is automatically deleted when the script is terminated.
+  3. Be aware of API rate limits when sending multiple emails in a short period of time.
+
+</Warning>
+
+# Example Prompts and Interactions
+
+<CardGroup cols={2}>
+<Card
+    title=""
+
+>
+"What are your capabilities?"
+</Card>
+
+<Card
+    title=""
+
+>
+"Send an email to johndoe@agentmail.to summarizing the last 3 emails in your inbox"
+</Card>
+
+<Card
+    title=""
+
+>
+"I'm free everyday from 5-10 PM. Find a time that overlaps with my schedule and my coworker by reaching him at his email janedoe@agentmail.to"
+</Card>
+
+<Card
+    title=""
+
+>
+"Summarize the thread talking about the new wave of AI Agents I had with Joshua, and loop Haakam in the conversation by reaching him at his email haakam@agentmail.to"
+</Card>
+</CardGroup>
+
+
+
+
+
+
+Now we have a fully functional agent with its own inbox that can send and receive emails, and effectively communicate with any email, resource, or agent in the world.
+
+Feel free to play around with the code and see how it works.
+
+We have a live demo of this agent [here](https://chat.agentmail.to/)
+
+# Happy coding!
+
+````
