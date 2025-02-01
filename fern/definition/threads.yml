@@ -34,6 +34,16 @@ service:
         - inboxes.InboxDoesNotExistError
         - ThreadDoesNotExistError
 
+    deleteThread:
+      docs: Deletes thread and all of its messages.
+      method: DELETE
+      path: /{thread_id}
+      path-parameters:
+        thread_id: string
+      errors:
+        - inboxes.InboxDoesNotExistError
+        - ThreadDoesNotExistError
+
 types:
   ThreadItem:
     properties:
@@ -44,6 +54,7 @@ types:
   Thread:
     properties:
       id: string
+      created_at: datetime
       updated_at: datetime
       subject: string
       messages: list<messages.Message>

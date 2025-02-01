@@ -3,6 +3,26 @@ service:
   auth: true
 
   endpoints:
+    listInboxes:
+      docs: Ordered by `created_at` ascending.
+      method: GET
+      path: /
+      request:
+        name: ListInboxesRequest
+        query-parameters:
+          limit: optional<integer>
+          last_key: optional<string>
+      response: ListInboxesResponse
+
+    getInbox:
+      method: GET
+      path: /{inbox_id}
+      path-parameters:
+        inbox_id: string
+      response: Inbox
+      errors:
+        - InboxDoesNotExistError
+
     createInbox:
       docs: |
         If `username` is not specified, one will be randomly generated.
@@ -12,17 +32,17 @@ service:
       path: /
       request: CreateInboxRequest
       response: Inbox
-      examples:
-        - request:
-            username: inbox
-          response:
-            body:
-              id: inbox@agentmail.to
-        - request:
-            domain: yourdomain.com
-          response:
-            body:
-              id: helpfulagent123@yourdomain.com
+      # examples:
+      #   - request:
+      #       username: inbox
+      #     response:
+      #       body:
+      #         id: inbox@agentmail.to
+      #   - request:
+      #       domain: yourdomain.com
+      #     response:
+      #       body:
+      #         id: helpfulagent123@yourdomain.com
 
     deleteInbox:
       docs: Deletes inbox and all of its threads and messages.
@@ -51,11 +71,21 @@ types:
   Inbox:
     properties:
       id: string
+      name: string
+      created_at: datetime
 
   CreateInboxRequest:
     properties:
       username: optional<string>
       domain: optional<string>
+      name: optional<string>
+
+  ListInboxesResponse:
+    properties:
+      inboxes: list<Inbox>
+      limit: integer
+      count: integer
+      last_key: optional<string>
 
   SendEmailRequest:
     properties:

@@ -32,6 +32,15 @@ service:
         - inboxes.InboxDoesNotExistError
         - MessageDoesNotExistError
 
+    deleteThread:
+      method: DELETE
+      path: /{message_id}
+      path-parameters:
+        message_id: string
+      errors:
+        - inboxes.InboxDoesNotExistError
+        - MessageDoesNotExistError
+
     replyToMessage:
       method: POST
       path: /{message_id}
