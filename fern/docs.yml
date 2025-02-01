@@ -49,18 +49,18 @@ navigation:
             path: pages/faq.mdx
       - section: How To
         contents:
-          - page: Creating Your First Inbox
-            path: pages/first-inbox.mdx
-          - page: Sending emails
-            path: pages/sending-emails.mdx
-          - page: Recieving emails
-            path: pages/recieving-emails.mdx
+          # - page: Creating Your First Inbox
+          #   path: pages/first-inbox.mdx
+          # - page: Sending emails
+          #   path: pages/sending-emails.mdx
+          # - page: Recieving emails
+          #   path: pages/recieving-emails.mdx
           - page: Using Agents
             path: pages/using-agents.mdx
-          - page: Webhooks
-            path: pages/webhooks.mdx
-          - page: Handling Attachments
-            path: pages/handling-attachments.mdx
+          # - page: Webhooks
+          #   path: pages/webhooks.mdx
+          # - page: Handling Attachments
+          #   path: pages/handling-attachments.mdx
       - section: Examples
         contents:
           - page: Shopper Agent
