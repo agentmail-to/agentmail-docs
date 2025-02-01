@@ -10,7 +10,7 @@ auth-schemes:
   Bearer:
     scheme: bearer
     token:
-      name: apiKey
+      name: api_key
       env: AGENTMAIL_API_KEY
 
 error-discrimination:

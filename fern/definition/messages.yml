@@ -32,7 +32,7 @@ service:
         - inboxes.InboxDoesNotExistError
         - MessageDoesNotExistError
 
-    deleteThread:
+    deleteMessage:
       method: DELETE
       path: /{message_id}
       path-parameters:
@@ -47,7 +47,7 @@ service:
       path-parameters:
         message_id: string
       request: ReplyToMessageRequest
-      response: inboxes.SendEmailResponse
+      response: inboxes.SendMessageResponse
       errors:
         - inboxes.InboxDoesNotExistError
         - MessageDoesNotExistError
