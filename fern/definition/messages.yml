@@ -1,58 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
 imports:
   inboxes: inboxes.yml
 
-service:
-  base-path: /inboxes/{inbox_id}/messages
-  path-parameters:
-    inbox_id: string
-
-  auth: true
-
-  endpoints:
-    listMessages:
-      docs: Ordered by `sent_at` descending.
-      method: GET
-      path: /
-      request:
-        name: ListMessagesRequest
-        query-parameters:
-          limit: optional<integer>
-          last_key: optional<string>
-      response: ListMessagesResponse
-      errors:
-        - inboxes.InboxDoesNotExistError
-
-    getMessage:
-      method: GET
-      path: /{message_id}
-      path-parameters:
-        message_id: string
-      response: Message
-      errors:
-        - inboxes.InboxDoesNotExistError
-        - MessageDoesNotExistError
-
-    deleteMessage:
-      method: DELETE
-      path: /{message_id}
-      path-parameters:
-        message_id: string
-      errors:
-        - inboxes.InboxDoesNotExistError
-        - MessageDoesNotExistError
-
-    replyToMessage:
-      method: POST
-      path: /{message_id}
-      path-parameters:
-        message_id: string
-      request: ReplyToMessageRequest
-      response: inboxes.SendMessageResponse
-      errors:
-        - inboxes.InboxDoesNotExistError
-        - MessageDoesNotExistError
-
 types:
+  MessageId:
+    type: string
+    docs: ID of message.
+
   Attachment:
     properties:
       id: string
@@ -62,7 +17,7 @@ types:
 
   MessageItem:
     properties:
-      id: string
+      id: MessageId
       sent_at: datetime
       from: string
       subject: string
@@ -74,7 +29,7 @@ types:
 
   Message:
     properties:
-      id: string
+      id: MessageId
       thread_id: string
       sent_at: datetime
       recieved_at: datetime
@@ -97,6 +52,40 @@ types:
       count: integer
       last_key: optional<string>
 
+  Addresses:
+    discriminated: false
+    union:
+      - string
+      - list<string>
+
+  SendMessageRequest:
+    properties:
+      to:
+        type: Addresses
+        docs: Recipient address or addresses.
+      cc:
+        type: optional<Addresses>
+        docs: CC recipient address or addresses.
+      bcc:
+        type: optional<Addresses>
+        docs: BCC recipient address or addresses.
+      subject:
+        type: optional<string>
+        docs: Subject of message.
+      text:
+        type: optional<string>
+        docs: Plain text body of message.
+      html:
+        type: optional<string>
+        docs: HTML body of message.
+
+  SendMessageResponse:
+    properties:
+      thread_id:
+        type: string
+        docs: Thread ID of message.
+      message_id: MessageId
+
   ReplyToMessageRequest:
     properties:
       to: optional<list<string>>
@@ -109,3 +98,63 @@ errors:
   MessageDoesNotExistError:
     status-code: 404
     type: string
+
+service:
+  base-path: /inboxes/{inbox_id}/messages
+  path-parameters:
+    inbox_id: inboxes.InboxId
+
+  auth: true
+
+  endpoints:
+    listMessages:
+      docs: Ordered by `sent_at` descending.
+      method: GET
+      path: /
+      request:
+        name: ListMessagesRequest
+        query-parameters:
+          limit: optional<integer>
+          last_key: optional<string>
+      response: ListMessagesResponse
+      errors:
+        - inboxes.InboxDoesNotExistError
+
+    getMessage:
+      method: GET
+      path: /{message_id}
+      path-parameters:
+        message_id: MessageId
+      response: Message
+      errors:
+        - inboxes.InboxDoesNotExistError
+        - MessageDoesNotExistError
+
+    deleteMessage:
+      method: DELETE
+      path: /{message_id}
+      path-parameters:
+        message_id: MessageId
+      errors:
+        - inboxes.InboxDoesNotExistError
+        - MessageDoesNotExistError
+
+    sendMessage:
+      method: POST
+      path: /send
+      docs: Send message from inbox.
+      request: SendMessageRequest
+      response: SendMessageResponse
+      errors:
+        - inboxes.InboxDoesNotExistError
+
+    replyToMessage:
+      method: POST
+      path: /{message_id}/reply
+      path-parameters:
+        message_id: MessageId
+      request: ReplyToMessageRequest
+      response: SendMessageResponse
+      errors:
+        - inboxes.InboxDoesNotExistError
+        - MessageDoesNotExistError

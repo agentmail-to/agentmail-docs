@@ -58,42 +58,6 @@ types:
         value:
           domain: yourdomain.com
 
-  Addresses:
-    discriminated: false
-    union:
-      - string
-      - list<string>
-
-  SendMessageRequest:
-    properties:
-      to:
-        type: Addresses
-        docs: Recipient address or addresses.
-      cc:
-        type: optional<Addresses>
-        docs: CC recipient address or addresses.
-      bcc:
-        type: optional<Addresses>
-        docs: BCC recipient address or addresses.
-      subject:
-        type: optional<string>
-        docs: Subject of message.
-      text:
-        type: optional<string>
-        docs: Plain text body of message.
-      html:
-        type: optional<string>
-        docs: HTML body of message.
-
-  SendMessageResponse:
-    properties:
-      thread_id:
-        type: string
-        docs: Thread ID of message.
-      message_id:
-        type: string
-        docs: ID of message.
-
 errors:
   InboxDoesNotExistError:
     status-code: 404
@@ -147,14 +111,3 @@ service:
       examples:
         - path-parameters:
             inbox_id: inbox@agentmail.to
-
-    sendMessage:
-      method: POST
-      path: /{inbox_id}/messages/send
-      path-parameters:
-        inbox_id: InboxId
-      docs: Send message from inbox.
-      request: SendMessageRequest
-      response: SendMessageResponse
-      errors:
-        - InboxDoesNotExistError
