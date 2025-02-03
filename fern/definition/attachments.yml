@@ -10,13 +10,144 @@ service:
     getAttachment:
       method: GET
       path: /
-      response:
-        type: file
-        docs: This returns the attachment as a file in the response. File type is determined by the attachment's Content-Type header.
+      response: AttachmentResponse
+      errors:
+        - ResourceNotFound
+      docs:
+        This returns the attachment as a file in the response. File type is determined by the attachment's Content-Type header. There are a couple of ways to get the data. <AccordionGroup><Accordion title="cUrl(Binary Output)">``` curl https://api.agentmail.dev/inboxes/123/messages/456/attachments/789 ```</Accordion><Accordion title="cUrl (Save to file)">``` curl -O https://api.agentmail.dev/inboxes/123/messages/456/attachments/789 ```</Accordion> <Accordion title="Browser (Automatic Download)">```fetch('/inboxes/123/messages/456/attachments/789')
+        .then(response => /* browser triggers download */);```</Accordion> <Accordion title ="Python(Agents)">```response = requests.get('/inboxes/123/messages/456/attachments/789')
+        with open('file.pdf', 'wb') as f
+        f.write(response.content)```</Accordion></AccordionGroup>
+      examples:
+        # Successful PDF download
+        - name: PDFDownload
+          path-parameters:
+            inbox_id: "inbox_123"
+            message_id: "msg_456"
+            attachment_id: "att_789"
+          response:
+            body:
+              statusCode: 200
+              headers:
+                Content-Type: "application/pdf"
+                Content-Disposition: 'attachment; filename="document.pdf"'
+              body: "<base64-encoded-binary-data>"
+              isBase64Encoded: true
+
+        # Successful image download
+        - name: ImageDownload
+          path-parameters:
+            inbox_id: "inbox_123"
+            message_id: "msg_456"
+            attachment_id: "att_790"
+          response:
+            body:
+              statusCode: 200
+              headers:
+                Content-Type: "image/jpeg"
+                Content-Disposition: 'attachment; filename="photo.jpg"'
+              body: "<base64-encoded-binary-data>"
+              isBase64Encoded: true
+
+        # Error example
+        - name: NotFound
+          path-parameters:
+            inbox_id: "inbox_123"
+            message_id: "msg_456"
+            attachment_id: "att_invalid"
+          response:
+            error: ResourceNotFound
+            body: ResourceNotFound
 
 types:
+  AttachmentResponse:
+    properties:
+      statusCode: integer
+      headers: Headers # Reference a separate Headers type
+      body: string # base64 encoded binary data
+      isBase64Encoded: boolean
+
+  # Define Headers as a separate type
+  Headers:
+    properties:
+      Content-Type: string
+      Content-Disposition: string
+    examples:
+      - name: PDFHeaders
+        value:
+          Content-Type: "application/pdf"
+          Content-Disposition: 'attachment; filename="document.pdf"'
+      - name: ImageHeaders
+        value:
+          Content-Type: "image/jpeg"
+          Content-Disposition: 'attachment; filename="photo.jpg"'
 
 errors:
-  AttachmentDoesNotExistError:
+  ResourceNotFound:
     status-code: 404
     type: string
+#   endpoints:
+#     getAttachment:
+#       method: GET
+#       path: /
+#       response:
+#         type: AttachmentResponse
+#         docs:
+#           This returns the attachment as a file in the response. File type is determined by the attachment's Content-Type header. There are a couple of ways to get the data. <AccordionGroup><Accordion title="cUrl(Binary Output)">``` curl https://api.agentmail.dev/inboxes/123/messages/456/attachments/789 ```</Accordion><Accordion title="cUrl (Save to file)">``` curl -O https://api.agentmail.dev/inboxes/123/messages/456/attachments/789 ```</Accordion> <Accordion title="Browser (Automatic Download)">```fetch('/inboxes/123/messages/456/attachments/789')
+#           .then(response => /* browser triggers download */);```</Accordion></AccordionGroup>
+
+#       # examples:
+#       #   - name: Browser Download
+#       #     request:
+#       #       path-parameters:
+#       #         inbox_id: "123"
+#       #         message_id: "456"
+#       #         attachment_id: "789"
+#       #     response:
+#       #       headers:
+#       #         Content-Type: "application/pdf"
+#       #         Content-Disposition: "attachment; filename=document.pdf"
+#       #       body:
+#       #         type: "file"
+#       #         filename: "document.pdf"
+#       #         content: "<binary-data>"
+
+#       #   - name: Binary Stream
+#       #     request:
+#       #       path-parameters:
+#       #         inbox_id: "123"
+#       #         message_id: "456"
+#       #         attachment_id: "789"
+#       #     response:
+#       #       value: AttachmentResponse
+# types:
+#   AttachmentResponse:
+#     properties:
+#       contentType: string
+#       filename: string
+#       size: integer
+#       disposition: string
+#     examples:
+#       - name: PDFDownload
+#         value:
+#           contentType: application/pdf
+#           filename: report.pdf
+#           size: 1234567
+#           disposition: attachment
+#       - name: ImagePreview
+#         value:
+#           contentType: image/jpeg
+#           filename: photo.jpg
+#           size: 2345678
+#           disposition: inline
+#       - name: BinaryStream
+#         value:
+#           contentType: application/octet-stream
+#           filename: data.bin
+#           size: 3456789
+#           disposition: attachment
+
+# errors:
+#   AttachmentDoesNotExistError:
+#     status-code: 404
+#     type: string
