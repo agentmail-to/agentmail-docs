@@ -1,7 +1,8 @@
 service:
-  base-path: /inboxes/{inbox_id}/attachments/{attachment_id}
+  base-path: /inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}
   path-parameters:
     inbox_id: string
+    message_id: string
     attachment_id: string
   auth: true
 
@@ -9,9 +10,9 @@ service:
     getAttachment:
       method: GET
       path: /
-      # response:
-      #   type: bytes
-      #   docs: The binary contents of the attachment file
+      response:
+        type: file
+        docs: This returns the attachment as a file in the response. File type is determined by the attachment's Content-Type header.
 
 types:
 
