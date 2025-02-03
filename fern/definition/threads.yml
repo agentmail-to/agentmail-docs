@@ -1,74 +1,102 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
+  shared: __package__.yml
   inboxes: inboxes.yml
   messages: messages.yml
+
+types:
+  ThreadId:
+    type: string
+    docs: ID of thread.
+
+  ThreadUpdatedAt:
+    type: datetime
+    docs: Time at which thread was last updated.
+
+  ThreadParticipants:
+    type: list<string>
+    docs: Addresses of participants in thread. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  ThreadSubject:
+    type: optional<string>
+    docs: Subject of thread.
+
+  ThreadPreview:
+    type: optional<string>
+    docs: Text preview of last message in thread.
+
+  ThreadItem:
+    properties:
+      id: ThreadId
+      updated_at: ThreadUpdatedAt
+      participants: ThreadParticipants
+      subject: ThreadSubject
+      preview: ThreadPreview
+
+  Thread:
+    properties:
+      id: ThreadId
+      created_at:
+        type: datetime
+        docs: Time at which thread was created.
+      updated_at: ThreadUpdatedAt
+      subject: ThreadSubject
+      participants: ThreadParticipants
+      messages:
+        type: list<messages.Message>
+        docs: Messages in thread. Ordered by `sent_at` ascending.
+
+  ListThreadsResponse:
+    properties:
+      threads:
+        type: list<ThreadItem>
+        docs: Thread items. Ordered by `updated_at` descending.
+      limit: shared.Limit
+      count: shared.Count
+      last_key: shared.LastKey
+
+errors:
+  ThreadDoesNotExistError:
+    status-code: 404
+    type: string
 
 service:
   base-path: /inboxes/{inbox_id}/threads
   path-parameters:
-    inbox_id: string
+    inbox_id: inboxes.InboxId
 
   auth: true
 
   endpoints:
     listThreads:
-      docs: Ordered by `updated_at` descending.
       method: GET
       path: /
       request:
         name: ListThreadsRequest
         query-parameters:
-          limit: optional<integer>
-          last_key: optional<string>
+          limit: shared.QueryLimit
+          last_key: shared.LastKey
       response: ListThreadsResponse
       errors:
         - inboxes.InboxDoesNotExistError
 
     getThread:
-      docs: Messages ordered by `sent_at` ascending.
       method: GET
       path: /{thread_id}
       path-parameters:
-        thread_id: string
+        thread_id: ThreadId
       response: Thread
       errors:
         - inboxes.InboxDoesNotExistError
         - ThreadDoesNotExistError
 
     deleteThread:
-      docs: Deletes thread and all of its messages.
       method: DELETE
       path: /{thread_id}
       path-parameters:
-        thread_id: string
+        thread_id: ThreadId
+      docs: Delete thread and all of its messages and attachments.
       errors:
         - inboxes.InboxDoesNotExistError
         - ThreadDoesNotExistError
-
-types:
-  ThreadItem:
-    properties:
-      id: string
-      updated_at: datetime
-      subject: string
-
-  Thread:
-    properties:
-      id: string
-      created_at: datetime
-      updated_at: datetime
-      subject: string
-      messages: list<messages.Message>
-
-  ListThreadsResponse:
-    properties:
-      threads: list<ThreadItem>
-      limit: integer
-      count: integer
-      last_key: optional<string>
-
-errors:
-  ThreadDoesNotExistError:
-    status-code: 404
-    type: string
