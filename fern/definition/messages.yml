@@ -4,9 +4,28 @@ imports:
   shared: __package__.yml
   inboxes: inboxes.yml
   threads: threads.yml
-  attachments: attachments.yml
 
 types:
+  AttachmentId:
+    type: string
+    docs: ID of attachment.
+
+  Attachment:
+    properties:
+      attachment_id: AttachmentId
+      filename:
+        type: string
+        docs: Filename of attachment.
+      mime_type:
+        type: string
+        docs: MIME type of attachment.
+      size:
+        type: integer
+        docs: Size of attachment in bytes.
+      inline:
+        type: boolean
+        docs: Whether attachment is part of message body.
+
   MessageId:
     type: string
     docs: ID of message.
@@ -40,12 +59,13 @@ types:
     docs: Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageAttachments:
-    type: optional<list<attachments.Attachment>>
+    type: optional<list<Attachment>>
     docs: Attachments in message.
 
   MessageItem:
     properties:
-      id: MessageId
+      message_id: MessageId
+      thread_id: threads.ThreadId
       sent_at: MessageSentAt
       from: MessageFrom
       subject: MessageSubject
@@ -69,13 +89,16 @@ types:
 
   Message:
     properties:
-      id: MessageId
+      message_id: MessageId
       thread_id: MessageThreadId
       sent_at: MessageSentAt
-      recieved_at:
+      received_at:
         type: datetime
         docs: Time at which message was received.
       from: MessageFrom
+      reply_to:
+        type: optional<string>
+        docs: Address to reply to. In format `username@domain.com` or `Display Name <username@domain.com>`.
       subject: MessageSubject
       preview: MessagePreview
       to: MessageTo
@@ -84,12 +107,12 @@ types:
       text: MessageText
       html: MessageHtml
       attachments: MessageAttachments
-      # in_reply_to:
-      #   type: optional<string>
-      #   docs: ID of message being replied to.
-      # references:
-      #   type: optional<list<string>>
-      #   docs: IDs of messages in thread.
+      in_reply_to:
+        type: optional<string>
+        docs: ID of message being replied to.
+      references:
+        type: optional<list<string>>
+        docs: IDs of previous messages in thread.
 
   ListMessagesResponse:
     properties:
@@ -141,7 +164,11 @@ types:
       html: MessageHtml
 
 errors:
-  MessageDoesNotExistError:
+  MessageNotFoundError:
+    status-code: 404
+    type: string
+
+  AttachmentNotFoundError:
     status-code: 404
     type: string
 
@@ -163,7 +190,7 @@ service:
           last_key: shared.LastKey
       response: ListMessagesResponse
       errors:
-        - inboxes.InboxDoesNotExistError
+        - inboxes.InboxNotFoundError
 
     getMessage:
       method: GET
@@ -172,17 +199,28 @@ service:
         message_id: MessageId
       response: Message
       errors:
-        - inboxes.InboxDoesNotExistError
-        - MessageDoesNotExistError
+        - inboxes.InboxNotFoundError
+        - MessageNotFoundError
+
+    getAttachment:
+      method: GET
+      path: /{message_id}/attachments/{attachment_id}
+      path-parameters:
+        message_id: MessageId
+        attachment_id: AttachmentId
+      response: file
+      errors:
+        - AttachmentNotFoundError
 
     deleteMessage:
       method: DELETE
       path: /{message_id}
       path-parameters:
         message_id: MessageId
+      docs: Delete message and its attachments.
       errors:
-        - inboxes.InboxDoesNotExistError
-        - MessageDoesNotExistError
+        - inboxes.InboxNotFoundError
+        - MessageNotFoundError
 
     sendMessage:
       method: POST
@@ -190,7 +228,7 @@ service:
       request: SendMessageRequest
       response: SendMessageResponse
       errors:
-        - inboxes.InboxDoesNotExistError
+        - inboxes.InboxNotFoundError
 
     replyToMessage:
       method: POST
@@ -200,5 +238,5 @@ service:
       request: ReplyToMessageRequest
       response: SendMessageResponse
       errors:
-        - inboxes.InboxDoesNotExistError
-        - MessageDoesNotExistError
+        - inboxes.InboxNotFoundError
+        - MessageNotFoundError

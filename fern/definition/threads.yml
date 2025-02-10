@@ -28,7 +28,7 @@ types:
 
   ThreadItem:
     properties:
-      id: ThreadId
+      thread_id: ThreadId
       updated_at: ThreadUpdatedAt
       participants: ThreadParticipants
       subject: ThreadSubject
@@ -36,7 +36,8 @@ types:
 
   Thread:
     properties:
-      id: ThreadId
+      thread_id: ThreadId
+      inbox_id: inboxes.InboxId
       created_at:
         type: datetime
         docs: Time at which thread was created.
@@ -57,7 +58,7 @@ types:
       last_key: shared.LastKey
 
 errors:
-  ThreadDoesNotExistError:
+  ThreadNotFoundError:
     status-code: 404
     type: string
 
@@ -79,7 +80,7 @@ service:
           last_key: shared.LastKey
       response: ListThreadsResponse
       errors:
-        - inboxes.InboxDoesNotExistError
+        - inboxes.InboxNotFoundError
 
     getThread:
       method: GET
@@ -88,8 +89,8 @@ service:
         thread_id: ThreadId
       response: Thread
       errors:
-        - inboxes.InboxDoesNotExistError
-        - ThreadDoesNotExistError
+        - inboxes.InboxNotFoundError
+        - ThreadNotFoundError
 
     deleteThread:
       method: DELETE
@@ -98,5 +99,5 @@ service:
         thread_id: ThreadId
       docs: Delete thread and all of its messages and attachments.
       errors:
-        - inboxes.InboxDoesNotExistError
-        - ThreadDoesNotExistError
+        - inboxes.InboxNotFoundError
+        - ThreadNotFoundError

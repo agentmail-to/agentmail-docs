@@ -14,7 +14,10 @@ types:
 
   Inbox:
     properties:
-      id: InboxId
+      inbox_id: InboxId
+      organization_id:
+        type: string
+        docs: ID of organization that owns inbox.
       display_name: DisplayName
       created_at:
         type: datetime
@@ -22,12 +25,14 @@ types:
     examples:
       - name: CustomName
         value:
-          id: yourinbox@agentmail.to
+          inbox_id: yourinbox@agentmail.to
+          organization_id: 123e4567-e89b-12d3-a456-426614174000
           display_name: Your Inbox
           created_at: 2024-01-15T09:30:00Z
       - name: CustomDomain
         value:
-          id: helpfulagent123@yourdomain.com
+          inbox_id: helpfulagent123@yourdomain.com
+          organization_id: 123e4567-e89b-12d3-a456-426614174000
           display_name: Helpful Agent
           created_at: 2024-01-15T09:30:00Z
 
@@ -59,8 +64,12 @@ types:
           domain: yourdomain.com
 
 errors:
-  InboxDoesNotExistError:
+  InboxNotFoundError:
     status-code: 404
+    type: string
+
+  AddressTakenError:
+    status-code: 403
     type: string
 
 service:
@@ -84,6 +93,8 @@ service:
       path-parameters:
         inbox_id: InboxId
       response: Inbox
+      errors:
+        - InboxNotFoundError
 
     createInbox:
       method: POST
@@ -105,7 +116,7 @@ service:
         inbox_id: InboxId
       docs: Delete inbox and all of its threads, messages, and attachments.
       errors:
-        - InboxDoesNotExistError
+        - InboxNotFoundError
       examples:
         - path-parameters:
             inbox_id: yourinbox@agentmail.to

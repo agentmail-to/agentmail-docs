@@ -4,12 +4,11 @@ navigation:
   - inboxes.yml
   - threads.yml
   - messages.yml
-  - attachments.yml
 
 types:
   QueryLimit:
     type: optional<integer>
-    docs: Limit of number of items returned.
+    docs: Limit of number of items to return.
 
   Limit:
     type: integer
