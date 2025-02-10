@@ -65,6 +65,10 @@ navigation:
         contents:
           - page: Shopper Agent
             path: pages/shopper-agent.mdx
+      - section: Demos
+        contents:
+          - page: Subscribing to a Newsletter with Agentmail
+            path: pages/substack-agent.mdx
   - tab: api
     layout:
       - api: API Reference

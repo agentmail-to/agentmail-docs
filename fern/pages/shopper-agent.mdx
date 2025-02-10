@@ -65,7 +65,7 @@ Lets create a function that will connect to the AgentMail inbox and listen for i
 ```python title="connect.py" wordWrap
 async def connect_to_agent(email_address: str):
     uri = f"ws://localhost:8000/ws/{email_address}"
-    client = AgentMail(base_url="https://api.agentmail.to")
+    client = AgentMail(base_url="https://api.agentmail.to", api_key=os.getenv("AGENTMAIL_API_KEY"))
 ```
 
 Websocket is hosted locally, but if you plan on deploying this to production, you will need to host on your own server/domain.
@@ -76,7 +76,7 @@ We created the Agentmail client instance, and can interact with the service via 
 
 async def connect_to_agent(email_address: str):
     uri = f"ws://localhost:8000/ws/{email_address}"
-    client = AgentMail(base_url="https://api.agentmail.to")
+    client = AgentMail(base_url="https://api.agentmail.to", api_key=os.getenv("AGENTMAIL_API_KEY"))
 
     async with websockets.connect(uri) as websocket:
         print(f"Connected to agent for {email_address}")
@@ -257,7 +257,7 @@ email_manager = EmailManager()
 
 browser = Browser()
 controller = Controller()
-client = AgentMail(base_url="https://api.agentmail.to")
+client = AgentMail(base_url="https://api.agentmail.to", api_key=os.getenv("AGENTMAIL_API_KEY"))
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
