@@ -65,7 +65,7 @@ Lets create a function that will connect to the AgentMail inbox and listen for i
 ```python title="connect.py" wordWrap
 async def connect_to_agent(email_address: str):
     uri = f"ws://localhost:8000/ws/{email_address}"
-    client = AgentMail(base_url="https://api.agentmail.to", api_key=os.getenv("AGENTMAIL_API_KEY"))
+    client = AgentMail(base_url="https://api.agentmail.to/v0", api_key=os.getenv("AGENTMAIL_API_KEY"))
 ```
 
 Websocket is hosted locally, but if you plan on deploying this to production, you will need to host on your own server/domain.
@@ -342,11 +342,14 @@ if __name__ == "__main__":
 You're done. Open up 2 terminals and run the following:
 
 ```bash
-python connect.py
 python agent.py
+python connect.py
 ```
 
-Connect will be listening for new emails and when it receives one, it will send a notification to the agent.py file, which will spin up the agent and perform the task outlined.
+Running agent.py will open the websocket connection via uvicorn and fast API.
+Connect.py will connect to this websocket connection and listen for new emails.
+
+Once it receives one it will send a notification to the agent.py file, which will spin up the agent and perform the task outlined.
 
 To see everything happen in real time, open up the browser and go to the inbox of the email you are monitoring on the [AgentMail demo site](https://app.agentmail.to/)
 

@@ -101,9 +101,9 @@ Lets first initalize an AgentMail Client that can make the API requests to Agent
 
 ```python title="agent.py" wordWrap
 
-BASE_URL = "https://api.agentmail.dev"
+BASE_URL = "https://api.agentmail.to/v0"
 load_dotenv()
-client = AgentMail(BASE_URL)
+client = AgentMail(base_url=BASE_URL, api_key=os.getenv("AGENTMAIL_API_KEY"))
 ```
 You can find the full list of methods you can use with the AgentMail Client [here](https://docs.agentmail.dev/reference/api).
 
