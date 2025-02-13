@@ -26,16 +26,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessageNotFoundError = void 0;
-const errors = __importStar(require("../../../../errors/index"));
-class MessageNotFoundError extends errors.AgentMailApiError {
-    constructor(body) {
-        super({
-            message: "MessageNotFoundError",
-            statusCode: 404,
-            body: body,
-        });
-        Object.setPrototypeOf(this, MessageNotFoundError.prototype);
-    }
-}
-exports.MessageNotFoundError = MessageNotFoundError;
+exports.ErrorResponse = void 0;
+const core = __importStar(require("../../core"));
+const ErrorName_1 = require("./ErrorName");
+exports.ErrorResponse = core.serialization.object({
+    name: ErrorName_1.ErrorName,
+    message: core.serialization.string(),
+});

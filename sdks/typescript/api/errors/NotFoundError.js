@@ -26,16 +26,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AddressTakenError = void 0;
-const errors = __importStar(require("../../../../errors/index"));
-class AddressTakenError extends errors.AgentMailApiError {
+exports.NotFoundError = void 0;
+const errors = __importStar(require("../../errors/index"));
+class NotFoundError extends errors.AgentMailApiError {
     constructor(body) {
         super({
-            message: "AddressTakenError",
-            statusCode: 403,
+            message: "NotFoundError",
+            statusCode: 404,
             body: body,
         });
-        Object.setPrototypeOf(this, AddressTakenError.prototype);
+        Object.setPrototypeOf(this, NotFoundError.prototype);
     }
 }
-exports.AddressTakenError = AddressTakenError;
+exports.NotFoundError = NotFoundError;

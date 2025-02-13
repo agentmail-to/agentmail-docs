@@ -28,11 +28,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.threads = exports.messages = exports.inboxes = void 0;
 exports.inboxes = __importStar(require("./inboxes"));
-__exportStar(require("./inboxes/errors"), exports);
-exports.messages = __importStar(require("./messages"));
-__exportStar(require("./messages/errors"), exports);
-exports.threads = __importStar(require("./threads"));
-__exportStar(require("./threads/errors"), exports);
 __exportStar(require("./inboxes/types"), exports);
+exports.messages = __importStar(require("./messages"));
 __exportStar(require("./messages/types"), exports);
+exports.threads = __importStar(require("./threads"));
 __exportStar(require("./threads/types"), exports);

@@ -26,16 +26,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ThreadNotFoundError = void 0;
-const errors = __importStar(require("../../../../errors/index"));
-class ThreadNotFoundError extends errors.AgentMailApiError {
-    constructor(body) {
-        super({
-            message: "ThreadNotFoundError",
-            statusCode: 404,
-            body: body,
-        });
-        Object.setPrototypeOf(this, ThreadNotFoundError.prototype);
-    }
-}
-exports.ThreadNotFoundError = ThreadNotFoundError;
+exports.ValidationErrorResponse = void 0;
+const core = __importStar(require("../../core"));
+const ErrorName_1 = require("./ErrorName");
+exports.ValidationErrorResponse = core.serialization.object({
+    name: ErrorName_1.ErrorName,
+    errors: core.serialization.unknown(),
+});

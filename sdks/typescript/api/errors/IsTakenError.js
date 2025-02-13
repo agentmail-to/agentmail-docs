@@ -26,6 +26,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AttachmentNotFoundError = void 0;
-const core = __importStar(require("../../../../core"));
-exports.AttachmentNotFoundError = core.serialization.string();
+exports.IsTakenError = void 0;
+const errors = __importStar(require("../../errors/index"));
+class IsTakenError extends errors.AgentMailApiError {
+    constructor(body) {
+        super({
+            message: "IsTakenError",
+            statusCode: 403,
+            body: body,
+        });
+        Object.setPrototypeOf(this, IsTakenError.prototype);
+    }
+}
+exports.IsTakenError = IsTakenError;

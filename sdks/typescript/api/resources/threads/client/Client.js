@@ -53,7 +53,7 @@ class Threads {
      * @param {AgentMailApi.ListThreadsRequest} request
      * @param {Threads.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.threads.listThreads("inbox_id")
@@ -95,7 +95,7 @@ class Threads {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
@@ -128,8 +128,7 @@ class Threads {
      * @param {AgentMailApi.ThreadId} threadId
      * @param {Threads.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.ThreadNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.threads.getThread("inbox_id", "thread_id")
@@ -162,14 +161,7 @@ class Threads {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
-                            unrecognizedObjectKeys: "passthrough",
-                            allowUnrecognizedUnionMembers: true,
-                            allowUnrecognizedEnumValues: true,
-                            breadcrumbsPrefix: ["response"],
-                        }));
-                    case 404:
-                        throw new AgentMailApi.ThreadNotFoundError(serializers.ThreadNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
@@ -204,8 +196,7 @@ class Threads {
      * @param {AgentMailApi.ThreadId} threadId
      * @param {Threads.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.ThreadNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.threads.deleteThread("inbox_id", "thread_id")
@@ -233,14 +224,7 @@ class Threads {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
-                            unrecognizedObjectKeys: "passthrough",
-                            allowUnrecognizedUnionMembers: true,
-                            allowUnrecognizedEnumValues: true,
-                            breadcrumbsPrefix: ["response"],
-                        }));
-                    case 404:
-                        throw new AgentMailApi.ThreadNotFoundError(serializers.ThreadNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,

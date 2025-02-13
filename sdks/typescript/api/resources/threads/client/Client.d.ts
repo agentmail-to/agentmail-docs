@@ -26,7 +26,7 @@ export declare class Threads {
      * @param {AgentMailApi.ListThreadsRequest} request
      * @param {Threads.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.threads.listThreads("inbox_id")
@@ -37,8 +37,7 @@ export declare class Threads {
      * @param {AgentMailApi.ThreadId} threadId
      * @param {Threads.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.ThreadNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.threads.getThread("inbox_id", "thread_id")
@@ -51,8 +50,7 @@ export declare class Threads {
      * @param {AgentMailApi.ThreadId} threadId
      * @param {Threads.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.ThreadNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.threads.deleteThread("inbox_id", "thread_id")

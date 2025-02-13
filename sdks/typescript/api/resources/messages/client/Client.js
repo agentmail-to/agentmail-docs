@@ -53,7 +53,7 @@ class Messages {
      * @param {AgentMailApi.ListMessagesRequest} request
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.messages.listMessages("inbox_id")
@@ -95,7 +95,7 @@ class Messages {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
@@ -128,8 +128,7 @@ class Messages {
      * @param {AgentMailApi.MessageId} messageId
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.MessageNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.messages.getMessage("inbox_id", "message_id")
@@ -162,14 +161,7 @@ class Messages {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
-                            unrecognizedObjectKeys: "passthrough",
-                            allowUnrecognizedUnionMembers: true,
-                            allowUnrecognizedEnumValues: true,
-                            breadcrumbsPrefix: ["response"],
-                        }));
-                    case 404:
-                        throw new AgentMailApi.MessageNotFoundError(serializers.MessageNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
@@ -198,7 +190,7 @@ class Messages {
         });
     }
     /**
-     * @throws {@link AgentMailApi.AttachmentNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      */
     getAttachment(inboxId, messageId, attachmentId, requestOptions) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -224,7 +216,7 @@ class Messages {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.AttachmentNotFoundError(serializers.AttachmentNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
@@ -259,8 +251,7 @@ class Messages {
      * @param {AgentMailApi.MessageId} messageId
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.MessageNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.messages.deleteMessage("inbox_id", "message_id")
@@ -288,14 +279,7 @@ class Messages {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
-                            unrecognizedObjectKeys: "passthrough",
-                            allowUnrecognizedUnionMembers: true,
-                            allowUnrecognizedEnumValues: true,
-                            breadcrumbsPrefix: ["response"],
-                        }));
-                    case 404:
-                        throw new AgentMailApi.MessageNotFoundError(serializers.MessageNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
@@ -328,7 +312,8 @@ class Messages {
      * @param {AgentMailApi.SendMessageRequest} request
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
+     * @throws {@link AgentMailApi.ValidationError}
      *
      * @example
      *     await client.messages.sendMessage("inbox_id", {
@@ -343,7 +328,7 @@ class Messages {
     sendMessage(inboxId, request, requestOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             const _response = yield core.fetcher({
-                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}/messages/send`),
+                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}/messages/`),
                 method: "POST",
                 headers: {
                     Authorization: yield this._getAuthorizationHeader(),
@@ -369,7 +354,14 @@ class Messages {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            breadcrumbsPrefix: ["response"],
+                        }));
+                    case 400:
+                        throw new AgentMailApi.ValidationError(serializers.ValidationErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
@@ -403,8 +395,8 @@ class Messages {
      * @param {AgentMailApi.ReplyToMessageRequest} request
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.MessageNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
+     * @throws {@link AgentMailApi.ValidationError}
      *
      * @example
      *     await client.messages.replyToMessage("inbox_id", "message_id", {
@@ -418,7 +410,7 @@ class Messages {
     replyToMessage(inboxId, messageId, request, requestOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             const _response = yield core.fetcher({
-                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}/messages/${encodeURIComponent(serializers.MessageId.jsonOrThrow(messageId))}/reply`),
+                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}/messages/${encodeURIComponent(serializers.MessageId.jsonOrThrow(messageId))}`),
                 method: "POST",
                 headers: {
                     Authorization: yield this._getAuthorizationHeader(),
@@ -444,14 +436,14 @@ class Messages {
             if (_response.error.reason === "status-code") {
                 switch (_response.error.statusCode) {
                     case 404:
-                        throw new AgentMailApi.InboxNotFoundError(serializers.InboxNotFoundError.parseOrThrow(_response.error.body, {
+                        throw new AgentMailApi.NotFoundError(serializers.ErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,
                             breadcrumbsPrefix: ["response"],
                         }));
-                    case 404:
-                        throw new AgentMailApi.MessageNotFoundError(serializers.MessageNotFoundError.parseOrThrow(_response.error.body, {
+                    case 400:
+                        throw new AgentMailApi.ValidationError(serializers.ValidationErrorResponse.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
                             allowUnrecognizedEnumValues: true,

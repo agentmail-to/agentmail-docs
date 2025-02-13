@@ -33,7 +33,7 @@ export declare class Inboxes {
      * @param {AgentMailApi.InboxId} inboxId
      * @param {Inboxes.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.inboxes.getInbox("inbox_id")
@@ -42,6 +42,8 @@ export declare class Inboxes {
     /**
      * @param {AgentMailApi.CreateInboxRequest} request
      * @param {Inboxes.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link AgentMailApi.ValidationError}
      *
      * @example
      *     await client.inboxes.createInbox({
@@ -61,7 +63,7 @@ export declare class Inboxes {
      * @param {AgentMailApi.InboxId} inboxId
      * @param {Inboxes.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.inboxes.deleteInbox("yourinbox@agentmail.to")

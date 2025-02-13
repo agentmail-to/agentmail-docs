@@ -26,6 +26,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AddressTakenError = void 0;
-const core = __importStar(require("../../../../core"));
-exports.AddressTakenError = core.serialization.string();
+exports.ValidationError = void 0;
+const errors = __importStar(require("../../errors/index"));
+class ValidationError extends errors.AgentMailApiError {
+    constructor(body) {
+        super({
+            message: "ValidationError",
+            statusCode: 400,
+            body: body,
+        });
+        Object.setPrototypeOf(this, ValidationError.prototype);
+    }
+}
+exports.ValidationError = ValidationError;

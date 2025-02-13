@@ -26,16 +26,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AttachmentNotFoundError = void 0;
-const errors = __importStar(require("../../../../errors/index"));
-class AttachmentNotFoundError extends errors.AgentMailApiError {
-    constructor(body) {
-        super({
-            message: "AttachmentNotFoundError",
-            statusCode: 404,
-            body: body,
-        });
-        Object.setPrototypeOf(this, AttachmentNotFoundError.prototype);
-    }
-}
-exports.AttachmentNotFoundError = AttachmentNotFoundError;
+exports.ErrorName = void 0;
+const core = __importStar(require("../../core"));
+exports.ErrorName = core.serialization.string();

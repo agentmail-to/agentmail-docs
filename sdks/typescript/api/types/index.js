@@ -18,3 +18,6 @@ __exportStar(require("./QueryLimit"), exports);
 __exportStar(require("./Limit"), exports);
 __exportStar(require("./Count"), exports);
 __exportStar(require("./LastKey"), exports);
+__exportStar(require("./ErrorName"), exports);
+__exportStar(require("./ErrorResponse"), exports);
+__exportStar(require("./ValidationErrorResponse"), exports);

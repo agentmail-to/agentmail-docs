@@ -28,7 +28,7 @@ export declare class Messages {
      * @param {AgentMailApi.ListMessagesRequest} request
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.messages.listMessages("inbox_id")
@@ -39,15 +39,14 @@ export declare class Messages {
      * @param {AgentMailApi.MessageId} messageId
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.MessageNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.messages.getMessage("inbox_id", "message_id")
      */
     getMessage(inboxId: AgentMailApi.InboxId, messageId: AgentMailApi.MessageId, requestOptions?: Messages.RequestOptions): Promise<AgentMailApi.Message>;
     /**
-     * @throws {@link AgentMailApi.AttachmentNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      */
     getAttachment(inboxId: AgentMailApi.InboxId, messageId: AgentMailApi.MessageId, attachmentId: AgentMailApi.AttachmentId, requestOptions?: Messages.RequestOptions): Promise<stream.Readable>;
     /**
@@ -57,8 +56,7 @@ export declare class Messages {
      * @param {AgentMailApi.MessageId} messageId
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.MessageNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
      *
      * @example
      *     await client.messages.deleteMessage("inbox_id", "message_id")
@@ -69,7 +67,8 @@ export declare class Messages {
      * @param {AgentMailApi.SendMessageRequest} request
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
+     * @throws {@link AgentMailApi.ValidationError}
      *
      * @example
      *     await client.messages.sendMessage("inbox_id", {
@@ -88,8 +87,8 @@ export declare class Messages {
      * @param {AgentMailApi.ReplyToMessageRequest} request
      * @param {Messages.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentMailApi.InboxNotFoundError}
-     * @throws {@link AgentMailApi.MessageNotFoundError}
+     * @throws {@link AgentMailApi.NotFoundError}
+     * @throws {@link AgentMailApi.ValidationError}
      *
      * @example
      *     await client.messages.replyToMessage("inbox_id", "message_id", {
