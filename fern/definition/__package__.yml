@@ -21,3 +21,34 @@ types:
   LastKey:
     type: optional<string>
     docs: Key of last item.
+
+  ErrorName:
+    type: string
+    docs: Name of error.
+
+  ErrorResponse:
+    properties:
+      name: ErrorName
+      message:
+        type: string
+        docs: Error message.
+
+  ValidationErrorResponse:
+    properties:
+      name: ErrorName
+      errors:
+        type: unknown
+        docs: Validation errors.
+
+errors:
+  ValidationError:
+    status-code: 400
+    type: ValidationErrorResponse
+
+  IsTakenError:
+    status-code: 403
+    type: ErrorResponse
+
+  NotFoundError:
+    status-code: 404
+    type: ErrorResponse

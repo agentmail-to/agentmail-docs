@@ -63,15 +63,6 @@ types:
         value:
           domain: yourdomain.com
 
-errors:
-  InboxNotFoundError:
-    status-code: 404
-    type: string
-
-  AddressTakenError:
-    status-code: 403
-    type: string
-
 service:
   base-path: /inboxes
   auth: true
@@ -94,13 +85,15 @@ service:
         inbox_id: InboxId
       response: Inbox
       errors:
-        - InboxNotFoundError
+        - shared.NotFoundError
 
     createInbox:
       method: POST
       path: /
       request: CreateInboxRequest
       response: Inbox
+      errors:
+        - shared.ValidationError
       examples:
         - request: $CreateInboxRequest.CustomName
           response:
@@ -116,7 +109,7 @@ service:
         inbox_id: InboxId
       docs: Delete inbox and all of its threads, messages, and attachments.
       errors:
-        - InboxNotFoundError
+        - shared.NotFoundError
       examples:
         - path-parameters:
             inbox_id: yourinbox@agentmail.to

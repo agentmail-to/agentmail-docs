@@ -57,11 +57,6 @@ types:
       count: shared.Count
       last_key: shared.LastKey
 
-errors:
-  ThreadNotFoundError:
-    status-code: 404
-    type: string
-
 service:
   base-path: /inboxes/{inbox_id}/threads
   path-parameters:
@@ -80,7 +75,7 @@ service:
           last_key: shared.LastKey
       response: ListThreadsResponse
       errors:
-        - inboxes.InboxNotFoundError
+        - shared.NotFoundError
 
     getThread:
       method: GET
@@ -89,8 +84,7 @@ service:
         thread_id: ThreadId
       response: Thread
       errors:
-        - inboxes.InboxNotFoundError
-        - ThreadNotFoundError
+        - shared.NotFoundError
 
     deleteThread:
       method: DELETE
@@ -99,5 +93,4 @@ service:
         thread_id: ThreadId
       docs: Delete thread and all of its messages and attachments.
       errors:
-        - inboxes.InboxNotFoundError
-        - ThreadNotFoundError
+        - shared.NotFoundError

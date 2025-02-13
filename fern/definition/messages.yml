@@ -163,15 +163,6 @@ types:
       text: MessageText
       html: MessageHtml
 
-errors:
-  MessageNotFoundError:
-    status-code: 404
-    type: string
-
-  AttachmentNotFoundError:
-    status-code: 404
-    type: string
-
 service:
   base-path: /inboxes/{inbox_id}/messages
   path-parameters:
@@ -190,7 +181,7 @@ service:
           last_key: shared.LastKey
       response: ListMessagesResponse
       errors:
-        - inboxes.InboxNotFoundError
+        - shared.NotFoundError
 
     getMessage:
       method: GET
@@ -199,8 +190,7 @@ service:
         message_id: MessageId
       response: Message
       errors:
-        - inboxes.InboxNotFoundError
-        - MessageNotFoundError
+        - shared.NotFoundError
 
     getAttachment:
       method: GET
@@ -210,7 +200,7 @@ service:
         attachment_id: AttachmentId
       response: file
       errors:
-        - AttachmentNotFoundError
+        - shared.NotFoundError
 
     deleteMessage:
       method: DELETE
@@ -219,24 +209,24 @@ service:
         message_id: MessageId
       docs: Delete message and its attachments.
       errors:
-        - inboxes.InboxNotFoundError
-        - MessageNotFoundError
+        - shared.NotFoundError
 
     sendMessage:
       method: POST
-      path: /send
+      path: /
       request: SendMessageRequest
       response: SendMessageResponse
       errors:
-        - inboxes.InboxNotFoundError
+        - shared.NotFoundError
+        - shared.ValidationError
 
     replyToMessage:
       method: POST
-      path: /{message_id}/reply
+      path: /{message_id}
       path-parameters:
         message_id: MessageId
       request: ReplyToMessageRequest
       response: SendMessageResponse
       errors:
-        - inboxes.InboxNotFoundError
-        - MessageNotFoundError
+        - shared.NotFoundError
+        - shared.ValidationError
