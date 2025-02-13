@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 instances:
-  - url: https://agentmail.docs.buildwithfern.com
+  - url: https://agentmail-prod.docs.buildwithfern.com​
 
 title: AgentMail | Documentation
 
@@ -65,6 +65,10 @@ navigation:
         contents:
           - page: Shopper Agent
             path: pages/shopper-agent.mdx
+      - section: Demos
+        contents:
+          - page: Subscribing to a Newsletter with Agentmail
+            path: pages/substack-agent.mdx
   - tab: api
     layout:
       - api: API Reference
