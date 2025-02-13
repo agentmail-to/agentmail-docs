@@ -30,6 +30,8 @@ tabs:
     display-name: API Reference
     icon: puzzle
 
+default-language: python
+
 navigation:
   - tab: docs
     layout:
@@ -72,3 +74,6 @@ navigation:
   - tab: api
     layout:
       - api: API Reference
+        snippets:
+          python: agentmail
+          typescript: agentmail
