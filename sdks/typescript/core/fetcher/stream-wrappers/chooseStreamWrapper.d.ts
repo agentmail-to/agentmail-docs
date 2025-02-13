@@ -1,4 +1,4 @@
-export declare type EventCallback = (data?: any) => void;
+export type EventCallback = (data?: any) => void;
 export interface StreamWrapper<WritableStream, ReadFormat> {
     setEncoding(encoding?: string): void;
     on(event: string, callback: EventCallback): void;

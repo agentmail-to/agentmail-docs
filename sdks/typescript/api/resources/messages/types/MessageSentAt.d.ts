@@ -4,4 +4,4 @@
 /**
  * Time at which message was sent.
  */
-export declare type MessageSentAt = Date;
+export type MessageSentAt = Date;

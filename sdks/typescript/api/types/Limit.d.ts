@@ -4,4 +4,4 @@
 /**
  * Limit of number of items returned.
  */
-export declare type Limit = number;
+export type Limit = number;

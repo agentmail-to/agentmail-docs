@@ -4,4 +4,4 @@
 /**
  * Text preview of message.
  */
-export declare type MessagePreview = string | undefined;
+export type MessagePreview = string | undefined;

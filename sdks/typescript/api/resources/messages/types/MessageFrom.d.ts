@@ -4,4 +4,4 @@
 /**
  * Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`.
  */
-export declare type MessageFrom = string;
+export type MessageFrom = string;

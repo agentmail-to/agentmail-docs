@@ -4,4 +4,4 @@
 /**
  * Subject of message.
  */
-export declare type MessageSubject = string | undefined;
+export type MessageSubject = string | undefined;

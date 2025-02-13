@@ -4,4 +4,4 @@
 /**
  * Name of error.
  */
-export declare type ErrorName = string;
+export type ErrorName = string;

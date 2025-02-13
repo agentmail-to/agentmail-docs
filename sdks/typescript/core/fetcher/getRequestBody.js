@@ -9,15 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRequestBody = void 0;
-function getRequestBody({ body, type }) {
-    return __awaiter(this, void 0, void 0, function* () {
+exports.getRequestBody = getRequestBody;
+const json_1 = require("../json");
+function getRequestBody(_a) {
+    return __awaiter(this, arguments, void 0, function* ({ body, type }) {
         if (type.includes("json")) {
-            return JSON.stringify(body);
+            return (0, json_1.toJson)(body);
         }
         else {
             return body;
         }
     });
 }
-exports.getRequestBody = getRequestBody;

@@ -4,4 +4,4 @@
 /**
  * ID (address) of inbox.
  */
-export declare type InboxId = string;
+export type InboxId = string;

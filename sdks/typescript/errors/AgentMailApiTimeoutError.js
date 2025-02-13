@@ -5,8 +5,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentMailApiTimeoutError = void 0;
 class AgentMailApiTimeoutError extends Error {
-    constructor() {
-        super("Timeout");
+    constructor(message) {
+        super(message);
         Object.setPrototypeOf(this, AgentMailApiTimeoutError.prototype);
     }
 }

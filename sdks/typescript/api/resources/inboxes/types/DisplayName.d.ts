@@ -4,4 +4,4 @@
 /**
  * Display name for address: `Display Name <username@domain.com>`.
  */
-export declare type DisplayName = string;
+export type DisplayName = string;

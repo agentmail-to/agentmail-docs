@@ -7,6 +7,8 @@ import * as AgentMailApi from "../../../index";
 export declare namespace Inboxes {
     interface Options {
         environment: core.Supplier<environments.AgentMailApiEnvironment | string>;
+        /** Specify a custom URL to connect the client to. */
+        baseUrl?: core.Supplier<string>;
         apiKey?: core.Supplier<core.BearerToken | undefined>;
     }
     interface RequestOptions {
@@ -16,6 +18,8 @@ export declare namespace Inboxes {
         maxRetries?: number;
         /** A hook to abort the request. */
         abortSignal?: AbortSignal;
+        /** Additional headers to include in the request. */
+        headers?: Record<string, string>;
     }
 }
 export declare class Inboxes {

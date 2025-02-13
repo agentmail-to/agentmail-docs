@@ -5,4 +5,4 @@ import * as AgentMailApi from "../../../index";
 /**
  * Attachments in message.
  */
-export declare type MessageAttachments = AgentMailApi.Attachment[] | undefined;
+export type MessageAttachments = AgentMailApi.Attachment[] | undefined;

@@ -4,4 +4,4 @@
 export declare const AgentMailApiEnvironment: {
     readonly Production: "https://api.agentmail.to";
 };
-export declare type AgentMailApiEnvironment = typeof AgentMailApiEnvironment.Production;
+export type AgentMailApiEnvironment = typeof AgentMailApiEnvironment.Production;

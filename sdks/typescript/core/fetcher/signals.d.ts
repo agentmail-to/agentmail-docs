@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export declare function getTimeoutSignal(timeoutMs: number): {
     signal: AbortSignal;
     abortId: NodeJS.Timeout;

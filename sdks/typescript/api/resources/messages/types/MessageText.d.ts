@@ -4,4 +4,4 @@
 /**
  * Plain text body of message.
  */
-export declare type MessageText = string | undefined;
+export type MessageText = string | undefined;

@@ -4,4 +4,4 @@
 /**
  * Time at which thread was last updated.
  */
-export declare type ThreadUpdatedAt = Date;
+export type ThreadUpdatedAt = Date;

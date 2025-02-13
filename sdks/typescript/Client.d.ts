@@ -9,6 +9,8 @@ import { Messages } from "./api/resources/messages/client/Client";
 export declare namespace AgentMailApiClient {
     interface Options {
         environment: core.Supplier<environments.AgentMailApiEnvironment | string>;
+        /** Specify a custom URL to connect the client to. */
+        baseUrl?: core.Supplier<string>;
         apiKey?: core.Supplier<core.BearerToken | undefined>;
     }
     interface RequestOptions {
@@ -18,15 +20,17 @@ export declare namespace AgentMailApiClient {
         maxRetries?: number;
         /** A hook to abort the request. */
         abortSignal?: AbortSignal;
+        /** Additional headers to include in the request. */
+        headers?: Record<string, string>;
     }
 }
 export declare class AgentMailApiClient {
     protected readonly _options: AgentMailApiClient.Options;
-    constructor(_options: AgentMailApiClient.Options);
     protected _inboxes: Inboxes | undefined;
-    get inboxes(): Inboxes;
     protected _threads: Threads | undefined;
-    get threads(): Threads;
     protected _messages: Messages | undefined;
+    constructor(_options: AgentMailApiClient.Options);
+    get inboxes(): Inboxes;
+    get threads(): Threads;
     get messages(): Messages;
 }

@@ -4,4 +4,4 @@
 /**
  * ID of message.
  */
-export declare type MessageId = string;
+export type MessageId = string;

@@ -5,4 +5,4 @@ import * as AgentMailApi from "../../../index";
 /**
  * CC recipient address or addresses.
  */
-export declare type SendMessageCc = AgentMailApi.Addresses | undefined;
+export type SendMessageCc = AgentMailApi.Addresses | undefined;

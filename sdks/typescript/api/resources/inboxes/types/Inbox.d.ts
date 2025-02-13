@@ -8,7 +8,7 @@ import * as AgentMailApi from "../../../index";
  *         inboxId: "yourinbox@agentmail.to",
  *         organizationId: "123e4567-e89b-12d3-a456-426614174000",
  *         displayName: "Your Inbox",
- *         createdAt: new Date("2024-01-15T09:30:00.000Z")
+ *         createdAt: "2024-01-15T09:30:00Z"
  *     }
  *
  * @example
@@ -16,7 +16,7 @@ import * as AgentMailApi from "../../../index";
  *         inboxId: "helpfulagent123@yourdomain.com",
  *         organizationId: "123e4567-e89b-12d3-a456-426614174000",
  *         displayName: "Helpful Agent",
- *         createdAt: new Date("2024-01-15T09:30:00.000Z")
+ *         createdAt: "2024-01-15T09:30:00Z"
  *     }
  */
 export interface Inbox {

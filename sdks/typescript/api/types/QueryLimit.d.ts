@@ -4,4 +4,4 @@
 /**
  * Limit of number of items to return.
  */
-export declare type QueryLimit = number | undefined;
+export type QueryLimit = number | undefined;

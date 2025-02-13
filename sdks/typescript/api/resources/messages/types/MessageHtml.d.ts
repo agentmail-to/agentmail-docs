@@ -4,4 +4,4 @@
 /**
  * HTML body of message.
  */
-export declare type MessageHtml = string | undefined;
+export type MessageHtml = string | undefined;

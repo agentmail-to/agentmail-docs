@@ -147,10 +147,12 @@ class UndiciStreamWrapper {
             const chunks = [];
             while (true) {
                 const { done, value } = yield this.reader.read();
-                if (done)
+                if (done) {
                     break;
-                if (value)
+                }
+                if (value) {
                     chunks.push(value);
+                }
             }
             const decoder = new TextDecoder(this.encoding || "utf-8");
             return decoder.decode(yield new Blob(chunks).arrayBuffer());

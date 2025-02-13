@@ -4,4 +4,4 @@
 /**
  * Text preview of last message in thread.
  */
-export declare type ThreadPreview = string | undefined;
+export type ThreadPreview = string | undefined;

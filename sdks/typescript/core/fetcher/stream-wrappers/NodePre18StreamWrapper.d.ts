@@ -1,5 +1,4 @@
-/// <reference types="node" />
-import type { Readable, Writable } from "stream";
+import type { Readable, Writable } from "readable-stream";
 import { EventCallback, StreamWrapper } from "./chooseStreamWrapper";
 export declare class NodePre18StreamWrapper implements StreamWrapper<Writable, Buffer> {
     private readableStream;

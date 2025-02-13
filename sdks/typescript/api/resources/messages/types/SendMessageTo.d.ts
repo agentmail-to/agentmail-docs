@@ -5,4 +5,4 @@ import * as AgentMailApi from "../../../index";
 /**
  * Recipient address or addresses.
  */
-export declare type SendMessageTo = AgentMailApi.Addresses;
+export type SendMessageTo = AgentMailApi.Addresses;

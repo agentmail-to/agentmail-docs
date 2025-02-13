@@ -4,4 +4,4 @@
 /**
  * ID of thread.
  */
-export declare type ThreadId = string;
+export type ThreadId = string;

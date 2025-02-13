@@ -4,4 +4,4 @@
 /**
  * ID of attachment.
  */
-export declare type AttachmentId = string;
+export type AttachmentId = string;

@@ -4,4 +4,4 @@
 /**
  * Number of items returned.
  */
-export declare type Count = number;
+export type Count = number;

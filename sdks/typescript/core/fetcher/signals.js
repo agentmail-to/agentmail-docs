@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.anySignal = exports.getTimeoutSignal = void 0;
+exports.getTimeoutSignal = getTimeoutSignal;
+exports.anySignal = anySignal;
 const TIMEOUT = "timeout";
 function getTimeoutSignal(timeoutMs) {
     const controller = new AbortController();
     const abortId = setTimeout(() => controller.abort(TIMEOUT), timeoutMs);
     return { signal: controller.signal, abortId };
 }
-exports.getTimeoutSignal = getTimeoutSignal;
 /**
  * Returns an abort signal that is getting aborted when
  * at least one of the specified abort signals is aborted.
@@ -34,4 +34,3 @@ function anySignal(...args) {
     }
     return controller.signal;
 }
-exports.anySignal = anySignal;

@@ -76,21 +76,23 @@ class NodePre18StreamWrapper {
         this.encoding = encoding;
     }
     text() {
-        var e_1, _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a, e_1, _b, _c;
             const chunks = [];
             const encoder = new TextEncoder();
             this.readableStream.setEncoding((this.encoding || "utf-8"));
             try {
-                for (var _b = __asyncValues(this.readableStream), _c; _c = yield _b.next(), !_c.done;) {
-                    const chunk = _c.value;
+                for (var _d = true, _e = __asyncValues(this.readableStream), _f; _f = yield _e.next(), _a = _f.done, !_a; _d = true) {
+                    _c = _f.value;
+                    _d = false;
+                    const chunk = _c;
                     chunks.push(encoder.encode(chunk));
                 }
             }
             catch (e_1_1) { e_1 = { error: e_1_1 }; }
             finally {
                 try {
-                    if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+                    if (!_d && !_a && (_b = _e.return)) yield _b.call(_e);
                 }
                 finally { if (e_1) throw e_1.error; }
             }

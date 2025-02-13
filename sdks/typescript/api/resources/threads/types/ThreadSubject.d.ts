@@ -4,4 +4,4 @@
 /**
  * Subject of thread.
  */
-export declare type ThreadSubject = string | undefined;
+export type ThreadSubject = string | undefined;

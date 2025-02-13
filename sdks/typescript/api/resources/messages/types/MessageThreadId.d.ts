@@ -4,4 +4,4 @@
 /**
  * Thread ID of message.
  */
-export declare type MessageThreadId = string;
+export type MessageThreadId = string;

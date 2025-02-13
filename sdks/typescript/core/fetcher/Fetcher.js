@@ -9,7 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetcher = exports.fetcherImpl = void 0;
+exports.fetcher = void 0;
+exports.fetcherImpl = fetcherImpl;
+const json_1 = require("../json");
 const createRequestUrl_1 = require("./createRequestUrl");
 const getFetchFn_1 = require("./getFetchFn");
 const getRequestBody_1 = require("./getRequestBody");
@@ -30,7 +32,7 @@ function fetcherImpl(args) {
             }
         }
         const url = (0, createRequestUrl_1.createRequestUrl)(args.url, args.queryParameters);
-        let requestBody = yield (0, getRequestBody_1.getRequestBody)({
+        const requestBody = yield (0, getRequestBody_1.getRequestBody)({
             body: args.body,
             type: args.requestType === "json" ? "json" : "other",
         });
@@ -39,7 +41,7 @@ function fetcherImpl(args) {
             const response = yield (0, requestWithRetries_1.requestWithRetries)(() => __awaiter(this, void 0, void 0, function* () {
                 return (0, makeRequest_1.makeRequest)(fetchFn, url, args.method, headers, requestBody, args.timeoutMs, args.abortSignal, args.withCredentials, args.duplex);
             }), args.maxRetries);
-            let responseBody = yield (0, getResponseBody_1.getResponseBody)(response, args.responseType);
+            const responseBody = yield (0, getResponseBody_1.getResponseBody)(response, args.responseType);
             if (response.status >= 200 && response.status < 400) {
                 return {
                     ok: true,
@@ -89,11 +91,10 @@ function fetcherImpl(args) {
                 ok: false,
                 error: {
                     reason: "unknown",
-                    errorMessage: JSON.stringify(error),
+                    errorMessage: (0, json_1.toJson)(error),
                 },
             };
         }
     });
 }
-exports.fetcherImpl = fetcherImpl;
 exports.fetcher = fetcherImpl;

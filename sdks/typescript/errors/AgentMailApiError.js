@@ -4,6 +4,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentMailApiError = void 0;
+const json_1 = require("../core/json");
 class AgentMailApiError extends Error {
     constructor({ message, statusCode, body }) {
         super(buildMessage({ message, statusCode, body }));
@@ -26,7 +27,7 @@ function buildMessage({ message, statusCode, body, }) {
         lines.push(`Status code: ${statusCode.toString()}`);
     }
     if (body != null) {
-        lines.push(`Body: ${JSON.stringify(body, undefined, 2)}`);
+        lines.push(`Body: ${(0, json_1.toJson)(body, undefined, 2)}`);
     }
     return lines.join("\n");
 }

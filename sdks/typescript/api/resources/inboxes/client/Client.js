@@ -18,13 +18,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -55,8 +65,9 @@ class Inboxes {
      * @example
      *     await client.inboxes.listInboxes()
      */
-    listInboxes(request = {}, requestOptions) {
-        return __awaiter(this, void 0, void 0, function* () {
+    listInboxes() {
+        return __awaiter(this, arguments, void 0, function* (request = {}, requestOptions) {
+            var _a;
             const { limit, lastKey } = request;
             const _queryParams = {};
             if (limit != null) {
@@ -66,14 +77,9 @@ class Inboxes {
                 _queryParams["last_key"] = lastKey;
             }
             const _response = yield core.fetcher({
-                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), "/v0/inboxes/"),
+                url: (0, url_join_1.default)((_a = (yield core.Supplier.get(this._options.baseUrl))) !== null && _a !== void 0 ? _a : (yield core.Supplier.get(this._options.environment)), "/v0/inboxes/"),
                 method: "GET",
-                headers: {
-                    Authorization: yield this._getAuthorizationHeader(),
-                    "X-Fern-Language": "JavaScript",
-                    "X-Fern-Runtime": core.RUNTIME.type,
-                    "X-Fern-Runtime-Version": core.RUNTIME.version,
-                },
+                headers: Object.assign({ Authorization: yield this._getAuthorizationHeader(), "X-Fern-Language": "JavaScript", "X-Fern-Runtime": core.RUNTIME.type, "X-Fern-Runtime-Version": core.RUNTIME.version }, requestOptions === null || requestOptions === void 0 ? void 0 : requestOptions.headers),
                 contentType: "application/json",
                 queryParameters: _queryParams,
                 requestType: "json",
@@ -102,7 +108,7 @@ class Inboxes {
                         body: _response.error.rawBody,
                     });
                 case "timeout":
-                    throw new errors.AgentMailApiTimeoutError();
+                    throw new errors.AgentMailApiTimeoutError("Timeout exceeded when calling GET /v0/inboxes/.");
                 case "unknown":
                     throw new errors.AgentMailApiError({
                         message: _response.error.errorMessage,
@@ -121,15 +127,11 @@ class Inboxes {
      */
     getInbox(inboxId, requestOptions) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const _response = yield core.fetcher({
-                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}`),
+                url: (0, url_join_1.default)((_a = (yield core.Supplier.get(this._options.baseUrl))) !== null && _a !== void 0 ? _a : (yield core.Supplier.get(this._options.environment)), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}`),
                 method: "GET",
-                headers: {
-                    Authorization: yield this._getAuthorizationHeader(),
-                    "X-Fern-Language": "JavaScript",
-                    "X-Fern-Runtime": core.RUNTIME.type,
-                    "X-Fern-Runtime-Version": core.RUNTIME.version,
-                },
+                headers: Object.assign({ Authorization: yield this._getAuthorizationHeader(), "X-Fern-Language": "JavaScript", "X-Fern-Runtime": core.RUNTIME.type, "X-Fern-Runtime-Version": core.RUNTIME.version }, requestOptions === null || requestOptions === void 0 ? void 0 : requestOptions.headers),
                 contentType: "application/json",
                 requestType: "json",
                 timeoutMs: (requestOptions === null || requestOptions === void 0 ? void 0 : requestOptions.timeoutInSeconds) != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
@@ -167,7 +169,7 @@ class Inboxes {
                         body: _response.error.rawBody,
                     });
                 case "timeout":
-                    throw new errors.AgentMailApiTimeoutError();
+                    throw new errors.AgentMailApiTimeoutError("Timeout exceeded when calling GET /v0/inboxes/{inbox_id}.");
                 case "unknown":
                     throw new errors.AgentMailApiError({
                         message: _response.error.errorMessage,
@@ -194,15 +196,11 @@ class Inboxes {
      */
     createInbox(request, requestOptions) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const _response = yield core.fetcher({
-                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), "/v0/inboxes/"),
+                url: (0, url_join_1.default)((_a = (yield core.Supplier.get(this._options.baseUrl))) !== null && _a !== void 0 ? _a : (yield core.Supplier.get(this._options.environment)), "/v0/inboxes/"),
                 method: "POST",
-                headers: {
-                    Authorization: yield this._getAuthorizationHeader(),
-                    "X-Fern-Language": "JavaScript",
-                    "X-Fern-Runtime": core.RUNTIME.type,
-                    "X-Fern-Runtime-Version": core.RUNTIME.version,
-                },
+                headers: Object.assign({ Authorization: yield this._getAuthorizationHeader(), "X-Fern-Language": "JavaScript", "X-Fern-Runtime": core.RUNTIME.type, "X-Fern-Runtime-Version": core.RUNTIME.version }, requestOptions === null || requestOptions === void 0 ? void 0 : requestOptions.headers),
                 contentType: "application/json",
                 requestType: "json",
                 body: serializers.CreateInboxRequest.jsonOrThrow(request, { unrecognizedObjectKeys: "strip" }),
@@ -241,7 +239,7 @@ class Inboxes {
                         body: _response.error.rawBody,
                     });
                 case "timeout":
-                    throw new errors.AgentMailApiTimeoutError();
+                    throw new errors.AgentMailApiTimeoutError("Timeout exceeded when calling POST /v0/inboxes/.");
                 case "unknown":
                     throw new errors.AgentMailApiError({
                         message: _response.error.errorMessage,
@@ -262,15 +260,11 @@ class Inboxes {
      */
     deleteInbox(inboxId, requestOptions) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const _response = yield core.fetcher({
-                url: (0, url_join_1.default)(yield core.Supplier.get(this._options.environment), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}`),
+                url: (0, url_join_1.default)((_a = (yield core.Supplier.get(this._options.baseUrl))) !== null && _a !== void 0 ? _a : (yield core.Supplier.get(this._options.environment)), `/v0/inboxes/${encodeURIComponent(serializers.InboxId.jsonOrThrow(inboxId))}`),
                 method: "DELETE",
-                headers: {
-                    Authorization: yield this._getAuthorizationHeader(),
-                    "X-Fern-Language": "JavaScript",
-                    "X-Fern-Runtime": core.RUNTIME.type,
-                    "X-Fern-Runtime-Version": core.RUNTIME.version,
-                },
+                headers: Object.assign({ Authorization: yield this._getAuthorizationHeader(), "X-Fern-Language": "JavaScript", "X-Fern-Runtime": core.RUNTIME.type, "X-Fern-Runtime-Version": core.RUNTIME.version }, requestOptions === null || requestOptions === void 0 ? void 0 : requestOptions.headers),
                 contentType: "application/json",
                 requestType: "json",
                 timeoutMs: (requestOptions === null || requestOptions === void 0 ? void 0 : requestOptions.timeoutInSeconds) != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
@@ -303,7 +297,7 @@ class Inboxes {
                         body: _response.error.rawBody,
                     });
                 case "timeout":
-                    throw new errors.AgentMailApiTimeoutError();
+                    throw new errors.AgentMailApiTimeoutError("Timeout exceeded when calling DELETE /v0/inboxes/{inbox_id}.");
                 case "unknown":
                     throw new errors.AgentMailApiError({
                         message: _response.error.errorMessage,
@@ -312,12 +306,12 @@ class Inboxes {
         });
     }
     _getAuthorizationHeader() {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const bearer = (_a = (yield core.Supplier.get(this._options.apiKey))) !== null && _a !== void 0 ? _a : process === null || process === void 0 ? void 0 : process.env["AGENTMAIL_API_KEY"];
             if (bearer == null) {
                 throw new errors.AgentMailApiError({
-                    message: "Please specify AGENTMAIL_API_KEY when instantiating the client.",
+                    message: "Please specify a bearer by either passing it in to the constructor or initializing a AGENTMAIL_API_KEY environment variable",
                 });
             }
             return `Bearer ${bearer}`;
