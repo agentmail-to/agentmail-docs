@@ -8,3 +8,8 @@ groups:
         output:
           location: local-file-system
           path: ../sdks/typescript
+      - name: fernapi/fern-python-sdk
+        version: 4.3.13
+        output:
+          location: local-file-system
+          path: ../sdks/python
