@@ -65,9 +65,10 @@ service:
   auth: true
 
   endpoints:
-    listThreads:
+    list:
       method: GET
       path: /
+      display-name: List Threads
       request:
         name: ListThreadsRequest
         query-parameters:
@@ -77,20 +78,22 @@ service:
       errors:
         - shared.NotFoundError
 
-    getThread:
+    get:
       method: GET
       path: /{thread_id}
+      display-name: Get Thread
       path-parameters:
         thread_id: ThreadId
       response: Thread
       errors:
         - shared.NotFoundError
 
-    deleteThread:
-      method: DELETE
-      path: /{thread_id}
-      path-parameters:
-        thread_id: ThreadId
-      docs: Delete thread and all of its messages and attachments.
-      errors:
-        - shared.NotFoundError
+    # delete:
+    #   method: DELETE
+    #   path: /{thread_id}
+    #   path-parameters:
+    #     thread_id: ThreadId
+    #   display-name: Delete Thread
+    #   docs: Delete thread and all of its messages and attachments.
+    #   errors:
+    #     - shared.NotFoundError

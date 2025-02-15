@@ -68,9 +68,10 @@ service:
   auth: true
 
   endpoints:
-    listInboxes:
+    list:
       method: GET
       path: /
+      display-name: List Inboxes
       request:
         name: ListInboxesRequest
         query-parameters:
@@ -78,18 +79,20 @@ service:
           last_key: shared.LastKey
       response: ListInboxesResponse
 
-    getInbox:
+    get:
       method: GET
       path: /{inbox_id}
+      display-name: Get Inbox
       path-parameters:
         inbox_id: InboxId
       response: Inbox
       errors:
         - shared.NotFoundError
 
-    createInbox:
+    create:
       method: POST
       path: /
+      display-name: Create Inbox
       request: CreateInboxRequest
       response: Inbox
       errors:
@@ -102,14 +105,15 @@ service:
           response:
             body: $Inbox.CustomDomain
 
-    deleteInbox:
-      method: DELETE
-      path: /{inbox_id}
-      path-parameters:
-        inbox_id: InboxId
-      docs: Delete inbox and all of its threads, messages, and attachments.
-      errors:
-        - shared.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
+    # delete:
+    #   method: DELETE
+    #   path: /{inbox_id}
+    #   display-name: Delete Inbox
+    #   path-parameters:
+    #     inbox_id: InboxId
+    #   docs: Delete inbox and all of its threads, messages, and attachments.
+    #   errors:
+    #     - shared.NotFoundError
+    #   examples:
+    #     - path-parameters:
+    #         inbox_id: yourinbox@agentmail.to

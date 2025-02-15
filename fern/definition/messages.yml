@@ -171,9 +171,10 @@ service:
   auth: true
 
   endpoints:
-    listMessages:
+    list:
       method: GET
       path: /
+      display-name: List Messages
       request:
         name: ListMessagesRequest
         query-parameters:
@@ -183,9 +184,10 @@ service:
       errors:
         - shared.NotFoundError
 
-    getMessage:
+    get:
       method: GET
       path: /{message_id}
+      display-name: Get Message
       path-parameters:
         message_id: MessageId
       response: Message
@@ -195,6 +197,7 @@ service:
     getAttachment:
       method: GET
       path: /{message_id}/attachments/{attachment_id}
+      display-name: Get Attachment
       path-parameters:
         message_id: MessageId
         attachment_id: AttachmentId
@@ -202,27 +205,30 @@ service:
       errors:
         - shared.NotFoundError
 
-    deleteMessage:
-      method: DELETE
-      path: /{message_id}
-      path-parameters:
-        message_id: MessageId
-      docs: Delete message and its attachments.
-      errors:
-        - shared.NotFoundError
+    # delete:
+    #   method: DELETE
+    #   path: /{message_id}
+    #   display-name: Delete Message
+    #   path-parameters:
+    #     message_id: MessageId
+    #   docs: Delete message and its attachments.
+    #   errors:
+    #     - shared.NotFoundError
 
-    sendMessage:
+    send:
       method: POST
       path: /
+      display-name: Send Message
       request: SendMessageRequest
       response: SendMessageResponse
       errors:
         - shared.NotFoundError
         - shared.ValidationError
 
-    replyToMessage:
+    reply:
       method: POST
       path: /{message_id}
+      display-name: Reply To Message
       path-parameters:
         message_id: MessageId
       request: ReplyToMessageRequest

@@ -5,6 +5,8 @@ name: api
 environments:
   Production: https://api.agentmail.to
 
+default-environment: Production
+
 base-path: /v0
 
 auth: Bearer

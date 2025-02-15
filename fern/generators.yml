@@ -22,3 +22,6 @@ groups:
           token: ${PYPI_TOKEN}
         github:
           repository: agentmail-to/agentmail-python
+        config:
+          client:
+            class_name: AgentMail
