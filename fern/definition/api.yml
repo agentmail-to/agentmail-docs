@@ -4,6 +4,7 @@ name: api
 
 environments:
   Production: https://api.agentmail.to
+  Development: https://api.agentmail.dev
 
 default-environment: Production
 

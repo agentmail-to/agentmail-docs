@@ -6,6 +6,14 @@ navigation:
   - messages.yml
 
 types:
+  Received:
+    type: optional<boolean>
+    docs: Whether to include received messages.
+
+  Sent:
+    type: optional<boolean>
+    docs: Whether to include sent messages.
+
   QueryLimit:
     type: optional<integer>
     docs: Limit of number of items to return.
