@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 instances:
-  - url: https://agentmail-prod.docs.buildwithfern.com​
+  - url: https://agentmail-production.docs.buildwithfern.com
 
 title: AgentMail | Documentation
 
