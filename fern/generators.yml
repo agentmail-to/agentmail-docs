@@ -12,6 +12,8 @@ groups:
           token: ${NPM_TOKEN}
         github:
           repository: agentmail-to/agentmail-node
+        config:
+          namespaceExport: AgentMail
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
@@ -23,5 +25,4 @@ groups:
         github:
           repository: agentmail-to/agentmail-python
         config:
-          client:
-            class_name: AgentMail
+          client_class_name: AgentMail
