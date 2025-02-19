@@ -2,6 +2,7 @@
 
 instances:
   - url: https://agentmail-production.docs.buildwithfern.com
+    custom-domain: docs.agentmail.to
 
 title: AgentMail | Documentation
 
