@@ -152,7 +152,6 @@ types:
 
   SendMessageResponse:
     properties:
-      thread_id: MessageThreadId
       message_id: MessageId
 
   ReplyToMessageRequest:
