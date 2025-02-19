@@ -7,16 +7,12 @@ navigation:
 
 types:
   Received:
-    type: optional<boolean>
+    type: boolean
     docs: Whether to include received messages.
 
   Sent:
-    type: optional<boolean>
+    type: boolean
     docs: Whether to include sent messages.
-
-  QueryLimit:
-    type: optional<integer>
-    docs: Limit of number of items to return.
 
   Limit:
     type: integer
@@ -27,7 +23,7 @@ types:
     docs: Number of items returned.
 
   LastKey:
-    type: optional<string>
+    type: string
     docs: Key of last item.
 
   ErrorName:

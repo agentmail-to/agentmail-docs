@@ -39,11 +39,11 @@ types:
     docs: Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageSubject:
-    type: optional<string>
+    type: string
     docs: Subject of message.
 
   MessagePreview:
-    type: optional<string>
+    type: string
     docs: Text preview of message.
 
   MessageTo:
@@ -51,15 +51,15 @@ types:
     docs: Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageCc:
-    type: optional<list<string>>
+    type: list<string>
     docs: Addresses of CC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageBcc:
-    type: optional<list<string>>
+    type: list<string>
     docs: Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageAttachments:
-    type: optional<list<Attachment>>
+    type: list<Attachment>
     docs: Attachments in message.
 
   MessageItem:
@@ -68,23 +68,23 @@ types:
       thread_id: threads.ThreadId
       sent_at: MessageSentAt
       from: MessageFrom
-      subject: MessageSubject
-      preview: MessagePreview
+      subject: optional<MessageSubject>
+      preview: optional<MessagePreview>
       to: MessageTo
-      cc: MessageCc
-      bcc: MessageBcc
-      attachments: MessageAttachments
+      cc: optional<MessageCc>
+      bcc: optional<MessageBcc>
+      attachments: optional<MessageAttachments>
 
   MessageThreadId:
     type: string
     docs: Thread ID of message.
 
   MessageText:
-    type: optional<string>
+    type: string
     docs: Plain text body of message.
 
   MessageHtml:
-    type: optional<string>
+    type: string
     docs: HTML body of message.
 
   Message:
@@ -93,20 +93,20 @@ types:
       thread_id: MessageThreadId
       sent_at: MessageSentAt
       received_at:
-        type: datetime
+        type: optional<datetime>
         docs: Time at which message was received.
       from: MessageFrom
       reply_to:
         type: optional<string>
         docs: Address to reply to. In format `username@domain.com` or `Display Name <username@domain.com>`.
-      subject: MessageSubject
-      preview: MessagePreview
+      subject: optional<MessageSubject>
+      preview: optional<MessagePreview>
       to: MessageTo
-      cc: MessageCc
-      bcc: MessageBcc
-      text: MessageText
-      html: MessageHtml
-      attachments: MessageAttachments
+      cc: optional<MessageCc>
+      bcc: optional<MessageBcc>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
+      attachments: optional<MessageAttachments>
       in_reply_to:
         type: optional<string>
         docs: ID of message being replied to.
@@ -119,9 +119,9 @@ types:
       messages:
         type: list<MessageItem>
         docs: Messages items. Ordered by `sent_at` descending.
-      limit: shared.Limit
       count: shared.Count
-      last_key: shared.LastKey
+      limit: optional<shared.Limit>
+      last_key: optional<shared.LastKey>
 
   Addresses:
     discriminated: false
@@ -146,9 +146,9 @@ types:
       to: SendMessageTo
       cc: SendMessageCc
       bcc: SendMessageBcc
-      subject: MessageSubject
-      text: MessageText
-      html: MessageHtml
+      subject: optional<MessageSubject>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
 
   SendMessageResponse:
     properties:
@@ -160,11 +160,11 @@ types:
       to: optional<SendMessageTo>
       cc: SendMessageCc
       bcc: SendMessageBcc
-      text: MessageText
-      html: MessageHtml
+      text: optional<MessageText>
+      html: optional<MessageHtml>
 
 service:
-  base-path: /inboxes/{inbox_id}/messages
+  base-path: /inboxes/{inbox_id}
   path-parameters:
     inbox_id: inboxes.InboxId
 
@@ -173,23 +173,23 @@ service:
   endpoints:
     list:
       method: GET
-      path: /
+      path: /messages
       display-name: List Messages
       docs: List messages in inbox. If neither or both `received` and `sent` query parameters are set, all messages are returned.
       request:
         name: ListMessagesRequest
         query-parameters:
-          received: shared.Received
-          sent: shared.Sent
-          limit: shared.QueryLimit
-          last_key: shared.LastKey
+          received: optional<shared.Received>
+          sent: optional<shared.Sent>
+          limit: optional<shared.Limit>
+          last_key: optional<shared.LastKey>
       response: ListMessagesResponse
       errors:
         - shared.NotFoundError
 
     get:
       method: GET
-      path: /{message_id}
+      path: /messages/{message_id}
       display-name: Get Message
       path-parameters:
         message_id: MessageId
@@ -199,7 +199,7 @@ service:
 
     getAttachment:
       method: GET
-      path: /{message_id}/attachments/{attachment_id}
+      path: /messages/{message_id}/attachments/{attachment_id}
       display-name: Get Attachment
       path-parameters:
         message_id: MessageId
@@ -210,7 +210,7 @@ service:
 
     # delete:
     #   method: DELETE
-    #   path: /{message_id}
+    #   path: /messages/{message_id}
     #   display-name: Delete Message
     #   path-parameters:
     #     message_id: MessageId
@@ -220,7 +220,7 @@ service:
 
     send:
       method: POST
-      path: /
+      path: /messages
       display-name: Send Message
       request: SendMessageRequest
       response: SendMessageResponse
@@ -230,7 +230,7 @@ service:
 
     reply:
       method: POST
-      path: /{message_id}
+      path: /messages/{message_id}
       display-name: Reply To Message
       path-parameters:
         message_id: MessageId

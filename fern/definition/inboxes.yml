@@ -41,9 +41,9 @@ types:
       inboxes:
         type: list<Inbox>
         docs: Inbox items. Ordered by `created_at` ascending.
-      limit: shared.Limit
       count: shared.Count
-      last_key: shared.LastKey
+      limit: optional<shared.Limit>
+      last_key: optional<shared.LastKey>
 
   CreateInboxRequest:
     properties:
@@ -64,24 +64,24 @@ types:
           domain: yourdomain.com
 
 service:
-  base-path: /inboxes
+  base-path: ""
   auth: true
 
   endpoints:
     list:
       method: GET
-      path: /
+      path: /inboxes
       display-name: List Inboxes
       request:
         name: ListInboxesRequest
         query-parameters:
-          limit: shared.QueryLimit
-          last_key: shared.LastKey
+          limit: optional<shared.Limit>
+          last_key: optional<shared.LastKey>
       response: ListInboxesResponse
 
     get:
       method: GET
-      path: /{inbox_id}
+      path: /inboxes/{inbox_id}
       display-name: Get Inbox
       path-parameters:
         inbox_id: InboxId
@@ -91,7 +91,7 @@ service:
 
     create:
       method: POST
-      path: /
+      path: /inboxes
       display-name: Create Inbox
       request: CreateInboxRequest
       response: Inbox
@@ -107,7 +107,7 @@ service:
 
     # delete:
     #   method: DELETE
-    #   path: /{inbox_id}
+    #   path: /inboxes{inbox_id}
     #   display-name: Delete Inbox
     #   path-parameters:
     #     inbox_id: InboxId

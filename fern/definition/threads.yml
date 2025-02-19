@@ -19,11 +19,11 @@ types:
     docs: Addresses of participants in thread. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   ThreadSubject:
-    type: optional<string>
+    type: string
     docs: Subject of thread.
 
   ThreadPreview:
-    type: optional<string>
+    type: string
     docs: Text preview of last message in thread.
 
   ThreadItem:
@@ -31,8 +31,8 @@ types:
       thread_id: ThreadId
       updated_at: ThreadUpdatedAt
       participants: ThreadParticipants
-      subject: ThreadSubject
-      preview: ThreadPreview
+      subject: optional<ThreadSubject>
+      preview: optional<ThreadPreview>
 
   Thread:
     properties:
@@ -42,7 +42,7 @@ types:
         type: datetime
         docs: Time at which thread was created.
       updated_at: ThreadUpdatedAt
-      subject: ThreadSubject
+      subject: optional<ThreadSubject>
       participants: ThreadParticipants
       messages:
         type: list<messages.Message>
@@ -53,12 +53,12 @@ types:
       threads:
         type: list<ThreadItem>
         docs: Thread items. Ordered by `updated_at` descending.
-      limit: shared.Limit
       count: shared.Count
-      last_key: shared.LastKey
+      limit: optional<shared.Limit>
+      last_key: optional<shared.LastKey>
 
 service:
-  base-path: /inboxes/{inbox_id}/threads
+  base-path: /inboxes/{inbox_id}
   path-parameters:
     inbox_id: inboxes.InboxId
 
@@ -67,23 +67,23 @@ service:
   endpoints:
     list:
       method: GET
-      path: /
+      path: /threads
       display-name: List Threads
       docs: List threads in inbox. If neither or both `received` and `sent` query parameters are set, all threads are returned.
       request:
         name: ListThreadsRequest
         query-parameters:
-          received: shared.Received
-          sent: shared.Sent
-          limit: shared.QueryLimit
-          last_key: shared.LastKey
+          received: optional<shared.Received>
+          sent: optional<shared.Sent>
+          limit: optional<shared.Limit>
+          last_key: optional<shared.LastKey>
       response: ListThreadsResponse
       errors:
         - shared.NotFoundError
 
     get:
       method: GET
-      path: /{thread_id}
+      path: /threads/{thread_id}
       display-name: Get Thread
       path-parameters:
         thread_id: ThreadId
@@ -93,7 +93,7 @@ service:
 
     # delete:
     #   method: DELETE
-    #   path: /{thread_id}
+    #   path: /threads/{thread_id}
     #   path-parameters:
     #     thread_id: ThreadId
     #   display-name: Delete Thread
