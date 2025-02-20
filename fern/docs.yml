@@ -16,9 +16,9 @@ layout:
   content-alignment: left
 
 navbar-links:
-  # - type: minimal
-  #   text: View demo
-  #   href: https://chat.agentmail.to
+  - type: minimal
+    text: Join Discord
+    href: https://discord.gg/hTYatWYWBc
   - type: filled
     text: "access@agentmail.to"
     href: mailto:access@agentmail.to
