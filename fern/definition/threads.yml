@@ -47,6 +47,26 @@ types:
       messages:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `sent_at` ascending.
+    examples:
+      - name: CustomName
+        value:
+          thread_id: "thread_123"
+          inbox_id: "yourinbox@agentmail.to"
+          created_at: "2024-01-15T09:30:00Z"
+          updated_at: "2024-01-15T10:15:00Z"
+          subject: "Project Discussion"
+          participants:
+            - "alice@example.com"
+            - "bob@example.com"
+          messages:
+            - message_id: "msg_123"
+              thread_id: "thread_123"
+              sent_at: "2024-01-15T09:30:00Z"
+              received_at: "2024-01-15T09:30:00Z"
+              from: "alice@example.com"
+              to:
+                - "bob@example.com"
+              text: "Let's review the timeline for the project."
 
   ListThreadsResponse:
     properties:
@@ -56,6 +76,27 @@ types:
       count: shared.Count
       limit: optional<shared.Limit>
       last_key: optional<shared.LastKey>
+    examples:
+      - name: CustomName
+        value:
+          threads:
+            - thread_id: "thread_123"
+              updated_at: "2024-01-15T09:30:00Z"
+              participants:
+                - "alice@example.com"
+                - "bob@example.com"
+              subject: "Project Discussion"
+              preview: "Let's review the timeline for..."
+            - thread_id: "thread_456"
+              updated_at: "2024-01-15T10:15:00Z"
+              participants:
+                - "charlie@example.com"
+                - "david@example.com"
+              subject: "Weekly Update"
+              preview: "Here's what we accomplished..."
+          limit: 10
+          count: 2
+          last_key: "thread_456#2024-01-15T10:15:00Z"
 
 service:
   base-path: /inboxes/{inbox_id}
@@ -80,6 +121,27 @@ service:
       response: ListThreadsResponse
       errors:
         - shared.NotFoundError
+      examples:
+        - path-parameters:
+            inbox_id: yourinbox@agentmail.to
+          query-parameters:
+            limit: 10
+          response:
+            body: $ListThreadsResponse.CustomName
+          code-samples:
+            - sdk: python
+              code: |
+                from agentmail import AgentMail
+                client = AgentMail(api_key="YOUR_API_KEY")
+                threads = client.threads.list(inbox_id="yourinbox@agentmail.to", limit=10)
+            - sdk: typescript
+              code: |
+                import { AgentMail } from "agentmail";
+                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
+                const threads = await client.threads.list({ 
+                  inboxId: "yourinbox@agentmail.to",
+                  limit: 10 
+                });
 
     get:
       method: GET
@@ -90,6 +152,29 @@ service:
       response: Thread
       errors:
         - shared.NotFoundError
+      examples:
+        - path-parameters:
+            inbox_id: yourinbox@agentmail.to
+            thread_id: "thread_123"
+          response:
+            body: $Thread.CustomName
+          code-samples:
+            - sdk: python
+              code: |
+                from agentmail import AgentMail
+                client = AgentMail(api_key="YOUR_API_KEY")
+                thread = client.threads.get(
+                    inbox_id="yourinbox@agentmail.to",
+                    thread_id="thread_123"
+                )
+            - sdk: typescript
+              code: |
+                import { AgentMail } from "agentmail";
+                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
+                const thread = await client.threads.get({
+                  inboxId: "yourinbox@agentmail.to",
+                  threadId: "thread_123"
+                });
 
     # delete:
     #   method: DELETE
