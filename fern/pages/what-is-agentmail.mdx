@@ -7,9 +7,11 @@ description: An introduction to AgentMail, its features, use cases, market poten
 
 # Introduction
 
-Today’s AI agents face critical deployment challenges, particularly around communication, orchestration, and identity and authentication. Despite advancements in foundational models, the gap between the hype and real-world enterprise adoption of agents remains strikingly wide. To bridge this gap, agents require more than improved models—they need tools that empower them to be fully dependable, autonomous, and context-aware. We believe that true innovation in email isn’t about how it is used but who uses it, so we’re addressing these challenges by taking an existing communication medium and rebuilding it from the ground up for AI agents: an email API that gives every agent its own embedded inbox as part of the tooling layer.
+Today’s AI agents face challenges in orchestration, and identity and authentication.
 
-This enables agents to autonomously send, receive, and manage emails while having their inbox serve as a system of record to supplement agent context and memory. By leveraging email’s structure and standards, our product transforms it into more than a communication tool—it can become the foundation for orchestrating agent-centric workflows and collaboration.
+We believe that true innovation in email isn’t about how it is used but who uses it, so we’re addressing these challenges by taking an existing communication medium and rebuilding it from the ground up for AI agents: an email API that gives every agent its own embedded inbox as part of the tooling layer.
+
+This enables agents to autonomously send, receive, and manage emails while having their inbox serve as a system of record to be made easily digestible by LLM's. By leveraging email’s structure and standards, our product transforms it into more than a communication tool—-it can become the foundation for orchestrating agent-centric workflows and collaboration.
 
 <Frame caption="AgentMail sits in the tooling layer">
   <img src="./tooling.png" alt="" />
@@ -19,7 +21,7 @@ This enables agents to autonomously send, receive, and manage emails while havin
 
 To clarify, we’re not building a competitor to Gmail and Outlook. We’re building a new provider that is **agent-centric**, explaining why we’re building an API.
 
-You’re likely thinking: why wouldn’t someone with a burning need just make a new Gmail/Outlook account? Human inboxes already don’t suffice now and will never do so in the future, because of multi-factor authentication hassles, unstructured HTML data, and subscription overcharges (agents need usage-based pricing). Now you’re probably wondering, **what do embedded inboxes add?**
+You’re likely thinking: why wouldn’t someone with a burning need just make a new Gmail/Outlook account? Human inboxes already don’t suffice now and will never do so in the future, because of multi-factor authentication hassles, unstructured HTML data, and subscription overcharges (agents need usage-based pricing).
 
 # Use Cases
 
@@ -27,25 +29,42 @@ You’re likely thinking: why wouldn’t someone with a burning need just make a
 
 Email works universally across systems, allowing agents to act as command centers for workflow automation.
 
-**Example:** An agent receives a signed contract via email, and automatically triggers onboarding workflows in Asana, creating a unified workflow with no human involvement.
+<Note>
+  Example: An agent receives a signed contract via email, and automatically
+  triggers onboarding workflows in Asana, creating a unified workflow with no
+  human involvement.
+</Note>
 
 ### <Icon icon="walkie-talkie" size="4" /> Autonomous Communication
 
 With embedded inboxes, agents can interact autonomously with humans, systems, and even other agents through email. This creates a communication layer that doesn’t rely on the headache of onboarding different systems.
 
-**Example:** A support agent receives an email from a customer, specifies the issue, and autonomously routes the request to another agent/human via email for resolution, all while keeping the customer updated and in-the-loop.
+<Note>
+  A support agent receives an email from a customer, specifies the issue, and
+  autonomously routes the request to another agent/human via email for
+  resolution, all while keeping the customer updated and in-the-loop.
+</Note>
 
 ### <Icon icon="book" size = "4" /> Persistent Context Management
 
-Traditional emails are treated as static threads, with no way to track what has been processed, what actions are pending, or how tasks relate to ongoing workflows. We solve this by introducing persistent context management within inboxes, enabling agents to dynamically track actions, and remember past interactions. This transforms inboxes into dynamic systems of record, allowing agents to act autonomously and collaborate effectively in multi-agent environments, all while maintaining personalized context for every thread.
+Traditional emails are treated as static threads, with no way to track what has been processed, what actions are pending, or how tasks relate to ongoing workflows. We transform inboxes into dynamic systems of record, allowing agents to act autonomously and collaborate effectively in multi-agent environments, all while maintaining personalized context for every thread.
 
-**Example:** When a prospect replies via email thread, the agent recalls past information discussed in the thread or other relevant threads, prepares a tailored follow-up, and schedules a call without human intervention.
+<Note>
+  Example: When a prospect replies via email thread, the agent recalls past
+  information discussed in the thread or other relevant threads, prepares a
+  tailored follow-up, and schedules a call without human intervention.
+</Note>
 
 ### <Icon icon="people-group" size = "4"/> Email for Identity Management and Authentication
 
 Agents with dedicated email inboxes can autonomously manage their identity to authenticate with third-party systems and access critical services securely.
 
-**Example:** An agent uses its embedded inbox to verify its identity with a SaaS platform by receiving and processing a verification email. Once authenticated, the agent autonomously retrieves data, updates records, or triggers workflows within the platform—all without requiring human intervention.
+<Note>
+  Example: An agent uses its embedded inbox to verify its identity with a SaaS
+  platform by receiving and processing a verification email. Once authenticated,
+  the agent autonomously retrieves data, updates records, or triggers workflows
+  within the platform—all without requiring human intervention.
+</Note>
 
 <Frame caption="AgentMail turns unstructured to structured for easier agent digestion, serving as a default system of record and can eventually be used for authentication and orchestration">
   <img src="./orchestration.png" alt="" />
