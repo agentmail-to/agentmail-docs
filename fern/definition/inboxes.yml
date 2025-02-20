@@ -44,6 +44,17 @@ types:
       count: shared.Count
       limit: optional<shared.Limit>
       last_key: optional<shared.LastKey>
+    examples:
+      - name: CustomName
+        value:
+          inboxes:
+            - inbox_id: yourinbox@agentmail.to
+              organization_id: 123e4567-e89b-12d3-a456-426614174000
+              display_name: Your Inbox
+              created_at: 2024-01-15T09:30:00Z
+          limit: 10
+          count: 1
+          last_key: 123e4567-e89b-12d3-a456-426614174000
 
   CreateInboxRequest:
     properties:
@@ -78,6 +89,25 @@ service:
           limit: optional<shared.Limit>
           last_key: optional<shared.LastKey>
       response: ListInboxesResponse
+      examples:
+        - query-parameters:
+            limit: 10
+            last_key: 123e4567-e89b-12d3-a456-426614174000
+          response:
+            body: $ListInboxesResponse.CustomName
+          code-samples:
+            - sdk: python
+              code: |
+                from agentmail import AgentMail
+
+                client = AgentMail(api_key="YOUR_API_KEY")
+                inboxes = client.inboxes.list(limit=10)
+            - sdk: typescript
+              code: |
+                import { AgentMail } from "agentmail";
+
+                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
+                const inboxes = await client.inboxes.list({ limit: 10 });
 
     get:
       method: GET
@@ -88,6 +118,22 @@ service:
       response: Inbox
       errors:
         - shared.NotFoundError
+      examples:
+        - path-parameters:
+            inbox_id: yourinbox@agentmail.to
+          response:
+            body: $Inbox.CustomName
+          code-samples:
+            - sdk: python
+              code: |
+                from agentmail import AgentMail
+                client = AgentMail(api_key="YOUR_API_KEY")
+                inbox = client.inboxes.get("yourinbox@agentmail.to")
+            - sdk: typescript
+              code: |
+                import { AgentMail } from "agentmail";
+                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
+                const inbox = await client.inboxes.get("yourinbox@agentmail.to");
 
     create:
       method: POST
@@ -101,6 +147,17 @@ service:
         - request: $CreateInboxRequest.CustomName
           response:
             body: $Inbox.CustomName
+          code-samples:
+            - sdk: python
+              code: |
+                from agentmail import AgentMail
+                client = AgentMail(api_key="YOUR_API_KEY")
+                inbox = agentmail.create_inbox(username="yourinbox", display_name="Your Inbox")
+            - sdk: typescript
+              code: |
+                import { AgentMail } from "agentmail";
+                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
+                const inbox = await client.inboxes.create({ username: "yourinbox", display_name: "Your Inbox" });
         - request: $CreateInboxRequest.CustomDomain
           response:
             body: $Inbox.CustomDomain

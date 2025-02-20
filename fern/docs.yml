@@ -36,16 +36,14 @@ default-language: python
 navigation:
   - tab: docs
     layout:
-      - section: Getting Started
+      - section: Introduction
         contents:
-          - page: Introduction
-            path: pages/introduction.mdx
-          - page: Quickstart
-            path: pages/quickstart.mdx
-          # - page: Welcome
-          #   path: pages/welcome.mdx
-          # - page: What is AgentMail?
-          #   path: pages/what-is-agentmail.mdx
+          # - page: Introduction
+          #   path: pages/introduction.mdx
+          - page: Welcome
+            path: pages/welcome.mdx
+          - page: What is AgentMail?
+            path: pages/what-is-agentmail.mdx
           # - page: Use Cases
           #   path: pages/use-cases.mdx
           # - page: Installation
@@ -54,6 +52,10 @@ navigation:
           # system requirements
           # - page: Frequently Asked Questions
           #   path: pages/faq.mdx
+      - section: Getting Started
+        contents:
+          - page: Quickstart
+            path: pages/quickstart.mdx
       # - section: How To
       #   contents:
       #     # - page: Creating Your First Inbox
@@ -68,10 +70,10 @@ navigation:
       #     #   path: pages/webhooks.mdx
       #     # - page: Handling Attachments
       #     #   path: pages/handling-attachments.mdx
-      # - section: Examples
-      #   contents:
-      #     - page: Shopper Agent
-      #       path: pages/shopper-agent.mdx
+      - section: Examples
+        contents:
+          - page: Newsletter Agent
+            path: pages/news-agent.mdx
       # - section: Demos
       #   contents:
       #     - page: Subscribing to a Newsletter with Agentmail
@@ -79,6 +81,7 @@ navigation:
   - tab: api
     layout:
       - api: API Reference
+        summary: pages/apiwelcome.mdx
         snippets:
           python: agentmail
           typescript: agentmail

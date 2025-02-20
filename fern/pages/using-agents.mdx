@@ -124,6 +124,40 @@ def delete_inbox(address: str):
 
 ```
 
+<CodeBlocks>
+    ```bash title="Python"
+    pip install agentmail asyncio websockets langchain-openai browser-use fastapi python-dotenv httpx
+    ```
+
+    ```bash title="TypeScript/Node.js"
+    npm install agentmail ws langchain fastapi-edge dotenv
+    ```
+
+    </CodeBlocks>
+
+    <Tip>
+    While using the SDK is recommended, if you prefer making direct HTTP requests instead of using the SDK, you'll only need:
+
+    <CodeBlocks>
+    ```bash title="Python"
+    pip install httpx python-dotenv
+    ```
+
+    ```bash title="TypeScript/Node.js"
+    npm install node-fetch dotenv
+    ```
+
+    </CodeBlocks>
+    </Tip>
+
+<Note>
+For Node.js, we're using:
+- Fastify instead of FastAPI (more common in Node.js ecosystem)
+- `ws` package for WebSocket functionality
+- `@fastify/cors` for CORS middleware
+</Note>
+
+
 Make sure to create succinct docstrings for your tools so that the agent can clearly understand what the tool does.
 
 You can create custom tools that utilize the API endpoints in a way that tailors to your agents needs. For this tutorial we simply define straightfoward tools for each API endpoint.
