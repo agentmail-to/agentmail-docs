@@ -348,7 +348,6 @@ service:
             html: "<p>Let's review the timeline for the project.</p>"
           response:
             body:
-              thread_id: "thread_123"
               message_id: "msg_123"
           code-samples:
             - sdk: python
@@ -402,7 +401,6 @@ service:
             bcc: ["david@example.com"]
           response:
             body:
-              thread_id: "thread_123"
               message_id: "msg_456"
           code-samples:
             - sdk: python
