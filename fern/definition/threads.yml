@@ -155,20 +155,6 @@ service:
             limit: 10
           response:
             body: $ListThreadsResponse.CustomName
-          code-samples:
-            - sdk: python
-              code: |
-                from agentmail import AgentMail
-                client = AgentMail(api_key="YOUR_API_KEY")
-                threads = client.threads.list(inbox_id="yourinbox@agentmail.to", limit=10)
-            - sdk: typescript
-              code: |
-                import { AgentMail } from "agentmail";
-                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
-                const threads = await client.threads.list({ 
-                  inboxId: "yourinbox@agentmail.to",
-                  limit: 10 
-                });
 
     get:
       method: GET
@@ -185,23 +171,6 @@ service:
             thread_id: "thread_123"
           response:
             body: $Thread.CustomName
-          code-samples:
-            - sdk: python
-              code: |
-                from agentmail import AgentMail
-                client = AgentMail(api_key="YOUR_API_KEY")
-                thread = client.threads.get(
-                    inbox_id="yourinbox@agentmail.to",
-                    thread_id="thread_123"
-                )
-            - sdk: typescript
-              code: |
-                import { AgentMail } from "agentmail";
-                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
-                const thread = await client.threads.get({
-                  inboxId: "yourinbox@agentmail.to",
-                  threadId: "thread_123"
-                });
 
     # delete:
     #   method: DELETE

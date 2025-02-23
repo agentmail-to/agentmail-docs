@@ -261,25 +261,6 @@ service:
             limit: 10
           response:
             body: $ListMessagesResponse.CustomName
-          code-samples:
-            - sdk: python
-              code: |
-                from agentmail import AgentMail
-                client = AgentMail(api_key="YOUR_API_KEY")
-                messages = client.messages.list(
-                    inbox_id="yourinbox@agentmail.to",
-                    limit=10,
-                    received=True  # Optional: filter for received messages
-                )
-            - sdk: typescript
-              code: |
-                import { AgentMail } from "agentmail";
-                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
-                const messages = await client.messages.list({ 
-                  inboxId: "yourinbox@agentmail.to",
-                  limit: 10,
-                  received: true  // Optional: filter for received messages
-                });
 
     get:
       method: GET
@@ -296,23 +277,6 @@ service:
             message_id: "msg_123"
           response:
             body: $Message.CustomName
-          code-samples:
-            - sdk: python
-              code: |
-                from agentmail import AgentMail
-                client = AgentMail(api_key="YOUR_API_KEY")
-                message = client.messages.get(
-                    inbox_id="yourinbox@agentmail.to",
-                    message_id="msg_123"
-                )
-            - sdk: typescript
-              code: |
-                import { AgentMail } from "agentmail";
-                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
-                const message = await client.messages.get({
-                  inboxId: "yourinbox@agentmail.to",
-                  messageId: "msg_123"
-                });
 
     getAttachment:
       method: GET
@@ -357,35 +321,6 @@ service:
           response:
             body:
               message_id: "msg_123"
-          code-samples:
-            - sdk: python
-              code: |
-                from agentmail import AgentMail
-                client = AgentMail(api_key="YOUR_API_KEY")
-                response = client.messages.send(
-                    inbox_id="yourinbox@agentmail.to",
-                    to="bob@example.com",
-                    cc="charlie@example.com",
-                    bcc="david@example.com",
-                    subject="Project Discussion",
-                    text="Let's review the timeline for the project.",
-                    html="<p>Let's review the timeline for the project.</p>"
-                )
-                print(f"Sent message: {response.message_id}")
-            - sdk: typescript
-              code: |
-                import { AgentMail } from "agentmail";
-                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
-                const response = await client.messages.send({
-                  inboxId: "yourinbox@agentmail.to",
-                  to: "bob@example.com",
-                  cc: "charlie@example.com",
-                  bcc: "david@example.com",
-                  subject: "Project Discussion",
-                  text: "Let's review the timeline for the project.",
-                  html: "<p>Let's review the timeline for the project.</p>"
-                });
-                console.log(`Sent message: ${response.messageId}`);
 
     reply:
       method: POST
@@ -410,30 +345,3 @@ service:
           response:
             body:
               message_id: "msg_456"
-          code-samples:
-            - sdk: python
-              code: |
-                from agentmail import AgentMail
-                client = AgentMail(api_key="YOUR_API_KEY")
-                response = client.messages.reply(
-                    inbox_id="yourinbox@agentmail.to",
-                    message_id="msg_123",
-                    text="Thanks for the update. Let's meet tomorrow at 2 PM.",
-                    html="<p>Thanks for the update. Let's meet tomorrow at 2 PM.</p>",
-                    cc="charlie@example.com",
-                    bcc="david@example.com"
-                )
-                print(f"Sent reply: {response.message_id}")
-            - sdk: typescript
-              code: |
-                import { AgentMail } from "agentmail";
-                const client = new AgentMail({ apiKey: "YOUR_API_KEY" });
-                const response = await client.messages.reply({
-                  inboxId: "yourinbox@agentmail.to",
-                  messageId: "msg_123",
-                  text: "Thanks for the update. Let's meet tomorrow at 2 PM.",
-                  html: "<p>Thanks for the update. Let's meet tomorrow at 2 PM.</p>",
-                  cc: "charlie@example.com",
-                  bcc: "david@example.com"
-                });
-                console.log(`Sent reply: ${response.messageId}`);
