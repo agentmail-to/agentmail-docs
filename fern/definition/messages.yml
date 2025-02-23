@@ -10,21 +10,29 @@ types:
     type: string
     docs: ID of attachment.
 
+  AttachmentFilename:
+    type: string
+    docs: Filename of attachment.
+
+  AttachmentContentType:
+    type: string
+    docs: Content type of attachment.
+
+  AttachmentSize:
+    type: integer
+    docs: Size of attachment in bytes.
+
+  AttachmentInline:
+    type: boolean
+    docs: Whether attachment is part of message body.
+
   Attachment:
     properties:
       attachment_id: AttachmentId
-      filename:
-        type: string
-        docs: Filename of attachment.
-      mime_type:
-        type: string
-        docs: MIME type of attachment.
-      size:
-        type: integer
-        docs: Size of attachment in bytes.
-      inline:
-        type: boolean
-        docs: Whether attachment is part of message body.
+      filename: AttachmentFilename
+      content_type: AttachmentContentType
+      size: AttachmentSize
+      inline: AttachmentInline
 
   MessageId:
     type: string
@@ -134,7 +142,7 @@ types:
               {
                 attachment_id: "att_123",
                 filename: "proposal.pdf",
-                mime_type: "application/pdf",
+                content_type: "application/pdf",
                 size: 1024,
                 inline: false,
               },
@@ -168,7 +176,7 @@ types:
                   {
                     attachment_id: "att_123",
                     filename: "proposal.pdf",
-                    mime_type: "application/pdf",
+                    content_type: "application/pdf",
                     size: 1024,
                     inline: false,
                   },
