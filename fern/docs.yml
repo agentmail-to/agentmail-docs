@@ -3,6 +3,11 @@
 instances:
   - url: https://agentmail-production.docs.buildwithfern.com
     custom-domain: docs.agentmail.to
+    edit-this-page:
+      github:
+        owner: agentmail-to
+        repo: agentmail-docs
+        branch: main
 
 title: AgentMail | Documentation
 
