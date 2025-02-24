@@ -29,6 +29,10 @@ types:
     type: list<string>
     docs: Addresses of participants in thread. In format `username@domain.com` or `Display Name <username@domain.com>`
 
+  ThreadRecipients:
+    type: list<string>
+    docs: Addresses of recipients in thread. In format `username@domain.com` or `Display Name <username@domain.com>`
+
   ThreadMessageCount:
     type: integer
     docs: Number of messages in thread.
@@ -50,9 +54,10 @@ types:
       thread_id: ThreadId
       updated_at: ThreadUpdatedAt
       participants: ThreadParticipants
-      message_count: ThreadMessageCount
+      recipients: ThreadRecipients
       subject: optional<ThreadSubject>
       preview: optional<ThreadPreview>
+      message_count: ThreadMessageCount
       attachments: optional<ThreadAttachments>
 
   Thread:
@@ -64,12 +69,13 @@ types:
         docs: Time at which thread was created.
       updated_at: ThreadUpdatedAt
       participants: ThreadParticipants
+      recipients: ThreadRecipients
+      subject: optional<ThreadSubject>
+      preview: optional<ThreadPreview>
       message_count: ThreadMessageCount
       messages:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `sent_at` ascending.
-      subject: optional<ThreadSubject>
-      preview: optional<ThreadPreview>
       attachments: optional<ThreadAttachments>
     examples:
       - name: CustomName
@@ -81,6 +87,7 @@ types:
           subject: "Project Discussion"
           participants:
             - "alice@example.com"
+          recipients:
             - "bob@example.com"
           message_count: 1
           messages:
@@ -110,6 +117,9 @@ types:
               participants:
                 - "alice@example.com"
                 - "bob@example.com"
+              recipients:
+                - "alice@example.com"
+                - "bob@example.com"
               message_count: 3
               subject: "Project Discussion"
               preview: "Let's review the timeline for..."
@@ -117,6 +127,7 @@ types:
               updated_at: "2024-01-15T10:15:00Z"
               participants:
                 - "charlie@example.com"
+              recipients:
                 - "david@example.com"
               message_count: 1
               subject: "Weekly Update"
