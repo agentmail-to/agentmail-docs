@@ -301,7 +301,7 @@ service:
 
     send:
       method: POST
-      path: /messages
+      path: /messages/send
       display-name: Send Message
       request: SendMessageRequest
       response: SendMessageResponse
@@ -324,7 +324,7 @@ service:
 
     reply:
       method: POST
-      path: /messages/{message_id}
+      path: /messages/{message_id}/reply
       display-name: Reply To Message
       path-parameters:
         message_id: MessageId
