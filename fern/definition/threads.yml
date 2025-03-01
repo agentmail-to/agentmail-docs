@@ -21,13 +21,21 @@ types:
     type: string
     docs: ID of thread.
 
-  ThreadUpdatedAt:
-    type: datetime
-    docs: Time at which thread was last updated.
+  ThreadEventId:
+    type: string
+    docs: Event ID of thread.
 
-  ThreadParticipants:
+  ThreadLabels:
     type: list<string>
-    docs: Addresses of participants in thread. In format `username@domain.com` or `Display Name <username@domain.com>`
+    docs: Labels of thread.
+
+  ThreadTimestamp:
+    type: datetime
+    docs: Time at which last message was sent.
+
+  ThreadSenders:
+    type: list<string>
+    docs: Addresses of senders in thread. In format `username@domain.com` or `Display Name <username@domain.com>`
 
   ThreadRecipients:
     type: list<string>
@@ -52,53 +60,62 @@ types:
   ThreadItem:
     properties:
       thread_id: ThreadId
-      updated_at: ThreadUpdatedAt
-      participants: ThreadParticipants
+      event_id: ThreadEventId
+      labels: ThreadLabels
+      timestamp: ThreadTimestamp
+      senders: ThreadSenders
       recipients: ThreadRecipients
+      message_count: ThreadMessageCount
       subject: optional<ThreadSubject>
       preview: optional<ThreadPreview>
-      message_count: ThreadMessageCount
       attachments: optional<ThreadAttachments>
 
   Thread:
     properties:
       thread_id: ThreadId
-      inbox_id: inboxes.InboxId
-      created_at:
-        type: datetime
-        docs: Time at which thread was created.
-      updated_at: ThreadUpdatedAt
-      participants: ThreadParticipants
+      event_id: ThreadEventId
+      labels: ThreadLabels
+      timestamp: ThreadTimestamp
+      senders: ThreadSenders
       recipients: ThreadRecipients
+      message_count: ThreadMessageCount
       subject: optional<ThreadSubject>
       preview: optional<ThreadPreview>
-      message_count: ThreadMessageCount
+      attachments: optional<ThreadAttachments>
       messages:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `sent_at` ascending.
-      attachments: optional<ThreadAttachments>
+      inbox_id: inboxes.InboxId
     examples:
       - name: CustomName
         value:
-          thread_id: "thread_123"
           inbox_id: "yourinbox@agentmail.to"
-          created_at: "2024-01-15T09:30:00Z"
-          updated_at: "2024-01-15T10:15:00Z"
-          subject: "Project Discussion"
-          participants:
+          thread_id: "thread_123"
+          event_id: "event_123"
+          labels:
+            - "RECEIVED"
+            - "UNREAD"
+          timestamp: "2024-01-15T09:30:00Z"
+          senders:
             - "alice@example.com"
           recipients:
             - "bob@example.com"
           message_count: 1
+          subject: "Project Discussion"
+          preview: "Let's review the timeline for..."
           messages:
             - message_id: "msg_123"
               thread_id: "thread_123"
-              sent_at: "2024-01-15T09:30:00Z"
-              received_at: "2024-01-15T09:30:00Z"
+              event_id: "event_123"
+              labels:
+                - "RECEIVED"
+                - "UNREAD"
+              timestamp: "2024-01-15T09:30:00Z"
               from: "alice@example.com"
               to:
                 - "bob@example.com"
               text: "Let's review the timeline for the project."
+              inbox_id: "yourinbox@agentmail.to"
 
   ListThreadsResponse:
     properties:
@@ -113,8 +130,12 @@ types:
         value:
           threads:
             - thread_id: "thread_123"
-              updated_at: "2024-01-15T09:30:00Z"
-              participants:
+              event_id: "event_123"
+              labels:
+                - "RECEIVED"
+                - "UNREAD"
+              timestamp: "2024-01-15T09:30:00Z"
+              senders:
                 - "alice@example.com"
                 - "bob@example.com"
               recipients:
@@ -124,8 +145,11 @@ types:
               subject: "Project Discussion"
               preview: "Let's review the timeline for..."
             - thread_id: "thread_456"
-              updated_at: "2024-01-15T10:15:00Z"
-              participants:
+              event_id: "event_456"
+              labels:
+                - "SENT"
+              timestamp: "2024-01-15T10:15:00Z"
+              senders:
                 - "charlie@example.com"
               recipients:
                 - "david@example.com"

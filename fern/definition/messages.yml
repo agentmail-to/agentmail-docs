@@ -38,13 +38,25 @@ types:
     type: string
     docs: ID of message.
 
-  MessageSentAt:
+  MessageEventId:
+    type: string
+    docs: Event ID of message.
+
+  MessageLabels:
+    type: list<string>
+    docs: Labels of message.
+
+  MessageTimestamp:
     type: datetime
-    docs: Time at which message was sent.
+    docs: Time at which message was sent or drafted.
 
   MessageFrom:
     type: string
     docs: Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  MessageReplyTo:
+    type: optional<string>
+    docs: Address to reply to. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageSubject:
     type: string
@@ -70,22 +82,28 @@ types:
     type: list<Attachment>
     docs: Attachments in message.
 
+  MessageInReplyTo:
+    type: optional<string>
+    docs: ID of message being replied to.
+
+  MessageReferences:
+    type: optional<list<string>>
+    docs: IDs of previous messages in thread.
+
   MessageItem:
     properties:
-      message_id: MessageId
       thread_id: threads.ThreadId
-      sent_at: MessageSentAt
+      message_id: MessageId
+      event_id: MessageEventId
+      labels: MessageLabels
+      timestamp: MessageTimestamp
       from: MessageFrom
-      subject: optional<MessageSubject>
-      preview: optional<MessagePreview>
       to: MessageTo
       cc: optional<MessageCc>
       bcc: optional<MessageBcc>
+      subject: optional<MessageSubject>
+      preview: optional<MessagePreview>
       attachments: optional<MessageAttachments>
-
-  MessageThreadId:
-    type: string
-    docs: Thread ID of message.
 
   MessageText:
     type: string
@@ -97,16 +115,13 @@ types:
 
   Message:
     properties:
+      thread_id: threads.ThreadId
       message_id: MessageId
-      thread_id: MessageThreadId
-      sent_at: MessageSentAt
-      received_at:
-        type: optional<datetime>
-        docs: Time at which message was received.
+      event_id: MessageEventId
+      labels: MessageLabels
+      timestamp: MessageTimestamp
       from: MessageFrom
-      reply_to:
-        type: optional<string>
-        docs: Address to reply to. In format `username@domain.com` or `Display Name <username@domain.com>`.
+      reply_to: MessageReplyTo
       subject: optional<MessageSubject>
       preview: optional<MessagePreview>
       to: MessageTo
@@ -115,19 +130,19 @@ types:
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<MessageAttachments>
-      in_reply_to:
-        type: optional<string>
-        docs: ID of message being replied to.
-      references:
-        type: optional<list<string>>
-        docs: IDs of previous messages in thread.
+      in_reply_to: MessageInReplyTo
+      references: MessageReferences
+      inbox_id: inboxes.InboxId
     examples:
       - name: CustomName
         value:
           message_id: "msg_123"
           thread_id: "thread_123"
-          sent_at: "2024-01-15T09:30:00Z"
-          received_at: "2024-01-15T09:30:00Z"
+          event_id: "event_123"
+          labels:
+            - "RECEIVED"
+            - "UNREAD"
+          timestamp: "2024-01-15T09:30:00Z"
           from: "alice@example.com"
           reply_to: "alice.work@example.com"
           to: ["bob@example.com"]
@@ -149,6 +164,7 @@ types:
             ]
           in_reply_to: "msg_122"
           references: ["msg_121", "msg_122"]
+          inbox_id: "yourinbox@agentmail.to"
 
   ListMessagesResponse:
     properties:
@@ -164,7 +180,11 @@ types:
           messages:
             - message_id: "msg_123"
               thread_id: "thread_123"
-              sent_at: "2024-01-15T09:30:00Z"
+              event_id: "event_123"
+              labels:
+                - "RECEIVED"
+                - "UNREAD"
+              timestamp: "2024-01-15T09:30:00Z"
               from: "alice@example.com"
               to: ["bob@example.com"]
               subject: "Project Discussion"
@@ -183,7 +203,10 @@ types:
                 ]
             - message_id: "msg_456"
               thread_id: "thread_123"
-              sent_at: "2024-01-15T10:15:00Z"
+              event_id: "event_456"
+              labels:
+                - "SENT"
+              timestamp: "2024-01-15T10:15:00Z"
               from: "bob@example.com"
               to: ["alice@example.com"]
               subject: "Re: Project Discussion"
