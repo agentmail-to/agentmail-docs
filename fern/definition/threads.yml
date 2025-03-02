@@ -172,7 +172,6 @@ service:
       method: GET
       path: /threads
       display-name: List Threads
-      docs: List threads in inbox. If neither or both `received` and `sent` query parameters are set, all threads are returned.
       request:
         name: ListThreadsRequest
         query-parameters:

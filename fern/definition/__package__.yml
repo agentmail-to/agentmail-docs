@@ -8,11 +8,11 @@ navigation:
 types:
   Received:
     type: boolean
-    docs: Whether to include received messages.
+    docs: Whether to filter by received threads/messages.
 
   Sent:
     type: boolean
-    docs: Whether to include sent messages.
+    docs: Whether to filter by sent threads/messages.
 
   Limit:
     type: integer
