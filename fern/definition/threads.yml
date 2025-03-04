@@ -86,9 +86,11 @@ types:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `sent_at` ascending.
       inbox_id: inboxes.InboxId
+      organization_id: shared.OrganizationId
     examples:
       - name: CustomName
         value:
+          organization_id: "org_123"
           inbox_id: "yourinbox@agentmail.to"
           thread_id: "thread_123"
           event_id: "event_123"
@@ -116,7 +118,7 @@ types:
                 - "bob@example.com"
               text: "Let's review the timeline for the project."
               inbox_id: "yourinbox@agentmail.to"
-
+              organization_id: "org_123"
   ListThreadsResponse:
     properties:
       threads:

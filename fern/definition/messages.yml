@@ -133,6 +133,7 @@ types:
       in_reply_to: MessageInReplyTo
       references: MessageReferences
       inbox_id: inboxes.InboxId
+      organization_id: shared.OrganizationId
     examples:
       - name: CustomName
         value:
@@ -165,6 +166,7 @@ types:
           in_reply_to: "msg_122"
           references: ["msg_121", "msg_122"]
           inbox_id: "yourinbox@agentmail.to"
+          organization_id: "org_123"
 
   ListMessagesResponse:
     properties:

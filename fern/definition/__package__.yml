@@ -26,6 +26,10 @@ types:
     type: string
     docs: Key of last item.
 
+  OrganizationId:
+    type: string
+    docs: ID of organization.
+
   ErrorName:
     type: string
     docs: Name of error.
