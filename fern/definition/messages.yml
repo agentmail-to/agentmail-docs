@@ -228,18 +228,18 @@ types:
     docs: Recipient address or addresses.
 
   SendMessageCc:
-    type: optional<Addresses>
+    type: Addresses
     docs: CC recipient address or addresses.
 
   SendMessageBcc:
-    type: optional<Addresses>
+    type: Addresses
     docs: BCC recipient address or addresses.
 
   SendMessageRequest:
     properties:
       to: SendMessageTo
-      cc: SendMessageCc
-      bcc: SendMessageBcc
+      cc: optional<SendMessageCc>
+      bcc: optional<SendMessageBcc>
       subject: optional<MessageSubject>
       text: optional<MessageText>
       html: optional<MessageHtml>
@@ -251,8 +251,8 @@ types:
   ReplyToMessageRequest:
     properties:
       to: optional<SendMessageTo>
-      cc: SendMessageCc
-      bcc: SendMessageBcc
+      cc: optional<SendMessageCc>
+      bcc: optional<SendMessageBcc>
       text: optional<MessageText>
       html: optional<MessageHtml>
 
