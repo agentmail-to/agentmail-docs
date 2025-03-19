@@ -55,7 +55,7 @@ types:
     docs: Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageReplyTo:
-    type: optional<string>
+    type: string
     docs: Address to reply to. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   MessageSubject:
@@ -83,11 +83,11 @@ types:
     docs: Attachments in message.
 
   MessageInReplyTo:
-    type: optional<string>
+    type: string
     docs: ID of message being replied to.
 
   MessageReferences:
-    type: optional<list<string>>
+    type: list<string>
     docs: IDs of previous messages in thread.
 
   MessageItem:
@@ -121,7 +121,7 @@ types:
       labels: MessageLabels
       timestamp: MessageTimestamp
       from: MessageFrom
-      reply_to: MessageReplyTo
+      reply_to: optional<MessageReplyTo>
       subject: optional<MessageSubject>
       preview: optional<MessagePreview>
       to: MessageTo
@@ -130,8 +130,8 @@ types:
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<MessageAttachments>
-      in_reply_to: MessageInReplyTo
-      references: MessageReferences
+      in_reply_to: optional<MessageInReplyTo>
+      references: optional<MessageReferences>
       inbox_id: inboxes.InboxId
       organization_id: shared.OrganizationId
     examples:

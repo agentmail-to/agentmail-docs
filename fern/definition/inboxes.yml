@@ -18,7 +18,7 @@ types:
       organization_id:
         type: string
         docs: ID of organization that owns inbox.
-      display_name: DisplayName
+      display_name: optional<DisplayName>
       created_at:
         type: datetime
         docs: Time at which inbox was created.
