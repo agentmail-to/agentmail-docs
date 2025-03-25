@@ -4,6 +4,7 @@ navigation:
   - inboxes.yml
   - threads.yml
   - messages.yml
+  - webhooks.yml
 
 types:
   Received:

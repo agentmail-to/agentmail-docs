@@ -1,0 +1,131 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  shared: __package__.yml
+  messages: messages.yml
+
+types:
+  WebhookId:
+    type: string
+    docs: ID of webhook.
+
+  Url:
+    type: string
+    docs: URL of webhook endpoint.
+
+  EventType:
+    enum:
+      - name: MESSAGE_RECEIVED
+        value: message.received
+
+  Events:
+    type: list<EventType>
+    docs: Event types to send. Omit to send all event types.
+
+  Inboxes:
+    type: list<string>
+    docs: Inboxes for which to send events. Omit to send events for all inboxes.
+
+  Webhook:
+    properties:
+      webhook_id: WebhookId
+      url: Url
+      events: optional<Events>
+      inboxes: optional<Inboxes>
+      secret:
+        type: string
+        docs: Secret for webhook signature verification.
+      created_at:
+        type: datetime
+        docs: Time at which webhook was created.
+
+  ListWebhooksResponse:
+    properties:
+      webhooks:
+        type: list<Webhook>
+        docs: Webhook items. Ordered by `created_at` ascending.
+      count: shared.Count
+      limit: optional<shared.Limit>
+      last_key: optional<shared.LastKey>
+
+  CreateWebhookRequest:
+    properties:
+      url: Url
+      events: optional<Events>
+      inboxes: optional<Inboxes>
+
+  EventId:
+    type: string
+    docs: ID of event.
+
+  MessageReceivedPayload:
+    properties:
+      event_type: EventType
+      event_id: EventId
+      message: messages.Message
+
+  SvixId:
+    type: string
+    docs: ID of webhook message.
+
+  SvixTimestamp:
+    type: datetime
+    docs: Timestamp of webhook message.
+
+  SvixSignature:
+    type: string
+    docs: Signature of webhook message.
+
+service:
+  base-path: ""
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: /webhooks
+      display-name: List Webhooks
+      request:
+        name: ListWebhooksRequest
+        query-parameters:
+          limit: optional<shared.Limit>
+          last_key: optional<shared.LastKey>
+      response: ListWebhooksResponse
+
+    get:
+      method: GET
+      path: /webhooks/{webhook_id}
+      display-name: Get Webhook
+      path-parameters:
+        webhook_id: WebhookId
+      response: Webhook
+      errors:
+        - shared.NotFoundError
+
+    create:
+      method: POST
+      path: /webhooks
+      display-name: Create Webhook
+      request: CreateWebhookRequest
+      response: Webhook
+      errors:
+        - shared.ValidationError
+
+    delete:
+      method: DELETE
+      path: /webhooks/{webhook_id}
+      display-name: Delete Webhook
+      path-parameters:
+        webhook_id: WebhookId
+      errors:
+        - shared.NotFoundError
+
+webhooks:
+  messageReceived:
+    display-name: Message Received
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: MessageReceivedPayload
