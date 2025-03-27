@@ -247,6 +247,7 @@ types:
   SendMessageResponse:
     properties:
       message_id: MessageId
+      thread_id: threads.ThreadId
 
   ReplyToMessageRequest:
     properties:
@@ -345,7 +346,7 @@ service:
           response:
             body:
               message_id: "msg_123"
-
+              thread_id: "thread_123"
     reply:
       method: POST
       path: /messages/{message_id}/reply
@@ -369,3 +370,4 @@ service:
           response:
             body:
               message_id: "msg_456"
+              thread_id: "thread_456"
