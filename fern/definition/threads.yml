@@ -177,10 +177,9 @@ service:
       request:
         name: ListThreadsRequest
         query-parameters:
-          received: optional<shared.Received>
-          sent: optional<shared.Sent>
           limit: optional<shared.Limit>
           last_key: optional<shared.LastKey>
+          labels: optional<shared.Labels>
       response: ListThreadsResponse
       errors:
         - shared.NotFoundError

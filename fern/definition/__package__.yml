@@ -7,14 +7,6 @@ navigation:
   - webhooks.yml
 
 types:
-  Received:
-    type: boolean
-    docs: Whether to filter by received threads/messages.
-
-  Sent:
-    type: boolean
-    docs: Whether to filter by sent threads/messages.
-
   Limit:
     type: integer
     docs: Limit of number of items returned.
@@ -26,6 +18,10 @@ types:
   LastKey:
     type: string
     docs: Key of last item.
+
+  Labels:
+    type: list<string>
+    docs: Labels to filter by.
 
   OrganizationId:
     type: string
