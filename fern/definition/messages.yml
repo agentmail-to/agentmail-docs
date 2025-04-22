@@ -26,6 +26,10 @@ types:
     type: boolean
     docs: Whether attachment is part of message body.
 
+  AttachmentContent:
+    type: string
+    docs: Base64 encoded content of attachment.
+
   Attachment:
     properties:
       attachment_id: AttachmentId
@@ -33,6 +37,12 @@ types:
       content_type: AttachmentContentType
       size: AttachmentSize
       inline: AttachmentInline
+
+  SendAttachment:
+    properties:
+      filename: AttachmentFilename
+      content_type: AttachmentContentType
+      content: AttachmentContent
 
   MessageId:
     type: string
@@ -235,6 +245,10 @@ types:
     type: Addresses
     docs: BCC recipient address or addresses.
 
+  SendMessageAttachments:
+    type: list<SendAttachment>
+    docs: Attachments to include in message.
+
   SendMessageRequest:
     properties:
       to: SendMessageTo
@@ -243,6 +257,7 @@ types:
       subject: optional<MessageSubject>
       text: optional<MessageText>
       html: optional<MessageHtml>
+      attachments: optional<SendMessageAttachments>
 
   SendMessageResponse:
     properties:
@@ -256,6 +271,7 @@ types:
       bcc: optional<SendMessageBcc>
       text: optional<MessageText>
       html: optional<MessageHtml>
+      attachments: optional<SendMessageAttachments>
 
 errors:
   MessageRejectedError:
