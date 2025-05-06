@@ -41,8 +41,8 @@ types:
   SendAttachment:
     properties:
       filename: AttachmentFilename
-      content_type: AttachmentContentType
       content: AttachmentContent
+      content_type: optional<AttachmentContentType>
 
   MessageId:
     type: string
