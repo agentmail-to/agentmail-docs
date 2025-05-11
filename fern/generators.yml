@@ -14,6 +14,7 @@ groups:
           repository: agentmail-to/agentmail-node
         config:
           namespaceExport: AgentMail
+          skipResponseValidation: true
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
