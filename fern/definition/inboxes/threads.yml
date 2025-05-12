@@ -87,36 +87,6 @@ types:
       messages:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `sent_at` ascending.
-    examples:
-      - name: CustomName
-        value:
-          inbox_id: "yourinbox@agentmail.to"
-          thread_id: "thread_123"
-          event_id: "event_123"
-          labels:
-            - "RECEIVED"
-            - "UNREAD"
-          timestamp: "2024-01-15T09:30:00Z"
-          senders:
-            - "alice@example.com"
-          recipients:
-            - "bob@example.com"
-          message_count: 1
-          subject: "Project Discussion"
-          preview: "Let's review the timeline for..."
-          messages:
-            - message_id: "msg_123"
-              thread_id: "thread_123"
-              event_id: "event_123"
-              labels:
-                - "RECEIVED"
-                - "UNREAD"
-              timestamp: "2024-01-15T09:30:00Z"
-              from: "alice@example.com"
-              to:
-                - "bob@example.com"
-              text: "Let's review the timeline for the project."
-              inbox_id: "yourinbox@agentmail.to"
 
   ListThreadsResponse:
     properties:
@@ -126,42 +96,6 @@ types:
       threads:
         type: list<ThreadItem>
         docs: Thread items. Ordered by `timestamp` descending.
-    examples:
-      - name: CustomName
-        value:
-          threads:
-            - inbox_id: "yourinbox@agentmail.to"
-              thread_id: "thread_123"
-              event_id: "event_123"
-              labels:
-                - "RECEIVED"
-                - "UNREAD"
-              timestamp: "2024-01-15T09:30:00Z"
-              senders:
-                - "alice@example.com"
-                - "bob@example.com"
-              recipients:
-                - "alice@example.com"
-                - "bob@example.com"
-              message_count: 3
-              subject: "Project Discussion"
-              preview: "Let's review the timeline for..."
-            - inbox_id: "yourinbox@agentmail.to"
-              thread_id: "thread_456"
-              event_id: "event_456"
-              labels:
-                - "SENT"
-              timestamp: "2024-01-15T10:15:00Z"
-              senders:
-                - "charlie@example.com"
-              recipients:
-                - "david@example.com"
-              message_count: 1
-              subject: "Weekly Update"
-              preview: "Here's what we accomplished..."
-          limit: 10
-          count: 2
-          last_key: "thread_456#2024-01-15T10:15:00Z"
 
 service:
   base-path: /inboxes/{inbox_id}/threads
@@ -184,13 +118,6 @@ service:
       response: ListThreadsResponse
       errors:
         - global.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-          query-parameters:
-            limit: 10
-          response:
-            body: $ListThreadsResponse.CustomName
 
     get:
       method: GET
@@ -201,12 +128,6 @@ service:
       response: Thread
       errors:
         - global.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-            thread_id: "thread_123"
-          response:
-            body: $Thread.CustomName
 
     # delete:
     #   method: DELETE

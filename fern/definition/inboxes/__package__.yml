@@ -22,17 +22,6 @@ types:
       created_at:
         type: datetime
         docs: Time at which inbox was created.
-    examples:
-      - name: CustomName
-        value:
-          inbox_id: yourinbox@agentmail.to
-          display_name: Your Inbox
-          created_at: 2024-01-15T09:30:00Z
-      - name: CustomDomain
-        value:
-          inbox_id: helpfulagent123@yourdomain.com
-          display_name: Helpful Agent
-          created_at: 2024-01-15T09:30:00Z
 
   ListInboxesResponse:
     properties:
@@ -42,16 +31,6 @@ types:
       inboxes:
         type: list<Inbox>
         docs: Ordered by `created_at` ascending.
-    examples:
-      - name: CustomName
-        value:
-          inboxes:
-            - inbox_id: yourinbox@agentmail.to
-              display_name: Your Inbox
-              created_at: 2024-01-15T09:30:00Z
-          limit: 10
-          count: 1
-          last_key: 123e4567-e89b-12d3-a456-426614174000
 
   CreateInboxRequest:
     properties:
@@ -64,14 +43,6 @@ types:
       display_name:
         type: optional<string>
         docs: "Display name: `Display Name <username@domain.com>`. Defaults to `AgentMail`. Pass empty string to omit."
-    examples:
-      - name: CustomName
-        value:
-          username: yourinbox
-          display_name: Your Inbox
-      - name: CustomDomain
-        value:
-          domain: yourdomain.com
 
 service:
   base-path: /inboxes
@@ -88,12 +59,6 @@ service:
           limit: optional<global.Limit>
           last_key: optional<global.LastKey>
       response: ListInboxesResponse
-      examples:
-        - query-parameters:
-            limit: 10
-            last_key: 123e4567-e89b-12d3-a456-426614174000
-          response:
-            body: $ListInboxesResponse.CustomName
 
     get:
       method: GET
@@ -104,11 +69,6 @@ service:
       response: Inbox
       errors:
         - global.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-          response:
-            body: $Inbox.CustomName
 
     create:
       method: POST
@@ -118,13 +78,6 @@ service:
       response: Inbox
       errors:
         - global.ValidationError
-      examples:
-        - request: $CreateInboxRequest.CustomName
-          response:
-            body: $Inbox.CustomName
-        - request: $CreateInboxRequest.CustomDomain
-          response:
-            body: $Inbox.CustomDomain
 
     # delete:
     #   method: DELETE
@@ -133,8 +86,3 @@ service:
     #   path-parameters:
     #     inbox_id: InboxId
     #   docs: Delete inbox and all of its threads, messages, and attachments.
-    #   errors:
-    #     - global.NotFoundError
-    #   examples:
-    #     - path-parameters:
-    #         inbox_id: yourinbox@agentmail.to

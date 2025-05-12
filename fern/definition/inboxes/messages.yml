@@ -141,37 +141,6 @@ types:
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
-    examples:
-      - name: CustomName
-        value:
-          message_id: "msg_123"
-          thread_id: "thread_123"
-          event_id: "event_123"
-          labels:
-            - "RECEIVED"
-            - "UNREAD"
-          timestamp: "2024-01-15T09:30:00Z"
-          from: "alice@example.com"
-          to: ["bob@example.com"]
-          cc: ["charlie@example.com"]
-          bcc: ["david@example.com"]
-          subject: "Project Discussion"
-          preview: "Let's review the timeline for the project."
-          text: "Let's review the timeline for the project. How does tomorrow look?"
-          html: "<p>Let's review the timeline for the project. How does tomorrow look?</p>"
-          attachments:
-            [
-              {
-                attachment_id: "att_123",
-                filename: "proposal.pdf",
-                content_type: "application/pdf",
-                size: 1024,
-                inline: false,
-              },
-            ]
-          in_reply_to: "msg_122"
-          references: ["msg_121", "msg_122"]
-          inbox_id: "yourinbox@agentmail.to"
 
   ListMessagesResponse:
     properties:
@@ -181,48 +150,6 @@ types:
       messages:
         type: list<MessageItem>
         docs: Message items. Ordered by `timestamp` descending.
-    examples:
-      - name: CustomName
-        value:
-          messages:
-            - inbox_id: "yourinbox@agentmail.to"
-              thread_id: "thread_123"
-              message_id: "msg_123"
-              event_id: "event_123"
-              labels:
-                - "RECEIVED"
-                - "UNREAD"
-              timestamp: "2024-01-15T09:30:00Z"
-              from: "alice@example.com"
-              to: ["bob@example.com"]
-              subject: "Project Discussion"
-              preview: "Let's review the timeline for the project."
-              cc: ["charlie@example.com"]
-              bcc: ["david@example.com"]
-              attachments:
-                [
-                  {
-                    attachment_id: "att_123",
-                    filename: "proposal.pdf",
-                    content_type: "application/pdf",
-                    size: 1024,
-                    inline: false,
-                  },
-                ]
-            - inbox_id: "yourinbox@agentmail.to"
-              thread_id: "thread_123"
-              message_id: "msg_456"
-              event_id: "event_456"
-              labels:
-                - "SENT"
-              timestamp: "2024-01-15T10:15:00Z"
-              from: "bob@example.com"
-              to: ["alice@example.com"]
-              subject: "Re: Project Discussion"
-              preview: "Sounds good, let's meet tomorrow."
-          limit: 10
-          count: 2
-          last_key: "msg_456#2024-01-15T10:15:00Z"
 
   Addresses:
     discriminated: false
@@ -296,13 +223,6 @@ service:
       response: ListMessagesResponse
       errors:
         - global.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-          query-parameters:
-            limit: 10
-          response:
-            body: $ListMessagesResponse.CustomName
 
     get:
       method: GET
@@ -313,12 +233,6 @@ service:
       response: Message
       errors:
         - global.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-            message_id: "msg_123"
-          response:
-            body: $Message.CustomName
 
     getAttachment:
       method: GET
@@ -351,20 +265,7 @@ service:
         - global.NotFoundError
         - global.ValidationError
         - MessageRejectedError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-          request:
-            to: ["bob@example.com"]
-            cc: ["charlie@example.com"]
-            bcc: ["david@example.com"]
-            subject: "Project Discussion"
-            text: "Let's review the timeline for the project."
-            html: "<p>Let's review the timeline for the project.</p>"
-          response:
-            body:
-              message_id: "msg_123"
-              thread_id: "thread_123"
+
     reply:
       method: POST
       path: /{message_id}/reply
@@ -377,16 +278,3 @@ service:
         - global.NotFoundError
         - global.ValidationError
         - MessageRejectedError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-            message_id: "msg_123"
-          request:
-            text: "Thanks for the update. Let's meet tomorrow at 2 PM."
-            html: "<p>Thanks for the update. Let's meet tomorrow at 2 PM.</p>"
-            cc: ["charlie@example.com"]
-            bcc: ["david@example.com"]
-          response:
-            body:
-              message_id: "msg_456"
-              thread_id: "thread_456"
