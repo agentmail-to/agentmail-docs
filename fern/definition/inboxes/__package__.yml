@@ -78,11 +78,3 @@ service:
       response: Inbox
       errors:
         - global.ValidationError
-
-    # delete:
-    #   method: DELETE
-    #   path: /{inbox_id}
-    #   display-name: Delete Inbox
-    #   path-parameters:
-    #     inbox_id: InboxId
-    #   docs: Delete inbox and all of its threads, messages, and attachments.

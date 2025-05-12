@@ -245,16 +245,6 @@ service:
       errors:
         - global.NotFoundError
 
-    # delete:
-    #   method: DELETE
-    #   path: /{message_id}
-    #   display-name: Delete Message
-    #   path-parameters:
-    #     message_id: MessageId
-    #   docs: Delete message and its attachments.
-    #   errors:
-    #     - global.NotFoundError
-
     send:
       method: POST
       path: /send

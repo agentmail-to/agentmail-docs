@@ -128,13 +128,3 @@ service:
       response: Thread
       errors:
         - global.NotFoundError
-
-    # delete:
-    #   method: DELETE
-    #   path: /{thread_id}
-    #   path-parameters:
-    #     thread_id: ThreadId
-    #   display-name: Delete Thread
-    #   docs: Delete thread and all of its messages and attachments.
-    #   errors:
-    #     - global.NotFoundError
