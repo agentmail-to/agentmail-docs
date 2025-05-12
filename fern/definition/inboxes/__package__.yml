@@ -1,7 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
+navigation:
+  - threads.yml
+  - messages.yml
+  - drafts.yml
+
 imports:
-  shared: __package__.yml
+  global: ../__package__.yml
 
 types:
   InboxId:
@@ -31,9 +36,9 @@ types:
 
   ListInboxesResponse:
     properties:
-      count: shared.Count
-      limit: optional<shared.Limit>
-      last_key: optional<shared.LastKey>
+      count: global.Count
+      limit: optional<global.Limit>
+      last_key: optional<global.LastKey>
       inboxes:
         type: list<Inbox>
         docs: Ordered by `created_at` ascending.
@@ -80,8 +85,8 @@ service:
       request:
         name: ListInboxesRequest
         query-parameters:
-          limit: optional<shared.Limit>
-          last_key: optional<shared.LastKey>
+          limit: optional<global.Limit>
+          last_key: optional<global.LastKey>
       response: ListInboxesResponse
       examples:
         - query-parameters:
@@ -98,7 +103,7 @@ service:
         inbox_id: InboxId
       response: Inbox
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError
       examples:
         - path-parameters:
             inbox_id: yourinbox@agentmail.to
@@ -112,7 +117,7 @@ service:
       request: CreateInboxRequest
       response: Inbox
       errors:
-        - shared.ValidationError
+        - global.ValidationError
       examples:
         - request: $CreateInboxRequest.CustomName
           response:
@@ -129,7 +134,7 @@ service:
     #     inbox_id: InboxId
     #   docs: Delete inbox and all of its threads, messages, and attachments.
     #   errors:
-    #     - shared.NotFoundError
+    #     - global.NotFoundError
     #   examples:
     #     - path-parameters:
     #         inbox_id: yourinbox@agentmail.to

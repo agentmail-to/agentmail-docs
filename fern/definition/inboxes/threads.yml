@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
-  shared: __package__.yml
-  inboxes: inboxes.yml
+  global: ../__package__.yml
+  inboxes: __package__.yml
   messages: messages.yml
 
 types:
@@ -120,9 +120,9 @@ types:
 
   ListThreadsResponse:
     properties:
-      count: shared.Count
-      limit: optional<shared.Limit>
-      last_key: optional<shared.LastKey>
+      count: global.Count
+      limit: optional<global.Limit>
+      last_key: optional<global.LastKey>
       threads:
         type: list<ThreadItem>
         docs: Thread items. Ordered by `timestamp` descending.
@@ -178,12 +178,12 @@ service:
       request:
         name: ListThreadsRequest
         query-parameters:
-          limit: optional<shared.Limit>
-          last_key: optional<shared.LastKey>
-          labels: optional<shared.Labels>
+          limit: optional<global.Limit>
+          last_key: optional<global.LastKey>
+          labels: optional<global.Labels>
       response: ListThreadsResponse
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError
       examples:
         - path-parameters:
             inbox_id: yourinbox@agentmail.to
@@ -200,7 +200,7 @@ service:
         thread_id: ThreadId
       response: Thread
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError
       examples:
         - path-parameters:
             inbox_id: yourinbox@agentmail.to
@@ -216,4 +216,4 @@ service:
     #   display-name: Delete Thread
     #   docs: Delete thread and all of its messages and attachments.
     #   errors:
-    #     - shared.NotFoundError
+    #     - global.NotFoundError

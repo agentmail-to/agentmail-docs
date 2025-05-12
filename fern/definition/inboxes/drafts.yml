@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
-  shared: __package__.yml
-  inboxes: inboxes.yml
+  global: ../__package__.yml
+  inboxes: __package__.yml
   threads: threads.yml
   messages: messages.yml
 
@@ -107,9 +107,9 @@ types:
 
   ListDraftsResponse:
     properties:
-      count: shared.Count
-      limit: optional<shared.Limit>
-      last_key: optional<shared.LastKey>
+      count: global.Count
+      limit: optional<global.Limit>
+      last_key: optional<global.LastKey>
       drafts:
         type: list<DraftItem>
         docs: Draft items. Ordered by `updated_at` descending.
@@ -139,12 +139,12 @@ service:
       request:
         name: ListDraftsRequest
         query-parameters:
-          limit: optional<shared.Limit>
-          last_key: optional<shared.LastKey>
-          labels: optional<shared.Labels>
+          limit: optional<global.Limit>
+          last_key: optional<global.LastKey>
+          labels: optional<global.Labels>
       response: ListDraftsResponse
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError
 
     get:
       method: GET
@@ -154,7 +154,7 @@ service:
         draft_id: DraftId
       response: Draft
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError
 
     create:
       method: POST
@@ -163,4 +163,4 @@ service:
       request: CreateDraftRequest
       response: Draft
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError

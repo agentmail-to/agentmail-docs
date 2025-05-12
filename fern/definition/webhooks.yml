@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
-  shared: __package__.yml
-  messages: messages.yml
+  global: __package__.yml
+  messages: inboxes/messages.yml
 
 types:
   WebhookId:
@@ -41,9 +41,9 @@ types:
 
   ListWebhooksResponse:
     properties:
-      count: shared.Count
-      limit: optional<shared.Limit>
-      last_key: optional<shared.LastKey>
+      count: global.Count
+      limit: optional<global.Limit>
+      last_key: optional<global.LastKey>
       webhooks:
         type: list<Webhook>
         docs: Webhook items. Ordered by `created_at` ascending.
@@ -88,8 +88,8 @@ service:
       request:
         name: ListWebhooksRequest
         query-parameters:
-          limit: optional<shared.Limit>
-          last_key: optional<shared.LastKey>
+          limit: optional<global.Limit>
+          last_key: optional<global.LastKey>
       response: ListWebhooksResponse
 
     get:
@@ -100,7 +100,7 @@ service:
         webhook_id: WebhookId
       response: Webhook
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError
 
     create:
       method: POST
@@ -109,7 +109,7 @@ service:
       request: CreateWebhookRequest
       response: Webhook
       errors:
-        - shared.ValidationError
+        - global.ValidationError
 
     delete:
       method: DELETE
@@ -118,7 +118,7 @@ service:
       path-parameters:
         webhook_id: WebhookId
       errors:
-        - shared.NotFoundError
+        - global.NotFoundError
 
 webhooks:
   messageReceived:
