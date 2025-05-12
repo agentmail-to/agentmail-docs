@@ -104,37 +104,6 @@ types:
       attachments: optional<DraftAttachments>
       in_reply_to: optional<DraftInReplyTo>
       references: optional<DraftReferences>
-    examples:
-      - name: CustomName
-        value:
-          inbox_id: "yourinbox@agentmail.to"
-          thread_id: "thread_123"
-          draft_id: "draft_123"
-          event_id: "event_123"
-          labels:
-            - "RECEIVED"
-            - "UNREAD"
-          updated_at: "2024-01-15T09:30:00Z"
-          created_at: "2024-01-15T09:30:00Z"
-          to: ["bob@example.com"]
-          cc: ["charlie@example.com"]
-          bcc: ["david@example.com"]
-          subject: "Project Discussion"
-          preview: "Let's review the timeline for the project."
-          text: "Let's review the timeline for the project. How does tomorrow look?"
-          html: "<p>Let's review the timeline for the project. How does tomorrow look?</p>"
-          attachments:
-            [
-              {
-                attachment_id: "att_123",
-                filename: "proposal.pdf",
-                content_type: "application/pdf",
-                size: 1024,
-                inline: false,
-              },
-            ]
-          in_reply_to: "msg_122"
-          references: ["msg_121", "msg_122"]
 
   ListDraftsResponse:
     properties:
@@ -144,48 +113,16 @@ types:
       drafts:
         type: list<DraftItem>
         docs: Draft items. Ordered by `updated_at` descending.
-    examples:
-      - name: CustomName
-        value:
-          drafts:
-            - inbox_id: "yourinbox@agentmail.to"
-              thread_id: "thread_123"
-              draft_id: "draft_123"
-              event_id: "event_123"
-              labels:
-                - "RECEIVED"
-                - "UNREAD"
-              updated_at: "2024-01-15T09:30:00Z"
-              created_at: "2024-01-15T09:30:00Z"
-              to: ["bob@example.com"]
-              subject: "Project Discussion"
-              preview: "Let's review the timeline for the project."
-              cc: ["charlie@example.com"]
-              bcc: ["david@example.com"]
-              attachments:
-                [
-                  {
-                    attachment_id: "att_123",
-                    filename: "proposal.pdf",
-                    content_type: "application/pdf",
-                    size: 1024,
-                    inline: false,
-                  },
-                ]
-            - inbox_id: "yourinbox@agentmail.to"
-              thread_id: "thread_123"
-              draft_id: "draft_456"
-              event_id: "event_456"
-              labels:
-                - "SENT"
-              updated_at: "2024-01-15T10:15:00Z"
-              created_at: "2024-01-15T10:15:00Z"
-              to: ["alice@example.com"]
-              subject: "Re: Project Discussion"
-              preview: "Sounds good, let's meet tomorrow."
-          limit: 10
-          count: 2
-          last_key: "draft_456#2024-01-15T10:15:00Z"
+
+  CreateDraftRequest:
+    properties:
+      labels: optional<DraftLabels>
+      to: optional<DraftTo>
+      cc: optional<DraftCc>
+      bcc: optional<DraftBcc>
+      subject: optional<DraftSubject>
+      text: optional<DraftText>
+      html: optional<DraftHtml>
 
 service:
   base-path: /inboxes/{inbox_id}
@@ -208,13 +145,6 @@ service:
       response: ListDraftsResponse
       errors:
         - shared.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-          query-parameters:
-            limit: 10
-          response:
-            body: $ListDraftsResponse.CustomName
 
     get:
       method: GET
@@ -225,9 +155,12 @@ service:
       response: Draft
       errors:
         - shared.NotFoundError
-      examples:
-        - path-parameters:
-            inbox_id: yourinbox@agentmail.to
-            draft_id: "draft_123"
-          response:
-            body: $Draft.CustomName
+
+    create:
+      method: POST
+      path: /drafts
+      display-name: Create Draft
+      request: CreateDraftRequest
+      response: Draft
+      errors:
+        - shared.NotFoundError
