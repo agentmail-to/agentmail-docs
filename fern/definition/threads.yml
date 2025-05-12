@@ -24,11 +24,11 @@ types:
 
   ThreadSenders:
     type: list<string>
-    docs: Addresses of senders in thread. In format `username@domain.com` or `Display Name <username@domain.com>`
+    docs: Senders in thread. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   ThreadRecipients:
     type: list<string>
-    docs: Addresses of recipients in thread. In format `username@domain.com` or `Display Name <username@domain.com>`
+    docs: Recipients in thread. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
   ThreadMessageCount:
     type: integer

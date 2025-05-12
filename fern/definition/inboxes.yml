@@ -6,16 +6,14 @@ imports:
 types:
   InboxId:
     type: string
-    docs: ID (address) of inbox.
-
-  DisplayName:
-    type: string
-    docs: "Display name for address: `Display Name <username@domain.com>`."
+    docs: ID of inbox.
 
   Inbox:
     properties:
       inbox_id: InboxId
-      display_name: optional<DisplayName>
+      display_name:
+        type: string
+        docs: "Display name: `Display Name <username@domain.com>`."
       created_at:
         type: datetime
         docs: Time at which inbox was created.
@@ -38,7 +36,7 @@ types:
       last_key: optional<shared.LastKey>
       inboxes:
         type: list<Inbox>
-        docs: Inbox items. Ordered by `created_at` ascending.
+        docs: Ordered by `created_at` ascending.
     examples:
       - name: CustomName
         value:
@@ -58,7 +56,9 @@ types:
       domain:
         type: optional<string>
         docs: Domain of address. Must be verified domain. Defaults to `agentmail.to`.
-      display_name: optional<DisplayName>
+      display_name:
+        type: optional<string>
+        docs: "Display name: `Display Name <username@domain.com>`. Defaults to `AgentMail`. Pass empty string to omit."
     examples:
       - name: CustomName
         value:
