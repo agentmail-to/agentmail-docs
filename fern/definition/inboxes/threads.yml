@@ -164,7 +164,7 @@ types:
           last_key: "thread_456#2024-01-15T10:15:00Z"
 
 service:
-  base-path: /inboxes/{inbox_id}
+  base-path: /inboxes/{inbox_id}/threads
   path-parameters:
     inbox_id: inboxes.InboxId
 
@@ -173,7 +173,7 @@ service:
   endpoints:
     list:
       method: GET
-      path: /threads
+      path: ""
       display-name: List Threads
       request:
         name: ListThreadsRequest
@@ -194,7 +194,7 @@ service:
 
     get:
       method: GET
-      path: /threads/{thread_id}
+      path: /{thread_id}
       display-name: Get Thread
       path-parameters:
         thread_id: ThreadId
@@ -210,7 +210,7 @@ service:
 
     # delete:
     #   method: DELETE
-    #   path: /threads/{thread_id}
+    #   path: /{thread_id}
     #   path-parameters:
     #     thread_id: ThreadId
     #   display-name: Delete Thread

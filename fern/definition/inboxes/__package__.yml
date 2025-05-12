@@ -74,13 +74,13 @@ types:
           domain: yourdomain.com
 
 service:
-  base-path: ""
+  base-path: /inboxes
   auth: true
 
   endpoints:
     list:
       method: GET
-      path: /inboxes
+      path: ""
       display-name: List Inboxes
       request:
         name: ListInboxesRequest
@@ -97,7 +97,7 @@ service:
 
     get:
       method: GET
-      path: /inboxes/{inbox_id}
+      path: /{inbox_id}
       display-name: Get Inbox
       path-parameters:
         inbox_id: InboxId
@@ -112,7 +112,7 @@ service:
 
     create:
       method: POST
-      path: /inboxes
+      path: ""
       display-name: Create Inbox
       request: CreateInboxRequest
       response: Inbox
@@ -128,7 +128,7 @@ service:
 
     # delete:
     #   method: DELETE
-    #   path: /inboxes{inbox_id}
+    #   path: /{inbox_id}
     #   display-name: Delete Inbox
     #   path-parameters:
     #     inbox_id: InboxId

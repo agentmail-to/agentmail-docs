@@ -77,13 +77,13 @@ types:
     docs: Signature of webhook message.
 
 service:
-  base-path: ""
+  base-path: /webhooks
   auth: true
 
   endpoints:
     list:
       method: GET
-      path: /webhooks
+      path: ""
       display-name: List Webhooks
       request:
         name: ListWebhooksRequest
@@ -94,7 +94,7 @@ service:
 
     get:
       method: GET
-      path: /webhooks/{webhook_id}
+      path: /{webhook_id}
       display-name: Get Webhook
       path-parameters:
         webhook_id: WebhookId
@@ -104,7 +104,7 @@ service:
 
     create:
       method: POST
-      path: /webhooks
+      path: ""
       display-name: Create Webhook
       request: CreateWebhookRequest
       response: Webhook
@@ -113,7 +113,7 @@ service:
 
     delete:
       method: DELETE
-      path: /webhooks/{webhook_id}
+      path: /{webhook_id}
       display-name: Delete Webhook
       path-parameters:
         webhook_id: WebhookId

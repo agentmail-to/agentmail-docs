@@ -276,7 +276,7 @@ errors:
     type: global.ErrorResponse
 
 service:
-  base-path: /inboxes/{inbox_id}
+  base-path: /inboxes/{inbox_id}/messages
   path-parameters:
     inbox_id: inboxes.InboxId
 
@@ -285,7 +285,7 @@ service:
   endpoints:
     list:
       method: GET
-      path: /messages
+      path: ""
       display-name: List Messages
       request:
         name: ListMessagesRequest
@@ -306,7 +306,7 @@ service:
 
     get:
       method: GET
-      path: /messages/{message_id}
+      path: /{message_id}
       display-name: Get Message
       path-parameters:
         message_id: MessageId
@@ -322,7 +322,7 @@ service:
 
     getAttachment:
       method: GET
-      path: /messages/{message_id}/attachments/{attachment_id}
+      path: /{message_id}/attachments/{attachment_id}
       display-name: Get Attachment
       path-parameters:
         message_id: MessageId
@@ -333,7 +333,7 @@ service:
 
     # delete:
     #   method: DELETE
-    #   path: /messages/{message_id}
+    #   path: /{message_id}
     #   display-name: Delete Message
     #   path-parameters:
     #     message_id: MessageId
@@ -343,7 +343,7 @@ service:
 
     send:
       method: POST
-      path: /messages/send
+      path: /send
       display-name: Send Message
       request: SendMessageRequest
       response: SendMessageResponse
@@ -367,7 +367,7 @@ service:
               thread_id: "thread_123"
     reply:
       method: POST
-      path: /messages/{message_id}/reply
+      path: /{message_id}/reply
       display-name: Reply To Message
       path-parameters:
         message_id: MessageId

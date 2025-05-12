@@ -125,7 +125,7 @@ types:
       html: optional<DraftHtml>
 
 service:
-  base-path: /inboxes/{inbox_id}
+  base-path: /inboxes/{inbox_id}/drafts
   path-parameters:
     inbox_id: inboxes.InboxId
 
@@ -134,7 +134,7 @@ service:
   endpoints:
     list:
       method: GET
-      path: /drafts
+      path: ""
       display-name: List Drafts
       request:
         name: ListDraftsRequest
@@ -148,7 +148,7 @@ service:
 
     get:
       method: GET
-      path: /drafts/{draft_id}
+      path: /{draft_id}
       display-name: Get Draft
       path-parameters:
         draft_id: DraftId
@@ -158,7 +158,7 @@ service:
 
     create:
       method: POST
-      path: /drafts
+      path: ""
       display-name: Create Draft
       request: CreateDraftRequest
       response: Draft
