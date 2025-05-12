@@ -64,18 +64,6 @@ types:
     type: string
     docs: Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
-  MessageReplyTo:
-    type: string
-    docs: Address to reply to. In format `username@domain.com` or `Display Name <username@domain.com>`.
-
-  MessageSubject:
-    type: string
-    docs: Subject of message.
-
-  MessagePreview:
-    type: string
-    docs: Text preview of message.
-
   MessageTo:
     type: list<string>
     docs: Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
@@ -87,6 +75,22 @@ types:
   MessageBcc:
     type: list<string>
     docs: Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  MessageSubject:
+    type: string
+    docs: Subject of message.
+
+  MessagePreview:
+    type: string
+    docs: Text preview of message.
+
+  MessageText:
+    type: string
+    docs: Plain text body of message.
+
+  MessageHtml:
+    type: string
+    docs: HTML body of message.
 
   MessageAttachments:
     type: list<Attachment>
@@ -115,14 +119,8 @@ types:
       subject: optional<MessageSubject>
       preview: optional<MessagePreview>
       attachments: optional<MessageAttachments>
-
-  MessageText:
-    type: string
-    docs: Plain text body of message.
-
-  MessageHtml:
-    type: string
-    docs: HTML body of message.
+      in_reply_to: optional<MessageInReplyTo>
+      references: optional<MessageReferences>
 
   Message:
     properties:
@@ -133,12 +131,11 @@ types:
       labels: MessageLabels
       timestamp: MessageTimestamp
       from: MessageFrom
-      reply_to: optional<MessageReplyTo>
-      subject: optional<MessageSubject>
-      preview: optional<MessagePreview>
       to: MessageTo
       cc: optional<MessageCc>
       bcc: optional<MessageBcc>
+      subject: optional<MessageSubject>
+      preview: optional<MessagePreview>
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<MessageAttachments>
@@ -155,7 +152,6 @@ types:
             - "UNREAD"
           timestamp: "2024-01-15T09:30:00Z"
           from: "alice@example.com"
-          reply_to: "alice.work@example.com"
           to: ["bob@example.com"]
           cc: ["charlie@example.com"]
           bcc: ["david@example.com"]
@@ -181,7 +177,7 @@ types:
     properties:
       messages:
         type: list<MessageItem>
-        docs: Messages items. Ordered by `sent_at` descending.
+        docs: Message items. Ordered by `timestamp` descending.
       count: shared.Count
       limit: optional<shared.Limit>
       last_key: optional<shared.LastKey>
