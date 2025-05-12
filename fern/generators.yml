@@ -1,5 +1,4 @@
 # yaml-language-server: $schema=https://schema.buildwithfern.dev/generators-yml.json
-
 default-group: local
 groups:
   node-sdk:
@@ -18,7 +17,7 @@ groups:
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 4.3.21
+        version: 4.19.6
         output:
           location: pypi
           package-name: agentmail
@@ -27,3 +26,11 @@ groups:
           repository: agentmail-to/agentmail-python
         config:
           client_class_name: AgentMail
+  postman:
+    generators:
+      - name: fernapi/fern-postman
+        version: 0.4.0
+        output:
+          location: postman
+          api-key: ${POSTMAN_API_KEY}
+          workspace-id: 0b0ed383-d63d-4063-b758-aa02d7bf9edb
