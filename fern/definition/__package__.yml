@@ -4,6 +4,7 @@ navigation:
   - inboxes.yml
   - threads.yml
   - messages.yml
+  - drafts.yml
   - webhooks.yml
 
 types:
