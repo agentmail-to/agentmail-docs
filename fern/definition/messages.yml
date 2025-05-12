@@ -175,12 +175,12 @@ types:
 
   ListMessagesResponse:
     properties:
-      messages:
-        type: list<MessageItem>
-        docs: Message items. Ordered by `timestamp` descending.
       count: shared.Count
       limit: optional<shared.Limit>
       last_key: optional<shared.LastKey>
+      messages:
+        type: list<MessageItem>
+        docs: Message items. Ordered by `timestamp` descending.
     examples:
       - name: CustomName
         value:

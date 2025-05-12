@@ -33,12 +33,12 @@ types:
 
   ListInboxesResponse:
     properties:
-      inboxes:
-        type: list<Inbox>
-        docs: Inbox items. Ordered by `created_at` ascending.
       count: shared.Count
       limit: optional<shared.Limit>
       last_key: optional<shared.LastKey>
+      inboxes:
+        type: list<Inbox>
+        docs: Inbox items. Ordered by `created_at` ascending.
     examples:
       - name: CustomName
         value:

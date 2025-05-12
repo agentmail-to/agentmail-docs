@@ -41,12 +41,12 @@ types:
 
   ListWebhooksResponse:
     properties:
-      webhooks:
-        type: list<Webhook>
-        docs: Webhook items. Ordered by `created_at` ascending.
       count: shared.Count
       limit: optional<shared.Limit>
       last_key: optional<shared.LastKey>
+      webhooks:
+        type: list<Webhook>
+        docs: Webhook items. Ordered by `created_at` ascending.
 
   CreateWebhookRequest:
     properties:

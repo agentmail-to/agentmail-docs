@@ -120,12 +120,12 @@ types:
 
   ListThreadsResponse:
     properties:
-      threads:
-        type: list<ThreadItem>
-        docs: Thread items. Ordered by `updated_at` descending.
       count: shared.Count
       limit: optional<shared.Limit>
       last_key: optional<shared.LastKey>
+      threads:
+        type: list<ThreadItem>
+        docs: Thread items. Ordered by `timestamp` descending.
     examples:
       - name: CustomName
         value:
