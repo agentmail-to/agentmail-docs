@@ -6,17 +6,6 @@ imports:
   messages: messages.yml
 
 types:
-  ThreadAttachment:
-    properties:
-      message_id:
-        type: string
-        docs: Message ID of attachment.
-      attachment_id: messages.AttachmentId
-      filename: messages.AttachmentFilename
-      content_type: messages.AttachmentContentType
-      size: messages.AttachmentSize
-      inline: messages.AttachmentInline
-
   ThreadId:
     type: string
     docs: ID of thread.
@@ -53,12 +42,24 @@ types:
     type: string
     docs: Text preview of last message in thread.
 
+  ThreadAttachment:
+    properties:
+      message_id:
+        type: string
+        docs: Message ID of attachment.
+      attachment_id: messages.AttachmentId
+      filename: messages.AttachmentFilename
+      content_type: messages.AttachmentContentType
+      size: messages.AttachmentSize
+      inline: messages.AttachmentInline
+
   ThreadAttachments:
     type: list<ThreadAttachment>
     docs: Attachments in thread.
 
   ThreadItem:
     properties:
+      inbox_id: inboxes.InboxId
       thread_id: ThreadId
       event_id: ThreadEventId
       labels: ThreadLabels
@@ -72,6 +73,7 @@ types:
 
   Thread:
     properties:
+      inbox_id: inboxes.InboxId
       thread_id: ThreadId
       event_id: ThreadEventId
       labels: ThreadLabels
@@ -85,12 +87,9 @@ types:
       messages:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `sent_at` ascending.
-      inbox_id: inboxes.InboxId
-      organization_id: shared.OrganizationId
     examples:
       - name: CustomName
         value:
-          organization_id: "org_123"
           inbox_id: "yourinbox@agentmail.to"
           thread_id: "thread_123"
           event_id: "event_123"
@@ -118,7 +117,7 @@ types:
                 - "bob@example.com"
               text: "Let's review the timeline for the project."
               inbox_id: "yourinbox@agentmail.to"
-              organization_id: "org_123"
+
   ListThreadsResponse:
     properties:
       threads:
@@ -131,7 +130,8 @@ types:
       - name: CustomName
         value:
           threads:
-            - thread_id: "thread_123"
+            - inbox_id: "yourinbox@agentmail.to"
+              thread_id: "thread_123"
               event_id: "event_123"
               labels:
                 - "RECEIVED"
@@ -146,7 +146,8 @@ types:
               message_count: 3
               subject: "Project Discussion"
               preview: "Let's review the timeline for..."
-            - thread_id: "thread_456"
+            - inbox_id: "yourinbox@agentmail.to"
+              thread_id: "thread_456"
               event_id: "event_456"
               labels:
                 - "SENT"

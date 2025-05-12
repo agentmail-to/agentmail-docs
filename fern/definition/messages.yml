@@ -41,8 +41,8 @@ types:
   SendAttachment:
     properties:
       filename: AttachmentFilename
-      content: AttachmentContent
       content_type: optional<AttachmentContentType>
+      content: AttachmentContent
 
   MessageId:
     type: string
@@ -102,6 +102,7 @@ types:
 
   MessageItem:
     properties:
+      inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       message_id: MessageId
       event_id: MessageEventId
@@ -125,6 +126,7 @@ types:
 
   Message:
     properties:
+      inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       message_id: MessageId
       event_id: MessageEventId
@@ -142,8 +144,6 @@ types:
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
-      inbox_id: inboxes.InboxId
-      organization_id: shared.OrganizationId
     examples:
       - name: CustomName
         value:
@@ -176,7 +176,6 @@ types:
           in_reply_to: "msg_122"
           references: ["msg_121", "msg_122"]
           inbox_id: "yourinbox@agentmail.to"
-          organization_id: "org_123"
 
   ListMessagesResponse:
     properties:
@@ -190,8 +189,9 @@ types:
       - name: CustomName
         value:
           messages:
-            - message_id: "msg_123"
+            - inbox_id: "yourinbox@agentmail.to"
               thread_id: "thread_123"
+              message_id: "msg_123"
               event_id: "event_123"
               labels:
                 - "RECEIVED"
@@ -213,8 +213,9 @@ types:
                     inline: false,
                   },
                 ]
-            - message_id: "msg_456"
+            - inbox_id: "yourinbox@agentmail.to"
               thread_id: "thread_123"
+              message_id: "msg_456"
               event_id: "event_456"
               labels:
                 - "SENT"
