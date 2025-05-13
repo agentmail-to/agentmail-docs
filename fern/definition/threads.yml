@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  threads: inboxes/threads.yml
+
+service:
+  base-path: /threads
+
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Threads
+      request:
+        name: threads.ListThreadsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          last_key: optional<global.LastKey>
+          labels: optional<global.Labels>
+      response: threads.ListThreadsResponse
+      errors:
+        - global.NotFoundError
+
+    get:
+      method: GET
+      path: /{thread_id}
+      display-name: Get Thread
+      path-parameters:
+        thread_id: threads.ThreadId
+      response: threads.Thread
+      errors:
+        - global.NotFoundError

@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  drafts: inboxes/drafts.yml
+
+service:
+  base-path: /drafts
+
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Drafts
+      request:
+        name: drafts.ListDraftsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          last_key: optional<global.LastKey>
+          labels: optional<global.Labels>
+      response: drafts.ListDraftsResponse
+      errors:
+        - global.NotFoundError
+
+    get:
+      method: GET
+      path: /{draft_id}
+      display-name: Get Draft
+      path-parameters:
+        draft_id: drafts.DraftId
+      response: drafts.Draft
+      errors:
+        - global.NotFoundError

@@ -197,6 +197,15 @@ types:
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
 
+  UpdateMessageRequest:
+    properties:
+      add_labels:
+        type: optional<list<string>>
+        docs: Labels to add to message.
+      remove_labels:
+        type: optional<list<string>>
+        docs: Labels to remove from message.
+
 errors:
   MessageRejectedError:
     status-code: 403
@@ -252,8 +261,8 @@ service:
       request: SendMessageRequest
       response: SendMessageResponse
       errors:
-        - global.NotFoundError
         - global.ValidationError
+        - global.NotFoundError
         - MessageRejectedError
 
     reply:
@@ -265,6 +274,18 @@ service:
       request: ReplyToMessageRequest
       response: SendMessageResponse
       errors:
-        - global.NotFoundError
         - global.ValidationError
+        - global.NotFoundError
         - MessageRejectedError
+
+    update:
+      method: PATCH
+      path: /{message_id}
+      display-name: Update Message
+      path-parameters:
+        message_id: MessageId
+      request: UpdateMessageRequest
+      response: Message
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
