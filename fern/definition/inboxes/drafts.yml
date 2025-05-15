@@ -124,10 +124,6 @@ types:
       text: optional<DraftText>
       html: optional<DraftHtml>
 
-  SendDraftRequest:
-    properties:
-      labels: optional<DraftLabels>
-
 service:
   base-path: /inboxes/{inbox_id}/drafts
   path-parameters:
@@ -176,7 +172,7 @@ service:
       display-name: Send Draft
       path-parameters:
         draft_id: DraftId
-      request: SendDraftRequest
+      request: messages.UpdateMessageRequest
       response: messages.SendMessageResponse
       errors:
         - global.NotFoundError
