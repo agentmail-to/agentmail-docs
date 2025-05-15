@@ -23,6 +23,10 @@ types:
     type: list<string>
     docs: Labels to filter by.
 
+  Ascending:
+    type: boolean
+    docs: Whether to sort in ascending temporal order.
+
   OrganizationId:
     type: string
     docs: ID of organization.

@@ -115,6 +115,7 @@ service:
           limit: optional<global.Limit>
           last_key: optional<global.LastKey>
           labels: optional<global.Labels>
+          ascending: optional<global.Ascending>
       response: ListThreadsResponse
       errors:
         - global.NotFoundError
