@@ -175,7 +175,8 @@ types:
 
   SendMessageRequest:
     properties:
-      to: SendMessageTo
+      labels: optional<MessageLabels>
+      to: optional<SendMessageTo>
       cc: optional<SendMessageCc>
       bcc: optional<SendMessageBcc>
       subject: optional<MessageSubject>
