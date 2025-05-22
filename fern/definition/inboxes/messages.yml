@@ -191,6 +191,7 @@ types:
 
   ReplyToMessageRequest:
     properties:
+      labels: optional<MessageLabels>
       to: optional<SendMessageTo>
       cc: optional<SendMessageCc>
       bcc: optional<SendMessageBcc>
