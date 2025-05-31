@@ -20,7 +20,7 @@ types:
 
   Events:
     type: list<EventType>
-    docs: Event types to send. Omit to send all event types.
+    docs: Event types to send. Must explicitly include all event types to receive.
 
   Inboxes:
     type: list<string>
@@ -51,7 +51,7 @@ types:
   CreateWebhookRequest:
     properties:
       url: Url
-      events: optional<Events>
+      events: Events
       inboxes: optional<Inboxes>
 
   EventId:
