@@ -2,7 +2,127 @@
 
 imports:
   global: __package__.yml
-  drafts: inboxes/drafts.yml
+  inboxes: inboxes/__package__.yml
+  threads: threads.yml
+  messages: messages.yml
+
+types:
+  DraftId:
+    type: string
+    docs: ID of draft.
+
+  DraftEventId:
+    type: string
+    docs: Event ID of draft.
+
+  DraftLabels:
+    type: list<string>
+    docs: Labels of draft.
+
+  DraftUpdatedAt:
+    type: datetime
+    docs: Time at which draft was last updated.
+
+  DraftCreatedAt:
+    type: datetime
+    docs: Time at which draft was created.
+
+  DraftTo:
+    type: list<string>
+    docs: Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  DraftCc:
+    type: list<string>
+    docs: Addresses of CC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  DraftBcc:
+    type: list<string>
+    docs: Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  DraftSubject:
+    type: string
+    docs: Subject of draft.
+
+  DraftPreview:
+    type: string
+    docs: Text preview of draft.
+
+  DraftText:
+    type: string
+    docs: Plain text body of draft.
+
+  DraftHtml:
+    type: string
+    docs: HTML body of draft.
+
+  DraftAttachments:
+    type: list<messages.Attachment>
+    docs: Attachments in draft.
+
+  DraftInReplyTo:
+    type: string
+    docs: ID of message being replied to.
+
+  DraftReferences:
+    type: list<string>
+    docs: IDs of previous messages in draft.
+
+  DraftItem:
+    properties:
+      inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
+      draft_id: DraftId
+      event_id: DraftEventId
+      labels: DraftLabels
+      updated_at: DraftUpdatedAt
+      created_at: DraftCreatedAt
+      to: optional<DraftTo>
+      cc: optional<DraftCc>
+      bcc: optional<DraftBcc>
+      subject: optional<DraftSubject>
+      preview: optional<DraftPreview>
+      attachments: optional<DraftAttachments>
+      in_reply_to: optional<DraftInReplyTo>
+      references: optional<DraftReferences>
+
+  Draft:
+    properties:
+      inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
+      draft_id: DraftId
+      event_id: DraftEventId
+      labels: DraftLabels
+      updated_at: DraftUpdatedAt
+      created_at: DraftCreatedAt
+      to: optional<DraftTo>
+      cc: optional<DraftCc>
+      bcc: optional<DraftBcc>
+      subject: optional<DraftSubject>
+      preview: optional<DraftPreview>
+      text: optional<DraftText>
+      html: optional<DraftHtml>
+      attachments: optional<DraftAttachments>
+      in_reply_to: optional<DraftInReplyTo>
+      references: optional<DraftReferences>
+
+  ListDraftsResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      last_key: optional<global.LastKey>
+      drafts:
+        type: list<DraftItem>
+        docs: Draft items. Ordered by `updated_at` descending.
+
+  CreateDraftRequest:
+    properties:
+      labels: optional<DraftLabels>
+      to: optional<DraftTo>
+      cc: optional<DraftCc>
+      bcc: optional<DraftBcc>
+      subject: optional<DraftSubject>
+      text: optional<DraftText>
+      html: optional<DraftHtml>
 
 service:
   base-path: /drafts
@@ -15,13 +135,13 @@ service:
       path: ""
       display-name: List Drafts
       request:
-        name: drafts.ListDraftsRequest
+        name: ListDraftsRequest
         query-parameters:
           limit: optional<global.Limit>
           last_key: optional<global.LastKey>
           labels: optional<global.Labels>
           ascending: optional<global.Ascending>
-      response: drafts.ListDraftsResponse
+      response: ListDraftsResponse
       errors:
         - global.NotFoundError
 
@@ -30,7 +150,7 @@ service:
       path: /{draft_id}
       display-name: Get Draft
       path-parameters:
-        draft_id: drafts.DraftId
-      response: drafts.Draft
+        draft_id: DraftId
+      response: Draft
       errors:
         - global.NotFoundError

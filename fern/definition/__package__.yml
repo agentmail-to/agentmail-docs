@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 # navigation:
-#   - inboxes
 #   - threads.yml
+#   - messages.yml
 #   - drafts.yml
 #   - webhooks.yml
 

@@ -1,0 +1,214 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  threads: threads.yml
+  inboxes: inboxes/__package__.yml
+
+types:
+  AttachmentId:
+    type: string
+    docs: ID of attachment.
+
+  AttachmentFilename:
+    type: string
+    docs: Filename of attachment.
+
+  AttachmentContentType:
+    type: string
+    docs: Content type of attachment.
+
+  AttachmentSize:
+    type: integer
+    docs: Size of attachment in bytes.
+
+  AttachmentInline:
+    type: boolean
+    docs: Whether attachment is part of message body.
+
+  AttachmentContent:
+    type: string
+    docs: Base64 encoded content of attachment.
+
+  Attachment:
+    properties:
+      attachment_id: AttachmentId
+      filename: AttachmentFilename
+      content_type: AttachmentContentType
+      size: AttachmentSize
+      inline: AttachmentInline
+
+  SendAttachment:
+    properties:
+      filename: AttachmentFilename
+      content_type: optional<AttachmentContentType>
+      content: AttachmentContent
+
+  MessageId:
+    type: string
+    docs: ID of message.
+
+  MessageEventId:
+    type: string
+    docs: Event ID of message.
+
+  MessageLabels:
+    type: list<string>
+    docs: Labels of message.
+
+  MessageTimestamp:
+    type: datetime
+    docs: Time at which message was sent or drafted.
+
+  MessageFrom:
+    type: string
+    docs: Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  MessageTo:
+    type: list<string>
+    docs: Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  MessageCc:
+    type: list<string>
+    docs: Addresses of CC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  MessageBcc:
+    type: list<string>
+    docs: Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  MessageSubject:
+    type: string
+    docs: Subject of message.
+
+  MessagePreview:
+    type: string
+    docs: Text preview of message.
+
+  MessageText:
+    type: string
+    docs: Plain text body of message.
+
+  MessageHtml:
+    type: string
+    docs: HTML body of message.
+
+  MessageAttachments:
+    type: list<Attachment>
+    docs: Attachments in message.
+
+  MessageInReplyTo:
+    type: string
+    docs: ID of message being replied to.
+
+  MessageReferences:
+    type: list<string>
+    docs: IDs of previous messages in thread.
+
+  MessageItem:
+    properties:
+      inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
+      message_id: MessageId
+      event_id: MessageEventId
+      labels: MessageLabels
+      timestamp: MessageTimestamp
+      from: MessageFrom
+      to: MessageTo
+      cc: optional<MessageCc>
+      bcc: optional<MessageBcc>
+      subject: optional<MessageSubject>
+      preview: optional<MessagePreview>
+      attachments: optional<MessageAttachments>
+      in_reply_to: optional<MessageInReplyTo>
+      references: optional<MessageReferences>
+
+  Message:
+    properties:
+      inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
+      message_id: MessageId
+      event_id: MessageEventId
+      labels: MessageLabels
+      timestamp: MessageTimestamp
+      from: MessageFrom
+      to: MessageTo
+      cc: optional<MessageCc>
+      bcc: optional<MessageBcc>
+      subject: optional<MessageSubject>
+      preview: optional<MessagePreview>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
+      attachments: optional<MessageAttachments>
+      in_reply_to: optional<MessageInReplyTo>
+      references: optional<MessageReferences>
+
+  ListMessagesResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      last_key: optional<global.LastKey>
+      messages:
+        type: list<MessageItem>
+        docs: Message items. Ordered by `timestamp` descending.
+
+  Addresses:
+    discriminated: false
+    union:
+      - string
+      - list<string>
+
+  SendMessageTo:
+    type: Addresses
+    docs: Recipient address or addresses.
+
+  SendMessageCc:
+    type: Addresses
+    docs: CC recipient address or addresses.
+
+  SendMessageBcc:
+    type: Addresses
+    docs: BCC recipient address or addresses.
+
+  SendMessageAttachments:
+    type: list<SendAttachment>
+    docs: Attachments to include in message.
+
+  SendMessageRequest:
+    properties:
+      labels: optional<MessageLabels>
+      to: optional<SendMessageTo>
+      cc: optional<SendMessageCc>
+      bcc: optional<SendMessageBcc>
+      subject: optional<MessageSubject>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
+      attachments: optional<SendMessageAttachments>
+
+  SendMessageResponse:
+    properties:
+      message_id: MessageId
+      thread_id: threads.ThreadId
+
+  ReplyToMessageRequest:
+    properties:
+      labels: optional<MessageLabels>
+      to: optional<SendMessageTo>
+      cc: optional<SendMessageCc>
+      bcc: optional<SendMessageBcc>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
+      attachments: optional<SendMessageAttachments>
+
+  UpdateMessageRequest:
+    properties:
+      add_labels:
+        type: optional<list<string>>
+        docs: Labels to add to message.
+      remove_labels:
+        type: optional<list<string>>
+        docs: Labels to remove from message.
+
+errors:
+  MessageRejectedError:
+    status-code: 403
+    type: global.ErrorResponse

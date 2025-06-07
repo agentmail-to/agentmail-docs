@@ -2,7 +2,7 @@
 
 imports:
   global: __package__.yml
-  messages: inboxes/messages.yml
+  messages: messages.yml
 
 types:
   WebhookId:

@@ -2,7 +2,100 @@
 
 imports:
   global: __package__.yml
-  threads: inboxes/threads.yml
+  inboxes: inboxes/__package__.yml
+  messages: messages.yml
+
+types:
+  ThreadId:
+    type: string
+    docs: ID of thread.
+
+  ThreadEventId:
+    type: string
+    docs: Event ID of thread.
+
+  ThreadLabels:
+    type: list<string>
+    docs: Labels of thread.
+
+  ThreadTimestamp:
+    type: datetime
+    docs: Time at which last message was sent.
+
+  ThreadSenders:
+    type: list<string>
+    docs: Senders in thread. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  ThreadRecipients:
+    type: list<string>
+    docs: Recipients in thread. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
+  ThreadMessageCount:
+    type: integer
+    docs: Number of messages in thread.
+
+  ThreadSubject:
+    type: string
+    docs: Subject of thread.
+
+  ThreadPreview:
+    type: string
+    docs: Text preview of last message in thread.
+
+  ThreadAttachment:
+    properties:
+      message_id:
+        type: string
+        docs: Message ID of attachment.
+      attachment_id: messages.AttachmentId
+      filename: messages.AttachmentFilename
+      content_type: messages.AttachmentContentType
+      size: messages.AttachmentSize
+      inline: messages.AttachmentInline
+
+  ThreadAttachments:
+    type: list<ThreadAttachment>
+    docs: Attachments in thread.
+
+  ThreadItem:
+    properties:
+      inbox_id: inboxes.InboxId
+      thread_id: ThreadId
+      event_id: ThreadEventId
+      labels: ThreadLabels
+      timestamp: ThreadTimestamp
+      senders: ThreadSenders
+      recipients: ThreadRecipients
+      message_count: ThreadMessageCount
+      subject: optional<ThreadSubject>
+      preview: optional<ThreadPreview>
+      attachments: optional<ThreadAttachments>
+
+  Thread:
+    properties:
+      inbox_id: inboxes.InboxId
+      thread_id: ThreadId
+      event_id: ThreadEventId
+      labels: ThreadLabels
+      timestamp: ThreadTimestamp
+      senders: ThreadSenders
+      recipients: ThreadRecipients
+      message_count: ThreadMessageCount
+      subject: optional<ThreadSubject>
+      preview: optional<ThreadPreview>
+      attachments: optional<ThreadAttachments>
+      messages:
+        type: list<messages.Message>
+        docs: Messages in thread. Ordered by `sent_at` ascending.
+
+  ListThreadsResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      last_key: optional<global.LastKey>
+      threads:
+        type: list<ThreadItem>
+        docs: Thread items. Ordered by `timestamp` descending.
 
 service:
   base-path: /threads
@@ -15,13 +108,13 @@ service:
       path: ""
       display-name: List Threads
       request:
-        name: threads.ListThreadsRequest
+        name: ListThreadsRequest
         query-parameters:
           limit: optional<global.Limit>
           last_key: optional<global.LastKey>
           labels: optional<global.Labels>
           ascending: optional<global.Ascending>
-      response: threads.ListThreadsResponse
+      response: ListThreadsResponse
       errors:
         - global.NotFoundError
 
@@ -30,7 +123,7 @@ service:
       path: /{thread_id}
       display-name: Get Thread
       path-parameters:
-        thread_id: threads.ThreadId
-      response: threads.Thread
+        thread_id: ThreadId
+      response: Thread
       errors:
         - global.NotFoundError
