@@ -25,8 +25,8 @@ navbar-links:
     text: Join Discord
     href: https://discord.gg/hTYatWYWBc
   - type: filled
-    text: "access@agentmail.to"
-    href: mailto:access@agentmail.to
+    text: "contact@agentmail.cc"
+    href: mailto:contact@agentmail.cc
 
 tabs:
   docs:
