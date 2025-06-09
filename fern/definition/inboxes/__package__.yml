@@ -27,7 +27,7 @@ types:
     properties:
       count: global.Count
       limit: optional<global.Limit>
-      last_key: optional<global.LastKey>
+      next_page_token: optional<global.PageToken>
       inboxes:
         type: list<Inbox>
         docs: Ordered by `created_at` ascending.
@@ -57,7 +57,7 @@ service:
         name: ListInboxesRequest
         query-parameters:
           limit: optional<global.Limit>
-          last_key: optional<global.LastKey>
+          page_token: optional<global.PageToken>
       response: ListInboxesResponse
 
     get:

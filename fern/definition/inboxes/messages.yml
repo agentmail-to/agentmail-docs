@@ -21,7 +21,7 @@ service:
         name: ListMessagesRequest
         query-parameters:
           limit: optional<global.Limit>
-          last_key: optional<global.LastKey>
+          page_token: optional<global.PageToken>
           labels: optional<global.Labels>
           ascending: optional<global.Ascending>
       response: messages.ListMessagesResponse

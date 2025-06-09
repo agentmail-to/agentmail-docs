@@ -15,9 +15,9 @@ types:
     type: integer
     docs: Number of items returned.
 
-  LastKey:
+  PageToken:
     type: string
-    docs: Key of last item.
+    docs: Page token.
 
   Labels:
     type: list<string>

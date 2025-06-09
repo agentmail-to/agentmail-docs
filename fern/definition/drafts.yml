@@ -109,7 +109,7 @@ types:
     properties:
       count: global.Count
       limit: optional<global.Limit>
-      last_key: optional<global.LastKey>
+      next_page_token: optional<global.PageToken>
       drafts:
         type: list<DraftItem>
         docs: Draft items. Ordered by `updated_at` descending.
@@ -138,7 +138,7 @@ service:
         name: ListDraftsRequest
         query-parameters:
           limit: optional<global.Limit>
-          last_key: optional<global.LastKey>
+          page_token: optional<global.PageToken>
           labels: optional<global.Labels>
           ascending: optional<global.Ascending>
       response: ListDraftsResponse

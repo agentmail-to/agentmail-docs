@@ -146,7 +146,7 @@ types:
     properties:
       count: global.Count
       limit: optional<global.Limit>
-      last_key: optional<global.LastKey>
+      next_page_token: optional<global.PageToken>
       messages:
         type: list<MessageItem>
         docs: Message items. Ordered by `timestamp` descending.

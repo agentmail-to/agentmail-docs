@@ -43,7 +43,7 @@ types:
     properties:
       count: global.Count
       limit: optional<global.Limit>
-      last_key: optional<global.LastKey>
+      next_page_token: optional<global.PageToken>
       webhooks:
         type: list<Webhook>
         docs: Webhook items. Ordered by `created_at` ascending.
@@ -89,7 +89,7 @@ service:
         name: ListWebhooksRequest
         query-parameters:
           limit: optional<global.Limit>
-          last_key: optional<global.LastKey>
+          page_token: optional<global.PageToken>
       response: ListWebhooksResponse
 
     get:
