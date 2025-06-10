@@ -18,23 +18,29 @@ types:
       - name: MESSAGE_RECEIVED
         value: message.received
 
-  Events:
+  EventTypes:
     type: list<EventType>
     docs: Event types to send. Must explicitly include all event types to receive.
 
-  Inboxes:
+  InboxIds:
     type: list<string>
-    docs: Inboxes for which to send events. Omit to send events for all inboxes.
+    docs: Inbox IDs for which to send events. Omit to send events for all inboxes.
 
   Webhook:
     properties:
       webhook_id: WebhookId
       url: Url
-      events: optional<Events>
-      inboxes: optional<Inboxes>
+      event_types: optional<EventTypes>
+      inbox_ids: optional<InboxIds>
       secret:
         type: string
         docs: Secret for webhook signature verification.
+      enabled:
+        type: boolean
+        docs: Whether the webhook is enabled.
+      updated_at:
+        type: datetime
+        docs: Time at which webhook was last updated.
       created_at:
         type: datetime
         docs: Time at which webhook was created.
@@ -51,8 +57,8 @@ types:
   CreateWebhookRequest:
     properties:
       url: Url
-      events: Events
-      inboxes: optional<Inboxes>
+      event_types: EventTypes
+      inbox_ids: optional<InboxIds>
 
   EventId:
     type: string
