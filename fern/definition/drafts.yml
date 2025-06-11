@@ -112,7 +112,7 @@ types:
       next_page_token: optional<global.PageToken>
       drafts:
         type: list<DraftItem>
-        docs: Draft items. Ordered by `updated_at` descending.
+        docs: Ordered by `updated_at` descending.
 
   CreateDraftRequest:
     properties:

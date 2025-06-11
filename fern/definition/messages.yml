@@ -149,7 +149,7 @@ types:
       next_page_token: optional<global.PageToken>
       messages:
         type: list<MessageItem>
-        docs: Message items. Ordered by `timestamp` descending.
+        docs: Ordered by `timestamp` descending.
 
   Addresses:
     discriminated: false

@@ -86,7 +86,7 @@ types:
       attachments: optional<ThreadAttachments>
       messages:
         type: list<messages.Message>
-        docs: Messages in thread. Ordered by `sent_at` ascending.
+        docs: Messages in thread. Ordered by `timestamp` ascending.
 
   ListThreadsResponse:
     properties:
@@ -95,7 +95,7 @@ types:
       next_page_token: optional<global.PageToken>
       threads:
         type: list<ThreadItem>
-        docs: Thread items. Ordered by `timestamp` descending.
+        docs: Ordered by `timestamp` descending.
 
 service:
   base-path: /threads

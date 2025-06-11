@@ -19,6 +19,9 @@ types:
       display_name:
         type: string
         docs: "Display name: `Display Name <username@domain.com>`."
+      updated_at:
+        type: datetime
+        docs: Time at which inbox was last updated.
       created_at:
         type: datetime
         docs: Time at which inbox was created.
@@ -30,7 +33,7 @@ types:
       next_page_token: optional<global.PageToken>
       inboxes:
         type: list<Inbox>
-        docs: Ordered by `created_at` ascending.
+        docs: Ordered by `created_at` descending.
 
   CreateInboxRequest:
     properties:

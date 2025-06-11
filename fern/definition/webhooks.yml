@@ -52,7 +52,7 @@ types:
       next_page_token: optional<global.PageToken>
       webhooks:
         type: list<Webhook>
-        docs: Webhook items. Ordered by `created_at` ascending.
+        docs: Ordered by `created_at` descending.
 
   CreateWebhookRequest:
     properties:
