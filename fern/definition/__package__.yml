@@ -17,7 +17,7 @@ types:
 
   PageToken:
     type: string
-    docs: Page token.
+    docs: Page token for pagination.
 
   Labels:
     type: list<string>
