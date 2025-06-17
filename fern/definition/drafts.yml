@@ -12,21 +12,9 @@ types:
     type: string
     docs: ID of draft.
 
-  DraftEventId:
-    type: string
-    docs: Event ID of draft.
-
   DraftLabels:
     type: list<string>
     docs: Labels of draft.
-
-  DraftUpdatedAt:
-    type: datetime
-    docs: Time at which draft was last updated.
-
-  DraftCreatedAt:
-    type: datetime
-    docs: Time at which draft was created.
 
   DraftTo:
     type: list<string>
@@ -60,41 +48,30 @@ types:
     type: list<attachments.Attachment>
     docs: Attachments in draft.
 
-  DraftInReplyTo:
-    type: string
-    docs: ID of message being replied to.
-
-  DraftReferences:
-    type: list<string>
-    docs: IDs of previous messages in draft.
+  DraftUpdatedAt:
+    type: datetime
+    docs: Time at which draft was last updated.
 
   DraftItem:
     properties:
       inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       draft_id: DraftId
-      event_id: DraftEventId
       labels: DraftLabels
-      updated_at: DraftUpdatedAt
-      created_at: DraftCreatedAt
       to: optional<DraftTo>
       cc: optional<DraftCc>
       bcc: optional<DraftBcc>
       subject: optional<DraftSubject>
       preview: optional<DraftPreview>
       attachments: optional<DraftAttachments>
-      in_reply_to: optional<DraftInReplyTo>
-      references: optional<DraftReferences>
+      updated_at: DraftUpdatedAt
 
   Draft:
     properties:
       inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       draft_id: DraftId
-      event_id: DraftEventId
       labels: DraftLabels
-      updated_at: DraftUpdatedAt
-      created_at: DraftCreatedAt
       to: optional<DraftTo>
       cc: optional<DraftCc>
       bcc: optional<DraftBcc>
@@ -103,8 +80,16 @@ types:
       text: optional<DraftText>
       html: optional<DraftHtml>
       attachments: optional<DraftAttachments>
-      in_reply_to: optional<DraftInReplyTo>
-      references: optional<DraftReferences>
+      in_reply_to:
+        type: optional<string>
+        docs: ID of message being replied to.
+      references:
+        type: optional<list<string>>
+        docs: IDs of previous messages in thread.
+      updated_at: DraftUpdatedAt
+      created_at:
+        type: datetime
+        docs: Time at which draft was created.
 
   ListDraftsResponse:
     properties:

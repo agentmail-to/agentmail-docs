@@ -11,10 +11,6 @@ types:
     type: string
     docs: ID of message.
 
-  MessageEventId:
-    type: string
-    docs: Event ID of message.
-
   MessageLabels:
     type: list<string>
     docs: Labels of message.
@@ -59,20 +55,11 @@ types:
     type: list<attachments.Attachment>
     docs: Attachments in message.
 
-  MessageInReplyTo:
-    type: string
-    docs: ID of message being replied to.
-
-  MessageReferences:
-    type: list<string>
-    docs: IDs of previous messages in thread.
-
   MessageItem:
     properties:
       inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       message_id: MessageId
-      event_id: MessageEventId
       labels: MessageLabels
       timestamp: MessageTimestamp
       from: MessageFrom
@@ -82,15 +69,12 @@ types:
       subject: optional<MessageSubject>
       preview: optional<MessagePreview>
       attachments: optional<MessageAttachments>
-      in_reply_to: optional<MessageInReplyTo>
-      references: optional<MessageReferences>
 
   Message:
     properties:
       inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       message_id: MessageId
-      event_id: MessageEventId
       labels: MessageLabels
       timestamp: MessageTimestamp
       from: MessageFrom
@@ -102,8 +86,18 @@ types:
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<MessageAttachments>
-      in_reply_to: optional<MessageInReplyTo>
-      references: optional<MessageReferences>
+      in_reply_to:
+        type: optional<string>
+        docs: ID of message being replied to.
+      references:
+        type: optional<list<string>>
+        docs: IDs of previous messages in thread.
+      updated_at:
+        type: datetime
+        docs: Time at which message was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which message was created.
 
   ListMessagesResponse:
     properties:

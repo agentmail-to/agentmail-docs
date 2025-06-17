@@ -11,10 +11,6 @@ types:
     type: string
     docs: ID of thread.
 
-  ThreadEventId:
-    type: string
-    docs: Event ID of thread.
-
   ThreadLabels:
     type: list<string>
     docs: Labels of thread.
@@ -31,10 +27,6 @@ types:
     type: list<string>
     docs: Recipients in thread. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
-  ThreadMessageCount:
-    type: integer
-    docs: Number of messages in thread.
-
   ThreadSubject:
     type: string
     docs: Subject of thread.
@@ -47,36 +39,44 @@ types:
     type: list<attachments.Attachment>
     docs: Attachments in thread.
 
+  ThreadMessageCount:
+    type: integer
+    docs: Number of messages in thread.
+
   ThreadItem:
     properties:
       inbox_id: inboxes.InboxId
       thread_id: ThreadId
-      event_id: ThreadEventId
       labels: ThreadLabels
       timestamp: ThreadTimestamp
       senders: ThreadSenders
       recipients: ThreadRecipients
-      message_count: ThreadMessageCount
       subject: optional<ThreadSubject>
       preview: optional<ThreadPreview>
       attachments: optional<ThreadAttachments>
+      message_count: ThreadMessageCount
 
   Thread:
     properties:
       inbox_id: inboxes.InboxId
       thread_id: ThreadId
-      event_id: ThreadEventId
       labels: ThreadLabels
       timestamp: ThreadTimestamp
       senders: ThreadSenders
       recipients: ThreadRecipients
-      message_count: ThreadMessageCount
       subject: optional<ThreadSubject>
       preview: optional<ThreadPreview>
       attachments: optional<ThreadAttachments>
+      message_count: ThreadMessageCount
       messages:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `timestamp` ascending.
+      updated_at:
+        type: datetime
+        docs: Time at which thread was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which thread was created.
 
   ListThreadsResponse:
     properties:
