@@ -35,6 +35,6 @@ types:
 
   SendAttachment:
     properties:
-      filename: AttachmentFilename
+      filename: optional<AttachmentFilename>
       content_type: optional<AttachmentContentType>
       content: AttachmentContent
