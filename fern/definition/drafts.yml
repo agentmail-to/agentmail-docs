@@ -5,6 +5,7 @@ imports:
   inboxes: inboxes/__package__.yml
   threads: threads.yml
   messages: messages.yml
+  attachments: attachments.yml
 
 types:
   DraftId:
@@ -56,7 +57,7 @@ types:
     docs: HTML body of draft.
 
   DraftAttachments:
-    type: list<messages.Attachment>
+    type: list<attachments.Attachment>
     docs: Attachments in draft.
 
   DraftInReplyTo:

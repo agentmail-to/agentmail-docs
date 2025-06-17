@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+types:
+  AttachmentId:
+    type: string
+    docs: ID of attachment.
+
+  AttachmentFilename:
+    type: string
+    docs: Filename of attachment.
+
+  AttachmentContentType:
+    type: string
+    docs: Content type of attachment.
+
+  AttachmentSize:
+    type: integer
+    docs: Size of attachment in bytes.
+
+  AttachmentInline:
+    type: boolean
+    docs: Whether attachment is part of message body.
+
+  AttachmentContent:
+    type: string
+    docs: Base64 encoded content of attachment.
+
+  Attachment:
+    properties:
+      attachment_id: AttachmentId
+      filename: optional<AttachmentFilename>
+      content_type: optional<AttachmentContentType>
+      size: AttachmentSize
+      inline: AttachmentInline
+
+  SendAttachment:
+    properties:
+      filename: AttachmentFilename
+      content_type: optional<AttachmentContentType>
+      content: AttachmentContent

@@ -2,8 +2,9 @@
 
 imports:
   global: ../__package__.yml
-  messages: ../messages.yml
   inboxes: __package__.yml
+  messages: ../messages.yml
+  attachments: ../attachments.yml
 
 service:
   base-path: /inboxes/{inbox_id}/messages
@@ -44,7 +45,7 @@ service:
       display-name: Get Attachment
       path-parameters:
         message_id: messages.MessageId
-        attachment_id: messages.AttachmentId
+        attachment_id: attachments.AttachmentId
       response: file
       errors:
         - global.NotFoundError

@@ -2,9 +2,9 @@
 
 imports:
   global: ../__package__.yml
-  drafts: ../drafts.yml
   inboxes: __package__.yml
   messages: ../messages.yml
+  drafts: ../drafts.yml
 
 service:
   base-path: /inboxes/{inbox_id}/drafts

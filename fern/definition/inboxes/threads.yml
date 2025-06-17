@@ -2,9 +2,9 @@
 
 imports:
   global: ../__package__.yml
-  threads: ../threads.yml
   inboxes: __package__.yml
-  messages: ../messages.yml
+  threads: ../threads.yml
+  attachments: ../attachments.yml
 
 service:
   base-path: /inboxes/{inbox_id}/threads
@@ -36,5 +36,16 @@ service:
       path-parameters:
         thread_id: threads.ThreadId
       response: threads.Thread
+      errors:
+        - global.NotFoundError
+
+    getAttachment:
+      method: GET
+      path: /{thread_id}/attachments/{attachment_id}
+      display-name: Get Attachment
+      path-parameters:
+        thread_id: threads.ThreadId
+        attachment_id: attachments.AttachmentId
+      response: file
       errors:
         - global.NotFoundError

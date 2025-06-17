@@ -4,6 +4,7 @@ imports:
   global: __package__.yml
   inboxes: inboxes/__package__.yml
   messages: messages.yml
+  attachments: attachments.yml
 
 types:
   ThreadId:
@@ -42,19 +43,8 @@ types:
     type: string
     docs: Text preview of last message in thread.
 
-  ThreadAttachment:
-    properties:
-      message_id:
-        type: string
-        docs: Message ID of attachment.
-      attachment_id: messages.AttachmentId
-      filename: messages.AttachmentFilename
-      content_type: messages.AttachmentContentType
-      size: messages.AttachmentSize
-      inline: messages.AttachmentInline
-
   ThreadAttachments:
-    type: list<ThreadAttachment>
+    type: list<attachments.Attachment>
     docs: Attachments in thread.
 
   ThreadItem:
@@ -125,5 +115,16 @@ service:
       path-parameters:
         thread_id: ThreadId
       response: Thread
+      errors:
+        - global.NotFoundError
+
+    getAttachment:
+      method: GET
+      path: /{thread_id}/attachments/{attachment_id}
+      display-name: Get Attachment
+      path-parameters:
+        thread_id: ThreadId
+        attachment_id: attachments.AttachmentId
+      response: file
       errors:
         - global.NotFoundError
