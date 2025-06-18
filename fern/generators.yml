@@ -28,6 +28,8 @@ groups:
           repository: agentmail-to/agentmail-python
         config:
           client_class_name: AgentMail
+          pydantic_config:
+            skip_validation: true
   postman:
     generators:
       - name: fernapi/fern-postman
