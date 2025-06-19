@@ -78,6 +78,9 @@ types:
       labels: MessageLabels
       timestamp: MessageTimestamp
       from: MessageFrom
+      reply_to:
+        type: optional<list<string>>
+        docs: Addresses of reply-to recipient. In format `username@domain.com` or `Display Name <username@domain.com>`.
       to: MessageTo
       cc: optional<MessageCc>
       bcc: optional<MessageBcc>
@@ -114,6 +117,10 @@ types:
       - string
       - list<string>
 
+  SendMessageReplyTo:
+    type: Addresses
+    docs: Reply-to address or addresses.
+
   SendMessageTo:
     type: Addresses
     docs: Recipient address or addresses.
@@ -133,6 +140,7 @@ types:
   SendMessageRequest:
     properties:
       labels: optional<MessageLabels>
+      reply_to: optional<SendMessageReplyTo>
       to: optional<SendMessageTo>
       cc: optional<SendMessageCc>
       bcc: optional<SendMessageBcc>
@@ -149,6 +157,7 @@ types:
   ReplyToMessageRequest:
     properties:
       labels: optional<MessageLabels>
+      reply_to: optional<SendMessageReplyTo>
       to: optional<SendMessageTo>
       cc: optional<SendMessageCc>
       bcc: optional<SendMessageBcc>
