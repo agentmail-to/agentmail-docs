@@ -16,6 +16,10 @@ types:
     type: list<string>
     docs: Labels of draft.
 
+  DraftReplyTo:
+    type: list<string>
+    docs: Reply-to addresses. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
   DraftTo:
     type: list<string>
     docs: Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
@@ -72,6 +76,7 @@ types:
       thread_id: threads.ThreadId
       draft_id: DraftId
       labels: DraftLabels
+      reply_to: optional<DraftReplyTo>
       to: optional<DraftTo>
       cc: optional<DraftCc>
       bcc: optional<DraftBcc>
@@ -103,6 +108,7 @@ types:
   CreateDraftRequest:
     properties:
       labels: optional<DraftLabels>
+      reply_to: optional<DraftReplyTo>
       to: optional<DraftTo>
       cc: optional<DraftCc>
       bcc: optional<DraftBcc>

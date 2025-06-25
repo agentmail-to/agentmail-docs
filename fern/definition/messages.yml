@@ -80,7 +80,7 @@ types:
       from: MessageFrom
       reply_to:
         type: optional<list<string>>
-        docs: Addresses of reply-to recipient. In format `username@domain.com` or `Display Name <username@domain.com>`.
+        docs: Reply-to addresses. In format `username@domain.com` or `Display Name <username@domain.com>`.
       to: MessageTo
       cc: optional<MessageCc>
       bcc: optional<MessageBcc>
