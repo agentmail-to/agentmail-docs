@@ -22,25 +22,30 @@ layout:
 
 navbar-links:
   - type: minimal
-    text: Join Discord
-    href: https://discord.gg/hTYatWYWBc
-  - type: filled
     text: "contact@agentmail.cc"
     href: mailto:contact@agentmail.cc
+  - type: filled
+    icon: brands discord
+    text: Discord
+    href: https://discord.gg/hTYatWYWBc
 
 tabs:
   docs:
     display-name: Documentation
-    icon: home
+    icon: book
   api:
     display-name: API Reference
-    icon: puzzle
+    icon: terminal
 
 default-language: python
 
 navigation:
   - tab: docs
     layout:
+      - section: Get Started
+        contents:
+          - page: Introduction
+            path: pages/introduction.mdx
       - section: Introduction
         contents:
           # - page: Introduction
