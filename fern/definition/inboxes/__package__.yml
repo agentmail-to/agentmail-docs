@@ -13,6 +13,10 @@ types:
     type: string
     docs: ID of inbox.
 
+  ClientId:
+    type: string
+    docs: Client ID of inbox.
+
   Inbox:
     properties:
       inbox_id: InboxId
@@ -25,6 +29,7 @@ types:
       created_at:
         type: datetime
         docs: Time at which inbox was created.
+      client_id: optional<ClientId>
 
   ListInboxesResponse:
     properties:
@@ -46,6 +51,7 @@ types:
       display_name:
         type: optional<string>
         docs: "Display name: `Display Name <username@domain.com>`. Defaults to `AgentMail`. Pass empty string to omit."
+      client_id: optional<ClientId>
 
 service:
   base-path: /inboxes

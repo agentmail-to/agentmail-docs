@@ -9,6 +9,10 @@ types:
     type: string
     docs: ID of webhook.
 
+  ClientId:
+    type: string
+    docs: Client ID of webhook.
+
   Url:
     type: string
     docs: URL of webhook endpoint.
@@ -44,6 +48,7 @@ types:
       created_at:
         type: datetime
         docs: Time at which webhook was created.
+      client_id: optional<ClientId>
 
   ListWebhooksResponse:
     properties:
@@ -59,6 +64,7 @@ types:
       url: Url
       event_types: EventTypes
       inbox_ids: optional<InboxIds>
+      client_id: optional<ClientId>
 
   EventId:
     type: string
