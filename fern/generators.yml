@@ -3,6 +3,19 @@
 default-group: local
 
 groups:
+  local:
+    generators:
+      - name: fernapi/fern-typescript-node-sdk
+        version: 0.48.5
+        config:
+          namespaceExport: AgentMail
+          skipResponseValidation: true
+      - name: fernapi/fern-python-sdk
+        version: 4.19.6
+        config:
+          client_class_name: AgentMail
+          pydantic_config:
+            skip_validation: true
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
