@@ -1,0 +1,111 @@
+---
+title: Email Deliverability
+subtitle: Best practices for landing your emails in the inbox, not the spam folder.
+slug: email-deliverability
+description: Learn the strategies and best practices for maximizing your email deliverability with AgentMail.
+---
+
+## What is Email Deliverability?
+
+Email deliverability is the art and science of getting your emails into your recipients' inboxes. It's not just about hitting "send"; it's about building a good reputation with email providers like Gmail and Outlook so they trust that you're sending valuable content, not spam.
+
+High deliverability is the key to successful email automation. This guide will walk you through the best practices for both your sending strategy and your email content.
+
+### The Technical Foundation: SPF, DKIM, DMARC
+
+Before you send your first email, it's important to have the right technical foundation in place. SPF, DKIM, and DMARC are DNS records that act as a digital signature, proving to email providers that you are who you say you are.
+
+<Tip>
+  We take care of all of this for you guys, so no need to worry about these.
+  Just something to know about(or google).
+</Tip>
+
+For maximum control and the best deliverability, we strongly recommend using your own custom domains. Setting these records up correctly on your own domain is the single most important step you can take.
+
+<CardGroup>
+  <Card
+    title="Guide: Managing Custom Domains"
+    icon="fa-solid fa-shield-alt"
+    href="/custom-domains"
+  >
+    Learn how to add your own domain and configure SPF, DKIM, and DMARC records.
+  </Card>
+</CardGroup>
+
+## High-Volume Sending Strategy
+
+How you send your emails is just as important as what you send. If you're sending a large volume of emails, follow these steps to build and maintain a strong sender reputation.
+
+<Steps>
+  <Step title="Warm-Up Your Inboxes">
+    Don't go from zero to one thousand emails overnight. Email providers get
+    suspicious of new inboxes that immediately send a high volume. Start slow
+    and gradually increase your sending volume over several days or weeks. This
+    "warm-up" process signals that you're a legitimate sender.
+    <Callout intent="info">
+      **Example Warm-Up Schedule:**
+      <br /> - Day 1: 10 emails/inbox
+      <br /> - Day 2: 20 emails/inbox
+      <br /> - Day 3: 40 emails/inbox
+      <br /> - ...and so on.
+    </Callout>
+  </Step>
+  <Step title="Diversify Your Sending Inboxes">
+    Instead of sending 10,000 emails from a single inbox, it's far better to
+    send 100 emails from 100 different inboxes. This distributes your sending
+    volume, reduces the risk of any single inbox getting flagged, and looks much
+    more natural to email providers. AgentMail's ability to create inboxes at
+    scale makes this strategy easy to implement.
+
+    <img
+      src="../../assets/inbox-diversification.png"
+      alt="Diagram comparing one inbox sending 1000 emails vs. five inboxes sending 200 each."
+    />
+
+  </Step>
+  <Step title="Protect Your Reputation with Multiple Domains">
+    An email domain's reputation is its most valuable asset. To protect it, use
+    multiple custom domains for your outreach campaigns. If one domain's
+    reputation is inadvertently damaged, you can cycle it out without impacting
+    the deliverability of your other domains.
+  </Step>
+</Steps>
+
+## High-Impact Content Strategy
+
+The content of your email plays a huge role in whether it's seen as a valuable message or as spam.
+
+<Steps>
+  <Step title="Personalize Everything">
+    Address your recipients by name in the subject line and email body. Use
+    other data points you have to make the email feel like a one-to-one
+    conversation, not a mass blast. Generic emails are a major red flag for spam
+    filters.
+  </Step>
+  <Step title="Write Like a Human, Not a Marketer">
+    Avoid "spammy" keywords (e.g., "free," "buy now," "limited time offer"),
+    excessive exclamation points, and using all caps. Write in a natural,
+    conversational tone. The goal is to start a conversation, not to close a
+    sale in the first email.
+  </Step>
+  <Step title="Be Strategic with images">
+    Any type of image that isn't an attachment but included in the message body
+    actually sets of the spam alarms. Don't do it. Also get rid of your
+    open-tracker while your at it because how EVERY service checks if the
+    reciepeint of your email opened your message is by encoding a small image
+    into the body. Hurts deliverability!!
+  </Step>
+  <Step title="CTA Selection">
+    Email providers are wary of emails links, especially in the first message of
+    a conversation. A great strategy is to send your initial outreach with no
+    links or images. Wait for the recipient to reply, and *then* send your
+    call-to-action (CTA) link. This behavior is viewed far more favorably, as
+    it's now viewd as a "conversation."
+  </Step>
+  <Step title="HTML + Text">
+    Email providers oftentimes flag emails that only include HTML as spam.
+    Providing a plain text alternative demonstrates the legitimacy of your
+    message to providers like Gmail and increases the chances of it reaching the
+    recipient's inbox.
+  </Step>
+</Steps>

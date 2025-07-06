@@ -1,0 +1,50 @@
+---
+title: "Idempotent Requests"
+subtitle: "Learn how to use idempotency keys to build safe and reliable API integrations."
+slug: idempotency
+description: "A guide to using the client_id parameter in AgentMail to prevent duplicate resources and safely retry API requests."
+---
+
+## What is Idempotency?
+
+In the context of an API, idempotency is the concept that making the same API request multiple times produces the same result as making it just once. If an idempotent `POST` request to create a resource is sent five times, it only creates the resource on the first call. The next four calls do nothing but return the result of that first successful call.
+
+This is a critical feature for building robust, fault-tolerant systems. Network errors, timeouts, and client-side retries are inevitable. Without idempotency, these events could lead to unwanted duplicate resources, like creating multiple identical inboxes or webhooks.
+
+## How AgentMail Handles Idempotency
+
+AgentMail supports idempotency for all `create` operations via an optional `client_id` parameter.
+
+When you provide a `client_id` with a `create` request, AgentMail checks if a request with that same `client_id` has already been successfully completed.
+
+- **If it's the first time** we've seen this `client_id`, we process the request as normal, create the resource, and store the resulting resource `id` against your `client_id`.
+- **If we have seen this `client_id` before**, we do _not_ re-process the request. Instead, we immediately return a `200 OK` response with the data from the _original_, successfully completed request.
+
+This allows you to safely retry requests without the risk of creating duplicate data.
+
+```python
+# The first time this code is run, it creates a new inbox.
+inbox = client.inboxes.create(
+    username="idempotent-test",
+    client_id="user-123-inbox-primary"
+)
+print(f"Created inbox: {inbox.id}")
+
+# If you run this exact same code again, it will NOT create a second
+# inbox. It will return the same inbox object from the first call.
+inbox_again = client.inboxes.create(
+    username="idempotent-test",
+    client_id="user-123-inbox-primary"
+)
+print(f"Retrieved same inbox: {inbox_again.id}")
+# The inbox.id will be identical in both calls.
+```
+
+## Best Practices for `client_id`
+
+To use idempotency effectively, the `client_id` you generate must be unique and deterministic.
+
+- **Deterministic:** The same logical resource on your end should always generate the same `client_id`. For example, a `client_id` for a user's primary inbox could be `inbox-for-user-{{USER_ID}}`.
+- **Unique:** Do not reuse a `client_id` for creating different resources. A `client_id` used to create an inbox should not be used to create a webhook.
+
+A common and highly effective pattern is to generate a UUID (like a `UUID v4`) on your client side for a resource you are about to create, save that UUID in your own database, and then use it as the `client_id` in the API call. This gives you a reliable key to use for any retries.

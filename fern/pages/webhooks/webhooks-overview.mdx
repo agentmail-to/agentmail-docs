@@ -1,0 +1,117 @@
+---
+title: "Webhooks Overview"
+subtitle: "Get real-time notifications for email events."
+slug: overview
+description: "Learn how to use Webhooks to build responsive, event-driven email agents with AgentMail."
+---
+
+Webhooks are the best way to get real-time information about what's happening with your emails. Instead of constantly asking the AgentMail API if there's a new email (a process called polling), you can register a URL, and we will send you a `POST` request with the details as soon as an event happens.
+
+This event-driven approach is more efficient and allows you to build fast, responsive agents that can react instantly to incoming messages.
+
+## Why Use Webhooks?
+
+- **Real-Time Speed:** Build conversational agents that can reply to incoming emails in seconds.
+- **Efficiency:** Eliminates the need for constant polling, which saves you computational resources and simplifies your application logic.
+
+## The Webhook Workflow
+
+The process is straightforward:
+
+<Steps>
+    <Step title="1. Create a Webhook Endpoint">
+        This is a public URL on your server that can accept `POST` requests. For local development, a tool like `ngrok` is perfect for creating a secure, public URL that tunnels to your local machine. Your endpoint should immediately return a `200 OK` response to acknowledge receipt and process the payload in the background to avoid timeouts.
+    </Step>
+    <Step title="2. Register the Endpoint with AgentMail">
+        You can register your URL using the AgentMail API. When you create a webhook, you'll specify your endpoint's URL. As AgentMail currently only supports the `message.received` event, there's no need to specify event types.
+
+        <CodeBlocks>
+        ```python
+        client.webhooks.create(
+            url="https://<your-ngrok-url>.ngrok-free.app/webhooks"
+        )
+        ```
+        ```typescript
+        await client.webhooks.create({
+            url: "https://<your-ngrok-url>.ngrok-free.app/webhooks",
+        });
+        ```
+        </CodeBlocks>
+    </Step>
+    <Step title="3. AgentMail Sends Events">
+        When a new message is received in one of your inboxes, AgentMail will immediately send a `POST` request with a JSON payload to your registered URL.
+    </Step>
+
+</Steps>
+
+## Payload Structure
+
+When AgentMail sends a webhook, the payload will have the following structure.
+
+```json Webhook Payload
+{
+  "event_type": "message.received",
+  "event_id": "evt_123abc...",
+  "message": {
+    "from_": ["sender@example.com"],
+    "organization_id": "org_abc123...",
+    "inbox_id": "inbox_def456...",
+    "thread_id": "thd_ghi789...",
+    "message_id": "msg_jkl012...",
+    "labels": ["received"],
+    "timestamp": "2023-10-27T10:00:00Z",
+    "reply_to": ["reply-to@example.com"],
+    "to": ["recipient@example.com"],
+    "cc": ["cc-recipient@example.com"],
+    "bcc": ["bcc-recipient@example.com"],
+    "subject": "Email Subject",
+    "preview": "A short preview of the email text...",
+    "text": "The full text body of the email.",
+    "html": "<html>...</html>",
+    "attachments": [
+      {
+        "attachment_id": "att_pqr678...",
+        "filename": "document.pdf",
+        "content_type": "application/pdf",
+        "size": 123456,
+        "inline": false
+      }
+    ],
+    "in_reply_to": "msg_parent456...",
+    "references": ["msg_ref1...", "msg_ref2..."],
+    "sort_key": "some-sort-key",
+    "updated_at": "2023-10-27T10:00:05Z",
+    "created_at": "2023-10-27T10:00:00Z"
+  }
+}
+```
+
+### Field Descriptions
+
+- **`event_type`** (`string`): The name of the event. Currently, this will always be `message.received`.
+- **`event_id`** (`string`): A unique identifier for this specific event delivery.
+- **`message`** (`object`): A dictionary containing the full details of the received email message.
+  - **`from_`** (`array<string>`): The sender's email address. Note the trailing underscore to avoid conflict with the Python keyword.
+  - **`organization_id`** (`string`): The ID of your organization.
+  - **`inbox_id`** (`string`): The ID of the inbox that received the message.
+  - **`thread_id`** (`string`): The ID of the conversation thread.
+  - **`message_id`** (`string`): The unique ID of this specific message.
+  - **`labels`** (`array<string>`): Labels associated with the message (e.g., `received`, `sent`).
+  - **`subject`** (`string`): The subject line of the email.
+  - **`preview`** (`string`): A short plain-text preview of the email body.
+  - **`text`** (`string`): The full plain-text body of the email.
+  - **`html`** (`string`): The full HTML body of the email, if present.
+  - **`attachments`** (`array<object>`): A list of attachments, each with its own `attachment_id`, `filename`, `content_type`, `size`, and `inline` status.
+  - **`in_reply_to`** (`string`): The `message_id` of the email this message is a reply to, if applicable.
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Webhook Events" href="/events">
+    Explore the full list of available event types and their data payloads.
+  </Card>
+  <Card title="Example: Event-Driven Agent" href="/github-star-agent">
+    Build a fully deployable, event-driven agent that can respond to emails in
+    real time.
+  </Card>
+</CardGroup>

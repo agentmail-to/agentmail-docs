@@ -1,0 +1,106 @@
+---
+title: Threads
+subtitle: Organizing conversations across your Inboxes.
+slug: threads
+description: Learn how AgentMail Threads group messages into conversations and how to query them across your entire organization.
+---
+
+## What is a Thread?
+
+A `Thread` is an API resource that represents a single conversation. It acts as a container, grouping a series of related `Messages` together in chronological order, just like a conversation thread in a traditional email client.
+
+`Threads` are created automatically. When your agent sends a `Message` that isn't a reply to a previous one, a new `Thread` is initiated. Any subsequent replies are automatically added to this same `Thread`, allowing your agent to easily maintain the context of a conversation over time.
+
+## Querying `Threads`
+
+While `Threads` are created implicitly, you can retrieve them in two powerful ways: scoped to a single `Inbox` or across your entire `Organization`.
+
+### Listing `Threads` per `Inbox`
+
+This is the standard way to retrieve all the conversations associated with a single agent or `Inbox`.
+
+<CodeBlocks>
+```python title="Python"
+# You'll need an inbox ID to list threads from.
+inbox_id = "inbound-agent@agentmail.to"
+
+# This retrieves all threads within the specified Inbox
+
+inbox_threads = client.inboxes.threads.list(inbox_id=inbox_id)
+
+````
+
+```typescript title="TypeScript"
+// You'll need an inbox ID to list threads from.
+const inboxId = "inbound-agent@agentmail.to";
+
+// This retrieves all threads within the specified Inbox
+const inboxThreads = await client.inboxes.threads.list(inbound-agent@agentmail.to);
+
+console.log(`Found ${inboxThreads.length} threads in Inbox ${inboxId}.`);
+````
+
+</CodeBlocks>
+
+### Listing `Threads` Across an `Organization`
+
+This is one of AgentMail's most powerful features. By omitting the `inbox_id`, you can retrieve a list of `Threads` from **every `Inbox`** in your `Organization`. This org-wide querying capability is essential for building:
+
+- **Supervisor Agents:** An agent that monitors conversations from a fleet of other agents.
+- **Analytics Dashboards:** Building something where you need visibility across all inboxes across the organization
+- **Advanced Workflows:** Systems that can route or escalate conversations between different agents with different permissions.
+
+<CodeBlocks>
+```python title="Python"
+# By not providing an inbox_id, we get all threads in the organization
+all_threads = client.threads.list()
+
+print(f"Found {len(all_threads)} threads across the entire organization.")
+
+````
+
+```typescript title="TypeScript"
+// By not providing an inboxId, we get all threads in the organization
+const allThreads = await client.threads.list();
+
+console.log(`Found ${allThreads.length} threads across the entire organization.`);
+````
+
+</CodeBlocks>
+
+<Callout title="Coming Soon: Org-Wide Semantic Search" intent="info">
+  We are actively developing semantic search for the organization-wide thread
+  listing endpoint. Soon, you'll be able to find `Threads` based on the meaning
+  and concepts within the `Messages`, not just keywords.
+</Callout>
+
+### Getting a Single `Thread`
+
+You can also retrieve a single `Thread` by its ID. This will return the `Thread` object, which typically contains a list of all its associated `Messages` and their ID's. A common workflow is listing the messages in a thread and calling the `messages.reply` method on the last one.
+
+<CodeBlocks>
+```python title="Python"
+thread_id = "thread_456def"
+
+# This retrieves a single thread and its messages
+
+thread = client.threads.get(
+thread_id="thread_id"
+)
+
+print(f"Retrieved thread {thread.id} with {len(thread.messages)} messages.")
+
+````
+
+```typescript title="TypeScript"
+const threadId = "thread_456def";
+
+// This retrieves a single thread and its messages
+const thread = await client.threads.get(
+	"thread_id"
+)
+
+console.log(`Retrieved thread ${thread.id} with ${thread.messages.length} messages.`);
+````
+
+</CodeBlocks>

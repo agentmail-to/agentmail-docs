@@ -1,0 +1,400 @@
+---
+title: "Example: Event-Driven Agent"
+subtitle: "Build a proactive, event-driven GitHub agent that uses Webhooks to handle replies in real time."
+slug: webhook-agent
+description: "A step-by-step guide to building a sophisticated agent that performs proactive outreach and uses webhooks for inbound message processing."
+---
+
+This tutorial walks you through building a sophisticated, dual-mode agent. It will:
+
+1.  **Proactively monitor** a GitHub repository and send an outreach email when it detects a new "star".
+2.  **Reactively process** and reply to incoming emails in real-time using AgentMail Webhooks.
+
+We will use Flask to create a simple web server and `ngrok` to expose it to the internet so AgentMail can send it events.
+
+## Prerequisites
+
+Before you start, make sure you have the following:
+
+- Python 3.8+
+- An [AgentMail API Key](mailto:contact@agentmail.to).
+- An [OpenAI account](https://openai.com/) and API key.
+- An [ngrok account](https://ngrok.com/) and authtoken.
+
+## Step 1: Project Setup
+
+First, let's set up your project directory and install the necessary dependencies.
+
+1.  **Create a project folder** and navigate into it.
+2.  **Create a `requirements.txt` file** with the following content:
+
+    ```txt
+    agentmail
+    agentmail-toolkit
+    openai
+    openai-agents
+    python-dotenv
+    flask
+    ngrok
+    ```
+
+3.  **Install the packages:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+4.  **Create a `.env` file** to store your secret keys and configuration.
+
+    ```env
+    AGENTMAIL_API_KEY="your_agentmail_api_key"
+    OPENAI_API_KEY="your_openai_api_key"
+
+    NGROK_AUTHTOKEN="your_ngrok_authtoken"
+    INBOX_USERNAME="github-star-agent"
+    WEBHOOK_DOMAIN="your-ngrok-subdomain.ngrok-free.app"
+    DEMO_TARGET_EMAIL="your-email@example.com"
+    TARGET_GITHUB_REPO="YourGitHub/YourRepo"
+    ```
+
+    - Replace the placeholder values with your actual keys.
+    - `WEBHOOK_DOMAIN` is your custom domain from your ngrok dashboard.
+    - `INBOX_USERNAME` will be the email address for your agent (e.g., `github-star-agent@agentmail.to`).
+
+## Step 2: The Agent Code (`main.py`)
+
+Create a file named `main.py` and add the full code example you provided. This script contains all the logic for our agent, including the new logic to idempotently create the inbox it needs.
+
+<CodeBlocks>
+```python main.py
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+import asyncio
+from threading import Thread
+import time
+
+import ngrok
+from flask import Flask, request, Response
+
+from agentmail import AgentMail
+from agentmail_toolkit.openai import AgentMailToolkit
+from agents import WebSearchTool, Agent, Runner
+
+port = 8080
+domain = os.getenv("WEBHOOK_DOMAIN")
+inbox_username = os.getenv("INBOX_USERNAME")
+inbox = f"{inbox_username}@agentmail.to"
+
+target_github_repo = os.getenv("TARGET_GITHUB_REPO")
+if not target_github_repo:
+print("\nWARNING: The TARGET_GITHUB_REPO environment variable is not set.")
+print("The agent will not have a specific GitHub repository to focus on.")
+print("Please set it in your .env file (e.g., TARGET_GITHUB_REPO='owner/repository_name')\n")
+
+demo_target_email = os.getenv("DEMO_TARGET_EMAIL")
+if not demo_target_email:
+print("\nWARNING: The DEMO_TARGET_EMAIL environment variable is not set.")
+print("The agent will not have a specific email to send the 'top starrer' outreach to.")
+print("Please set it in your .env file (e.g., DEMO_TARGET_EMAIL='your.email@example.com')\n")
+
+# Determine the target email, with a fallback if the environment variable is not set.
+
+# The fallback is less ideal for a real demo but prevents the agent from having no target.
+
+actual_demo_target_email = demo_target_email if demo_target_email else "fallback.email@example.com"
+
+# Use a fallback for target_github_repo as well for the instructions string construction
+
+actual_target_github_repo = target_github_repo if target_github_repo else "example/repo"
+
+# --- AgentMail and Web Server Setup ---
+
+# 1. Initialize the AgentMail client
+
+client = AgentMail()
+
+# 2. Idempotently create the inbox for the agent
+
+# Using a deterministic client_id ensures we don't create duplicate inboxes
+
+# if the script is run multiple times.
+
+inbox_client_id = f"inbox-for-{inbox_username}"
+print(f"Attempting to create or retrieve inbox '{inbox}' with client_id: {inbox_client_id}")
+try:
+client.inboxes.create(
+username=inbox_username,
+client_id=inbox_client_id
+)
+print("Inbox creation/retrieval successful.")
+except Exception as e:
+print(f"Error creating/retrieving inbox: {e}") # Depending on the desired behavior, you might want to exit here # if the inbox is critical for the agent's function.
+
+# 3. Start the ngrok tunnel to get a public URL
+
+print("Starting ngrok tunnel...")
+listener = ngrok.forward(port, domain=domain, authtoken_from_env=True)
+print(f"ngrok tunnel started: {listener.url()}")
+
+# 4. Idempotently create the webhook pointing to our new public URL
+
+webhook_url = f"{listener.url()}/webhooks"
+webhook_client_id = f"webhook-for-{inbox_username}"
+print(f"Attempting to create or retrieve webhook for URL: {webhook_url}")
+try:
+client.webhooks.create(
+url=webhook_url,
+client_id=webhook_client_id,
+)
+print("Webhook creation/retrieval successful.")
+except Exception as e:
+print(f"Error creating/retrieving webhook: {e}")
+
+# 5. Initialize the Flask App
+
+app = Flask(**name**)
+
+instructions = f"""
+You are a GitHub Repository Evangelist Agent. Your name is AgentMail. Your email address is {inbox}.
+Your primary focus is the GitHub repository: '{actual_target_github_repo}'.
+Your goal is to engage the user at {actual_demo_target_email} about the potential of '{actual_target_github_repo}' for building AI agents, using rich HTML emails.
+
+**You operate in two main scenarios:**
+
+**Scenario 1: Proactive Outreach (Triggered by internal monitor for '{actual_target_github_repo}')**
+
+- You will receive a direct instruction when a new (simulated) star is detected for '{actual_target_github_repo}'.
+- This instruction will explicitly ask you to:
+  1.  Use the WebSearchTool to find fresh, compelling information or talking points about '{actual_target_github_repo}' (e.g., new features, use cases for agent development, benefits). You should synthesize this information, not just copy it.
+  2.  Use the 'send_message' tool to send a NEW email to {actual_demo_target_email}.
+      - The email should start by mentioning something like: "Hello! We noticed you recently showed interest in (or starred) our repository, '{actual_target_github_repo}'! We're excited to share some insights..."
+      - You must craft an engaging 'subject' for this email.
+      - You must craft an informative 'html' (body) for this email in HTML format, based on your synthesized web search findings. **Do NOT include raw URLs or direct links from your web search in the email body.** Instead, discuss the concepts or information you found.
+      - The email must end with a clear call to action inviting the user to ask you (the agent) questions. For example: "I'm an AI assistant for '{actual_target_github_repo}', ready to answer any questions you might have. Feel free to reply to this email with your thoughts or queries!"
+- Your final output for THIS SCENARIO (after the send_message tool call) should be a brief confirmation message (e.g., "Proactive HTML email about new star sent to {actual_demo_target_email}."). Do NOT output the email content itself as your final response here, as the tool handles sending it.
+
+**Scenario 2: Replying to Emails (Triggered by webhook when an email arrives at {inbox})**
+
+- You will receive the content of an incoming email (From, Subject, Body).
+- **If the email is FROM '{actual_demo_target_email}':**
+  - This is a reply from your primary contact. Your goal is to continue the conversation naturally and persuasively. **Your entire output for this interaction MUST be a single, well-formed HTML string for the email body. It must start directly with an HTML tag (e.g., `<p>`) and end with a closing HTML tag. Do NOT include any other text, labels, comments, or markdown-style code fences (like `html ... ` or '''html: ...''') before or after the HTML content itself.**
+  - Use the WebSearchTool to find relevant new information about '{actual_target_github_repo}' to answer their questions, address their points, or further highlight the repository's value for agent development.
+  - **Strict Conciseness for Guides/Steps:** If the user asks for instructions, a guide, or steps (e.g., "how to install", "integration guide", "how to use X feature"), your reply MUST be **extremely concise (max 2-3 sentences summarizing the core idea)** and provide **ONE primary HTML hyperlink** to the most relevant page in the official documentation (e.g., `https://docs.agentstack.sh`). **Absolutely do NOT list multiple steps, commands, or code snippets in the email for these types of requests.** Your goal is to direct them to the documentation for details.
+  - **HTML Formatting for All Replies:**
+    - Use `<p>` tags for paragraphs. Avoid empty `<p></p>` tags or excessive `<br>` tags to prevent unwanted spacing.
+    - For emphasis, use `<strong>` or `<em>`.
+    - If, for a question _not_ about general guides/steps, a short code snippet is essential for a direct answer, you MUST wrap it in `<pre><code>...code...</code></pre>` tags. But avoid this for guide-type questions.
+    - All URLs you intend to be clickable MUST be formatted as HTML hyperlinks: `<a href="URL\">Clickable Link Text</a>`. Do not output raw URLs or markdown-style links.
+    - For example, a reply to "how to install" MUST be similar to: `<p>You can install AgentStack using package managers like Homebrew or pipx. For the detailed commands and options, please consult our official <a href='https://docs.agentstack.sh/installation'>Installation Guide</a>.</p><p>Is there anything else specific I can help you find in the docs or a different question perhaps?</p>`
+  - The webhook handler will use your **raw string output** directly as the HTML body of the reply.
+- **If the email is FROM ANY OTHER ADDRESS:**
+  - This is unexpected. Politely state (in simple HTML, using one or two `<p>` tags, **and no surrounding fences or labels**) that you are an automated agent focused on discussing '{actual_target_github_repo}' with {actual_demo_target_email} and cannot assist with other requests at this time.
+  - Your output for this interaction should be ONLY this polite, **raw HTML email body.**
+
+**General Guidelines for HTML Emails to {actual_demo_target_email}:**
+_ Always be enthusiastic and informative about '{actual_target_github_repo}'.
+_ Tailor your points based on information you find with the WebSearchTool. For initial outreach, synthesize information. **For replies asking for guides/steps, BE EXTREMELY CONCISE, summarize in 2-3 sentences, and provide a single link to the main documentation.**
+_ Initial outreach: concise (5-6 sentences). Replies answering specific, non-guide questions: aim for 7-10 sentences. **Replies to guide/installation/integration questions: MAX 4 sentences, including the link.**
+_ Structure ALL content with appropriate HTML tags: `<p>`, `<br>` (sparingly), `<strong>`, `<em>`, `<u>`, `<ul>`, `<ol>`, `<li>` (if not a guide question), `<pre><code>` (if not a guide question and essential), and **`<a href="URL">link text</a>` for ALL clickable links.** NO MARKDOWN-STYLE LINKS.
+
+- \*\*IMPORTANT: Your output for replies (Scenario 2, when email is from {actual*demo_target_email}) MUST be \_only* the HTML content itself. Do not wrap it in markdown code fences (like ```html), or any other prefix/suffix text.** Start directly with `<p>` or another HTML tag.
+- Encourage interaction. The initial email must end with an invitation to reply with questions. \* Maintain conversation context.
+
+Remember, your primary contact for ongoing conversation is '{actual_demo_target_email}', and your primary topic is always '{actual_target_github_repo}'.
+"""
+
+agent = Agent(
+name="GitHub Agent",
+instructions=instructions,
+tools=AgentMailToolkit(client).get_tools() + [WebSearchTool()],
+)
+
+messages = []
+
+# --- GitHub Polling Logic ---
+
+simulated_stargazer_count = 0
+MAX_SIMULATED_STARS = 1 # single star even
+stars_found_so_far = 0
+
+def poll_github_stargazers():
+global simulated_stargazer_count, stars_found_so_far
+print(f"GitHub polling thread started for top 20 repositories related to AI agents...")
+
+    # Give the Flask app a moment to start up if run concurrently
+    time.sleep(3)
+
+    while stars_found_so_far < MAX_SIMULATED_STARS:
+        time.sleep(13) # Poll every 30 seconds for the demo
+
+        # Simulate a new star appearing
+        new_star_detected = False
+        # For demo, let's just add a star each time for the first few polls
+        if stars_found_so_far < MAX_SIMULATED_STARS: # Check again inside loop
+            simulated_stargazer_count += 1
+            stars_found_so_far += 1
+            new_star_detected = True
+            print(f"[POLLER] New star! Total: {simulated_stargazer_count}")
+
+        if new_star_detected and actual_target_github_repo != "example/repo" and actual_demo_target_email != "fallback.email@example.com":
+            prompt_for_agent = f"""\
+            URGENT TASK: A new star has been detected for the repository '{actual_target_github_repo}' (simulated count: {simulated_stargazer_count}).
+            Your goal is to use the 'send_message' tool to notify {actual_demo_target_email} with an HTML email that does not contain direct web links in its body and has a specific call to action.
+
+            Thought: I need to perform two steps: first, gather information using WebSearchTool, and second, synthesize this information into an HTML email and send it using the send_message tool.
+
+            Step 1: Gather Information.
+            Use the WebSearchTool to find ONE fresh, compelling piece of information or talking point about '{actual_target_github_repo}' relevant to AI agent development.
+            Your output for this step should be an action call to WebSearchTool. For example:
+            Action: WebSearchTool("key features of {actual_target_github_repo} for AI agents")
+
+            (After you receive the observation from WebSearchTool, you will proceed to Step 2 in your next turn)
+
+            Step 2: Formulate and Send HTML Email.
+            Based on the information from WebSearchTool, you MUST call the 'send_message' tool.
+            The email should start by acknowledging the user's interest, e.g., "<p>Hello! We noticed you recently showed interest in (or starred) our repository, <strong>{actual_target_github_repo}</strong>! We're excited to share some insights...</p>"
+            The email body should discuss the information you found but **MUST NOT include any raw URLs or direct hyperlinks from the web search results.** Synthesize the information.
+            The email MUST end with a call to action like: "<p>I'm an AI assistant for '{actual_target_github_repo}', and I'm here to help answer any questions you might have. Feel free to reply to this email with your thoughts or if there's anything specific you'd like to know!</p>"
+
+            The parameters for the 'send_message' tool call should be:
+               - 'to': ['{actual_demo_target_email}']
+               - 'inbox_id': '{inbox}'
+               - 'subject': An engaging subject based on the web search findings (e.g., "Insights on {actual_target_github_repo} for Your AI Projects!").
+               - 'html': An email body in HTML format, adhering to all the above content and formatting rules (mention star, no direct links, specific CTA).
+
+            Your output for this step MUST be an action call to 'send_message' with the tool input formatted as a valid JSON string, ensuring you use the 'html' field for the body. For example:
+            Action: send_message(```json
+            {{
+              "inbox_id": "{inbox}",
+              "to": ["{actual_demo_target_email}"],
+              "subject": "Following Up on Your Interest in {actual_target_github_repo}!",
+              "html": "<p>Hello! We noticed you recently showed interest in <strong>{actual_target_github_repo}</strong>!</p><p>We've been developing some exciting capabilities within it, particularly around [synthesized information from web search, e.g., its new modular design for agent development]. This allows for more flexible integration of AI components.</p><p>I'm an AI assistant for \'{actual_target_github_repo}\', and I\'m here to help answer any questions you might have. Feel free to reply to this email with your thoughts or if there\'s anything specific you\'d like to know!</p>"
+            }}
+            ```)
+
+            If you cannot find information with WebSearchTool in Step 1, for Step 2 you should still attempt to call send_message. The HTML email should still acknowledge the star and provide the specified CTA, but state that fresh specific updates couldn't be retrieved at this moment, while still highlighting the general value of '{actual_target_github_repo}'.
+            Your final conversational output after the 'send_message' action is executed by the system should be a simple confirmation like "Email dispatch initiated to {actual_demo_target_email}."
+            """
+            print(f"[POLLER] Triggering agent for new star on {actual_target_github_repo} to notify {actual_demo_target_email}")
+            # We run the agent in a blocking way here for simplicity in the polling thread.
+            # The 'messages' history is intentionally kept separate from the webhook's conversation history for this proactive outreach.
+            try:
+                response = asyncio.run(Runner.run(agent, [{"role": "user", "content": prompt_for_agent}]))
+                print(f"[POLLER] Agent response to new star prompt: {response.final_output}")
+                # You could add a more specific check here if the agent is supposed to return a structured success/failure
+                if "email dispatch initiated" not in response.final_output.lower():
+                    print(f"[POLLER_WARNING] Agent response did not explicitly confirm email sending according to expected pattern: {response.final_output}")
+            except Exception as e:
+                print(f"[POLLER_ERROR] An error occurred while the agent was processing the new star prompt: {e}")
+                import traceback # Import traceback here to use it
+                print(f"[POLLER_ERROR] Traceback: {traceback.format_exc()}")
+        elif new_star_detected:
+            print("[POLLER] Simulated new star, but TARGET_GITHUB_REPO or DEMO_TARGET_EMAIL is not properly set. Skipping agent trigger.")
+
+@app.route("/webhooks", methods=["POST"])
+def receive_webhook():
+print(f"\n[/webhooks] Received webhook. Payload keys: {list(request.json.keys()) if request.is_json else 'Not JSON or empty'}")
+Thread(target=process_webhook, args=(request.json,)).start()
+return Response(status=200)
+
+def process_webhook(payload):
+global messages
+
+    email = payload["message"]
+    print(f"[process_webhook] Processing email from: {email.get('from')}, subject: {email.get('subject')}, id: {email.get('message_id')}")
+
+    prompt = f"""
+
+From: {email["from"]}
+Subject: {email["subject"]}
+Body:\n{email["text"]}
+"""
+print("Prompt:\n\n", prompt, "\n")
+
+    response = asyncio.run(Runner.run(agent, messages + [{"role": "user", "content": prompt}]))
+    print("Response:\n\n", response.final_output, "\n")
+
+    print(f"[process_webhook] Attempting to send reply to message_id: {email['message_id']} via inbox: {inbox}")
+    client.messages.reply(inbox_id=inbox, message_id=email["message_id"], html=response.final_output)
+    print(f"[process_webhook] Reply call made for message_id: {email['message_id']}.")
+
+    messages = response.to_input_list()
+    print(f"[process_webhook] Updated message history. New length: {len(messages)}\n")
+
+if **name** == "**main**":
+print(f"Inbox: {inbox}\n")
+if not target_github_repo or target_github_repo == "example/repo":
+print("WARNING: TARGET_GITHUB_REPO not set or is default. Poller will not be effective.")
+if not demo_target_email:
+print("WARNING: DEMO_TARGET_EMAIL not set or is default. Poller will not be effective.")
+
+    polling_thread = Thread(target=poll_github_stargazers)
+    polling_thread.daemon = True # So it exits when the main thread exits
+    polling_thread.start()
+
+    print(f"ngrok tunnel started: {listener.url()}")
+
+    app.run(port=port)
+
+````
+</CodeBlocks>
+
+### Understanding the Code
+
+<AccordionGroup>
+  <Accordion title="Idempotency with `client_id`">
+    Notice that the script now handles its own setup. Before the agent starts, the code calls `client.inboxes.create` with a `client_id` parameter. This makes the operation **idempotent**.
+
+    The first time you run the script, it creates the inbox. Every subsequent time, the AgentMail API will recognize the `client_id`, see that the inbox already exists, and simply return the existing inbox's data instead of creating a duplicate. This makes your script robust and safe to run multiple times. The same principle is used when creating the webhook.
+  </Accordion>
+  <Accordion title="Agent Persona and Instructions">
+    The `instructions` variable defines the agent's entire personality, goals, and operational logic. It's a comprehensive prompt that tells the agent how to behave in two distinct scenarios: proactive outreach for new GitHub stars and reactive replies to incoming emails. It includes strict rules on HTML formatting and how to handle different types of user queries.
+  </Accordion>
+  <Accordion title="Proactive Polling (`poll_github_stargazers`)">
+    This function runs in a separate background thread. For this demo, it *simulates* finding a new star on your target repository every 13 seconds. When it "finds" one, it constructs a detailed prompt and calls the agent to begin the outreach workflow (search for info, then send an email).
+    <Callout type="info" title="This is a Simulation">
+      To keep the example focused, this code does not actually connect to the GitHub API. It simulates finding a new star to trigger the agent. In a real-world application, you would replace the simulation logic inside this function with actual API calls to GitHub to get real data.
+    </Callout>
+  </Accordion>
+  <Accordion title="Webhook Server (`Flask` and `ngrok`)">
+    - `app = Flask(__name__)` creates our web server.
+    - `@app.route("/webhooks", methods=["POST"])` defines the specific URL that will listen for `POST` requests from AgentMail.
+    - `listener = ngrok.forward(...)` tells `ngrok` to create a public URL (using your `WEBHOOK_DOMAIN`) and securely forward all traffic to our local Flask server on port `8080`.
+  </Accordion>
+  <Accordion title="Webhook Processing (`process_webhook`)">
+    When a request hits our `/webhooks` endpoint, the `receive_webhook` function immediately starts the `process_webhook` function in a new thread. This is a crucial best practice: it allows us to return a `200 OK` status to AgentMail instantly while the heavy lifting happens in the background.
+
+    Inside `process_webhook`, the function parses the JSON payload, constructs a prompt from the email's content, runs the agent, and then uses `client.messages.reply()` to send the agent's HTML output as a reply.
+  </Accordion>
+</AccordionGroup>
+
+## Step 3: Run the Agent
+
+Now, let's bring your agent to life. The script is now fully self-contained. When you run it, it will automatically:
+1. Create the agent's inbox.
+2. Start an `ngrok` tunnel to get a public URL.
+3. Use that URL to create the AgentMail webhook.
+4. Start the web server to listen for events.
+5. Start the background process to monitor GitHub.
+
+Open your terminal in the project directory and run the command:
+```bash
+python main.py
+```
+You should see a series of logs confirming that all setup steps have been completed. Keep this terminal window running.
+
+## Step 4: Test Your Agent
+
+### Test Scenario 1: Proactive Outreach
+
+You don't have to do anything for this one! The `poll_github_stargazers` function is already running. Within about 15 seconds, you should see logs in your terminal indicating that a new star was detected and the agent is being triggered. A few moments later, an email should arrive in the inbox you specified for `DEMO_TARGET_EMAIL`.
+
+### Test Scenario 2: Reactive Reply
+
+1.  Find the email your agent just sent you.
+2.  Reply to it with a question, like "This is cool! How do I install it?"
+3.  Check your running `main.py` terminal. You should see new logs indicating a webhook was received and is being processed.
+4.  Shortly after, you should receive an HTML-formatted email reply from your agent in your inbox.
+
+You now have a fully event-driven agent that can both initiate conversations and respond to them in real time!
+````

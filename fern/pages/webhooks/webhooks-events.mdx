@@ -1,0 +1,73 @@
+---
+title: "Webhook Events"
+subtitle: "A complete reference of the AgentMail webhook event and its payload."
+slug: events
+---
+
+When you create a webhook, you subscribe to events from AgentMail. As of now, AgentMail supports a single event type: `message.received`. This event is your primary trigger for all agent-based workflows. We will be adding more event types in the future.
+
+All webhook payloads follow the same basic structure:
+
+```json
+{
+  "event": "event.name",
+  "data": {
+    // ... event-specific data object
+  }
+}
+```
+
+## Message Event
+
+The `message.received` event is triggered whenever a new email is successfully received and processed in one of your `Inboxes`.
+
+### `message.received`
+
+- **Description:** This is the main trigger to kick off your agent's workflow. Use this event to fetch the full message content, process it, and decide on the next action, such as generating a reply.
+- **Use Case:** Instantly kick off an agent's workflow to process and reply to an incoming email.
+
+<CodeGroup>
+```json  
+{
+  "event": "message.received",
+  "data": {
+    "id": "msg_123abc",
+    "object": "message",
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "from": [
+      {
+        "name": "Jane Doe",
+        "email": "jane@example.com"
+      }
+    ],
+    "to": [
+      {
+        "name": "Support Agent",
+        "email": "support@agentmail.to"
+      }
+    ],
+    "subject": "Question about my account",
+    "created_at": "2023-10-27T10:00:00Z"
+    // ... and other message properties
+  }
+}
+```
+</CodeGroup>
+
+## Future Events
+
+We are working on expanding our event offerings. In the future, you can expect to see events related to email delivery status, such as:
+
+- `delivery.success`
+- `delivery.bounced`
+- `delivery.complained`
+- and much more...
+
+Stay tuned for updates as we roll out these new features!
+
+If you have any specific webhook notifications you would like, please ping us in the `#feature-requests` channel in the [Discord](https://discord.gg/hTYatWYWBc)
+
+```
+
+```

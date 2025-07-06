@@ -1,0 +1,129 @@
+---
+title: Drafts
+subtitle: Preparing and scheduling Messages for your agents.
+slug: drafts
+description: Learn how to create, manage, and send Drafts to enable advanced agent workflows like human-in-the-loop review and scheduled sending.
+---
+
+## What is a Draft?
+
+A `Draft` is an unsent `Message`. It's a resource that allows your agent to prepare the contents of an email—including recipients, a subject, a body, and `Attachments`—without sending it immediately.
+
+We know agent reliability is big these days--with `Drafts` you can have agents have ready-to-send emails and only with your permission it can send them off into the world.
+
+`Drafts` are a key component for building advanced agent workflows. They enable:
+
+- **Human-in-the-Loop Review:** An agent can create a `Draft` for a sensitive or important `Message`, which a human can then review and approve before it's sent.
+- **Scheduled Sending:** Your agent can create a `Draft` and then have a separate process send it at a specific time, such as during business hours for the recipient.
+- **Complex Composition:** For `Messages` that require multiple steps to build (e.g., fetching data from several sources, generating content), `Drafts` allow you to save the state of the email as it's being composed.
+
+## The `Draft` Lifecycle
+
+You can interact with `Drafts` throughout their lifecycle, from creation to the moment they are sent.
+
+### 1. Create a `Draft`
+
+This is the first step. You create a `Draft` in a specific `Inbox` that will eventually be the sender.
+
+<CodeBlocks>
+```python title="Python"
+# You'll need an inbox ID to create a draft in.
+
+new_draft = client.inboxes.drafts.create(
+inbox_id="outbound@domain.com",
+to=["review-team@example.com"],
+subject="[NEEDS REVIEW] Agent's proposed response"
+)
+
+print(f"Draft created successfully with ID: {new_draft.draft_id}")
+
+````
+
+```typescript title="TypeScript"
+// You'll need an inbox ID to create a draft in.
+
+const newDraft = await client.inboxes.drafts.create(
+	"my_inbox@domain.com",
+	{
+		to: [
+				"review-team@example.com"
+			],
+		subject: "[NEEDS REVIEW] Agent's proposed response"
+	}
+)
+
+console.log(`Draft created successfully with ID: ${newDraft.id}`);
+````
+
+</CodeBlocks>
+
+### 2. Get `Draft`
+
+Once a `Draft` is created, you can retrieve it by its ID
+
+<CodeBlocks>
+```python title="Python"
+# Get the draft
+draft = client.inboxes.drafts.get(inbox_id = 'my_inbox@domain.com, draft_id = 'draft_id_123')
+
+````
+
+```typescript title="TypeScript"
+
+// Get the draft
+const draft =await client.inboxes.drafts.get(
+	"inbox_id",
+	"draft_id_123"
+)
+
+````
+
+</CodeBlocks>
+
+### 3. Send a `Draft`
+
+This is the final step that converts the `Draft` into a sent `Message`. Once sent, the `Draft` is deleted.
+
+<CodeBlocks>
+```python title="Python"
+
+# This sends the draft and deletes it
+
+sent_message = client.inboxes.drafts.send(inbox_id = 'my_inbox@domain.com', draft_id = 'draft_id_123')
+
+print(f"Draft sent! New message ID: {sent_message.message_id}")
+
+````
+
+```typescript title="TypeScript"
+
+const sentMessage = await client.inboxes.drafts.send('my_inbox@domain.com', 'draft_id_123');
+
+console.log(`Draft sent! New message ID: ${sentMessage.message_id}`);
+````
+
+</CodeBlocks>
+
+Note that now we access it by message_id now because now its a message!!
+
+## Org-Wide `Draft` Management
+
+Similar to `Threads`, you can list all `Drafts` across your entire `Organization`. This is perfect for building a central dashboard where a human supervisor can view, approve, or delete any `Draft` created by any agent in your fleet.
+
+<CodeBlocks>
+```python title="Python"
+# Get all drafts across the entire organization
+all_drafts = client.drafts.list()
+
+print(f"Found {all_drafts.count} drafts pending review.")
+
+````
+
+```typescript title="TypeScript"
+// Get all drafts across the entire organization
+const allDrafts = await client.drafts.list();
+
+console.log(`Found ${allDrafts.count} drafts pending review.`);
+````
+
+</CodeBlocks>
