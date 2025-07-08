@@ -25,26 +25,26 @@ Your domains are resources that can be fully managed through the API. Here are t
   </Accordion>
 
   <Accordion title="Check Domain Health">
-    DNS records can sometimes be accidentally changed or deleted, impacting your ability to send or receive email. You should periodically monitor the health of your domains by polling the `GET /domains/{domain_id}` endpoint.
+    DNS records can sometimes be accidentally changed or deleted, impacting your ability to send or receive email. You should periodically monitor the health of your domains by polling the `GET /domains/{domain}` endpoint.
 
     Pay close attention to the `status` field for both the domain and its individual records. If a record's status changes from `verified` to `missing`, it needs immediate attention.
 
     <EndpointRequestSnippet
-      endpoint="GET /domains/{domain_id}"
+      endpoint="GET /domains/{domain}"
       title="Check a Specific Domain"
     />
 
   </Accordion>
 
   <Accordion title="Delete a Domain">
-    If you no longer need a domain, you can remove it using the `DELETE /domains/{domain_id}` endpoint.
+    If you no longer need a domain, you can remove it using the `DELETE /domains/{domain}` endpoint.
 
     <Callout type="danger">
-      **This action is permanent and cannot be undone.** Deleting a domain will immediately prevent any inboxes associated with it from sending or receiving email.
+      **This action is permanent and cannot be undone.** Deleting a domain will immediately prevent any inboxes associated with it from sending or receiving email. BUT you will still have access to the data in these inboxes.
     </Callout>
 
     <EndpointRequestSnippet
-      endpoint="DELETE /domains/{domain_id}"
+      endpoint="DELETE /domains/{domain}"
       title="Delete a Domain"
     />
 
