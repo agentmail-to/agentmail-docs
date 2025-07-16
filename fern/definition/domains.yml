@@ -200,13 +200,16 @@ service:
                 - type: "CNAME"
                   name: "{token}._domainkey.your-domain.com"
                   value: "{token}.dkim.amazonses.com"
+                  status: "MISSING"
                 - type: "MX"
                   name: "your-domain.com"
                   value: "inbound-smtp.us-east-1.amazonaws.com"
                   priority: 10
+                  status: "VERIFIED"
                 - type: "TXT"
                   name: "_dmarc.your-domain.com"
                   value: "v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to"
+                  status: "MISSING"
 
     delete:
       method: DELETE
