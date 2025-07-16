@@ -1,0 +1,45 @@
+---
+title: "Frequently Asked Questions (FAQ)"
+slug: faq
+description: "Find answers to common questions about AgentMail, from core concepts to best practices and security."
+---
+
+<AccordionGroup>
+  <Accordion title="What is AgentMail?">
+    AgentMail is an API-first email platform designed specifically for building
+    AI agents that can communicate over email. While traditional email APIs are
+    built for sending one-way notifications, AgentMail is built for two-way
+    conversations, making it easy to create agents that can read, understand,
+    and reply to emails in a thread, just like a human would.
+  </Accordion>
+  <Accordion title="How is AgentMail different from services like SendGrid or Mailgun?">
+    The key difference is our focus on **conversational agents**. Services like
+    SendGrid are excellent for transactional emails (receipts, password resets)
+    and marketing campaigns. These are done via a GUI. Resend is an API that is
+    great to do those transactional emails as well. BUT AgentMail is built for
+    the unique challenges allowing agents to have 2-way conversation over email,
+    with first-class support for concepts like `Threads`, `Inboxes`, and
+    `Attachments` to manage complex, stateful conversations over email.
+  </Accordion>
+  <Accordion title="Can I use my own custom domain to send emails?">
+    Yes, absolutely! While you can get started instantly with an `@agentmail.to`
+    inbox, we highly recommend setting up your own custom domain for production
+    use. This improves deliverability and ensures emails come from your brand.
+    You can find a complete guide [here](/custom-domains).
+  </Accordion>
+  <Accordion title="What's the best way to process incoming emails?">
+    For production applications, **Webhooks are the recommended method**. They
+    provide real-time notifications and are far more efficient than constantly
+    polling the API for new messages. You can learn how to set them up in our
+    [Webhooks Overview](/overview).
+  </Accordion>
+  <Accordion title="How do I make sure I don't end up in spam?">
+    Email deliverability is a complex topic. We go in depth in our [Email
+    Deliverability best practices guide](/email-deliverability).
+  </Accordion>
+  <Accordion title="Do you have SDKs available?">
+    Yes! We currently offer official SDKs for Node.js/TypeScript and Python to
+    make integrating with AgentMail as easy as possible. You can find links and
+    information in our [API reference](/api-reference).
+  </Accordion>
+</AccordionGroup>

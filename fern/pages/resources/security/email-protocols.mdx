@@ -1,0 +1,76 @@
+---
+title: "Understanding Email Authentication (SPF, DKIM, DMARC)"
+slug: email-protocols
+description: "Learn why we ask for DNS records and what SPF, DKIM, and DMARC are."
+---
+
+When you add a custom domain to AgentMail, we ask you to add several records to your DNS settings. We understand that this can seem daunting, and we want to be completely transparent about what these records are and why they are necessary.
+
+In short, by adding these records, you are giving AgentMail **permission** to do two things:
+
+1.  **Send emails on your behalf** that are trusted and pass spam filters.
+2.  **Receive emails for you** so your agents can process them.
+
+This process is standard practice for any third-party email service, and it does **not** give us control over your website or any other part of your domain. Let's break down what each piece does.
+
+## The Pillars of Email Authentication
+
+To prevent spam and phishing, the modern email ecosystem relies on three core technologies: **SPF**, **DKIM**, and **DMARC**. Our goal is to handle all the complexity of these protocols for you.
+
+Your DNS records are simply the way you tell the world that you've authorized us to do so.
+
+### SPF: Sender Policy Framework
+
+- **What it is:** Think of SPF as a public list of all the servers that are allowed to send email for your domain.
+- **How it works:** You add a `TXT` record to your DNS that lists the approved IP addresses or domains. When an email server receives a message from `you@your-domain.com`, it checks the SPF record for `your-domain.com`. If the server that sent the email is on that list, the check passes. This is what a record we give you might look like
+- **Your Record:**
+  ```text
+  TXT | mail.domain.com | v=spf1 include:agentmail.com -all
+  ```
+  This record tells the world that we are an authorized sender for the `mail.domain.com` subdomain. The `-all` part suggests that any server _not_ on this list should be considered unauthorized.
+
+### DKIM: DomainKeys Identified Mail
+
+- **What it is:** DKIM is like a digital signature for your emails. This signature proves two things: that the email actually came from your domain and that its content hasn't been messed with with in transit from you to who you are trying to send to.
+- **How it works:** We generate a unique, secure key for your domain. When we send an email, we "sign" it with this key. The public part of that key is published in your DNS. Receiving servers use this public key to verify the signature.
+
+These are a couple of records we might ask you to add.
+
+- **Your Records:**
+  ```text
+  CNAME | b4w..._domainkey.payment... | b4w...dkim.agentmail.com
+  CNAME | 32c..._domainkey.payment... | 32c...dkim.agentmail.com
+  CNAME | xl4..._domainkey.payment... | xl4...dkim.agentmail.com
+  ```
+  Instead of having you publish the raw key (which can be messy and needs to be rotated), we use `CNAME` records. These records act as aliases, pointing a specific address on your domain to one managed by us. This allows us to manage the security of your signing keys automatically without you ever needing to change them.
+
+### DMARC: Domain-based Message Authentication, Reporting, and Conformance
+
+- **What it is:** DMARC is the policy that ties SPF and DKIM together. It tells receiving email servers what to do if an email claims to be from you but fails the SPF or DKIM checks(or both).
+- **How it works:** You publish a `TXT` record that specifies your policy. You can tell servers to `reject` the message, quarantine it (mark as spam), or do nothing. It also allows you to get reports on which emails are passing and failing these checks.
+
+We typically tell servers to reject the message as this increases deliverability(as you can see, this is something we've done our research on!)
+
+- **Your Record:**
+  ```text
+  TXT | _dmarc.domain.com | v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to
+  ```
+  This policy tells servers to `reject` any email that fails authentication. The `rua` tag specifies that aggregate reports about these failures should be sent to `dmarc@agentmail.to`, allowing us to monitor your domain's health and deliverability on your behalf.
+
+## Receiving Mail: The MX Records
+
+Finally, to receive emails for your agents, you need to tell the internet where to deliver them. This is the job of the **MX (Mail Exchange)** records.
+
+- **What they are:** MX records are the post office address for your domain's email.
+- **How they work:** When someone sends an email to `your-agent@your-domain.com`, their mail server looks up the MX record for `your-domain.com` to find out where to send it.
+
+This is some records that we might give you:
+
+- **Your Records:**
+  ```text
+  MX | domain.com | 10 inbound-agentmail.com
+  MX | mail.domain.com | 10 feedback-smtp.agentmail.com
+  ```
+  The first record directs all incoming mail for your domain to our servers, so we can ingest it and trigger your agents. The second `feedback-smtp` record is specifically for routing automated feedback, like bounce and complaint notifications from other mail servers, which is crucial for maintaining a healthy sender reputation.
+
+We hope this provides a clear and transparent look into why these DNS records are required. By setting them up, you enable AgentMail to provide a secure and reliable email experience for your AI agents.

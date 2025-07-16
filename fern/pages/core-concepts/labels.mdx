@@ -1,0 +1,156 @@
+---
+title: Labels
+subtitle: Organizing and categorizing your agent's conversations at scale.
+slug: labels
+description: Learn how to use Labels to manage state, track campaigns, and filter messages for powerful agentic workflows.
+---
+
+## What are `Labels`?
+
+`Labels` are simple, string-based tags that you can attach to your `Messages` and `Threads`. They are the primary mechanism for organizing, categorizing, and managing the state of your conversations, whether its automatically bucketing threads into specific categories for your outbound campaign, to segmenting warm leads for your outreach, to categorizing inbound into low-ticket, medium-ticket, high-ticket customers.
+
+A `Message` can have multiple `Labels`, allowing you to create a flexible and powerful system for managing complex workflows.
+
+## Use Cases for `Labels`
+
+By strategically applying `Labels`, you can build sophisticated agent systems. Here are a few common use cases:
+
+<Steps>
+  <Step title="State Management">
+    Use `Labels` to track the state of a conversation. For example, an agent
+    could apply `needs-human-review` when it's unsure how to respond, or a
+    supervisor could apply `approved-to-send` to a `Draft`.
+  </Step>
+  <Step title="Campaign Tracking">
+    When running outbound campaigns, tag every `Message` with a unique campaign
+    `Label` like `q4-2024-outreach`, or `mercor-campaign` and adding a second
+    tag as `warm-lead`. This allows you to easily filter for and analyze the
+    performance of that specific campaign later on.
+  </Step>
+  <Step title="Automated Triage">
+    An inbound agent can classify incoming `Messages` with `Labels` like
+    `billing-question`, `feature-request`, or `bug-report`, allowing specialized
+    agents or human teams to handle them efficiently.
+  </Step>
+</Steps>
+
+## Core Capabilities
+
+Here's how you can programmatically work with `Labels`.
+
+### 1. Adding `Labels` When Sending a `Message`
+
+You can attach an array of `Labels` directly when you send a `Message`.
+
+<CodeBlocks>
+```python title="Python"
+sent_message = client.inboxes.messages.send(
+    inbox_id="outbound@agentmail.to",
+    to=["test@example.com"],
+    subject="Following up on our conversation",
+    text="Here is the information you requested.",
+    labels=["follow-up", "q4-campaign"]
+)
+```
+
+```typescript title="TypeScript"
+const sentMessage = await client.inboxes.messages.send(
+  "outbound@agentmail.to",
+  {
+    to: ["test@example.com"],
+    subject: "Following up on our conversation",
+    text: "Here is the information you requested.",
+    labels: ["follow-up", "q4-campaign"],
+  }
+);
+```
+
+</CodeBlocks>
+
+### 2. Adding or Removing `Labels` on an Existing `Message`
+
+You can modify the `Labels` on a `Message` that has already been sent using the `update` (PATCH) method. This is perfect for changing the state of a conversation as your agent works on it.
+
+<CodeBlocks>
+```python title="Python"
+# Let's add a 'resolved' label to a message
+
+client.messages.update(
+inbox_id='outbound@domain.com',
+message_id='msg_id_123',
+add_labels=["resolved"],
+remove_labels=['unresolved']
+)
+
+````
+
+```typescript title="TypeScript"
+// Let's add a 'resolved' label to a message
+
+
+await client.inboxes.messages.update(
+	"my_inbox@domain.com",
+	"msg_id_123",
+	{
+		addLabels: [
+				"resolved"
+			],
+		removeLabels: [
+				"unresolved"
+			]
+	}
+)
+
+````
+
+</CodeBlocks>
+
+### 3. Filtering by `Labels`
+
+This is where `Labels` become truly powerful. You can list `Threads`, `Messages`, and `Drafts` by filtering for one or more `Labels`, allowing you to create highly targeted queries.
+
+<CodeBlocks>
+```python title="Python"
+# Find all threads from a specific campaign that need a follow-up
+client.inboxes.threads.list(
+    inbox_id = 'outbound-agent@domain.com',
+	labels=[
+		"q4-campaign",
+		"follow_up"
+	]
+)
+
+print(f"Found {len(filtered_threads)} threads that need a follow-up.")
+
+````
+
+```typescript title="TypeScript"
+// Find all threads from a specific campaign that need a follow-up
+await client.inboxes.threads.list(
+	"leads@agentmail.to",
+	{
+		labels: [
+			"q4-campaign",
+			"follow_up"
+		]
+	}
+)
+
+
+console.log(`Found ${filteredThreads.length} threads that need a follow-up.`);
+````
+
+</CodeBlocks>
+
+## Best Practices
+
+- **Be Consistent:** Establish a clear and consistent naming convention for your labels (e.g., `kebab-case`, `snake_case`).
+- **Use Prefixes:** For state management, consider using prefixes like `status-pending` or `priority-high` to create an organized system.
+- **Don't Over-Label:** While you can add many `Labels`, aim for a concise and meaningful set to keep your system manageable.
+
+<Callout title="Coming Soon: AI-Powered Auto-Labeling" intent="info">
+  We are actively developing an AI-powered auto-labeling feature. Soon, your
+  agents will be able to provide a set of `Labels` and instructions, and
+  AgentMail will automatically apply the correct `Labels` to incoming `Messages`
+  based on their content.
+</Callout>

@@ -1,0 +1,84 @@
+---
+title: Managing Your Domains
+subtitle: Best practices for monitoring, scaling, and optimizing your domain strategy for agent fleets.
+slug: managing-domains
+description: Learn how to manage your custom domains effectively using AgentMail's API for enhanced deliverability and reputation management.
+---
+
+## From Setup to Strategy
+
+You've successfully set up your first custom domain—now what?
+
+## Core Domain Operations via API
+
+Your domains are resources that can be fully managed through the API. Here are the core operations you'll use.
+
+<AccordionGroup>
+  <Accordion title="List All Your Domains">
+    To get a complete overview of all the domains registered in your organization, use the `GET /domains` endpoint. This is useful for auditing your assets and programmatic checks.
+
+    <EndpointRequestSnippet
+      endpoint="GET /domains"
+      title="List All Domains"
+    />
+
+  </Accordion>
+
+  <Accordion title="Check Domain Health">
+    DNS records can sometimes be accidentally changed or deleted, impacting your ability to send or receive email. You should periodically monitor the health of your domains by polling the `GET /domains/{domain}` endpoint.
+
+    Pay close attention to the `status` field for both the domain and its individual records. If a record's status changes from `verified` to `missing`, it needs immediate attention.
+
+    <EndpointRequestSnippet
+      endpoint="GET /domains/{domain}"
+      title="Check a Specific Domain"
+    />
+
+  </Accordion>
+
+  <Accordion title="Delete a Domain">
+    If you no longer need a domain, you can remove it using the `DELETE /domains/{domain}` endpoint.
+
+    <Callout type="danger">
+      **This action is permanent and cannot be undone.** Deleting a domain will immediately prevent any inboxes associated with it from sending or receiving email. BUT you will still have access to the data in these inboxes.
+    </Callout>
+
+    <EndpointRequestSnippet
+      endpoint="DELETE /domains/{domain}"
+      title="Delete a Domain"
+    />
+
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Strategies for Agent Fleets
+
+As you scale, your domain strategy must evolve beyond a single domain. A sophisticated approach is crucial for deliverability, security, and resilience.
+
+### Strategy 1: Isolate Reputations with Subdomains
+
+Different agents have different sending patterns and risk profiles. A transactional agent sending receipts is low-risk, while a cold outreach agent is high-risk. Mixing their traffic on the same domain means the high-risk agent can damage the reputation of the critical transactional one.
+
+**The Solution:** Segment agents onto different subdomains to isolate their sending reputations.
+
+- **`billing.your-company.com`**: For critical transactional agents (receipts, invoices).
+- **`outreach.your-company.com`**: For high-volume sales or marketing agents.
+- **`support.your-company.com`**: For customer service and support agents.
+
+### Strategy 2: Scale Deliverability with Domain Pooling
+
+When sending at a very high scale, even a perfectly warmed-up domain has a daily sending limit before providers start throttling. The professional-grade solution is "domain pooling."
+
+Instead of relying on one domain, you build a pool of multiple root domains (e.g., `company.com`, `company.net`, `get-company.com`).
+
+**The Solution:** Programmatically spread your email volume across this pool.
+
+- Maintain an array of your sending domains in your application.
+- When sending a large batch of emails, rotate through the array to assign the sending inbox.
+- This diversification significantly improves inbox placement at scale and makes your system more resilient if one domain's reputation is temporarily impacted.
+
+## Leveraging DMARC for Security
+
+By default, AgentMail configures your domain with a strict DMARC policy (`p=reject`). This is the best possible setting for security, as it tells receiving mail servers to block any email that fails authentication.
+
+However, this is obviously up to your discretion if you want to impose a more relaxed DMARC policy, whether its `p=none` where it doesn't do anything if both SPF and DMARC fail, or its `p=quarantine`, where it puts the mail in spam/junk. Feel free to do more research at your own discretion. You can do this by changing the value in the TXT record in your DNS configuration where the name starts with `_dmarc`.

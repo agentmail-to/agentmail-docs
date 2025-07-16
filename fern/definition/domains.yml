@@ -1,0 +1,225 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  DomainId:
+    type: string
+    docs: The name of the domain. (e.g., " your-domain.com")
+
+  DomainName:
+    type: string
+    docs: The name of the domain. (e.g., "example.com")
+
+  RecordType:
+    enum:
+      - TXT
+      - CNAME
+      - MX
+
+  VerificationStatus:
+    enum:
+      - PENDING
+      - VERIFYING
+      - READY
+
+  RecordStatus:
+    enum:
+      - MISSING
+      - VERIFIED
+
+  VerificationRecord:
+    properties:
+      type:
+        type: RecordType
+        docs: The type of the DNS record.
+      name:
+        type: string
+        docs: The name or host of the record.
+      value:
+        type: string
+        docs: The value of the record.
+      status:
+        type: RecordStatus
+        docs: The verification status of this specific record.
+      priority:
+        type: optional<integer>
+        docs: The priority of the MX record.
+
+  Domain:
+    properties:
+      domain_id: DomainId
+      organization_id: global.OrganizationId
+      status:
+        type: VerificationStatus
+        docs: The verification status of the domain.
+      feedback_enabled:
+        type: optional<boolean>
+        docs: Whether bounce and complaint notifications are forwarded to your domain.
+      records:
+        type: list<VerificationRecord>
+        docs: A list of DNS records required to verify the domain.
+      updated_at:
+        type: datetime
+        docs: Time at which the domain was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which the domain was created.
+
+  DomainSummary:
+    properties:
+      domain_id: DomainId
+      organization_id: global.OrganizationId
+      updated_at:
+        type: datetime
+        docs: Time at which the domain was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which the domain was created.
+      feedback_enabled:
+        type: optional<boolean>
+        docs: Whether to forward bounce and complaint notifications to your domain.
+
+  CreateDomainResponse:
+    properties:
+      domain_id: DomainId
+      organization_id: global.OrganizationId
+      status:
+        type: VerificationStatus
+        docs: The verification status of the domain.
+      feedback_enabled:
+        type: optional<boolean>
+        docs: Whether bounce and complaint notifications are forwarded to your domain.
+      records:
+        type: list<VerificationRecord>
+        docs: A list of DNS records required to verify the domain.
+      updated_at:
+        type: datetime
+        docs: Time at which the domain was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which the domain was created.
+
+  ListDomainsResponse:
+    properties:
+      count: global.Count
+      next_page_token: optional<global.PageToken>
+      domains:
+        type: list<DomainSummary>
+        docs: Ordered by `created_at` descending.
+
+  CreateDomainRequest:
+    properties:
+      domain: DomainName
+      feedback_enabled:
+        type: optional<boolean>
+        docs: Whether to forward bounce and complaint notifications to your domain.
+
+service:
+  base-path: /domains
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Domains
+      request:
+        name: ListDomainsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListDomainsResponse
+      examples:
+        - response:
+            body:
+              count: 1
+              domains:
+                - domain_id: "your-domain.com"
+                  organization_id: "org_12345"
+                  feedback_enabled: true
+                  created_at: "2025-07-06T08:40:50.417Z"
+                  updated_at: "2025-07-06T08:40:50.417Z"
+
+    get:
+      method: GET
+      path: /{domain}
+      display-name: Get Domain
+      path-parameters:
+        domain: DomainId
+      response: Domain
+      errors:
+        - global.NotFoundError
+      examples:
+        - path-parameters:
+            domain: " your-domain.com"
+          response:
+            body:
+              domain_id: " your-domain.com"
+              organization_id: "org_12345"
+              created_at: "2025-07-06T08:40:50.417Z"
+              updated_at: "2025-07-06T08:40:50.417Z"
+              feedback_enabled: true
+              status: "PENDING"
+              records:
+                - type: "CNAME"
+                  name: "{token}._domainkey. your-domain.com"
+                  value: "{token}.dkim.amazonses.com"
+                  status: "MISSING"
+                - type: "MX"
+                  name: " your-domain.com"
+                  value: "inbound-smtp.us-east-1.amazonaws.com"
+                  status: "VERIFIED"
+                  priority: 10
+                - type: "TXT"
+                  name: "_dmarc. your-domain.com"
+                  value: "v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.dev"
+                  status: "VERIFIED"
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Domain
+      request: CreateDomainRequest
+      response: CreateDomainResponse
+      errors:
+        - global.ValidationError
+      examples:
+        - request:
+            domain: "your-domain.com"
+          response:
+            body:
+              domain_id: "your-domain.com"
+              organization_id: "org_12345"
+              status: "PENDING"
+              created_at: "2025-07-06T08:40:50.417Z"
+              updated_at: "2025-07-06T08:40:50.417Z"
+              feedback_enabled: true
+              records:
+                - type: "CNAME"
+                  name: "{token}._domainkey.your-domain.com"
+                  value: "{token}.dkim.amazonses.com"
+                  status: "MISSING"
+                - type: "MX"
+                  name: "your-domain.com"
+                  value: "inbound-smtp.us-east-1.amazonaws.com"
+                  priority: 10
+                  status: "VERIFIED"
+                - type: "TXT"
+                  name: "_dmarc.your-domain.com"
+                  value: "v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to"
+                  status: "MISSING"
+
+    delete:
+      method: DELETE
+      path: /{domain}
+      display-name: Delete Domain
+      path-parameters:
+        domain: DomainId
+      errors:
+        - global.NotFoundError
+      examples:
+        - path-parameters:
+            domain: "dom_12345"
+          response: {}

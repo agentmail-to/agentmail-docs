@@ -1,0 +1,126 @@
+---
+title: Inboxes
+subtitle: The foundation of your agent's identity and communication.
+slug: inboxes
+description: Learn how AgentMail Inboxes act as scalable, API-first email accounts for your agents.
+---
+
+## What is an Inbox?
+
+People are used to the traditional Gmail limitations -- only having one inbox. Thats of the past.
+
+An `Inbox` is now a fully loaded, programmatically accessible API resource re-designed for the scale of AI Agents.
+
+Think of it as being similar to a Gmail or Outlook account, but built API-first. Each `Inbox` has a unique email address and serves as the primary resource your agent uses to send and receive emails, giving it a first-class identity on the internet.
+
+Unlike traditional email providers that are designed for human scale, AgentMail `Inboxes` are built to scale horizontally. You can create tens, hundreds, or even thousands of `Inboxes` for your agents on demand.
+
+<Tip>
+  Pssstt! Rather then sending 1000 emails from 1 `Inbox` sending 10 emails
+  across 100 `Inboxes` actually improves deliverability! Read more about
+  optimizing for deliverability [here](/best-practices/email-deliverability)
+</Tip>
+
+### The AgentMail Hierarchy
+
+As the diagram below illustrates, your `organization` is the top-level container that holds all your resources. You can provision many `Inboxes` within your `organization`, each with its own `Threads`, `Messages`, and `Attachments`, allowing you to manage a large fleet of agents seamlessly.
+
+<img
+  src="../../assets/hierarchy-diagram.png"
+  alt="AgentMail Organizational Hierarchy"
+/>
+
+<Steps>
+  <Step title="Organization">
+    Your `organization` is the highest-level entity. It acts as a container for
+    all your `Inboxes`, `Domains`, and API keys, allowing you to manage
+    everything in one place.
+  </Step>
+  <Step title="Inbox">
+    An `Inbox` is a single, scalable "email account" for your agent. You can
+    create thousands of `Inboxes` within your organization, each with its own
+    unique email address.
+  </Step>
+  <Step title="Thread">
+    A `Thread` represents a single conversation. It groups together all replies
+    and forwards related to an initial email, keeping your interactions
+    organized.
+  </Step>
+  <Step title="Message">
+    A `Message` is an individual email. It contains the content, sender,
+    recipients, and any associated metadata or `Attachments`. You can cc humans
+    at any point in time to keep a "human-in-the-loop"
+  </Step>
+  <Step title="Attachment">
+    An `Attachment` is a file that is sent along with a `Message`. You can
+    programmatically access and download attachments from incoming `Messages`.
+  </Step>
+</Steps>
+
+## Core Capabilities
+
+Here at AgentMail we've now made an `Inbox` is an API resource, meaning you can perform standard CRUD operations on it. Here are the core capabilities you'll use to manage your `Inboxes`.
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+# Initialize the client
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# --- Create an Inbox ---
+# Creates a new inbox with a default agentmail.to domain
+new_inbox = client.inboxes.create()
+print(f"Created Inbox: {new_inbox.inbox_id}")
+
+# --- Retrieve an Inbox ---
+# Gets a specific inbox by its ID
+retrieved_inbox = client.inboxes.get(inbox_id = 'my_name@domain.com')
+print(f"Retrieved Inbox: {retrieved_inbox.inbox_id}")
+
+# --- List Inboxes ---
+# Lists all inboxes in your organization
+all_inboxes = client.inboxes.list()
+print(f"Total Inboxes: {len(all_inboxes)}")
+
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+// Initialize the client
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// --- Create an Inbox ---
+// Creates a new inbox with a default agentmail.to domain
+await client.inboxes.create({
+username: docs-testing,
+domain: domain.com,
+displayName: Docs Tester,
+});
+console.log(`Created Inbox: ${newInbox.id}`);
+
+// --- Retrieve an Inbox ---
+// Gets a specific inbox by its ID
+const inboxId = newInbox.id;
+const retrievedInbox = await client.inboxes.get(inboxId);
+console.log(`Retrieved Inbox: ${retrievedInbox.inbox_id}`);
+
+// --- List Inboxes ---
+// Lists all inboxes in your organization
+const allInboxes = await client.inboxes.list();
+console.log(`Total Inboxes: ${allInboxes.count}`);
+
+
+
+```
+
+</CodeBlocks>
+
+<Tip>
+  When creating an `Inbox`, the `username` and `domain` are optional. If you
+  don't provide them, AgentMail will generate a unique address for you using our
+  default domain. Check out our [guide on managing
+  domains](/guides/domains/managing-domains) to learn more.
+</Tip>
