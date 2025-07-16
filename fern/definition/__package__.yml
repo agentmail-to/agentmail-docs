@@ -6,9 +6,8 @@ navigation:
   - messages.yml
   - drafts.yml
   - attachments.yml
-  - contexts.yml
+  - domains.yml
   - webhooks.yml
-  - credentials.yml
 
 types:
   Limit:
