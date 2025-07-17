@@ -1,8 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
-  global: __package__.yml
-  messages: messages.yml
+  global: ../__package__.yml
 
 types:
   WebhookId:
@@ -66,28 +65,6 @@ types:
       inbox_ids: optional<InboxIds>
       client_id: optional<ClientId>
 
-  EventId:
-    type: string
-    docs: ID of event.
-
-  MessageReceivedPayload:
-    properties:
-      event_type: EventType
-      event_id: EventId
-      message: messages.Message
-
-  SvixId:
-    type: string
-    docs: ID of webhook message.
-
-  SvixTimestamp:
-    type: datetime
-    docs: Timestamp of webhook message.
-
-  SvixSignature:
-    type: string
-    docs: Signature of webhook message.
-
 service:
   url: Http
   base-path: /webhooks
@@ -132,13 +109,3 @@ service:
         webhook_id: WebhookId
       errors:
         - global.NotFoundError
-
-webhooks:
-  messageReceived:
-    display-name: Message Received
-    method: POST
-    headers:
-      svix-id: SvixId
-      svix-signature: SvixSignature
-      svix-timestamp: SvixTimestamp
-    payload: MessageReceivedPayload
