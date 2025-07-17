@@ -8,7 +8,7 @@ navigation:
   - attachments.yml
   - domains.yml
   - webhooks.yml
-  - websockets/__package__.yml
+  - websockets.yml
 
 types:
   Limit:
