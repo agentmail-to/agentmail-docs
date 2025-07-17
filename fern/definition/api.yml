@@ -3,8 +3,14 @@
 name: api
 
 environments:
-  Production: https://api.agentmail.to
-  Development: https://api.agentmail.dev
+  Production:
+    urls:
+      Http: https://api.agentmail.to
+      Websockets: wss://ws.agentmail.to
+  Development:
+    urls:
+      Http: https://api.agentmail.dev
+      Websockets: wss://ws.agentmail.dev
 
 default-environment: Production
 

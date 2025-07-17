@@ -117,8 +117,8 @@ types:
       html: optional<DraftHtml>
 
 service:
+  url: Http
   base-path: /drafts
-
   auth: true
 
   endpoints:

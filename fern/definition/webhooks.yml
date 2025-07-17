@@ -89,6 +89,7 @@ types:
     docs: Signature of webhook message.
 
 service:
+  url: Http
   base-path: /webhooks
   auth: true
 

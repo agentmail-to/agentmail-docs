@@ -117,6 +117,7 @@ types:
         docs: Whether to forward bounce and complaint notifications to your domain.
 
 service:
+  url: Http
   base-path: /domains
   auth: true
 

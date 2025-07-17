@@ -7,10 +7,10 @@ imports:
   attachments: ../attachments.yml
 
 service:
+  url: Http
   base-path: /inboxes/{inbox_id}/threads
   path-parameters:
     inbox_id: inboxes.InboxId
-
   auth: true
 
   endpoints:

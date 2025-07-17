@@ -88,8 +88,8 @@ types:
         docs: Ordered by `timestamp` descending.
 
 service:
+  url: Http
   base-path: /threads
-
   auth: true
 
   endpoints:

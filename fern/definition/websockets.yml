@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  messages: messages.yml
+
+types:
+  EventId:
+    type: string
+    docs: ID of event.
+
+  Subscribe:
+    properties:
+      type: literal<"subscribe">
+      inbox_ids:
+        type: list<string>
+        docs: IDs of the inboxes to subscribe to.
+
+  Subscribed:
+    properties:
+      type: literal<"subscribed">
+      inbox_ids:
+        type: list<string>
+        docs: IDs of the inboxes that have been subscribed to.
+
+  MessageReceived:
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.received">
+      event_id: EventId
+      message: messages.Message
+
+channel:
+  url: Websockets
+  path: /v0
+  display-name: Endpoint
+  auth: true
+  query-parameters:
+    auth_token:
+      type: string
+      docs: Your API key.
+  messages:
+    subscribe:
+      origin: client
+      body: Subscribe
+    subscribed:
+      origin: server
+      body: Subscribed
+    message_received:
+      origin: server
+      body: MessageReceived

@@ -7,10 +7,10 @@ imports:
   attachments: ../attachments.yml
 
 service:
+  url: Http
   base-path: /inboxes/{inbox_id}/messages
   path-parameters:
     inbox_id: inboxes.InboxId
-
   auth: true
 
   endpoints:

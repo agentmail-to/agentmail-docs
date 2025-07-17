@@ -54,6 +54,7 @@ types:
       client_id: optional<ClientId>
 
 service:
+  url: Http
   base-path: /inboxes
   auth: true
 

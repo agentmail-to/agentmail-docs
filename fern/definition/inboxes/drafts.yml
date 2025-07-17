@@ -7,10 +7,10 @@ imports:
   drafts: ../drafts.yml
 
 service:
+  url: Http
   base-path: /inboxes/{inbox_id}/drafts
   path-parameters:
     inbox_id: inboxes.InboxId
-
   auth: true
 
   endpoints:
