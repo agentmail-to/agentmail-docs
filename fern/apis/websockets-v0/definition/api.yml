@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+name: websockets-v0
+
+environments:
+  Production: https://ws.agentmail.to
+  Development: https://ws.agentmail.dev
+
+default-environment: Production

@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  # messages: ../types/messages.yml
+
+types:
+  WebhookId:
+    type: string
+    docs: ID of webhook.
+
+  ClientId:
+    type: string
+    docs: Client ID of webhook.
+
+  Url:
+    type: string
+    docs: URL of webhook endpoint.
+
+  EventType:
+    enum:
+      - name: MESSAGE_RECEIVED
+        value: message.received
+
+  EventId:
+    type: string
+    docs: ID of event.
+
+  MessageReceivedPayload:
+    properties:
+      event_type: EventType
+      event_id: EventId
+      # message: messages.Message
+
+  SvixId:
+    type: string
+    docs: ID of webhook message.
+
+  SvixTimestamp:
+    type: datetime
+    docs: Timestamp of webhook message.
+
+  SvixSignature:
+    type: string
+    docs: Signature of webhook message.
+
+webhooks:
+  messageReceived:
+    display-name: Message Received
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: MessageReceivedPayload

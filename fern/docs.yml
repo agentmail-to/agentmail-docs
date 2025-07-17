@@ -182,7 +182,12 @@ navigation:
   - tab: api
     layout:
       - api: API Reference
+        api-name: api-v0
         summary: pages/apiwelcome.mdx
         snippets:
           python: agentmail
           typescript: agentmail
+      - api: Webhooks Reference
+        api-name: webhooks-v0
+      - api: Websockets Reference
+        api-name: websockets-v0
