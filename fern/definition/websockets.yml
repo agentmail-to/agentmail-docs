@@ -32,7 +32,7 @@ types:
 channel:
   url: Websockets
   path: /v0
-  display-name: Endpoint
+  display-name: Connect
   auth: true
   query-parameters:
     auth_token:
