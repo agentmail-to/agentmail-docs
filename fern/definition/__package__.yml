@@ -7,7 +7,7 @@ navigation:
   - drafts.yml
   - attachments.yml
   - domains.yml
-  - webhooks.yml
+  - webhooks/__package__.yml
   - websockets.yml
 
 types:
