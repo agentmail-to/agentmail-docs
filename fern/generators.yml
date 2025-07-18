@@ -19,7 +19,7 @@ groups:
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.48.5
+        version: 2.4.11
         output:
           location: npm
           package-name: agentmail
