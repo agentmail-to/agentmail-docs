@@ -29,6 +29,7 @@ groups:
         config:
           namespaceExport: AgentMail
           skipResponseValidation: true
+          shouldGenerateWebsocketClients: true
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
@@ -41,6 +42,7 @@ groups:
           repository: agentmail-to/agentmail-python
         config:
           client_class_name: AgentMail
+          should_generate_websocket_clients: true
           pydantic_config:
             skip_validation: true
   postman:
