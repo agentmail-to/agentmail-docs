@@ -6,7 +6,7 @@ groups:
   local:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.51.7
+        version: 2.5.0
         config:
           namespaceExport: AgentMail
           skipResponseValidation: true
