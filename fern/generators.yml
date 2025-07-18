@@ -6,12 +6,12 @@ groups:
   local:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.48.5
+        version: 0.51.7
         config:
           namespaceExport: AgentMail
           skipResponseValidation: true
       - name: fernapi/fern-python-sdk
-        version: 4.19.6
+        version: 4.25.5
         config:
           client_class_name: AgentMail
           pydantic_config:
@@ -19,7 +19,7 @@ groups:
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 2.4.11
+        version: 2.5.0
         output:
           location: npm
           package-name: agentmail
@@ -33,7 +33,7 @@ groups:
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 4.19.6
+        version: 4.25.5
         output:
           location: pypi
           package-name: agentmail
