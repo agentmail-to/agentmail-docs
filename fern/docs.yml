@@ -186,3 +186,12 @@ navigation:
         snippets:
           python: agentmail
           typescript: agentmail
+        layout: 
+          - inboxes
+          - threads
+          - messages
+          - drafts
+          - attachments
+          - domains
+          - webhooks
+

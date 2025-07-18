@@ -1,15 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
-navigation:
-  - inboxes/__package__.yml
-  - threads.yml
-  - messages.yml
-  - drafts.yml
-  - attachments.yml
-  - domains.yml
-  - webhooks/__package__.yml
-  - websockets.yml
-
 types:
   Limit:
     type: integer
