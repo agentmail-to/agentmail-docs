@@ -50,7 +50,7 @@ service:
       errors:
         - global.NotFoundError
 
-    getRawMessage:
+    getRaw:
       method: GET
       path: /{message_id}/raw
       display-name: Get Raw Message
