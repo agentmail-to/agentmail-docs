@@ -17,7 +17,7 @@ groups:
           client_class_name: AgentMail
           pydantic_config:
             skip_validation: true
-          shouldGenerateWebsocketClients: true
+          should_generate_websocket_clients: true
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
@@ -46,7 +46,7 @@ groups:
           client_class_name: AgentMail
           pydantic_config:
             skip_validation: true
-          shouldGenerateWebsocketClients: true
+          should_generate_websocket_clients: true
   postman:
     generators:
       - name: fernapi/fern-postman

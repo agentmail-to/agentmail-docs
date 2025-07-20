@@ -36,8 +36,8 @@ channel:
   auth: true
   query-parameters:
     auth_token:
-      type: string
-      docs: Your API key.
+      type: optional<string>
+      docs: Your API key. Required if Authorization header is not set.
   messages:
     subscribe:
       origin: client
