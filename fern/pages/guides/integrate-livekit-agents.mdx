@@ -1,0 +1,131 @@
+---
+title: "Integrate LiveKit Agents"
+subtitle: "Build a voice assistant with real time email capabilities."
+slug: integrate-livekit-agents
+description: "A step-by-step guide to integrate with the LiveKit Agents SDK."
+---
+
+## Overview
+
+This guide walks you through building a voice assistant with real time email capabilites. We use the LiveKit Agents SDK to build the voice functionality.
+
+## Prequisites
+
+Follow the [LiveKit voice AI quickstart](https://docs.livekit.io/agents/start/voice-ai/) to build a simple voice assistant. In this guide we will extend the functionality to this assistant to email.
+
+You should have a file named `agent.py` which we will modify.
+
+## Setup
+
+Install python packages
+
+```shell
+pip install agentmail agentmail-toolkit
+```
+
+Set environment variables
+
+```env
+AGENTMAIL_API_KEY=<Your AgentMail API key>
+AGENTMAIL_USERNAME=<Choose a username for your agent's inbox>
+```
+
+## Code
+
+To the `agent.py` file add the following imports
+
+```python
+import os
+import asyncio
+
+from agentmail import AgentMail, AsyncAgentMail, Subscribe, MessageReceived
+from agentmail_toolkit.livekit import AgentMailToolkit
+```
+
+Then add the `EmailAssistant` class
+
+```python
+class EmailAssistant(Agent):
+    inbox_id: str
+    ws_task: asyncio.Task | None = None
+
+    def __init__(self) -> None:
+        client = AgentMail()
+
+        # By setting the client_id the inbox is created only once.
+        username = os.getenv("AGENTMAIL_USERNAME")
+        inbox = client.inboxes.create(username=username, client_id=f"{username}-inbox")
+
+        self.inbox_id = inbox.inbox_id
+
+        super().__init__(
+            instructions=f"""
+            You are a helpful voice and email AI assistant. Your name is AgentMail. You can recieve emails at {self.inbox_id}. You can also send and reply to emails.
+            When using email tools, use "{self.inbox_id}" as the inbox_id parameter. When writing emails, include "AgentMail" in the signature.
+            Always speak in English.
+            IMPORTANT: {self.inbox_id} is your inbox, not the user's inbox.
+            """,
+            # The AgentMail Toolkit has ready-to-go tools for LiveKit agents.
+            tools=AgentMailToolkit(client=client).get_tools(
+                [
+                    "list_threads",
+                    "get_thread",
+                    "get_attachment",
+                    "send_message",
+                    "reply_to_message",
+                ]
+            ),
+        )
+
+    async def _websocket_task(self):
+        # Open a websocket connection to AgentMail.
+        async with AsyncAgentMail().websockets.connect() as socket:
+            # Subscribe to events from the inbox.
+            await socket.send_subscribe(Subscribe(inbox_ids=[self.inbox_id]))
+
+            while True:
+                data = await socket.recv()
+
+                # If a message is received by the inbox, interrupt the current conversation and generate a reply.
+                if isinstance(data, MessageReceived):
+                    self.session.interrupt()
+
+                    await self.session.generate_reply(
+                        instructions=f"""Say "I've recieved an email" and then read the email.""",
+                        user_input=data.message.model_dump_json(),
+                    )
+
+    # Open the websocket connection and generate a greeting when the agent enters the call.
+    async def on_enter(self):
+        self.ws_task = asyncio.create_task(self._websocket_task())
+
+        await self.session.generate_reply(
+            instructions=f"""In English, greet the user, introduce yourself as AgentMail, inform them that you can "recieve emails" at {self.inbox_id}, and offer your assistance.""",
+            allow_interruptions=False,
+        )
+
+    # Close the websocket connection when the agent exits the call.
+    async def on_exit(self):
+        if self.ws_task:
+            self.ws_task.cancel()
+```
+
+Finally update the `entrypoint` function
+
+```python
+await session.start(
+    room=ctx.room,
+    agent=EmailAssistant(),  # Replace Assistant with EmailAssistant.
+    room_input_options=RoomInputOptions(
+        noise_cancellation=noise_cancellation.BVC()
+    ),
+)
+```
+
+## Thats It
+
+Run your agent inside the terminal and send it an email
+
+```shell
+python agent.py console
+```

@@ -123,6 +123,9 @@ navigation:
               - page: Managing Existing Domains
                 icon: fa-solid fa-gear
                 path: pages/guides/domains/managing-domains.mdx
+          - page: Integrate LiveKit Agents
+            icon: fa-solid fa-phone
+            path: pages/guides/integrate-livekit-agents.mdx
       - section: Webhooks
         contents:
           - page: Overview
@@ -186,7 +189,7 @@ navigation:
         snippets:
           python: agentmail
           typescript: agentmail
-        layout: 
+        layout:
           - inboxes
           - threads
           - messages
@@ -194,4 +197,3 @@ navigation:
           - attachments
           - domains
           - webhooks
-
