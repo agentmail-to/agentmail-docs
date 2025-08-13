@@ -60,7 +60,7 @@ class EmailAssistant(Agent):
 
         super().__init__(
             instructions=f"""
-            You are a helpful voice and email AI assistant. Your name is AgentMail. You can recieve emails at {self.inbox_id}. You can also send and reply to emails.
+            You are a helpful voice and email AI assistant. Your name is AgentMail. You can receive emails at {self.inbox_id}. You can also send and reply to emails.
             When using email tools, use "{self.inbox_id}" as the inbox_id parameter. When writing emails, include "AgentMail" in the signature.
             Always speak in English.
             IMPORTANT: {self.inbox_id} is your inbox, not the user's inbox.
@@ -91,7 +91,7 @@ class EmailAssistant(Agent):
                     self.session.interrupt()
 
                     await self.session.generate_reply(
-                        instructions=f"""Say "I've recieved an email" and then read the email.""",
+                        instructions=f"""Say "I've received an email" and then read the email.""",
                         user_input=data.message.model_dump_json(),
                     )
 
@@ -100,7 +100,7 @@ class EmailAssistant(Agent):
         self.ws_task = asyncio.create_task(self._websocket_task())
 
         await self.session.generate_reply(
-            instructions=f"""In English, greet the user, introduce yourself as AgentMail, inform them that you can "recieve emails" at {self.inbox_id}, and offer your assistance.""",
+            instructions=f"""In English, greet the user, introduce yourself as AgentMail, inform them that you can "receive emails" at {self.inbox_id}, and offer your assistance.""",
             allow_interruptions=False,
         )
 
