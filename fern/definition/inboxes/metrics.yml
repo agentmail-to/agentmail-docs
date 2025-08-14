@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  inboxes: __package__.yml
+  metrics: ../metrics.yml
+
+service:
+  url: Http
+  base-path: /inboxes/{inbox_id}/metrics
+  path-parameters:
+    inbox_id: inboxes.InboxId
+  auth: true
+
+  endpoints:
+    get:
+      method: GET
+      path: ""
+      display-name: List Metrics
+      request:
+        name: ListInboxMetricsRequest
+        query-parameters:
+          event_types: optional<metrics.MetricEventTypes>
+          start_timestamp: metrics.MetricStartTimestamp
+          end_timestamp: metrics.MetricEndTimestamp
+      response: metrics.ListMetricsResponse
+      errors:
+        - global.NotFoundError
+        - global.ValidationError

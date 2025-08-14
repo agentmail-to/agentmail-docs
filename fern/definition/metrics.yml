@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  inboxes: inboxes/__package__.yml
+
+types:
+  MetricEventType:
+    enum:
+      - name: MESSAGE_SENT
+        value: message.sent
+      - name: MESSAGE_DELIVERED
+        value: message.delivered
+      - name: MESSAGE_BOUNCED
+        value: message.bounced
+      - name: MESSAGE_DELAYED
+        value: message.delayed
+      - name: MESSAGE_REJECTED
+        value: message.rejected
+      - name: MESSAGE_COMPLAINED
+        value: message.complained
+      - name: MESSAGE_RECEIVED
+        value: message.received
+    docs: Type of metric event.
+
+  MetricTimestamp:
+    type: datetime
+    docs: Timestamp when the metric event occurred.
+
+  MetricEventTypes:
+    type: list<MetricEventType>
+    docs: List of metric event types to filter by.
+
+  MetricStartTimestamp:
+    type: datetime
+    docs: Start timestamp for the metrics query range.
+
+  MetricEndTimestamp:
+    type: datetime
+    docs: End timestamp for the metrics query range.
+
+  MessageMetrics:
+    properties:
+      sent:
+        type: optional<list<MetricTimestamp>>
+        docs: Timestamps when messages were sent.
+      delivered:
+        type: optional<list<MetricTimestamp>>
+        docs: Timestamps when messages were delivered.
+      bounced:
+        type: optional<list<MetricTimestamp>>
+        docs: Timestamps when messages bounced.
+      delayed:
+        type: optional<list<MetricTimestamp>>
+        docs: Timestamps when messages were delayed.
+      rejected:
+        type: optional<list<MetricTimestamp>>
+        docs: Timestamps when messages were rejected.
+      complained:
+        type: optional<list<MetricTimestamp>>
+        docs: Timestamps when messages received complaints.
+      received:
+        type: optional<list<MetricTimestamp>>
+        docs: Timestamps when messages were received.
+
+  ListMetricsResponse:
+    properties:
+      message:
+        type: optional<MessageMetrics>
+        docs: Message metrics grouped by event type.
+
+  ListMetricsRequest:
+    properties:
+      event_types: optional<MetricEventTypes>
+      start_timestamp: MetricStartTimestamp
+      end_timestamp: MetricEndTimestamp
+
+  ListInboxMetricsRequest:
+    properties:
+      inbox_id: inboxes.InboxId
+      event_types: optional<MetricEventTypes>
+      start_timestamp: MetricStartTimestamp
+      end_timestamp: MetricEndTimestamp
+
+service:
+  url: Http
+  base-path: /metrics
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Metrics
+      request:
+        name: ListMetricsRequest
+        query-parameters:
+          event_types: optional<MetricEventTypes>
+          start_timestamp: MetricStartTimestamp
+          end_timestamp: MetricEndTimestamp
+      response: ListMetricsResponse
+      errors:
+        - global.NotFoundError

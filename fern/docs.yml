@@ -197,3 +197,4 @@ navigation:
           - attachments
           - domains
           - webhooks
+          - metrics

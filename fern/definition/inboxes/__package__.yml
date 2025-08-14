@@ -4,6 +4,7 @@ navigation:
   - threads.yml
   - messages.yml
   - drafts.yml
+  - metrics.yml
 
 imports:
   global: ../__package__.yml
