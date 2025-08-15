@@ -64,6 +64,10 @@ tabs:
   api:
     display-name: API Reference
     icon: terminal
+  changelog:
+    display-name: Changelog
+    icon: light clock
+    changelog: ./changelog
 
 default-language: python
 
@@ -155,6 +159,9 @@ navigation:
           - page: Github Repo Agent
             icon: fa-brands fa-github
             path: pages/examples/github-star-agent.mdx
+          - page: Live AgentMail Examples
+            icon: fa-solid fa-video
+            path: pages/examples/live-emails.mdx
           # - page: Newsletter Agent
           #   icon: fa-regular fa-newspaper
           #   path: pages/examples/newsletter-agent.mdx
@@ -198,3 +205,4 @@ navigation:
           - domains
           - webhooks
           - metrics
+  - tab: changelog

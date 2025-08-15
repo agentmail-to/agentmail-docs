@@ -69,19 +69,6 @@ types:
         type: optional<MessageMetrics>
         docs: Message metrics grouped by event type.
 
-  ListMetricsRequest:
-    properties:
-      event_types: optional<MetricEventTypes>
-      start_timestamp: MetricStartTimestamp
-      end_timestamp: MetricEndTimestamp
-
-  ListInboxMetricsRequest:
-    properties:
-      inbox_id: inboxes.InboxId
-      event_types: optional<MetricEventTypes>
-      start_timestamp: MetricStartTimestamp
-      end_timestamp: MetricEndTimestamp
-
 service:
   url: Http
   base-path: /metrics
