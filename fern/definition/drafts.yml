@@ -52,6 +52,17 @@ types:
     type: list<attachments.Attachment>
     docs: Attachments in draft.
 
+  DraftSendStatus:
+    enum:
+      - scheduled
+      - sending
+      - failed
+    docs: Schedule send status of draft.
+
+  DraftSendAt:
+    type: datetime
+    docs: Time at which to schedule send draft.
+
   DraftUpdatedAt:
     type: datetime
     docs: Time at which draft was last updated.
@@ -68,6 +79,8 @@ types:
       subject: optional<DraftSubject>
       preview: optional<DraftPreview>
       attachments: optional<DraftAttachments>
+      send_status: optional<DraftSendStatus>
+      send_at: optional<DraftSendAt>
       updated_at: DraftUpdatedAt
 
   Draft:
@@ -91,6 +104,8 @@ types:
       references:
         type: optional<list<string>>
         docs: IDs of previous messages in thread.
+      send_status: optional<DraftSendStatus>
+      send_at: optional<DraftSendAt>
       updated_at: DraftUpdatedAt
       created_at:
         type: datetime
@@ -115,6 +130,7 @@ types:
       subject: optional<DraftSubject>
       text: optional<DraftText>
       html: optional<DraftHtml>
+      send_at: optional<DraftSendAt>
 
 service:
   url: Http
