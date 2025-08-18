@@ -60,3 +60,12 @@ service:
         - global.NotFoundError
         - global.ValidationError
         - messages.MessageRejectedError
+
+    delete:
+      method: DELETE
+      path: /{draft_id}
+      display-name: Delete Draft
+      path-parameters:
+        draft_id: drafts.DraftId
+      errors:
+        - global.NotFoundError
