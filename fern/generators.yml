@@ -32,6 +32,8 @@ groups:
           namespaceExport: AgentMail
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
+          noSerdeLayer: false
+          enableInlineType: false
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
