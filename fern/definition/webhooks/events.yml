@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
+  inboxes: ../inboxes/__package__.yml
   messages: ../messages.yml
   webhooks: __package__.yml
 
@@ -8,6 +9,40 @@ types:
   EventId:
     type: string
     docs: ID of event.
+
+  Timestamp:
+    type: datetime
+    docs: Timestamp of event.
+
+  Recipient:
+    properties:
+      address:
+        type: string
+        docs: Recipient address.
+      status:
+        type: string
+        docs: Recipient status.
+
+  Bounce:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      type:
+        type: string
+        docs: Bounce type.
+      sub_type:
+        type: string
+        docs: Bounce sub-type.
+      recipients:
+        type: list<Recipient>
+        docs: Bounced recipients.
+
+  MessageBouncedPayload:
+    properties:
+      event_type: webhooks.EventType
+      event_id: EventId
+      bounce: Bounce
 
   MessageReceivedPayload:
     properties:
@@ -36,3 +71,12 @@ webhooks:
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
     payload: MessageReceivedPayload
+
+  messageBounced:
+    display-name: Message Bounced
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: MessageBouncedPayload

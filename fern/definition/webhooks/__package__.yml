@@ -20,6 +20,8 @@ types:
     enum:
       - name: MESSAGE_RECEIVED
         value: message.received
+      - name: MESSAGE_BOUNCED
+        value: message.bounced
 
   EventTypes:
     type: list<EventType>
