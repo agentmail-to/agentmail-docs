@@ -20,8 +20,16 @@ types:
     enum:
       - name: MESSAGE_RECEIVED
         value: message.received
+      - name: MESSAGE_SENT
+        value: message.sent
+      - name: MESSAGE_DELIVERED
+        value: message.delivered
       - name: MESSAGE_BOUNCED
         value: message.bounced
+      - name: MESSAGE_COMPLAINED
+        value: message.complained
+      - name: MESSAGE_REJECTED
+        value: message.rejected
 
   EventTypes:
     type: list<EventType>

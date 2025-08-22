@@ -23,6 +23,24 @@ types:
         type: string
         docs: Recipient status.
 
+  Send:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      recipients:
+        type: list<string>
+        docs: Sent recipients.
+
+  Delivery:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      recipients:
+        type: list<string>
+        docs: Delivered recipients.
+
   Bounce:
     properties:
       inbox_id: inboxes.InboxId
@@ -38,17 +56,65 @@ types:
         type: list<Recipient>
         docs: Bounced recipients.
 
-  MessageBouncedPayload:
+  Complaint:
     properties:
-      event_type: webhooks.EventType
-      event_id: EventId
-      bounce: Bounce
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      type:
+        type: string
+        docs: Complaint type.
+      sub_type:
+        type: string
+        docs: Complaint sub-type.
+      recipients:
+        type: list<string>
+        docs: Complained recipients.
+
+  Reject:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      reason:
+        type: string
+        docs: Reject reason.
 
   MessageReceivedPayload:
     properties:
       event_type: webhooks.EventType
       event_id: EventId
       message: messages.Message
+
+  MessageSentPayload:
+    properties:
+      event_type: webhooks.EventType
+      event_id: EventId
+      send: Send
+
+  MessageDeliveredPayload:
+    properties:
+      event_type: webhooks.EventType
+      event_id: EventId
+      delivery: Delivery
+
+  MessageBouncedPayload:
+    properties:
+      event_type: webhooks.EventType
+      event_id: EventId
+      bounce: Bounce
+
+  MessageComplainedPayload:
+    properties:
+      event_type: webhooks.EventType
+      event_id: EventId
+      complaint: Complaint
+
+  MessageRejectedPayload:
+    properties:
+      event_type: webhooks.EventType
+      event_id: EventId
+      reject: Reject
 
   SvixId:
     type: string
@@ -72,6 +138,24 @@ webhooks:
       svix-timestamp: SvixTimestamp
     payload: MessageReceivedPayload
 
+  messageSent:
+    display-name: Message Sent
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: MessageSentPayload
+
+  messageDelivered:
+    display-name: Message Delivered
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: MessageDeliveredPayload
+
   messageBounced:
     display-name: Message Bounced
     method: POST
@@ -80,3 +164,21 @@ webhooks:
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
     payload: MessageBouncedPayload
+
+  messageComplained:
+    display-name: Message Complained
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: MessageComplainedPayload
+
+  messageRejected:
+    display-name: Message Rejected
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: MessageRejectedPayload
