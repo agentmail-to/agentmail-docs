@@ -17,6 +17,14 @@ types:
     type: list<string>
     docs: Labels to filter by.
 
+  Before:
+    type: datetime
+    docs: Timestamp before which to filter by.
+
+  After:
+    type: datetime
+    docs: Timestamp after which to filter by.
+
   Ascending:
     type: boolean
     docs: Whether to sort in ascending temporal order.

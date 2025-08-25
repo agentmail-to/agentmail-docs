@@ -24,6 +24,8 @@ service:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
           labels: optional<global.Labels>
+          before: optional<global.Before>
+          after: optional<global.After>
           ascending: optional<global.Ascending>
       response: threads.ListThreadsResponse
       errors:
