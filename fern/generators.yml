@@ -9,6 +9,7 @@ groups:
         version: 2.8.2
         config:
           namespaceExport: AgentMail
+          noSerdeLayer: false
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
       - name: fernapi/fern-python-sdk
@@ -30,10 +31,9 @@ groups:
           repository: agentmail-to/agentmail-node
         config:
           namespaceExport: AgentMail
+          noSerdeLayer: false
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
-          noSerdeLayer: false
-          enableInlineTypes: false
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
