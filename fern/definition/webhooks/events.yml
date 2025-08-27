@@ -1,121 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
-  inboxes: ../inboxes/__package__.yml
-  messages: ../messages.yml
-  webhooks: __package__.yml
+  events: ../events.yml
 
 types:
-  EventId:
-    type: string
-    docs: ID of event.
-
-  Timestamp:
-    type: datetime
-    docs: Timestamp of event.
-
-  Recipient:
-    properties:
-      address:
-        type: string
-        docs: Recipient address.
-      status:
-        type: string
-        docs: Recipient status.
-
-  Send:
-    properties:
-      inbox_id: inboxes.InboxId
-      message_id: messages.MessageId
-      timestamp: Timestamp
-      recipients:
-        type: list<string>
-        docs: Sent recipients.
-
-  Delivery:
-    properties:
-      inbox_id: inboxes.InboxId
-      message_id: messages.MessageId
-      timestamp: Timestamp
-      recipients:
-        type: list<string>
-        docs: Delivered recipients.
-
-  Bounce:
-    properties:
-      inbox_id: inboxes.InboxId
-      message_id: messages.MessageId
-      timestamp: Timestamp
-      type:
-        type: string
-        docs: Bounce type.
-      sub_type:
-        type: string
-        docs: Bounce sub-type.
-      recipients:
-        type: list<Recipient>
-        docs: Bounced recipients.
-
-  Complaint:
-    properties:
-      inbox_id: inboxes.InboxId
-      message_id: messages.MessageId
-      timestamp: Timestamp
-      type:
-        type: string
-        docs: Complaint type.
-      sub_type:
-        type: string
-        docs: Complaint sub-type.
-      recipients:
-        type: list<string>
-        docs: Complained recipients.
-
-  Reject:
-    properties:
-      inbox_id: inboxes.InboxId
-      message_id: messages.MessageId
-      timestamp: Timestamp
-      reason:
-        type: string
-        docs: Reject reason.
-
-  MessageReceivedPayload:
-    properties:
-      event_type: webhooks.EventType
-      event_id: EventId
-      message: messages.Message
-
-  MessageSentPayload:
-    properties:
-      event_type: webhooks.EventType
-      event_id: EventId
-      send: Send
-
-  MessageDeliveredPayload:
-    properties:
-      event_type: webhooks.EventType
-      event_id: EventId
-      delivery: Delivery
-
-  MessageBouncedPayload:
-    properties:
-      event_type: webhooks.EventType
-      event_id: EventId
-      bounce: Bounce
-
-  MessageComplainedPayload:
-    properties:
-      event_type: webhooks.EventType
-      event_id: EventId
-      complaint: Complaint
-
-  MessageRejectedPayload:
-    properties:
-      event_type: webhooks.EventType
-      event_id: EventId
-      reject: Reject
-
   SvixId:
     type: string
     docs: ID of webhook message.
@@ -136,7 +24,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: MessageReceivedPayload
+    payload: events.MessageReceivedEvent
 
   messageSent:
     display-name: Message Sent
@@ -145,7 +33,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: MessageSentPayload
+    payload: events.MessageSentEvent
 
   messageDelivered:
     display-name: Message Delivered
@@ -154,7 +42,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: MessageDeliveredPayload
+    payload: events.MessageDeliveredEvent
 
   messageBounced:
     display-name: Message Bounced
@@ -163,7 +51,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: MessageBouncedPayload
+    payload: events.MessageBouncedEvent
 
   messageComplained:
     display-name: Message Complained
@@ -172,7 +60,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: MessageComplainedPayload
+    payload: events.MessageComplainedEvent
 
   messageRejected:
     display-name: Message Rejected
@@ -181,4 +69,4 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: MessageRejectedPayload
+    payload: events.MessageRejectedEvent

@@ -201,8 +201,8 @@ navigation:
           - threads
           - messages
           - drafts
-          - attachments
+          - metrics
           - domains
           - webhooks
-          - metrics
+          - websockets
   - tab: changelog

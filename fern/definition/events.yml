@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  inboxes: inboxes/__package__.yml
+  messages: messages.yml
+
+types:
+  EventId:
+    type: string
+    docs: ID of event.
+
+  Timestamp:
+    type: datetime
+    docs: Timestamp of event.
+
+  Recipient:
+    properties:
+      address:
+        type: string
+        docs: Recipient address.
+      status:
+        type: string
+        docs: Recipient status.
+
+  Send:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      recipients:
+        type: list<string>
+        docs: Sent recipients.
+
+  Delivery:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      recipients:
+        type: list<string>
+        docs: Delivered recipients.
+
+  Bounce:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      type:
+        type: string
+        docs: Bounce type.
+      sub_type:
+        type: string
+        docs: Bounce sub-type.
+      recipients:
+        type: list<Recipient>
+        docs: Bounced recipients.
+
+  Complaint:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      type:
+        type: string
+        docs: Complaint type.
+      sub_type:
+        type: string
+        docs: Complaint sub-type.
+      recipients:
+        type: list<string>
+        docs: Complained recipients.
+
+  Reject:
+    properties:
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      reason:
+        type: string
+        docs: Reject reason.
+
+  MessageReceivedEvent:
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.received">
+      event_id: EventId
+      message: messages.Message
+
+  MessageSentEvent:
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.sent">
+      event_id: EventId
+      send: Send
+
+  MessageDeliveredEvent:
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.delivered">
+      event_id: EventId
+      delivery: Delivery
+
+  MessageBouncedEvent:
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.bounced">
+      event_id: EventId
+      bounce: Bounce
+
+  MessageComplainedEvent:
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.complained">
+      event_id: EventId
+      complaint: Complaint
+
+  MessageRejectedEvent:
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.rejected">
+      event_id: EventId
+      reject: Reject
