@@ -46,7 +46,8 @@ To start a new conversation, you can send a `Message` from one of your inboxes. 
 # Let's assume we have one:
 
 sent_message = client.inboxes.messages.send(
-inbox_id = 'my_inbox@domain.com'
+inbox_id = 'my_inbox@domain.com',
+to = 'recipient@domain.com',
 labels=[
 "outreach",
 "startup"
@@ -64,6 +65,7 @@ print(f"Message sent successfully with ID: {sent_message.message_id}")
 const sentMessage = await client.inboxes.messages.send(
 	"outreach@agentmail.to", // this is your inbox you are trying to send from
 	{
+    to: receipent@domain.com
 		labels: [
 				"outreach",
 				"startup"
