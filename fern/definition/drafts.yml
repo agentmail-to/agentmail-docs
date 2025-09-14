@@ -52,6 +52,10 @@ types:
     type: list<attachments.Attachment>
     docs: Attachments in draft.
 
+  DraftInReplyTo:
+    type: string
+    docs: ID of message being replied to.
+
   DraftSendStatus:
     enum:
       - scheduled
@@ -98,9 +102,7 @@ types:
       text: optional<DraftText>
       html: optional<DraftHtml>
       attachments: optional<DraftAttachments>
-      in_reply_to:
-        type: optional<string>
-        docs: ID of message being replied to.
+      in_reply_to: optional<DraftInReplyTo>
       references:
         type: optional<list<string>>
         docs: IDs of previous messages in thread.
@@ -130,6 +132,7 @@ types:
       subject: optional<DraftSubject>
       text: optional<DraftText>
       html: optional<DraftHtml>
+      in_reply_to: optional<DraftInReplyTo>
       send_at: optional<DraftSendAt>
 
 service:
