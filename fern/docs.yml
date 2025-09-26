@@ -11,6 +11,9 @@ instances:
         repo: agentmail-docs
         branch: main
 
+experimental:
+  dynamic-snippets: true
+
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
