@@ -70,9 +70,6 @@ tabs:
     icon: light clock
     changelog: ./changelog
 
-experimental:
-  dynamic-snippets: true
-
 default-language: python
 
 navigation:
