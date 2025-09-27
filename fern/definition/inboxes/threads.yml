@@ -51,3 +51,12 @@ service:
       response: file
       errors:
         - global.NotFoundError
+
+    delete:
+      method: DELETE
+      path: /{thread_id}
+      display-name: Delete Thread
+      path-parameters:
+        thread_id: threads.ThreadId
+      errors:
+        - global.NotFoundError
