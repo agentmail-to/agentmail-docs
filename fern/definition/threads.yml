@@ -17,7 +17,15 @@ types:
 
   ThreadTimestamp:
     type: datetime
-    docs: Time at which last message was sent.
+    docs: Timestamp of last sent or received message.
+
+  ThreadReceivedTimestamp:
+    type: datetime
+    docs: Timestamp of last received message.
+
+  ThreadSentTimestamp:
+    type: datetime
+    docs: Timestamp of last sent message.
 
   ThreadSenders:
     type: list<string>
@@ -39,9 +47,25 @@ types:
     type: list<attachments.Attachment>
     docs: Attachments in thread.
 
+  ThreadLastMessageId:
+    type: string
+    docs: ID of last message in thread.
+
   ThreadMessageCount:
     type: integer
     docs: Number of messages in thread.
+
+  ThreadSize:
+    type: integer
+    docs: Size of thread in bytes.
+
+  ThreadUpdatedAt:
+    type: datetime
+    docs: Time at which thread was last updated.
+
+  ThreadCreatedAt:
+    type: datetime
+    docs: Time at which thread was created.
 
   ThreadItem:
     properties:
@@ -49,12 +73,18 @@ types:
       thread_id: ThreadId
       labels: ThreadLabels
       timestamp: ThreadTimestamp
+      received_timestamp: ThreadReceivedTimestamp
+      sent_timestamp: ThreadSentTimestamp
       senders: ThreadSenders
       recipients: ThreadRecipients
       subject: optional<ThreadSubject>
       preview: optional<ThreadPreview>
       attachments: optional<ThreadAttachments>
+      last_message_id: ThreadLastMessageId
       message_count: ThreadMessageCount
+      size: ThreadSize
+      updated_at: ThreadUpdatedAt
+      created_at: ThreadCreatedAt
 
   Thread:
     properties:
@@ -62,21 +92,21 @@ types:
       thread_id: ThreadId
       labels: ThreadLabels
       timestamp: ThreadTimestamp
+      received_timestamp: ThreadReceivedTimestamp
+      sent_timestamp: ThreadSentTimestamp
       senders: ThreadSenders
       recipients: ThreadRecipients
       subject: optional<ThreadSubject>
       preview: optional<ThreadPreview>
       attachments: optional<ThreadAttachments>
+      last_message_id: ThreadLastMessageId
       message_count: ThreadMessageCount
+      size: ThreadSize
+      updated_at: ThreadUpdatedAt
+      created_at: ThreadCreatedAt
       messages:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `timestamp` ascending.
-      updated_at:
-        type: datetime
-        docs: Time at which thread was last updated.
-      created_at:
-        type: datetime
-        docs: Time at which thread was created.
 
   ListThreadsResponse:
     properties:

@@ -23,6 +23,10 @@ types:
     type: string
     docs: Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`.
 
+  MessageReplyTo:
+    type: list<string>
+    docs: Addresses of reply-to recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+
   MessageTo:
     type: list<string>
     docs: Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
@@ -55,6 +59,26 @@ types:
     type: list<attachments.Attachment>
     docs: Attachments in message.
 
+  MessageInReplyTo:
+    type: string
+    docs: ID of message being replied to.
+
+  MessageReferences:
+    type: list<string>
+    docs: IDs of previous messages in thread.
+
+  MessageSize:
+    type: integer
+    docs: Size of message in bytes.
+
+  MessageUpdatedAt:
+    type: datetime
+    docs: Time at which message was last updated.
+
+  MessageCreatedAt:
+    type: datetime
+    docs: Time at which message was created.
+
   MessageItem:
     properties:
       inbox_id: inboxes.InboxId
@@ -69,6 +93,11 @@ types:
       subject: optional<MessageSubject>
       preview: optional<MessagePreview>
       attachments: optional<MessageAttachments>
+      in_reply_to: optional<MessageInReplyTo>
+      references: optional<MessageReferences>
+      size: MessageSize
+      updated_at: MessageUpdatedAt
+      created_at: MessageCreatedAt
 
   Message:
     properties:
@@ -89,18 +118,11 @@ types:
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<MessageAttachments>
-      in_reply_to:
-        type: optional<string>
-        docs: ID of message being replied to.
-      references:
-        type: optional<list<string>>
-        docs: IDs of previous messages in thread.
-      updated_at:
-        type: datetime
-        docs: Time at which message was last updated.
-      created_at:
-        type: datetime
-        docs: Time at which message was created.
+      in_reply_to: optional<MessageInReplyTo>
+      references: optional<MessageReferences>
+      size: MessageSize
+      updated_at: MessageUpdatedAt
+      created_at: MessageCreatedAt
 
   ListMessagesResponse:
     properties:
