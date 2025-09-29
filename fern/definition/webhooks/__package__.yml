@@ -91,6 +91,10 @@ service:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
       response: ListWebhooksResponse
+      pagination:
+        cursor: $request.page_token
+        next_cursor: $response.next_page_token
+        results: $response.webhooks
 
     get:
       method: GET
