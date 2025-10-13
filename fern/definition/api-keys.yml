@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  ApiKeyId:
+    type: string
+    docs: ID of api key.
+
+  Prefix:
+    type: string
+    docs: Prefix of api key.
+
+  Name:
+    type: string
+    docs: Name of api key.
+
+  CreatedAt:
+    type: datetime
+    docs: Time at which api key was created.
+
+  ApiKey:
+    properties:
+      api_key_id: ApiKeyId
+      prefix: Prefix
+      name: Name
+      used_at:
+        type: optional<datetime>
+        docs: Time at which api key was last used.
+      created_at: CreatedAt
+
+  CreateApiKeyResponse:
+    properties:
+      api_key_id: ApiKeyId
+      api_key:
+        type: string
+        docs: API key.
+      prefix: Prefix
+      name: Name
+      created_at: CreatedAt
+
+  ListApiKeysResponse:
+    properties:
+      count: global.Count
+      next_page_token: optional<global.PageToken>
+      api_keys:
+        type: list<ApiKey>
+        docs: Ordered by `created_at` descending.
+
+  CreateApiKeyRequest:
+    properties:
+      name: Name
+
+service:
+  url: Http
+  base-path: /api-keys
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List API Keys
+      request:
+        name: ListApiKeysRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListApiKeysResponse
+      pagination:
+        cursor: $request.page_token
+        next_cursor: $response.next_page_token
+        results: $response.api_keys
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create API Key
+      request: CreateApiKeyRequest
+      response: CreateApiKeyResponse
+      errors:
+        - global.ValidationError
+
+    delete:
+      method: DELETE
+      path: /{api_key}
+      display-name: Delete API Key
+      path-parameters:
+        api_key: ApiKeyId
+      errors:
+        - global.NotFoundError

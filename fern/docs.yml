@@ -205,8 +205,9 @@ navigation:
           - threads
           - messages
           - drafts
-          - metrics
           - domains
           - webhooks
           - websockets
+          - metrics
+          - api-keys
   - tab: changelog
