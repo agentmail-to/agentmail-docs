@@ -37,7 +37,7 @@ Here's the step-by-step logic for a polling-based conversational agent.
         ```python
         # Find all threads in this inbox that are marked as unreplied
         threads = client.threads.list(
-            labels=["unreplied"]
+            labels = ["unreplied"]
         )
         if not threads:
             print("No threads need a reply.")

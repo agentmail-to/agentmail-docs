@@ -29,10 +29,10 @@ This is the first step. You create a `Draft` in a specific `Inbox` that will eve
 ```python title="Python"
 # You'll need an inbox ID to create a draft in.
 
-new_draft = client.inboxes.drafts.create(
-inbox_id="outbound@domain.com",
-to=["review-team@example.com"],
-subject="[NEEDS REVIEW] Agent's proposed response"
+new_draft=client.inboxes.drafts.create(
+    inbox_id="outbound@domain.com",
+    to=["review-team@example.com"],
+    subject="[NEEDS REVIEW] Agent's proposed response"
 )
 
 print(f"Draft created successfully with ID: {new_draft.draft_id}")
@@ -71,7 +71,7 @@ draft = client.inboxes.drafts.get(inbox_id = 'my_inbox@domain.com, draft_id = 'd
 ```typescript title="TypeScript"
 
 // Get the draft
-const draft =await client.inboxes.drafts.get(
+const draft = await client.inboxes.drafts.get(
 	"inbox_id",
 	"draft_id_123"
 )

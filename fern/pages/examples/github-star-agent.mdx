@@ -263,7 +263,7 @@ print(f"GitHub polling thread started for top 20 repositories related to AI agen
                - 'html': An email body in HTML format, adhering to all the above content and formatting rules (mention star, no direct links, specific CTA).
 
             Your output for this step MUST be an action call to 'send_message' with the tool input formatted as a valid JSON string, ensuring you use the 'html' field for the body. For example:
-            Action: send_message(```json
+            Action: send_message(```
             {{
               "inbox_id": "{inbox}",
               "to": ["{actual_demo_target_email}"],

@@ -76,10 +76,10 @@ You can modify the `Labels` on a `Message` that has already been sent using the 
 # Let's add a 'resolved' label to a message
 
 client.messages.update(
-inbox_id='outbound@domain.com',
-message_id='msg_id_123',
-add_labels=["resolved"],
-remove_labels=['unresolved']
+    inbox_id='outbound@domain.com',
+    message_id='msg_id_123',
+    add_labels=["resolved"],
+    remove_labels=['unresolved']
 )
 
 ````
@@ -94,10 +94,10 @@ await client.inboxes.messages.update(
 	{
 		addLabels: [
 				"resolved"
-			],
+		],
 		removeLabels: [
 				"unresolved"
-			]
+		]
 	}
 )
 
