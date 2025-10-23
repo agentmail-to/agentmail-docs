@@ -30,15 +30,15 @@ file_content = "This is the content of our report."
 encoded_content = base64.b64encode(file_content.encode()).decode()
 
 sent_message = client.messages.send(
-inbox_id="reports@agentmail.to",
-to=["supervisor@example.com"],
-subject="Q4 Financial Report",
-text="Please see the attached report.",
-attachments=[{
-"content": encoded_content,
-"filename": "Q4-report.txt",
-"content_type": "text/plain"
-}]
+    inbox_id="reports@agentmail.to",
+    to=["supervisor@example.com"],
+    subject="Q4 Financial Report",
+    text="Please see the attached report.",
+    attachments=[{
+        "content": encoded_content,
+        "filename": "Q4-report.txt",
+        "content_type": "text/plain"
+    }]
 )
 
 ````
@@ -80,9 +80,9 @@ message_id = "msg_456"
 attachment_id = "attach_789" # From the message object
 
 file_data = client.inboxes.messages.attachments.get(
-inbox_id=inbox_id,
-message_id=message_id,
-attachment_id=attachment_id
+    inbox_id=inbox_id,
+    message_id=message_id,
+    attachment_id=attachment_id
 )
 
 # Now you can save the file

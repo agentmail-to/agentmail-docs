@@ -92,7 +92,7 @@ all_messages = client.inboxes.messages.list(inbox_id='my_inbox@agentmail.to')
 
 print(f"Found {all_messages.count} messages in the inbox.")
 for message in all_messages:
-print(f"- Subject: {message.subject}")
+    print(f"- Subject: {message.subject}")
 
 ````
 ```typescript title="TypeScript"
@@ -115,14 +115,14 @@ Replying to an existing `Message` adds your new `Message` to the same `Thread`, 
 ```python title="Python" wordWrap
 
 reply = client.inboxes.messages.reply(
-inbox_id = 'my_inbox@domain.com'
-message_id='msg_id',
-text="Thanks for the referral!",
-attachments=[
-SendAttachment(
-content="resume" # this would obviously be your resume content, refer to the attachment section of the core-concepts for more details
-)
-]
+    inbox_id='my_inbox@domain.com'
+    message_id='msg_id',
+    text="Thanks for the referral!",
+    attachments=[
+        SendAttachment(
+            content="resume" # this would obviously be your resume content, refer to the attachment section of the core-concepts for more details
+        )
+    ]
 )
 
 print(f"Reply sent successfully with ID: {reply.message_id}")
