@@ -79,13 +79,13 @@ console.log(`Found ${allThreads.length} threads across the entire organization.`
 You can also retrieve a single `Thread` by its ID. This will return the `Thread` object, which typically contains a list of all its associated `Messages` and their ID's. A common workflow is listing the messages in a thread and calling the `messages.reply` method on the last one.
 
 <CodeBlocks>
-```python title="Python"
+```python
 thread_id = "thread_456def"
 
 # This retrieves a single thread and its messages
 
 thread = client.threads.get(
-thread_id="thread_id"
+    thread_id="thread_id"
 )
 
 print(f"Retrieved thread {thread.id} with {len(thread.messages)} messages.")
