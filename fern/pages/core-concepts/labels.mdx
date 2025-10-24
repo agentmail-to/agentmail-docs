@@ -72,7 +72,7 @@ const sentMessage = await client.inboxes.messages.send(
 You can modify the `Labels` on a `Message` that has already been sent using the `update` (PATCH) method. This is perfect for changing the state of a conversation as your agent works on it.
 
 <CodeBlocks>
-```python title="Python"
+```python
 # Let's add a 'resolved' label to a message
 
 client.messages.update(
@@ -89,16 +89,16 @@ client.messages.update(
 
 
 await client.inboxes.messages.update(
-	"my_inbox@domain.com",
-	"msg_id_123",
-	{
-		addLabels: [
-				"resolved"
-		],
-		removeLabels: [
-				"unresolved"
-		]
-	}
+  "my_inbox@domain.com",
+  "msg_id_123",
+  {
+    addLabels: [
+        "resolved"
+    ],
+    removeLabels: [
+        "unresolved"
+    ]
+  }
 )
 
 ````
@@ -110,14 +110,14 @@ await client.inboxes.messages.update(
 This is where `Labels` become truly powerful. You can list `Threads`, `Messages`, and `Drafts` by filtering for one or more `Labels`, allowing you to create highly targeted queries.
 
 <CodeBlocks>
-```python title="Python"
+```python
 # Find all threads from a specific campaign that need a follow-up
 client.inboxes.threads.list(
     inbox_id = 'outbound-agent@domain.com',
-	labels=[
-		"q4-campaign",
-		"follow_up"
-	]
+    labels=[
+        "q4-campaign",
+        "follow_up"
+    ]
 )
 
 print(f"Found {len(filtered_threads)} threads that need a follow-up.")
@@ -127,13 +127,13 @@ print(f"Found {len(filtered_threads)} threads that need a follow-up.")
 ```typescript title="TypeScript"
 // Find all threads from a specific campaign that need a follow-up
 await client.inboxes.threads.list(
-	"leads@agentmail.to",
-	{
-		labels: [
-			"q4-campaign",
-			"follow_up"
-		]
-	}
+  "leads@agentmail.to",
+  {
+    labels: [
+      "q4-campaign",
+      "follow_up"
+    ]
+  }
 )
 
 
