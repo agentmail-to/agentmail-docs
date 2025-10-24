@@ -8,21 +8,28 @@ description: Follow this guide to make your first AgentMail API request and crea
 This guide will walk you through installing the AgentMail SDK, authenticating with your API key, and creating your first email inbox.
 
 <Steps>
-  <Step title="Get your API Key">
-    First, you'll need an AgentMail API key. You can sign up at the link below.
+  <Step title="Access the AgentMail Console">
+    First, you'll need to access the AgentMail Console to manage your account and API keys. Click the link below to get started.
     <Card
-      title="Get an API Key"
-      icon="fa-solid fa-key"
-      href="https://agentmail.to/pricing"
+      title="Open AgentMail Console"
+      icon="fa-solid fa-desktop"
+      href="https://console.agentmail.to"
       target="_blank"
     />
-    Once you have your key, create a `.env` file in your project's root
-    directory and add your key to it. We recommend using environment variables to
-    keep your keys secure.
-    ```.env
-    AGENTMAIL_API_KEY="YOUR_API_KEY"
-    ```
+    If you don't have an account yet, you can sign up directly from the console. Once you're logged in, you'll be able to manage your inboxes, view analytics, and create API keys.
   </Step>
+
+{" "}
+
+<Step title="Create an API Key">
+  Now that you're in the console, you'll need to create an API key to
+  authenticate your requests. Navigate to the API Keys section in your console
+  dashboard. ![API Key Creation Screenshot](/assets/api-key-creation.png) Click
+  "Create New API Key" and give it a descriptive name. Once created, copy the
+  API key and store it securely. Create a `.env` file in your project's root
+  directory and add your key to it. We recommend using environment variables to
+  keep your keys secure.
+</Step>
 
   <Step title="Install the SDK">
     Install the AgentMail SDK using your preferred package manager. We'll also
@@ -96,7 +103,7 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
     </CodeBlocks>
     <Note>
       The `domain` parameter is optional. If not provided, AgentMail will
-      use the default `@agentmail.to` domain. If you would like a custom domain, please email contact@agentmail.cc
+      use the default `@agentmail.to` domain. If you would like a custom domain, please <a href="https://agentmail.to/pricing" target="_blank" rel="noopener noreferrer">upgrade to a paid plan</a>.
     </Note>
 
   </Step>
