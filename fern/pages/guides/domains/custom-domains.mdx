@@ -32,74 +32,287 @@ Configuring your domain is a three-step process: add the domain via API, copy th
 <Steps>
 <Step title="1. Create Domain & Get DNS Records">
 
-To begin, make an API request to the `POST /domains/{domain}` endpoint with your domain name. AgentMail will register your domain and immediately return the full set of DNS records required for verification.
+Choose your preferred method to create a domain and get the required DNS records. AgentMail will register your domain and immediately return the full set of DNS records required for verification.
 
-<CodeBlocks>
-  ```bash curl -X POST https://api.agentmail.to/domains/your-domain.com ```
-</CodeBlocks>
+<Tabs>
+  <Tab title="Console">
+    Navigate to the [AgentMail Console](https://console.agentmail.to) and follow these steps:
 
+    1. **Go to Domains Section**: Click on "Domains" in the left sidebar
+    2. **Add New Domain**: Click "Add Domain" or "Create Domain" button
+    3. **Enter Domain Name**: Type your domain name (e.g., `your-domain.com`)
+    4. **Create Domain**: Click "Create" to register the domain
+
+  </Tab>
+  
+  <Tab title="SDK">
+
+    <CodeBlocks>
+      ```bash title="cURL"
+      curl -X POST https://api.agentmail.to/domains/your-domain.com \
+        -H "Authorization: Bearer YOUR_API_KEY" \
+        -H "Content-Type: application/json"
+      ```
+
+      ```python title="Python"
+      from agentmail import AgentMail
+
+      client = AgentMail(api_key="YOUR_API_KEY")
+
+      # Create domain with default settings
+      domain = client.domains.create("your-domain.com")
+
+      # Or with custom feedback forwarding
+      domain = client.domains.create(
+        "your-domain.com",
+        feedback_enabled=False
+      )
+
+      print("Domain created:", domain)
+      print("DNS Records:", domain.records)
+      ```
+
+      ```typescript title="TypeScript"
+      import { AgentMailClient } from "agentmail";
+
+      const client = new AgentMailClient({
+        apiKey: "YOUR_API_KEY",
+      });
+
+      // Create domain with default settings
+      const domain = await client.domains.create("your-domain.com");
+
+      // Or with custom feedback forwarding
+      const domain = await client.domains.create("your-domain.com", {
+        feedback_enabled: false
+      });
+
+      console.log("Domain created:", domain);
+      console.log("DNS Records:", domain.records);
+      ```
+    </CodeBlocks>
+
+<Callout type="info" title="Idempotent Requests">
+  You can make these requests idempotent by including a ```client_id```
+  attribute in the request so we dont serve an error if you try and create a
+  domain that has already been registered with us.
+</Callout>
 <Callout type="info" title="Feedback Forwarding">
   By default, bounce and complaint notifications are sent to your domain. You
-  can disable this by setting `feedback_forwarding` to `false` in your request.
-  If not specified it is default set to `true`
+  can disable this by setting `feedback_enabled` to `false` in your request. If
+  not specified it is default set to `true`
 </Callout>
 
-The API response includes a `records` array. Each object in this array contains the precise `name`, `type`, `value`, and `priority` you'll need to add to your DNS provider.
+    The API response includes a `records` array. Each object in this array contains the precise `name`, `type`, `value`, and `priority` you'll need to add to your DNS provider.
 
-The initial `status` of the domain will be `pending`. It will change as you configure your domain and we verify it on our end.
+    The initial `status` of the domain will be `pending`. It will change as you configure your domain and we verify it on our end.
+
+  </Tab>
+</Tabs>
 
 </Step>
 
 <Step title="2. Add Records to Your DNS Provider">
-The process for adding records varies slightly between providers. The examples below assume you are configuring the root domain `domain.com`.
+The process for adding records varies slightly between providers. The examples below assume you are configuring records in the apex `domain.com` hosted zone. If you are using a subdomain make sure it is in the apex domain hosted zone.
 
-<Callout title="Configuring a Subdomain?">
-  If you're using a subdomain (e.g., `payment.domain.com`), the instructions are
-  the same, but you must PREPEND the subdomain to the record NAME VALUE. For
-  example, a `_dmarc` record for `domain.com` becomes `_dmarc.payment` for
-  `payment.domain.com`. For records on the subdomain itself (like an MX record
-  for `payment.domain.com`), the name would simply be `payment`.
-</Callout>
+### Option A: Upload BIND Zone File (Easiest)
 
-Below are detailed instructions for AWS Route53 and Cloudflare. If you would like detailed instructions on your specific domain provider in this section please contact us contact@agentmail.cc
+A BIND zone file is a text file that contains DNS resource records in a standardized format. This approach allows you to bulk upload our records to your DNS provider without you needing to go down one by one.
+
+**How to use the BIND zone file:**
+
+**Step 1: Download the BIND zone file**
+
+    After creating your domain in the AgentMail Console, click the "Download BIND Zone File" button to get the complete zone file.
+
+    <Frame caption="Downloading BIND zone file from AgentMail Console">
+      <img
+        src="../../../assets/download-zone-file.png"
+        alt="Download BIND Zone File from Console"
+      />
+    </Frame>
 
 <Tabs>
   <Tab title="AWS Route 53">
-    In your hosted zone, click **"Create record"**.
+   
+    **Step 2: Import to Route 53**
 
-    - **CNAME (DKIM):**
-      - **Record name:** Enter the part of the `name` before your root domain (e.g., `{random_letters_numbers}._domainkey` for a `name` of `{random_letters_numbers}._domainkey.domain.com`).
-      - **Value:** Can directly copy paste the `value` from the API response (e.g., `{random_letters_numbers}.dkim.amazonses.com`).
-
-
-    <Frame caption="Example of adding a CNAME record in Route 53. Notice that AWS already appends the root domain (agentmail.cc) to the end of the name value!">
-      <img src="../../../assets/awsdomain.png" alt="AWS Route 53 Record Configuration" />
+    1. Go to your Route 53 hosted zone for your domain
+    2. Click **"Import zone file"** in the top right corner
+    <Frame caption="Importing BIND zone file in AWS Route 53">
+      <img
+        src="../../../assets/aws-bind-import.png"
+        alt="AWS Route 53 BIND Import"
+      />
     </Frame>
-
-    - **TXT (DMARC/SPF):**
-      - **Record name:** Enter the part of the `name` before your root domain (e.g., `_dmarc` for a `name` of `_dmarc.domain.com`, or `mail` for a `name` of `mail.domain.com`).
-      - **Value:** Can copy paste the`value` from the API, ensuring it is enclosed in quotes.
-
-    - **MX:**
-      - **Record name:** Leave this field blank to apply the record to the root domain.
-      - **Value:** This is critical. You must combine the `priority` and `value` from the API into a single string, separated by a space. For example: `10 inbound-smtp.us-east-1.amazonaws.com`.
+    3. Paste the CONTENTS of downloaded BIND zone file
+      <Frame caption="Open the file with text editor and paste the contents. It should look similar to what we have in this image.">
+      <img
+        src="../../../assets/aws-paste.png"
+        alt="AWS Route 53 BIND Import"
+      />
+    </Frame>
+    4. Review the records and click **"Import"**
 
   </Tab>
   <Tab title="Cloudflare">
-    In the dashboard (**DNS > Records**), click **"Add record"**.
+    
+    **Step 2: Import to Cloudflare**
 
-    - **CNAME (DKIM):**
-      - **Name:** Enter the part of the `name` before your root domain (e.g., `{random_letters_numbers}._domainkey`).
-      - **Target:** Copy paste the `value` from the API response.
+    1. Go to your Cloudflare dashboard and select your domain
+    2. Navigate to **DNS > Records**
 
-    - **TXT (DMARC/SPF):**
-      - **Name:** Enter the part of the `name` before your root domain (e.g. `_dmarc`).
-      - **Content:** Copy paste the `value` from the API response.
+    <Frame caption="This is what the page looks like">
+      <img
+        src="../../../assets/cloudflare-dns.png"
+        alt="Cloudflare BIND Import"
+      />
+    </Frame>
+    3. Click **"Import and Export"**
+     <Frame caption="You should be able to just drop the file in">
+      <img
+        src="../../../assets/cloudflare-import-export.png"
+        alt="Cloudflare BIND Import"
+      />
+    </Frame>
+    4. Upload the downloaded BIND zone file as is
 
-    - **MX:**
-      - **Name:** Enter `@` to apply the record to the root domain.
-      - **Mail server:** Enter the `value` from the API.
-      - **Priority:** Enter the `priority` from the API.
+  </Tab>
+  <Tab title="Porkbun">
+    
+    **Step 2: Import to Porkbun**
+
+    1. Go to your Porkbun profile and click domain management
+    2. Navigate to the **DNS** subtab of the domain you want to send from
+     <Frame caption="Click on this button!">
+      <img
+        src="../../../assets/porkbun-dns.png"
+        alt="Porkbun DNS Management"
+      />
+    </Frame>
+
+
+    3. Scroll down to the quick upload section
+
+    <Frame caption="Upload your BIND zone file here">
+      <img
+        src="../../../assets/porkbun-import.png"
+        alt="Porkbun Zone File Import"
+      />
+    </Frame>
+    4. Upload the downloaded BIND zone file as is
+
+{" "}
+
+<Warning type="warning" title="Important: Review Before Importing">
+  Uploading a BIND zone file in Porkbun REPLACES the existing records you have.
+  This is fine if this is a fresh domain you bought for the sake of sending
+  email but if this is a domain that has other important records configured,
+  consider adding [additional records
+  manually](#option-b-add-individual-records).
+</Warning>
+
+  </Tab>
+</Tabs>
+
+<Callout type="info" title="BIND Zone File Format">
+  Check that all records (CNAME, TXT, MX) have been correctly imported in the
+  console(the console will show in real time if we can find the records,
+  typically within seconds).
+</Callout>
+
+### Option B: Add Individual Records
+
+Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The instructions vary depending on whether you're using the AgentMail Console or the API directly.
+
+<Tabs>
+  <Tab title="Via Console">
+    If you created your domain through the [AgentMail Console](https://console.agentmail.to), the DNS records are displayed in a simplified format that's ready for copy-paste into your DNS provider.
+
+    <Tabs>
+      <Tab title="AWS Route 53">
+        In your hosted zone, click **"Create record"**.
+
+        - **CNAME (DKIM):**
+          - **Record name:** Copy the **Name** value directly from the console (e.g., `abc123._domainkey`).
+          - **Value:** Copy the **Value** from the console (e.g., `abc123.dkim.amazonses.com`).
+
+        - **TXT (DMARC/SPF):**
+          - **Record name:** Copy the **Name** value directly from the console (e.g., `_dmarc` or `mail`).
+          - **Value:** Copy the **Value** from the console, ensuring it is enclosed in quotes.
+
+        - **MX:**
+          - **Record name:** Enter the value exactly as we return it, whether its `@` or the subdomain.
+          - **Value:** Copy the **Value** from the console (e.g., `inbound-smtp.us-east-1.amazonaws.com`).
+          - **Priority:** Use the priority shown in the console (typically `10`).
+
+      </Tab>
+      <Tab title="Cloudflare">
+        In the dashboard (**DNS > Records**), click **"Add record"**.
+
+        - **CNAME (DKIM):**
+          - **Name:** Copy the **Name** value directly from the console.
+          - **Target:** Copy the **Value** from the console.
+
+        - **TXT (DMARC/SPF):**
+          - **Name:** Copy the **Name** value directly from the console.
+          - **Content:** Copy the **Value** from the console.
+
+        - **MX:**
+          - **Name:** Enter `@` to apply the record to the root domain.
+          - **Mail server:** Copy the **Value** from the console.
+          - **Priority:** Use the priority shown in the console.
+
+      </Tab>
+    </Tabs>
+
+    <Callout type="info" title="Console Advantage">
+      The console automatically formats DNS record names to be relative hostnames (without the full domain), making them ready for direct copy-paste into your DNS provider. No manual parsing required!
+    </Callout>
+
+  </Tab>
+  <Tab title="Via API">
+    If you're using the API directly, the DNS records are returned as fully qualified domain names (FQDNs) that require some manual parsing.
+
+    <Tabs>
+      <Tab title="AWS Route 53">
+        In your hosted zone, click **"Create record"**.
+
+        - **CNAME (DKIM):**
+          - **Record name:** Enter the part of the `name` before your root domain (e.g., `{random_letters_numbers}._domainkey` for a `name` of `{random_letters_numbers}._domainkey.domain.com`).
+          - **Value:** Can directly copy paste the `value` from the API response (e.g., `{random_letters_numbers}.dkim.amazonses.com`).
+
+        <Frame caption="Example of adding a CNAME record in Route 53. Notice that AWS already appends the root domain (agentmail.cc) to the end of the name value!">
+          <img src="../../../assets/awsdomain.png" alt="AWS Route 53 Record Configuration" />
+        </Frame>
+
+        - **TXT (DMARC/SPF):**
+          - **Record name:** Enter the part of the `name` before your root domain (e.g., `_dmarc` for a `name` of `_dmarc.domain.com`, or `mail` for a `name` of `mail.domain.com`).
+          - **Value:** Can copy paste the`value` from the API, ensuring it is enclosed in quotes.
+
+        - **MX:**
+          - **Record name:** Leave this field blank to apply the record to the root domain.
+          - **Value:** This is critical. You must combine the `priority` and `value` from the API into a single string, separated by a space. For example: `10 inbound-smtp.us-east-1.amazonaws.com`.
+
+      </Tab>
+      <Tab title="Cloudflare">
+        In the dashboard (**DNS > Records**), click **"Add record"**.
+
+        - **CNAME (DKIM):**
+          - **Name:** Enter the part of the `name` before your root domain (e.g., `{random_letters_numbers}._domainkey`).
+          - **Target:** Copy paste the `value` from the API response.
+
+        - **TXT (DMARC/SPF):**
+          - **Name:** Enter the part of the `name` before your root domain (e.g. `_dmarc`).
+          - **Content:** Copy paste the `value` from the API response.
+
+        - **MX:**
+          - **Name:** Enter the part of the name before your root domain
+          - **Mail server:** Enter the `value` from the API.
+          - **Priority:** Enter the `priority` from the API.
+
+      </Tab>
+    </Tabs>
 
   </Tab>
 </Tabs>
@@ -107,11 +320,21 @@ Below are detailed instructions for AWS Route53 and Cloudflare. If you would lik
 <Step title="3. Verify Your Domain">
 Once you've added the records, AgentMail automatically begins to check them. This can take anywhere from a few minutes to 48 hours for your DNS changes to propagate across the internet.
 
-You can poll the `GET /domains/{domain}` endpoint to check the verification progress. The `status` field in the response will tell you exactly where you are in the process:
+Check your domain verification status in the [AgentMail Console](https://console.agentmail.to/dashboard/domains):
 
-- **`pending`**: This means you still need to add or fix your DNS records. The `records` array in the response will show you which records are still missing or invalid.
-- **`verifying`**: This is a great sign! It means our system has confirmed your DNS records are correct, and we are now authorizing the domain with our underlying email infrastructure. No action is needed from you—just a little more patience.
-- **`ready`**: This is the final step. Your domain is fully verified and ready for sending. You can now create inboxes and start sending emails.
+1. **Navigate to Domains**: Go to the "Domains" section in the left sidebar
+2. **View Domain Status**: Find your domain in the list and check its status
+3. **Monitor Progress**: The status will update automatically as verification progresses
+4. **View Details**: Click on your domain to see detailed information about which records are verified
+
+The status indicators will show you exactly where you are in the process:
+
+- **`Not Started`**: You need to click the Verify Domain button to kick start the process
+- **`Pending`**: You still need to add or fix your DNS records
+- **`Invalid`**: Some of your records are misconfigured. Please verify you inputted them correctly.
+- **`Failed`**: Your records are correct, but our servers need a bump. Please click the verify domain button in the console.
+- **`Verifying`**: DNS records are correct, and we're authorizing the domain
+- **`Verified`**: Domain is fully verified and ready for sending
 
 </Step>
 </Steps>
@@ -140,9 +363,7 @@ DNS can be tricky. Here are some common issues and how to resolve them.
 <AccordionGroup>
   <Accordion title="My DNS changes aren't showing up instantly">
     DNS propagation can take up to 48 hours, though it's often much faster. If
-    it's been a while, double-check by hitting the `GET /domains/{domain}`
-    endpoint to check the status. It will tell you exactly which records are
-    configured correctly or missing.
+    it's been a while, click the verify domain button in the console which will trigger a reverification manually(DNS propagation can get stuck at times). 
   </Accordion>
   <Accordion title="I'm seeing 'Too many SPF records' errors">
     A domain must have only **one** SPF record. If you're using other services that send email on your behalf (like a CRM), you need to merge their SPF policies with AgentMail's into a single record.
