@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+navigation:
+  - threads.yml
+  - drafts.yml
+
+imports:
+  global: ../__package__.yml
+
+types:
+  PodId:
+    type: string
+    docs: ID of pod.
+
+  Name:
+    type: string
+    docs: Name of pod.
+
+  ClientId:
+    type: string
+    docs: Client ID of pod.
+
+  Pod:
+    properties:
+      pod_id: PodId
+      name: Name
+      updated_at:
+        type: datetime
+        docs: Time at which pod was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which pod was created.
+      client_id: optional<ClientId>
+
+  ListPodsResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      pods:
+        type: list<Pod>
+        docs: Ordered by `created_at` descending.
+
+  CreatePodRequest:
+    properties:
+      name: optional<Name>
+      client_id: optional<ClientId>
+
+service:
+  url: Http
+  base-path: /pods
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Pods
+      request:
+        name: ListPodsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListPodsResponse
+      pagination:
+        cursor: $request.page_token
+        next_cursor: $response.next_page_token
+        results: $response.pods
+
+    get:
+      method: GET
+      path: /{pod_id}
+      display-name: Get Pod
+      path-parameters:
+        pod_id: PodId
+      response: Pod
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Pod
+      request: CreatePodRequest
+      response: Pod
+      errors:
+        - global.ValidationError
+
+    delete:
+      method: DELETE
+      path: /{pod_id}
+      display-name: Delete Pod
+      path-parameters:
+        pod_id: PodId
+      errors:
+        - global.NotFoundError

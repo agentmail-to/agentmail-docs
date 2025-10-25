@@ -210,4 +210,5 @@ navigation:
           - websockets
           - metrics
           - api-keys
+          - pods
   - tab: changelog
