@@ -14,6 +14,10 @@ types:
     type: string
     docs: ID of inbox.
 
+  DisplayName:
+    type: string
+    docs: "Display name: `Display Name <username@domain.com>`."
+
   ClientId:
     type: string
     docs: Client ID of inbox.
@@ -21,9 +25,7 @@ types:
   Inbox:
     properties:
       inbox_id: InboxId
-      display_name:
-        type: string
-        docs: "Display name: `Display Name <username@domain.com>`."
+      display_name: optional<DisplayName>
       updated_at:
         type: datetime
         docs: Time at which inbox was last updated.
@@ -49,9 +51,7 @@ types:
       domain:
         type: optional<string>
         docs: Domain of address. Must be verified domain. Defaults to `agentmail.to`.
-      display_name:
-        type: optional<string>
-        docs: "Display name: `Display Name <username@domain.com>`. Defaults to `AgentMail`. Pass empty string to omit."
+      display_name: optional<DisplayName>
       client_id: optional<ClientId>
 
 service:
