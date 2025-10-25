@@ -147,7 +147,6 @@ def home():
     """
 
 @app.route('/webhooks', methods=['POST'])
-@app.route('/webhook/agentmail', methods=['POST'])
 def receive_webhook():
     """Receives webhook events from AgentMail"""
     payload = request.json
@@ -155,15 +154,9 @@ def receive_webhook():
     event_type = payload.get('event_type')
     message = payload.get('message', {})
 
-    print(f"\n{'='*60}")
-    print(f"WEBHOOK RECEIVED")
-    print(f"{'='*60}")
-    print(f"Event Type: {event_type}")
+    print(f"\nWebhook received: {event_type}")
     print(f"From: {message.get('from_')}")
-    print(f"To: {message.get('to')}")
-    print(f"Subject: {message.get('subject')}")
-    print(f"Message ID: {message.get('message_id')}")
-    print(f"{'='*60}\n")
+    print(f"Subject: {message.get('subject')}\n")
 
     return Response(status=200)
 
