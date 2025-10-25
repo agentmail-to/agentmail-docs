@@ -164,12 +164,3 @@ service:
       response: file
       errors:
         - global.NotFoundError
-
-    delete:
-      method: DELETE
-      path: /{thread_id}
-      display-name: Delete Thread
-      path-parameters:
-        thread_id: ThreadId
-      errors:
-        - global.NotFoundError
