@@ -29,7 +29,7 @@ file_content = "This is the content of our report."
 
 encoded_content = base64.b64encode(file_content.encode()).decode()
 
-sent_message = client.messages.send(
+sent_message = client.inboxes.messages.send(
     inbox_id="reports@agentmail.to",
     to=["supervisor@example.com"],
     subject="Q4 Financial Report",
@@ -49,7 +49,7 @@ const fileContent = "This is the content of our report.";
 // You must Base64 encode the file content before sending
 const encodedContent = Buffer.from(fileContent).toString("base64");
 
-const sentMessage = await client.messages.send("reports@agentmail.to", {
+const sentMessage = await client.inboxes.messages.send("reports@agentmail.to", {
   to: ["supervisor@example.com"],
   subject: "Q4 Financial Report",
   text: "Please see the attached report.",
@@ -79,7 +79,7 @@ inbox_id = "inbox_123"
 message_id = "msg_456"
 attachment_id = "attach_789" # From the message object
 
-file_data = client.inboxes.messages.attachments.get(
+file_data = client.inboxes.messages.get_attachment(
     inbox_id=inbox_id,
     message_id=message_id,
     attachment_id=attachment_id
@@ -97,7 +97,7 @@ const inboxId = "inbox_123";
 const messageId = "msg_456";
 const attachmentId = "attach_789"; // From the message object
 
-const fileData = await client.inboxes.messages.attachments.get(
+const fileData = await client.inboxes.messages.get_attachment(
   inboxId,
   messageId,
   attachmentId
@@ -121,7 +121,7 @@ inbox_id = "inbox_123"
 thread_id = "thread_abc"
 attachment_id = "attach_789" # From a message within the thread
 
-file_data = client.inboxes.threads.attachments.get(
+file_data = client.inboxes.threads.get_attachment(
 inbox_id=inbox_id,
 thread_id=thread_id,
 attachment_id=attachment_id
@@ -134,7 +134,7 @@ const inboxId = "inbox_123";
 const threadId = "thread_abc";
 const attachmentId = "attach_789"; // From a message within the thread
 
-const fileData = await client.inboxes.threads.attachments.get(
+const fileData = await client.inboxes.threads.get_attachment(
   inboxId,
   threadId,
   attachmentId

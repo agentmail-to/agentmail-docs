@@ -112,7 +112,7 @@ This is where `Labels` become truly powerful. You can list `Threads`, `Messages`
 <CodeBlocks>
 ```python title="Python"
 # Find all threads from a specific campaign that need a follow-up
-client.inboxes.threads.list(
+filtered_threads = client.inboxes.threads.list(
     inbox_id = 'outbound-agent@domain.com',
 	labels=[
 		"q4-campaign",
