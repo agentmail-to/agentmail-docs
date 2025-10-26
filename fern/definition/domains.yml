@@ -125,7 +125,7 @@ service:
       path: /{domain_id}
       display-name: Get Domain
       path-parameters:
-        domain: DomainId
+        domain_id: DomainId
       response: Domain
       errors:
         - global.NotFoundError
@@ -144,7 +144,7 @@ service:
       path: /{domain_id}
       display-name: Delete Domain
       path-parameters:
-        domain: DomainId
+        domain_id: DomainId
       errors:
         - global.NotFoundError
 
@@ -153,6 +153,6 @@ service:
       path: /{domain_id}/verify
       display-name: Verify Domain
       path-parameters:
-        domain: DomainId
+        domain_id: DomainId
       errors:
         - global.NotFoundError
