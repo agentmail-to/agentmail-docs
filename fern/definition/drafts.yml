@@ -142,6 +142,17 @@ types:
       send_at: optional<DraftSendAt>
       client_id: optional<DraftClientId>
 
+  UpdateDraftRequest:
+    properties:
+      reply_to: optional<DraftReplyTo>
+      to: optional<DraftTo>
+      cc: optional<DraftCc>
+      bcc: optional<DraftBcc>
+      subject: optional<DraftSubject>
+      text: optional<DraftText>
+      html: optional<DraftHtml>
+      send_at: optional<DraftSendAt>
+
 service:
   url: Http
   base-path: /drafts

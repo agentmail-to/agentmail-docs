@@ -54,6 +54,17 @@ service:
       errors:
         - global.NotFoundError
 
+    update:
+      method: PATCH
+      path: /{draft_id}
+      display-name: Update Draft
+      path-parameters:
+        draft_id: drafts.DraftId
+      request: drafts.UpdateDraftRequest
+      response: drafts.Draft
+      errors:
+        - global.NotFoundError
+
     send:
       method: POST
       path: /{draft_id}/send
