@@ -122,7 +122,7 @@ service:
 
     get:
       method: GET
-      path: /{domain}
+      path: /{domain_id}
       display-name: Get Domain
       path-parameters:
         domain: DomainId
@@ -141,8 +141,17 @@ service:
 
     delete:
       method: DELETE
-      path: /{domain}
+      path: /{domain_id}
       display-name: Delete Domain
+      path-parameters:
+        domain: DomainId
+      errors:
+        - global.NotFoundError
+
+    verify:
+      method: POST
+      path: /{domain_id}/verify
+      display-name: Verify Domain
       path-parameters:
         domain: DomainId
       errors:
