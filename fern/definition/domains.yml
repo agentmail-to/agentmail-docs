@@ -58,7 +58,6 @@ types:
   Domain:
     properties:
       domain_id: DomainId
-      domain: DomainName
       status:
         type: VerificationStatus
         docs: The verification status of the domain.
