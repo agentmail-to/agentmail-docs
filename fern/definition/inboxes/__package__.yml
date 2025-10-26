@@ -70,10 +70,10 @@ service:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
       response: ListInboxesResponse
-      pagination:
-        cursor: $request.page_token
-        next_cursor: $response.next_page_token
-        results: $response.inboxes
+      # pagination:
+      #   cursor: $request.page_token
+      #   next_cursor: $response.next_page_token
+      #   results: $response.inboxes
 
     get:
       method: GET
