@@ -12,6 +12,10 @@ types:
     type: string
     docs: ID of draft.
 
+  DraftClientId:
+    type: string
+    docs: Client ID of draft.
+
   DraftLabels:
     type: list<string>
     docs: Labels of draft.
@@ -76,6 +80,7 @@ types:
       inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       draft_id: DraftId
+      # client_id: optional<DraftClientId>
       labels: DraftLabels
       to: optional<DraftTo>
       cc: optional<DraftCc>
@@ -92,6 +97,7 @@ types:
       inbox_id: inboxes.InboxId
       thread_id: threads.ThreadId
       draft_id: DraftId
+      client_id: optional<DraftClientId>
       labels: DraftLabels
       reply_to: optional<DraftReplyTo>
       to: optional<DraftTo>
@@ -134,6 +140,7 @@ types:
       html: optional<DraftHtml>
       in_reply_to: optional<DraftInReplyTo>
       send_at: optional<DraftSendAt>
+      client_id: optional<DraftClientId>
 
 service:
   url: Http
