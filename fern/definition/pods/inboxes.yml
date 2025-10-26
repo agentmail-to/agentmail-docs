@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  pods: __package__.yml
+  inboxes: ../inboxes/__package__.yml
+
+service:
+  url: Http
+  base-path: /pods/{pod_id}/inboxes
+  path-parameters:
+    pod_id: pods.PodId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Inboxes
+      request:
+        name: ListInboxesRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          labels: optional<global.Labels>
+          before: optional<global.Before>
+          after: optional<global.After>
+          ascending: optional<global.Ascending>
+      response: inboxes.ListInboxesResponse
+      pagination:
+        cursor: $request.page_token
+        next_cursor: $response.next_page_token
+        results: $response.inboxes
+      errors:
+        - global.NotFoundError
+
+    get:
+      method: GET
+      path: /{inbox_id}
+      display-name: Get Inbox
+      path-parameters:
+        inbox_id: inboxes.InboxId
+      response: inboxes.Inbox
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Inbox
+      request: inboxes.CreateInboxRequest
+      response: inboxes.Inbox
+      errors:
+        - global.ValidationError
+
+    delete:
+      method: DELETE
+      path: /{inbox_id}
+      display-name: Delete Inbox
+      path-parameters:
+        inbox_id: inboxes.InboxId
+      errors:
+        - global.NotFoundError
