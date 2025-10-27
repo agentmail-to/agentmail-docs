@@ -315,7 +315,7 @@ def process_webhook(payload):
     print("Response:\n\n", response.final_output, "\n")
 
     print(f"[process_webhook] Attempting to send reply to message_id: {email['message_id']} via inbox: {inbox}")
-    client.messages.reply(inbox_id=inbox, message_id=email["message_id"], html=response.final_output)
+    client.inboxes.messages.reply(inbox_id=inbox, message_id=email["message_id"], html=response.final_output)
     print(f"[process_webhook] Reply call made for message_id: {email['message_id']}.")
 
     messages = response.to_input_list()

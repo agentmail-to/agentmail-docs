@@ -51,11 +51,15 @@ This is one of AgentMail's most powerful features. By omitting the `inbox_id`, y
 - **Advanced Workflows:** Systems that can route or escalate conversations between different agents with different permissions.
 
 <CodeBlocks>
-```python title="Python"
+```python
 # By not providing an inbox_id, we get all threads in the organization
 all_threads = client.threads.list()
 
-print(f"Found {len(all_threads)} threads across the entire organization.")
+count = 0
+for _ in all_threads:
+    count += 1
+
+print(f"Found {count} threads across the entire organization.")
 
 ````
 
@@ -88,7 +92,7 @@ thread = client.threads.get(
     thread_id="thread_id"
 )
 
-print(f"Retrieved thread {thread.id} with {len(thread.messages)} messages.")
+print(f"Retrieved thread {thread.thread_id} with {len(thread.messages)} messages.")
 
 ````
 
@@ -100,7 +104,7 @@ const thread = await client.threads.get(
 	"thread_id"
 )
 
-console.log(`Retrieved thread ${thread.id} with ${thread.messages.length} messages.`);
+console.log(`Retrieved thread ${thread.thread_id} with ${thread.messages.length} messages.`);
 ````
 
 </CodeBlocks>

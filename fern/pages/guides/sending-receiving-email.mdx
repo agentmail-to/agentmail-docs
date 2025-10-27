@@ -13,7 +13,7 @@ As a quick reminder from our `Messages` documentation, it's a critical best prac
 
 ```python
 # Always provide both html and text when possible
-client.messages.send(
+client.inboxes.messages.send(
     inbox_id="outreach@agentmail.to",
     to=["potential-customer@example.com"],
     subject="Following up",
@@ -43,7 +43,7 @@ Here's the step-by-step logic for a polling-based conversational agent.
             print("No threads need a reply.")
         else:
             # Let's work on the first unreplied thread
-            thread_to_reply_to = threads[0]
+            thread_to_reply_to = list(threads)[0]
         ```
         ```typescript
         // Find all threads in this inbox that are marked as unreplied
@@ -59,7 +59,7 @@ Here's the step-by-step logic for a polling-based conversational agent.
             console.log("No threads need a reply.");
         } else {
             // Let's work on the first unreplied thread
-            const threadToReplyTo = threads[0];
+            const threadToReplyTo = list(threads)[0];
         }
         ```
         </CodeBlocks>
@@ -70,11 +70,11 @@ Here's the step-by-step logic for a polling-based conversational agent.
         <CodeBlocks>
         ```python
         # Get the full thread object to access its messages
-        thread_details = client.threads.get(thread_to_reply_to.id)
+        thread_details = client.threads.get(thread_to_reply_to.thread_id)
 
         # The last message in the list is the one we want to reply to
         last_message = thread_details.messages[-1]
-        message_id_to_reply_to = last_message.id
+        message_id_to_reply_to = last_message.message_id
         ```
         ```typescript
         // Get the full thread object to access its messages
@@ -82,7 +82,7 @@ Here's the step-by-step logic for a polling-based conversational agent.
 
         // The last message in the array is the one we want to reply to
         const lastMessage = threadDetails.messages[threadDetails.messages.length - 1];
-        const messageIdToReplyTo = lastMessage.id;
+        const messageIdToReplyTo = lastMessage.message_id;
         ```
         </CodeBlocks>
     </Step>
@@ -92,14 +92,14 @@ Here's the step-by-step logic for a polling-based conversational agent.
         <CodeBlocks>
         ```python
         # Send the reply
-        client.messages.reply(
+        client.inboxes.messages.reply(
             inbox_id="support@agentmail.to",
             message_id=message_id_to_reply_to,
             text="This is our agent's helpful reply!"
         )
 
         # Update the labels on the original message
-        client.messages.update(
+        client.inboxes.messages.update(
             inbox_id="support@agentmail.to",
             message_id=message_id_to_reply_to,
             add_labels=["replied"],
@@ -108,12 +108,12 @@ Here's the step-by-step logic for a polling-based conversational agent.
         ```
         ```typescript
         // Send the reply
-        await client.messages.reply("support@agentmail.to", messageIdToReplyTo, {
+        await client.inboxes.messages.reply("support@agentmail.to", messageIdToReplyTo, {
             text: "This is our agent's helpful reply!",
         });
 
         // Update the labels on the original message
-        await client.messages.update("support@agentmail.to", messageIdToReplyTo, {
+        await client.inboxes.messages.update("support@agentmail.to", messageIdToReplyTo, {
             addLabels: ["replied"],
             removeLabels: ["unreplied"],
         });
