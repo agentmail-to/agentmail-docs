@@ -137,10 +137,10 @@ service:
           after: optional<global.After>
           ascending: optional<global.Ascending>
       response: ListThreadsResponse
-      pagination:
-        cursor: $request.page_token
-        next_cursor: $response.next_page_token
-        results: $response.threads
+      # pagination:
+      #   cursor: $request.page_token
+      #   next_cursor: $response.next_page_token
+      #   results: $response.threads
       errors:
         - global.NotFoundError
 
@@ -162,14 +162,5 @@ service:
         thread_id: ThreadId
         attachment_id: attachments.AttachmentId
       response: file
-      errors:
-        - global.NotFoundError
-
-    delete:
-      method: DELETE
-      path: /{thread_id}
-      display-name: Delete Thread
-      path-parameters:
-        thread_id: ThreadId
       errors:
         - global.NotFoundError

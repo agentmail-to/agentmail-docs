@@ -2,24 +2,23 @@
 
 imports:
   global: ../__package__.yml
-  inboxes: __package__.yml
-  threads: ../threads.yml
-  attachments: ../attachments.yml
+  pods: __package__.yml
+  inboxes: ../inboxes/__package__.yml
 
 service:
   url: Http
-  base-path: /inboxes/{inbox_id}/threads
+  base-path: /pods/{pod_id}/inboxes
   path-parameters:
-    inbox_id: inboxes.InboxId
+    pod_id: pods.PodId
   auth: true
 
   endpoints:
     list:
       method: GET
       path: ""
-      display-name: List Threads
+      display-name: List Inboxes
       request:
-        name: ListThreadsRequest
+        name: ListInboxesRequest
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
@@ -27,40 +26,38 @@ service:
           before: optional<global.Before>
           after: optional<global.After>
           ascending: optional<global.Ascending>
-      response: threads.ListThreadsResponse
+      response: inboxes.ListInboxesResponse
       # pagination:
       #   cursor: $request.page_token
       #   next_cursor: $response.next_page_token
-      #   results: $response.threads
+      #   results: $response.inboxes
       errors:
         - global.NotFoundError
 
     get:
       method: GET
-      path: /{thread_id}
-      display-name: Get Thread
+      path: /{inbox_id}
+      display-name: Get Inbox
       path-parameters:
-        thread_id: threads.ThreadId
-      response: threads.Thread
+        inbox_id: inboxes.InboxId
+      response: inboxes.Inbox
       errors:
         - global.NotFoundError
 
-    getAttachment:
-      method: GET
-      path: /{thread_id}/attachments/{attachment_id}
-      display-name: Get Attachment
-      path-parameters:
-        thread_id: threads.ThreadId
-        attachment_id: attachments.AttachmentId
-      response: file
+    create:
+      method: POST
+      path: ""
+      display-name: Create Inbox
+      request: inboxes.CreateInboxRequest
+      response: inboxes.Inbox
       errors:
-        - global.NotFoundError
+        - global.ValidationError
 
     delete:
       method: DELETE
-      path: /{thread_id}
-      display-name: Delete Thread
+      path: /{inbox_id}
+      display-name: Delete Inbox
       path-parameters:
-        thread_id: threads.ThreadId
+        inbox_id: inboxes.InboxId
       errors:
         - global.NotFoundError

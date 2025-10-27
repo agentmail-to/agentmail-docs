@@ -2,15 +2,15 @@
 
 imports:
   global: ../__package__.yml
-  inboxes: __package__.yml
+  pods: __package__.yml
   threads: ../threads.yml
   attachments: ../attachments.yml
 
 service:
   url: Http
-  base-path: /inboxes/{inbox_id}/threads
+  base-path: /pods/{pod_id}/threads
   path-parameters:
-    inbox_id: inboxes.InboxId
+    pod_id: pods.PodId
   auth: true
 
   endpoints:
@@ -53,14 +53,5 @@ service:
         thread_id: threads.ThreadId
         attachment_id: attachments.AttachmentId
       response: file
-      errors:
-        - global.NotFoundError
-
-    delete:
-      method: DELETE
-      path: /{thread_id}
-      display-name: Delete Thread
-      path-parameters:
-        thread_id: threads.ThreadId
       errors:
         - global.NotFoundError

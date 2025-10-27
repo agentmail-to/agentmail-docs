@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  pods: __package__.yml
+  domains: ../domains.yml
+
+service:
+  url: Http
+  base-path: /pods/{pod_id}/domains
+  path-parameters:
+    pod_id: pods.PodId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Domains
+      request:
+        name: ListDomainsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          labels: optional<global.Labels>
+          before: optional<global.Before>
+          after: optional<global.After>
+          ascending: optional<global.Ascending>
+      response: domains.ListDomainsResponse
+      # pagination:
+      #   cursor: $request.page_token
+      #   next_cursor: $response.next_page_token
+      #   results: $response.domains
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Domain
+      request: domains.CreateDomainRequest
+      response: domains.Domain
+      errors:
+        - global.ValidationError
+
+    delete:
+      method: DELETE
+      path: /{domain_id}
+      display-name: Delete Domain
+      path-parameters:
+        domain_id: domains.DomainId
+      errors:
+        - global.NotFoundError

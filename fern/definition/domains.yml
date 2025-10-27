@@ -47,19 +47,25 @@ types:
         type: optional<integer>
         docs: The priority of the MX record.
 
+  FeedbackEnabled:
+    type: boolean
+    docs: Whether bounce and complaint notifications are sent to your inboxes.
+
+  ClientId:
+    type: string
+    docs: Client ID of domain.
+
   Domain:
     properties:
       domain_id: DomainId
-      organization_id: global.OrganizationId
       status:
         type: VerificationStatus
         docs: The verification status of the domain.
-      feedback_enabled:
-        type: optional<boolean>
-        docs: Whether bounce and complaint notifications are forwarded to your domain.
+      feedback_enabled: FeedbackEnabled
       records:
         type: list<VerificationRecord>
         docs: A list of DNS records required to verify the domain.
+      client_id: optional<ClientId>
       updated_at:
         type: datetime
         docs: Time at which the domain was last updated.
@@ -70,30 +76,8 @@ types:
   DomainSummary:
     properties:
       domain_id: DomainId
-      organization_id: global.OrganizationId
-      updated_at:
-        type: datetime
-        docs: Time at which the domain was last updated.
-      created_at:
-        type: datetime
-        docs: Time at which the domain was created.
-      feedback_enabled:
-        type: optional<boolean>
-        docs: Whether to forward bounce and complaint notifications to your domain.
-
-  CreateDomainResponse:
-    properties:
-      domain_id: DomainId
-      organization_id: global.OrganizationId
-      status:
-        type: VerificationStatus
-        docs: The verification status of the domain.
-      feedback_enabled:
-        type: optional<boolean>
-        docs: Whether bounce and complaint notifications are forwarded to your domain.
-      records:
-        type: list<VerificationRecord>
-        docs: A list of DNS records required to verify the domain.
+      feedback_enabled: FeedbackEnabled
+      client_id: optional<ClientId>
       updated_at:
         type: datetime
         docs: Time at which the domain was last updated.
@@ -112,9 +96,7 @@ types:
   CreateDomainRequest:
     properties:
       domain: DomainName
-      feedback_enabled:
-        type: optional<boolean>
-        docs: Whether to forward bounce and complaint notifications to your domain.
+      feedback_enabled: FeedbackEnabled
 
 service:
   url: Http
@@ -132,17 +114,17 @@ service:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
       response: ListDomainsResponse
-      pagination:
-        cursor: $request.page_token
-        next_cursor: $response.next_page_token
-        results: $response.domains
+      # pagination:
+      #   cursor: $request.page_token
+      #   next_cursor: $response.next_page_token
+      #   results: $response.domains
 
     get:
       method: GET
-      path: /{domain}
+      path: /{domain_id}
       display-name: Get Domain
       path-parameters:
-        domain: DomainId
+        domain_id: DomainId
       response: Domain
       errors:
         - global.NotFoundError
@@ -152,15 +134,24 @@ service:
       path: ""
       display-name: Create Domain
       request: CreateDomainRequest
-      response: CreateDomainResponse
+      response: Domain
       errors:
         - global.ValidationError
 
     delete:
       method: DELETE
-      path: /{domain}
+      path: /{domain_id}
       display-name: Delete Domain
       path-parameters:
-        domain: DomainId
+        domain_id: DomainId
+      errors:
+        - global.NotFoundError
+
+    verify:
+      method: POST
+      path: /{domain_id}/verify
+      display-name: Verify Domain
+      path-parameters:
+        domain_id: DomainId
       errors:
         - global.NotFoundError

@@ -100,9 +100,9 @@ const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
 // --- Create an Inbox ---
 // Creates a new inbox with a default agentmail.to domain
 await client.inboxes.create({
-  username: docs-testing,
-  domain: domain.com,
-  displayName: Docs Tester,
+  username: “docs-testing”,
+  domain: “domain.com”,
+  displayName: “Docs Tester”,
 });
 console.log(`Created Inbox: ${newInbox.id}`);
 
