@@ -169,6 +169,9 @@ navigation:
           - page: Github Repo Agent
             icon: fa-brands fa-github
             path: pages/examples/github-star-agent.mdx
+          - page: Auto Reply Agent
+            icon: fa-solid fa-newspaper
+            path: pages/examples/auto-reply-agent.mdx
           - page: Smart Labeling Agent
             icon: fa-solid fa-life-ring
             path: pages/examples/smart-labeling-agent.mdx
