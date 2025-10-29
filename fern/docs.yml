@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/docs-yml.schema.json
 css: ./styles.css
 js: ./custom.js
 
@@ -13,6 +13,9 @@ instances:
 
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
+
+experimental:
+  dynamic-snippets: true
 
 ai-search:
   system-prompt:
@@ -111,6 +114,9 @@ navigation:
           - page: Attachments
             icon: fa-solid fa-paperclip
             path: pages/core-concepts/attachments.mdx
+          - page: Pods
+            icon: fa-solid fa-users
+            path: pages/core-concepts/pods.mdx
       - section: Guides
         contents:
           - page: Sending & Receiving Email
