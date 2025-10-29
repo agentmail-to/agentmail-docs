@@ -145,6 +145,9 @@ navigation:
           - page: Events
             icon: fa-solid fa-bell
             path: pages/webhooks/webhooks-events.mdx
+          - page: Setup Guide
+            icon: fa-solid fa-screwdriver-wrench
+            path: pages/webhooks/webhook-setup.mdx
       - section: Best Practices
         contents:
           - page: Email Deliverability
