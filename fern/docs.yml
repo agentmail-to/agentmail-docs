@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/docs-yml.schema.json
 css: ./styles.css
 js: ./custom.js
 
