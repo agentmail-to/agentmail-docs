@@ -14,6 +14,9 @@ instances:
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
+experimental:
+  dynamic-snippets: true
+
 ai-search:
   system-prompt:
     You are an AI assistant. The user asking questions may be a developer, technical writer, or product manager. You can provide code examples.
