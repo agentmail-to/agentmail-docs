@@ -28,10 +28,10 @@ service:
           after: optional<global.After>
           ascending: optional<global.Ascending>
       response: messages.ListMessagesResponse
-      # pagination:
-      #   cursor: $request.page_token
-      #   next_cursor: $response.next_page_token
-      #   results: $response.messages
+      pagination:
+        cursor: $request.page_token
+        next_cursor: $response.next_page_token
+        results: $response.messages
       errors:
         - global.NotFoundError
 

@@ -28,10 +28,10 @@ service:
           after: optional<global.After>
           ascending: optional<global.Ascending>
       response: threads.ListThreadsResponse
-      # pagination:
-      #   cursor: $request.page_token
-      #   next_cursor: $response.next_page_token
-      #   results: $response.threads
+      pagination:
+        cursor: $request.page_token
+        next_cursor: $response.next_page_token
+        results: $response.threads
       errors:
         - global.NotFoundError
 

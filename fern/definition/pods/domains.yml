@@ -27,10 +27,10 @@ service:
           after: optional<global.After>
           ascending: optional<global.Ascending>
       response: domains.ListDomainsResponse
-      # pagination:
-      #   cursor: $request.page_token
-      #   next_cursor: $response.next_page_token
-      #   results: $response.domains
+      pagination:
+        cursor: $request.page_token
+        next_cursor: $response.next_page_token
+        results: $response.domains
       errors:
         - global.NotFoundError
 
