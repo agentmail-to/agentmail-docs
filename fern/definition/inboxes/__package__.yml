@@ -26,13 +26,13 @@ types:
     properties:
       inbox_id: InboxId
       display_name: optional<DisplayName>
+      client_id: optional<ClientId>
       updated_at:
         type: datetime
         docs: Time at which inbox was last updated.
       created_at:
         type: datetime
         docs: Time at which inbox was created.
-      client_id: optional<ClientId>
 
   ListInboxesResponse:
     properties:
