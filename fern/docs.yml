@@ -111,6 +111,9 @@ navigation:
           - page: Attachments
             icon: fa-solid fa-paperclip
             path: pages/core-concepts/attachments.mdx
+          - page: Pods
+            icon: fa-solid fa-users
+            path: pages/core-concepts/pods.mdx
       - section: Guides
         contents:
           - page: Sending & Receiving Email
