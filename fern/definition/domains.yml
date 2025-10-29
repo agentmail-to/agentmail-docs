@@ -129,6 +129,16 @@ service:
       errors:
         - global.NotFoundError
 
+    getZoneFile:
+      method: GET
+      path: /{domain_id}/zone-file
+      display-name: Get Zone File
+      path-parameters:
+        domain_id: DomainId
+      response: file
+      errors:
+        - global.NotFoundError
+
     create:
       method: POST
       path: ""
