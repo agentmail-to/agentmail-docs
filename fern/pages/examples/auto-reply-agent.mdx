@@ -7,17 +7,6 @@ description: "Build a simple agent that automatically responds to incoming email
 
 Learn how to build an email auto-reply agent that automatically responds to incoming emails. This beginner-friendly example demonstrates the core concepts of building with AgentMail: receiving webhooks, processing email events, and sending automated replies.
 
-**Perfect for:**
-- Out-of-office responders
-- Initial email acknowledgments
-- Basic customer service automation
-- Learning AgentMail fundamentals
-
-<Callout intent="success">
-**Time to complete:** 15 minutes
-
-**Skill level:** Beginner (basic Python knowledge required)
-</Callout>
 
 ## What You'll Build
 
@@ -237,16 +226,6 @@ Install the required Python packages:
 pip install -r requirements.txt
 ```
 
-<Callout intent="info">
-**Using a virtual environment?** We recommend it!
-
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-</Callout>
-
 ### Step 5: Configure Environment Variables
 
 Create a `.env` file with your credentials:
@@ -262,17 +241,6 @@ WEBHOOK_DOMAIN=your-name.ngrok-free.app
 # Inbox Settings
 INBOX_USERNAME=auto-reply
 ```
-
-**Configuration explained:**
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `AGENTMAIL_API_KEY` | Your AgentMail API key | `am_...` |
-| `NGROK_AUTHTOKEN` | Your ngrok authentication token | `2a...` |
-| `WEBHOOK_DOMAIN` | Your ngrok static domain (without https://) | `my-agent.ngrok-free.app` |
-| `INBOX_USERNAME` | Username for your AgentMail inbox | `auto-reply` |
-
-
 
 ## Code Walkthrough
 
@@ -856,7 +824,7 @@ In the `receive_webhook()` function, add thread_id extraction and replace the re
 - Agent fetches entire email thread using `client.threads.get(thread_id)`
 - Thread history is formatted and passed to OpenAI for context-aware replies
 - AI can reference previous messages and provide more intelligent responses
-- If OpenAI API fails, automatically falls back to template reply
+- If OpenAI API fails, keep trying for three times
 
 **Result:**
 
