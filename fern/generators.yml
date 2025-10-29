@@ -6,7 +6,7 @@ groups:
   local:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 2.13.0
+        version: 3.13.0
         config:
           namespaceExport: AgentMail
           noSerdeLayer: false
@@ -28,7 +28,7 @@ groups:
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 2.13.0
+        version: 3.13.0
         output:
           location: npm
           package-name: agentmail
