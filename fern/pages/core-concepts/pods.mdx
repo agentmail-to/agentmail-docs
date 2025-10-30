@@ -115,14 +115,14 @@ await client.pods.delete(podId);
 // Correct approach: Clean up resources first
 async function offboardCustomer(podId: string) {
   // 1. Delete all inboxes
-  const inboxes = await client.inboxes.list(podId);
-  for (const inbox of inboxes.items) {
+  const inboxRes = await client.inboxes.list(podId);
+  for (const inbox of inboxRes.inboxes) {
     await client.inboxes.delete(inbox.inbox_id);
   }
 
   // 2. Delete all domains
-  const domains = await client.domains.list({ podId });
-  for (const domain of domains.items) {
+  const domainRes = await client.domains.list({ podId });
+  for (const domain of domainRes.domains) {
     await client.domains.delete(domain.domain_id);
   }
 

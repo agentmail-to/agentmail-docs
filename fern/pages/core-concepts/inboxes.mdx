@@ -82,12 +82,8 @@ print(f"Retrieved Inbox: {retrieved_inbox.inbox_id}")
 # --- List Inboxes ---
 # Lists all inboxes in your organization
 all_inboxes = client.inboxes.list()
-count = 0
-for inbox in all_inboxes:
-    print(inbox.inbox_id)
-    count += 1
 
-print(f"Total Inboxes: {count}")
+print(f"Total Inboxes: {all_inboxes.count}")
 
 ```
 

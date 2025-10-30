@@ -46,15 +46,15 @@ To start a new conversation, you can send a `Message` from one of your inboxes. 
 # Let's assume we have one:
 
 sent_message = client.inboxes.messages.send(
-    inbox_id = 'my_inbox@domain.com',
-    to = 'recipient@domain.com',
-    labels=[
-        "outreach",
-        "startup"
-    ],
-    subject="[YC S25] Founder Reachout ",
-    text="Hello, I'm Michael, and I'm a founder at AgentMail...",
-    html="<div dir=\"ltr\">Hello,<br><br>I'm Michael, and I'm a founder at AgentMail..."
+inbox_id = 'my_inbox@domain.com',
+to = 'recipient@domain.com',
+labels=[
+"outreach",
+"startup"
+],
+subject="[YC S25] Founder Reachout ",
+text="Hello, I'm Michael, and I'm a founder at AgentMail...",
+html="<div dir=\"ltr\">Hello,<br><br>I'm Michael, and I'm a founder at AgentMail..."
 )
 print(f"Message sent successfully with ID: {sent_message.message_id}")
 
@@ -90,8 +90,6 @@ You can retrieve a list of all `Messages` within a specific `Inbox`. This is use
 all_messages = client.inboxes.messages.list(inbox_id='my_inbox@agentmail.to')
 
 print(f"Found {all_messages.count} messages in the inbox.")
-for message in all_messages:
-    print(f"- Subject: {message.subject}")
 
 ````
 ```typescript title="TypeScript"
@@ -99,9 +97,6 @@ for message in all_messages:
 const allMessages = await client.inboxes.messages.list("outreach@agentmail.to")
 
 console.log(`Found ${allMessages.count} messages in the inbox.`);
-allMessages.forEach((message) => {
-  console.log(`- Subject: ${message.subject}`);
-});
 ````
 
 </CodeBlocks>

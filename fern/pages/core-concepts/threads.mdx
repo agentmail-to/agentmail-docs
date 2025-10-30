@@ -37,7 +37,7 @@ const inboxId = "inbound-agent@agentmail.to";
 // This retrieves all threads within the specified Inbox
 const inboxThreads = await client.inboxes.threads.list(inbound-agent@agentmail.to);
 
-console.log(`Found ${inboxThreads.length} threads in Inbox ${inboxId}.`);
+console.log(`Found ${inboxThreads.count} threads in Inbox ${inboxId}.`);
 ````
 
 </CodeBlocks>
@@ -55,11 +55,7 @@ This is one of AgentMail's most powerful features. By omitting the `inbox_id`, y
 # By not providing an inbox_id, we get all threads in the organization
 all_threads = client.threads.list()
 
-count = 0
-for _ in all_threads:
-    count += 1
-
-print(f"Found {count} threads across the entire organization.")
+print(f"Found {all_threads.count} threads across the entire organization.")
 
 ````
 
@@ -67,7 +63,7 @@ print(f"Found {count} threads across the entire organization.")
 // By not providing an inboxId, we get all threads in the organization
 const allThreads = await client.threads.list();
 
-console.log(`Found ${allThreads.length} threads across the entire organization.`);
+console.log(`Found ${allThreads.count} threads across the entire organization.`);
 ````
 
 </CodeBlocks>
@@ -89,7 +85,7 @@ thread_id = "thread_456def"
 # This retrieves a single thread and its messages
 
 thread = client.threads.get(
-    thread_id="thread_id"
+thread_id="thread_id"
 )
 
 print(f"Retrieved thread {thread.thread_id} with {len(thread.messages)} messages.")

@@ -76,10 +76,10 @@ You can modify the `Labels` on a `Message` that has already been sent using the 
 # Let's add a 'resolved' label to a message
 
 client.messages.update(
-    inbox_id='outbound@domain.com',
-    message_id='msg_id_123',
-    add_labels=["resolved"],
-    remove_labels=['unresolved']
+inbox_id='outbound@domain.com',
+message_id='msg_id_123',
+add_labels=["resolved"],
+remove_labels=['unresolved']
 )
 
 ````
@@ -120,13 +120,13 @@ filtered_threads = client.inboxes.threads.list(
     ]
 )
 
-print(f"Found {len(filtered_threads)} threads that need a follow-up.")
+print(f"Found {filtered_threads.count} threads that need a follow-up.")
 
 ````
 
 ```typescript title="TypeScript"
 // Find all threads from a specific campaign that need a follow-up
-await client.inboxes.threads.list(
+cosnt filteredThreads = await client.inboxes.threads.list(
   "leads@agentmail.to",
   {
     labels: [
@@ -137,7 +137,7 @@ await client.inboxes.threads.list(
 )
 
 
-console.log(`Found ${filteredThreads.length} threads that need a follow-up.`);
+console.log(`Found ${filteredThreads.count} threads that need a follow-up.`);
 ````
 
 </CodeBlocks>
