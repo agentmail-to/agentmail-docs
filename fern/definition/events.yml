@@ -2,6 +2,7 @@
 
 imports:
   inboxes: inboxes/__package__.yml
+  threads: threads.yml
   messages: messages.yml
 
 types:
@@ -25,6 +26,7 @@ types:
   Send:
     properties:
       inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
       message_id: messages.MessageId
       timestamp: Timestamp
       recipients:
@@ -34,6 +36,7 @@ types:
   Delivery:
     properties:
       inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
       message_id: messages.MessageId
       timestamp: Timestamp
       recipients:
@@ -43,6 +46,7 @@ types:
   Bounce:
     properties:
       inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
       message_id: messages.MessageId
       timestamp: Timestamp
       type:
@@ -58,6 +62,7 @@ types:
   Complaint:
     properties:
       inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
       message_id: messages.MessageId
       timestamp: Timestamp
       type:
@@ -73,6 +78,7 @@ types:
   Reject:
     properties:
       inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
       message_id: messages.MessageId
       timestamp: Timestamp
       reason:
