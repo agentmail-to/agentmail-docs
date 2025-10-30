@@ -54,6 +54,10 @@ types:
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
 
+  UpdateInboxRequest:
+    properties:
+      display_name: DisplayName
+
 service:
   url: Http
   base-path: /inboxes
@@ -89,6 +93,17 @@ service:
       response: Inbox
       errors:
         - global.ValidationError
+
+    update:
+      method: PATCH
+      path: /{inbox_id}
+      display-name: Update Inbox
+      path-parameters:
+        inbox_id: InboxId
+      request: UpdateInboxRequest
+      response: Inbox
+      errors:
+        - global.NotFoundError
 
     delete:
       method: DELETE
