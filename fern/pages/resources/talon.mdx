@@ -2,12 +2,12 @@
 title: "Email Reply Extraction with Talon"
 subtitle: "Extract clean reply content from email threads using Talon library"
 slug: talon-reply-extraction
-description: "Learn how to use Talon to extract new content from email replies, removing quoted text and signatures with 93.8% accuracy."
+description: "Learn how to use Talon to extract new content from email replies, removing quoted text with 93.8% accuracy."
 ---
 
 ## Why Talon?
 
-Email threads accumulate quoted replies and signatures that clutter the actual content. When processing emails programmatically, you need just the new message, not the entire conversation history.
+Email threads accumulate quoted replies that clutter the actual content. When processing emails programmatically, you need just the new message, not the entire conversation history.
 
 **Talon solves this problem** by extracting clean reply content through sophisticated pattern matching and structural analysis.
 
@@ -57,17 +57,12 @@ Recognizes patterns like:
 1. **Structural Removal**: Directly removes known quotation elements (Gmail divs, blockquotes, Outlook markup)
 2. **Checkpoint Fallback**: For non-standard HTML, maps elements to text lines, applies text patterns, removes corresponding HTML
 
-### Two Processing Systems
+### Processing Systems
 
 **Quotation Removal** (Primary)
 - Removes quoted replies from thread
 - No initialization required
 - Rule-based pattern matching
-
-**Signature Extraction** (Optional)
-- Removes email signatures
-- Bruteforce method: ~90% accuracy, no setup
-- ML method: Higher accuracy, requires `talon.init()`
 
 ---
 
@@ -97,12 +92,11 @@ Recognizes patterns like:
     # Now safe to import talon
     import talon
     from talon import quotations
-    talon.init()  # Only needed for ML-based signature extraction
     ```
     </CodeBlocks>
 
     <Callout intent="warn">
-      This workaround is **required** for Python 3.11+. Without it, you'll get import errors.
+      This workaround is **required** for Python 3.11+.
     </Callout>
   </Step>
 
@@ -143,31 +137,6 @@ Recognizes patterns like:
     </CodeBlocks>
   </Step>
 
-  <Step title="Extract Signatures (Optional)">
-    Remove email signatures using bruteforce method:
-
-    <CodeBlocks>
-    ```python
-    from talon.signature.bruteforce import extract_signature
-
-    message = """I agree with the proposal.
-
-    Best regards,
-    John Doe
-    Senior Engineer
-    john@company.com
-    """
-
-    body, signature = extract_signature(message)
-    # body: "I agree with the proposal."
-    # signature: "Best regards,\nJohn Doe\nSenior Engineer\njohn@company.com"
-    ```
-    </CodeBlocks>
-
-    <Tip>
-      Signature extraction is independent from quotation removal. Use them separately or combine them for complete email cleaning.
-    </Tip>
-  </Step>
 </Steps>
 
 ---
@@ -194,14 +163,6 @@ Talon has been tested on 64 real-world emails from various clients and languages
 - **6+ languages**: English, Japanese, Swedish, Polish, Dutch, German
 - **Mobile clients**: iPhone, Android "Sent from" signatures
 
-### What Works Well
-
-- Standard reply formats (Gmail, Outlook, Apple Mail): **98%+ accuracy**
-- Quote markers (`>`) and splitter patterns: **100%**
-- Email signatures: **90%+ with bruteforce, higher with ML**
-- Multi-language replies: **Excellent**
-- HTML blockquotes and known structures: **Perfect**
-
 ### Processing Time by Complexity
 
 | Email Type | Avg Time | Complexity |
@@ -218,7 +179,7 @@ Talon has been tested on 64 real-world emails from various clients and languages
 | qutoequail | 0.96ms | ~85% | Moderate accuracy requirements |
 | Custom regex | 0.1ms | ~70% | Simple plain text, speed critical |
 
-**Key Insight**: Talon offers the best accuracy at reasonable speed. For most applications, 1.92ms is negligible—you can still process 488 emails per second.
+**Insight**: For production systems, 1.92ms average is negligible. Even at worst case (21.55ms), Talon is faster than most network requests.
 
 ---
 
@@ -228,7 +189,7 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
 
 <AccordionGroup>
   <Accordion title="Failed Test Cases (4 total)">
-    ### Test Case 1: Complex Email Thread with Signature (2.55ms)
+    ### Test Case 1: Complex Email Thread with Mixed Content
 
     **Input**:
     ```text
@@ -253,15 +214,17 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
     > Cody Hart
     ```
 
-    **Expected Output**: First 8 lines only (up to "Christopher Edwards")
+    **Expected Output**: First 5 lines only (up to `Christopher Edwards`)
 
     **Talon's Output**: Returns entire email including quoted text starting with "On Mon, Jun 3..." and all "> quoted text"
+
+    **Processing Time**: 2.55ms
 
     **Issue**: Signature placement before quotes confuses detection logic
 
     ---
 
-    ### Test Case 2: Inline Responses (0.48ms)
+    ### Test Case 2: Inline Responses
 
     **Input**:
     ```text
@@ -285,15 +248,17 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
     > -- Tim
     ```
 
-    **Expected Output**: Just the inline responses ("I will reply under this one" and "and under this.")
+    **Expected Output**: Just the inline responses (`I will reply under this one` and `and under this.`)
 
     **Talon's Output**: Returns everything including "On Tue, Apr 29..." header and all quoted lines
+
+    **Processing Time**: 0.48ms
 
     **Issue**: Interleaved inline responses not recognized as the reply pattern
 
     ---
 
-    ### Test Case 3: Gmail Forward HTML (3.41ms)
+    ### Test Case 3: Gmail Forward HTML
 
     **Input**:
     ```html
@@ -308,15 +273,17 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
     </div><br></div></div></body></html>
     ```
 
-    **Expected Output**: Just "test" and "blah" (before the forward marker)
+    **Expected Output**: Just `testblah` (before the forward marker)
 
     **Talon's Output**: Includes "---------- Forwarded message ----------" and forwarded content
+
+    **Processing Time**: 3.41ms
 
     **Issue**: HTML forward headers not removed by Gmail quote detection
 
     ---
 
-    ### Test Case 4: Thunderbird Forward HTML (4.34ms)
+    ### Test Case 4: Thunderbird Forward HTML
 
     **Input**:
     ```html
@@ -342,15 +309,17 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
 
     **Talon's Output**: Includes "-------- Forwarded Message --------" and forwarded content
 
+    **Processing Time**: 4.34ms
+
     **Issue**: Thunderbird's `moz-forward-container` class not recognized
 
     ---
 
-    **Key Insight**: 3 of 4 failures are forwarded messages. Regular replies work with 98%+ accuracy.
+    **Summary**: 3 of 4 failures are forwarded messages. Regular replies work with 98%+ accuracy.
   </Accordion>
 
   <Accordion title="Success Examples">
-    ### Example 1: Simple Gmail Reply (0.2ms)
+    ### Example 1: Simple Gmail Reply
 
     **Input**:
     ```text
@@ -364,7 +333,7 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
     > Loader seems to be working well.
     ```
 
-    **Talon's Output**: `"Awesome! I haven't had another problem with it."`
+    **Talon's Output**: `Awesome! I haven't had another problem with it.`
 
     **Processing Time**: 0.2ms
 
@@ -372,7 +341,7 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
 
     ---
 
-    ### Example 2: Outlook Reply with Separator (0.51ms)
+    ### Example 2: Outlook Reply with Separator
 
     **Input**:
     ```text
@@ -388,7 +357,7 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
     I am replying to a comment.
     ```
 
-    **Talon's Output**: `"Outlook with a reply directly above line"`
+    **Talon's Output**: `Outlook with a reply directly above line`
 
     **Processing Time**: 0.51ms
 
@@ -396,7 +365,7 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
 
     ---
 
-    ### Example 3: HTML Outlook Reply (4.02ms)
+    ### Example 3: HTML Outlook Reply
 
     **Input**:
     ```html
@@ -416,7 +385,7 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
     </html>
     ```
 
-    **Talon's Output**: `"Reply"`
+    **Talon's Output**: `Reply`
 
     **Processing Time**: 4.02ms
 
@@ -444,22 +413,6 @@ Talon failed 4 out of 64 test cases. Here's what didn't work:
 
 ---
 
-## Best Practices
-
-### When to Use Talon
-
-**Use Talon when you need:**
-- HTML email support (Gmail, Outlook web clients)
-- Signature extraction capabilities
-- Multi-language email processing
-- High accuracy (93.8%) across diverse formats
-- Production-ready email automation
-
-**Consider alternatives when:**
-- Processing plain text only and need maximum speed
-- Working exclusively with forwarded messages
-- Need minimal dependencies
-
 ### Error Handling
 
 Always handle potential parsing failures:
@@ -479,74 +432,13 @@ def safe_extract(email_body, is_html=False):
         return email_body
 ```
 
-### Combining Quotation & Signature Removal
-
-For complete email cleaning, apply both operations:
-
-```python
-from talon import quotations
-from talon.signature.bruteforce import extract_signature
-
-def clean_email(raw_email, is_html=False):
-    # Step 1: Remove quotations
-    if is_html:
-        no_quotes = quotations.extract_from_html(raw_email)
-    else:
-        no_quotes = quotations.extract_from_plain(raw_email)
-
-    # Step 2: Remove signature (works on text)
-    if is_html:
-        # Convert HTML to text first for signature extraction
-        from talon import utils
-        text = utils.html_tree_to_text(utils.html_fromstring(no_quotes))
-        clean_text, sig = extract_signature(text)
-        return clean_text
-    else:
-        clean_text, sig = extract_signature(no_quotes)
-        return clean_text
-
-# Usage
-clean_content = clean_email(incoming_email, is_html=True)
-```
-
-### AgentMail Integration
-
-Use Talon to process incoming webhook messages:
-
-```python
-from talon import quotations
-import sys
-import chardet
-sys.modules['cchardet'] = chardet
-
-def process_agentmail_webhook(webhook_data):
-    """Process incoming AgentMail webhook with Talon extraction."""
-    message = webhook_data['message']
-    body = message['body']
-    is_html = message.get('content_type') == 'text/html'
-
-    # Extract clean reply
-    if is_html:
-        clean_reply = quotations.extract_from_html(body)
-    else:
-        clean_reply = quotations.extract_from_plain(body)
-
-    # Now process only the new content
-    return {
-        'thread_id': message['thread_id'],
-        'from': message['from'],
-        'clean_content': clean_reply,
-        'original_length': len(body),
-        'cleaned_length': len(clean_reply)
-    }
-```
 
 ### Testing Recommendations
 
 Always test with your specific email formats:
 
 ```python
-# Create a test suite with your actual email patterns
+# Create a test suite with your actual email patterns (Gmail, Outlook, Apple Mail)
 test_emails = [
     "path/to/gmail_reply.html",
     "path/to/outlook_reply.txt",
@@ -566,12 +458,67 @@ for email_file in test_emails:
 
 ---
 
-## TypeScript Implementation (Coming Soon)
+## JavaScript Version
 
-We're currently researching how to port Talon to TypeScript for native API integration. 
-The Python implementation is fully functional and can be used via:
-- Separate microservice
-- Python subprocess calls
-- REST API wrapper
+For TypeScript/JavaScript projects, use **[TalonJS](https://github.com/quentez/talonjs)** - a JavaScript port of Talon with similar functionality.
 
-Check back soon for TypeScript implementation updates.
+### Performance Comparison
+
+| Solution | Accuracy | Speed | Best For |
+|----------|----------|-------|----------|
+| **Python Talon** | 93.8% | 1.92ms | Highest accuracy |
+| **TalonJS** | 90.6% | 1.88ms | TypeScript/Node.js projects |
+
+TalonJS provides 90.6% accuracy with slightly faster performance (1.88ms), making it ideal for JavaScript/TypeScript environments without needing Python dependencies.
+
+### Quick Start
+
+<Steps>
+  <Step title="Install TalonJS">
+    ```bash
+    npm install talonjs
+    ```
+  </Step>
+
+  <Step title="Extract Replies">
+    <CodeBlocks>
+    ```typescript title="Plain Text"
+    import * as talon from 'talonjs';
+
+    const email = `Great work on the project!
+
+    On Mon, Apr 11, 2011 at 6:54 PM, Bob wrote:
+    > Can you review the document?
+    > Need feedback by Friday.
+    `;
+
+    const result = talon.quotations.extractFromPlain(email);
+    const cleanReply = result.body.trim();
+    // Output: "Great work on the project!"
+    ```
+
+    ```typescript title="HTML"
+    import * as talon from 'talonjs';
+
+    const htmlEmail = `
+      <div>Thanks for the update!</div>
+      <div class="gmail_quote">
+        On Mon, Alice wrote: <blockquote>Original</blockquote>
+      </div>
+    `;
+
+    const result = talon.quotations.extractFromHtml(htmlEmail);
+    const cleanReply = result.body.trim();
+    // Returns: "<div>Thanks for the update!</div>"
+    // Note: TalonJS returns clean HTML, not plain text
+    ```
+    </CodeBlocks>
+  </Step>
+</Steps>
+
+<Tip>
+  **When to use TalonJS vs Python Talon:**
+  - Use **TalonJS** if you're building in TypeScript/JavaScript and 90.6% accuracy is sufficient
+  - Use **Python Talon** if you need the highest accuracy (93.8%) or are in a Python environment
+  - The 3.2% accuracy difference is acceptable for most use cases
+</Tip>
