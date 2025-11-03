@@ -73,7 +73,7 @@ types:
         type: datetime
         docs: Time at which the domain was created.
 
-  DomainSummary:
+  DomainItem:
     properties:
       domain_id: DomainId
       feedback_enabled: FeedbackEnabled
@@ -90,7 +90,7 @@ types:
       count: global.Count
       next_page_token: optional<global.PageToken>
       domains:
-        type: list<DomainSummary>
+        type: list<DomainItem>
         docs: Ordered by `created_at` descending.
 
   CreateDomainRequest:
