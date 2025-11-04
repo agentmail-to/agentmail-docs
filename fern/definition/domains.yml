@@ -88,6 +88,7 @@ types:
   ListDomainsResponse:
     properties:
       count: global.Count
+      limit: optional<global.Limit>
       next_page_token: optional<global.PageToken>
       domains:
         type: list<DomainItem>
