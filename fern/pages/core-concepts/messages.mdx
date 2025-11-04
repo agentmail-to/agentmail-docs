@@ -115,7 +115,7 @@ Replying to an existing `Message` adds your new `Message` to the same `Thread`, 
 ```python title="Python" wordWrap
 
 reply = client.inboxes.messages.reply(
-    inbox_id='my_inbox@domain.com'
+    inbox_id='my_inbox@domain.com',
     message_id='msg_id',
     text="Thanks for the referral!",
     attachments=[
