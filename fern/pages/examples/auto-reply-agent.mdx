@@ -83,6 +83,7 @@ WEBHOOK_DOMAIN = os.getenv("WEBHOOK_DOMAIN")
 # Initialize Flask app and AgentMail client
 app = Flask(__name__)
 client = AgentMail()
+processed_messages = set()  # Track processed message IDs to prevent duplicates
 
 
 def setup_agentmail():
@@ -160,6 +161,11 @@ def receive_webhook():
     # Validate required fields
     if not message_id or not inbox_id or not from_field:
         return Response(status=200)
+
+    # prevent duplicate
+    if message_id in processed_messages:
+        return Response(status=200)
+    processed_messages.add(message_id)
 
     # Extract sender email and name
     if '<' in from_field and '>' in from_field:
