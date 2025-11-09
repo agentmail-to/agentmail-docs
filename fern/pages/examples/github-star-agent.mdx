@@ -17,7 +17,7 @@ We will use Flask to create a simple web server and `ngrok` to expose it to the 
 Before you start, make sure you have the following:
 
 - Python 3.8+
-- An [AgentMail API Key](mailto:contact@agentmail.to).
+- An [AgentMail API Key](https://console.agentmail.to/dashboard/api-keys).
 - An [OpenAI account](https://openai.com/) and API key.
 - An [ngrok account](https://ngrok.com/) and authtoken.
 
@@ -88,15 +88,15 @@ inbox = f"{inbox_username}@agentmail.to"
 
 target_github_repo = os.getenv("TARGET_GITHUB_REPO")
 if not target_github_repo:
-    print("\nWARNING: The TARGET_GITHUB_REPO environment variable is not set.")
-    print("The agent will not have a specific GitHub repository to focus on.")
-    print("Please set it in your .env file (e.g., TARGET_GITHUB_REPO='owner/repository_name')\n")
+print("\nWARNING: The TARGET_GITHUB_REPO environment variable is not set.")
+print("The agent will not have a specific GitHub repository to focus on.")
+print("Please set it in your .env file (e.g., TARGET_GITHUB_REPO='owner/repository_name')\n")
 
 demo_target_email = os.getenv("DEMO_TARGET_EMAIL")
 if not demo_target_email:
-    print("\nWARNING: The DEMO_TARGET_EMAIL environment variable is not set.")
-    print("The agent will not have a specific email to send the 'top starrer' outreach to.")
-    print("Please set it in your .env file (e.g., DEMO_TARGET_EMAIL='your.email@example.com')\n")
+print("\nWARNING: The DEMO_TARGET_EMAIL environment variable is not set.")
+print("The agent will not have a specific email to send the 'top starrer' outreach to.")
+print("Please set it in your .env file (e.g., DEMO_TARGET_EMAIL='your.email@example.com')\n")
 
 # Determine the target email, with a fallback if the environment variable is not set.
 
@@ -123,13 +123,13 @@ client = AgentMail()
 inbox_client_id = f"inbox-for-{inbox_username}"
 print(f"Attempting to create or retrieve inbox '{inbox}' with client_id: {inbox_client_id}")
 try:
-    client.inboxes.create(
-        username=inbox_username,
-        client_id=inbox_client_id
-    )
-    print("Inbox creation/retrieval successful.")
+client.inboxes.create(
+username=inbox_username,
+client_id=inbox_client_id
+)
+print("Inbox creation/retrieval successful.")
 except Exception as e:
-    print(f"Error creating/retrieving inbox: {e}") # Depending on the desired behavior, you might want to exit here # if the inbox is critical for the agent's function.
+print(f"Error creating/retrieving inbox: {e}") # Depending on the desired behavior, you might want to exit here # if the inbox is critical for the agent's function.
 
 # 3. Start the ngrok tunnel to get a public URL
 
@@ -143,13 +143,13 @@ webhook_url = f"{listener.url()}/webhooks"
 webhook_client_id = f"webhook-for-{inbox_username}"
 print(f"Attempting to create or retrieve webhook for URL: {webhook_url}")
 try:
-    client.webhooks.create(
-        url=webhook_url,
-        client_id=webhook_client_id,
-    )
-    print("Webhook creation/retrieval successful.")
+client.webhooks.create(
+url=webhook_url,
+client_id=webhook_client_id,
+)
+print("Webhook creation/retrieval successful.")
 except Exception as e:
-    print(f"Error creating/retrieving webhook: {e}")
+print(f"Error creating/retrieving webhook: {e}")
 
 # 5. Initialize the Flask App
 
@@ -205,9 +205,9 @@ Remember, your primary contact for ongoing conversation is '{actual_demo_target_
 """
 
 agent = Agent(
-    name="GitHub Agent",
-    instructions=instructions,
-    tools=AgentMailToolkit(client).get_tools() + [WebSearchTool()],
+name="GitHub Agent",
+instructions=instructions,
+tools=AgentMailToolkit(client).get_tools() + [WebSearchTool()],
 )
 
 messages = []
@@ -219,8 +219,8 @@ MAX_SIMULATED_STARS = 1 # single star even
 stars_found_so_far = 0
 
 def poll_github_stargazers():
-    global simulated_stargazer_count, stars_found_so_far
-    print(f"GitHub polling thread started for top 20 repositories related to AI agents...")
+global simulated_stargazer_count, stars_found_so_far
+print(f"GitHub polling thread started for top 20 repositories related to AI agents...")
 
     # Give the Flask app a moment to start up if run concurrently
     time.sleep(3)
@@ -294,12 +294,12 @@ def poll_github_stargazers():
 
 @app.route("/webhooks", methods=["POST"])
 def receive_webhook():
-    print(f"\n[/webhooks] Received webhook. Payload keys: {list(request.json.keys()) if request.is_json else 'Not JSON or empty'}")
-    Thread(target=process_webhook, args=(request.json,)).start()
-    return Response(status=200)
+print(f"\n[/webhooks] Received webhook. Payload keys: {list(request.json.keys()) if request.is_json else 'Not JSON or empty'}")
+Thread(target=process_webhook, args=(request.json,)).start()
+return Response(status=200)
 
 def process_webhook(payload):
-    global messages
+global messages
 
     email = payload["message"]
     print(f"[process_webhook] Processing email from: {email.get('from')}, subject: {email.get('subject')}, id: {email.get('message_id')}")
@@ -321,12 +321,12 @@ def process_webhook(payload):
     messages = response.to_input_list()
     print(f"[process_webhook] Updated message history. New length: {len(messages)}\n")
 
-if __name__ == "__main__":
-    print(f"Inbox: {inbox}\n")
-    if not target_github_repo or target_github_repo == "example/repo":
-        print("WARNING: TARGET_GITHUB_REPO not set or is default. Poller will not be effective.")
-    if not demo_target_email:
-        print("WARNING: DEMO_TARGET_EMAIL not set or is default. Poller will not be effective.")
+if **name** == "**main**":
+print(f"Inbox: {inbox}\n")
+if not target_github_repo or target_github_repo == "example/repo":
+print("WARNING: TARGET_GITHUB_REPO not set or is default. Poller will not be effective.")
+if not demo_target_email:
+print("WARNING: DEMO_TARGET_EMAIL not set or is default. Poller will not be effective.")
 
     polling_thread = Thread(target=poll_github_stargazers)
     polling_thread.daemon = True # So it exits when the main thread exits
