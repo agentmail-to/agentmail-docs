@@ -74,6 +74,7 @@ load_dotenv()
 from flask import Flask, request, Response
 import ngrok
 from agentmail import AgentMail
+import threading
 
 # Configuration
 PORT = 8080
@@ -83,6 +84,7 @@ WEBHOOK_DOMAIN = os.getenv("WEBHOOK_DOMAIN")
 # Initialize Flask app and AgentMail client
 app = Flask(__name__)
 client = AgentMail()
+processed_messages = set()  # Track processed message IDs to prevent duplicates
 
 
 def setup_agentmail():
@@ -115,6 +117,7 @@ def setup_agentmail():
         webhook = client.webhooks.create(
             url=f"{listener.url()}/webhook/agentmail",
             event_types=["message.received"],
+            inbox_ids=[inbox.inbox_id],
             client_id=f"{INBOX_USERNAME}-webhook"
         )
         print(f"✓ Webhook created")
@@ -142,6 +145,35 @@ def generate_reply(sender_name, subject):
     )
 
 
+def process_and_reply(message_id, inbox_id, from_field, subject, message):
+    """Process incoming message and send reply in background."""
+    # Extract sender email and name
+    if '<' in from_field and '>' in from_field:
+        sender_email = from_field.split('<')[1].split('>')[0].strip()
+        sender_name = from_field.split('<')[0].strip()
+        if not sender_name or ',' in sender_name:
+            sender_name = sender_email.split('@')[0].title()
+    else:
+        sender_email = from_field.strip()
+        sender_name = sender_email.split('@')[0].title() if '@' in sender_email else 'Friend'
+
+    # Log incoming email
+    print(f"Processing email from {sender_email}: {subject}")
+
+    # Generate and send auto-reply
+    try:
+        reply_text = generate_reply(sender_name, subject)
+        client.inboxes.messages.reply(
+            inbox_id=inbox_id,
+            message_id=message_id,
+            to=[sender_email],
+            text=reply_text
+        )
+        print(f"Auto-reply sent to {sender_email}\n")
+    except Exception as e:
+        print(f"Error: {e}\n")
+
+
 @app.route('/webhook/agentmail', methods=['POST'])
 def receive_webhook():
     """Webhook endpoint to receive incoming email notifications."""
@@ -161,33 +193,20 @@ def receive_webhook():
     if not message_id or not inbox_id or not from_field:
         return Response(status=200)
 
-    # Extract sender email and name
-    if '<' in from_field and '>' in from_field:
-        sender_email = from_field.split('<')[1].split('>')[0].strip()
-        sender_name = from_field.split('<')[0].strip()
-        if not sender_name or ',' in sender_name:
-            sender_name = sender_email.split('@')[0].title()
-    else:
-        sender_email = from_field.strip()
-        sender_name = sender_email.split('@')[0].title() if '@' in sender_email else 'Friend'
+    # prevent duplicate
+    if message_id in processed_messages:
+        return Response(status=200)
+    processed_messages.add(message_id)
 
     subject = message.get('subject', '(no subject)')
 
-    # Log incoming email
-    print(f"Email from {sender_email}: {subject}")
-
-    # Generate and send auto-reply
-    try:
-        reply_text = generate_reply(sender_name, subject)
-        client.inboxes.messages.reply(
-            inbox_id=inbox_id,
-            message_id=message_id,
-            to=[sender_email],
-            text=reply_text
-        )
-        print(f"Auto-reply sent to {sender_email}\n")
-    except Exception as e:
-        print(f"Error: {e}\n")
+    # Process in background thread and return immediately
+    thread = threading.Thread(
+        target=process_and_reply,
+        args=(message_id, inbox_id, from_field, subject, message)
+    )
+    thread.daemon = True
+    thread.start()
 
     return Response(status=200)
 
