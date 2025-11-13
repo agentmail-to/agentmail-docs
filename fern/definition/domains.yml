@@ -2,6 +2,7 @@
 
 imports:
   global: __package__.yml
+  pods: pods/__package__.yml
 
 types:
   DomainId:
@@ -57,6 +58,7 @@ types:
 
   Domain:
     properties:
+      pod_id: optional<pods.PodId>
       domain_id: DomainId
       status:
         type: VerificationStatus
@@ -75,6 +77,7 @@ types:
 
   DomainItem:
     properties:
+      pod_id: optional<pods.PodId>
       domain_id: DomainId
       feedback_enabled: FeedbackEnabled
       client_id: optional<ClientId>
