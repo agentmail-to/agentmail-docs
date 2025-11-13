@@ -18,6 +18,7 @@ service:
       method: GET
       path: ""
       display-name: List Threads
+      docs: Retrieves all email threads across all inboxes within a specific pod.
       request:
         name: ListThreadsRequest
         query-parameters:
@@ -35,6 +36,7 @@ service:
       method: GET
       path: /{thread_id}
       display-name: Get Thread
+      docs: Retrieves a complete email thread from any inbox within the specified pod.
       path-parameters:
         thread_id: threads.ThreadId
       response: threads.Thread
@@ -45,6 +47,7 @@ service:
       method: GET
       path: /{thread_id}/attachments/{attachment_id}
       display-name: Get Attachment
+      docs: Downloads an attachment from any message within a thread in the specified pod.
       path-parameters:
         thread_id: threads.ThreadId
         attachment_id: attachments.AttachmentId

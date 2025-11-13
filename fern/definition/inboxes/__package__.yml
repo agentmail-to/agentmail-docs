@@ -70,6 +70,7 @@ service:
       method: GET
       path: ""
       display-name: List Inboxes
+      docs: Retrieves a paginated list of all inboxes in your AgentMail account, ordered by creation date descending.
       request:
         name: ListInboxesRequest
         query-parameters:
@@ -81,6 +82,7 @@ service:
       method: GET
       path: /{inbox_id}
       display-name: Get Inbox
+      docs: Retrieves detailed information about a specific inbox including its configuration, status, and metadata.
       path-parameters:
         inbox_id: InboxId
       response: Inbox
@@ -91,6 +93,7 @@ service:
       method: POST
       path: ""
       display-name: Create Inbox
+      docs: Creates a new email inbox with a specified username and domain for your AI agent to send and receive emails.
       request: CreateInboxRequest
       response: Inbox
       errors:
@@ -100,6 +103,7 @@ service:
       method: PATCH
       path: /{inbox_id}
       display-name: Update Inbox
+      docs: Updates the configuration or settings of an existing inbox such as display name or forwarding rules.
       path-parameters:
         inbox_id: InboxId
       request: UpdateInboxRequest
@@ -111,6 +115,7 @@ service:
       method: DELETE
       path: /{inbox_id}
       display-name: Delete Inbox
+      docs: Permanently deletes an inbox and all associated messages, threads, and drafts.
       path-parameters:
         inbox_id: InboxId
       errors:
