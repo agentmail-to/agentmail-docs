@@ -65,10 +65,10 @@ tabs:
   api:
     display-name: API Reference
     icon: terminal
-  changelog:
-    display-name: Changelog
-    icon: light clock
-    changelog: ./changelog
+  # changelog:
+  #   display-name: Changelog
+  #   icon: light clock
+  #   changelog: ./changelog
 
 experimental:
   dynamic-snippets: true
@@ -226,4 +226,4 @@ navigation:
           - metrics
           - api-keys
           - pods
-  - tab: changelog
+  # - tab: changelog
