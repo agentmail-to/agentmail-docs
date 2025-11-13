@@ -67,6 +67,7 @@ service:
       method: GET
       path: ""
       display-name: List Webhooks
+      docs: Returns all configured webhook endpoints that receive real-time notifications for email events.
       request:
         name: ListWebhooksRequest
         query-parameters:
@@ -78,6 +79,7 @@ service:
       method: GET
       path: /{webhook_id}
       display-name: Get Webhook
+      docs: Retrieves configuration details for a specific webhook including URL, events, and status.
       path-parameters:
         webhook_id: WebhookId
       response: Webhook
@@ -88,6 +90,7 @@ service:
       method: POST
       path: ""
       display-name: Create Webhook
+      docs: Creates a new webhook to receive real-time HTTP callbacks when email events occur (e.g., message received, sent).
       request: CreateWebhookRequest
       response: Webhook
       errors:
@@ -97,6 +100,7 @@ service:
       method: DELETE
       path: /{webhook_id}
       display-name: Delete Webhook
+      docs: Removes a webhook endpoint and stops sending event notifications to that URL.
       path-parameters:
         webhook_id: WebhookId
       errors:

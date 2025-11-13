@@ -58,6 +58,7 @@ service:
       method: GET
       path: ""
       display-name: List Pods
+      docs: Retrieves all pod configurations for multi-tenant applications, allowing isolation of inboxes by customer or project.
       request:
         name: ListPodsRequest
         query-parameters:
@@ -69,6 +70,7 @@ service:
       method: GET
       path: /{pod_id}
       display-name: Get Pod
+      docs: Returns configuration and resource information for a specific pod.
       path-parameters:
         pod_id: PodId
       response: Pod
@@ -79,6 +81,7 @@ service:
       method: POST
       path: ""
       display-name: Create Pod
+      docs: Creates a new pod for isolating email resources in multi-tenant architecture.
       request: CreatePodRequest
       response: Pod
       errors:
@@ -88,6 +91,7 @@ service:
       method: DELETE
       path: /{pod_id}
       display-name: Delete Pod
+      docs: Removes a pod and all associated inboxes, messages, and resources within that tenant boundary.
       path-parameters:
         pod_id: PodId
       errors:

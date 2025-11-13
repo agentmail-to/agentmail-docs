@@ -17,6 +17,7 @@ service:
       method: GET
       path: ""
       display-name: List Domains
+      docs: Retrieves all custom domains configured within a specific pod for tenant-specific email addresses.
       request:
         name: ListDomainsRequest
         query-parameters:
@@ -34,6 +35,7 @@ service:
       method: POST
       path: ""
       display-name: Create Domain
+      docs: Adds a new custom domain to a specific pod for creating tenant-isolated email addresses.
       request: domains.CreateDomainRequest
       response: domains.Domain
       errors:
@@ -43,6 +45,7 @@ service:
       method: DELETE
       path: /{domain_id}
       display-name: Delete Domain
+      docs: Removes a custom domain from a specific pod and disables associated inboxes.
       path-parameters:
         domain_id: domains.DomainId
       errors:
