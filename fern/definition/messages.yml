@@ -159,6 +159,10 @@ types:
     type: list<attachments.SendAttachment>
     docs: Attachments to include in message.
 
+  SendMessageHeaders:
+    type: map<string, string>
+    docs: Headers to include in message.
+
   SendMessageRequest:
     properties:
       labels: optional<MessageLabels>
@@ -170,6 +174,7 @@ types:
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
+      headers: optional<SendMessageHeaders>
 
   SendMessageResponse:
     properties:
@@ -186,6 +191,7 @@ types:
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
+      headers: optional<SendMessageHeaders>
 
   UpdateMessageRequest:
     properties:
