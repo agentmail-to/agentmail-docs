@@ -1,0 +1,213 @@
+---
+title: Replit
+subtitle: Integrate AgentMail with your Replit apps and agents
+slug: integrations/replit
+description: AgentMail's Replit integration
+---
+
+## Getting started
+
+Replit is a cloud-based app and agent builder with a built in IDE, AI assistant, and deployment infrastructure.
+
+AgentMail is a "connector" integration on Replit, meaning your Replit apps and agents can use it directly.
+
+### Setup
+
+Navigate to the Intregrations tab in the Replit builder. Find AgentMail and click Connect/Sign in. Then paste in your AgentMail API key from the AgentMail Console. That's it.
+
+## How it works
+
+Replit uses Mastra, a TypeScript framework for building agents. Everytime you create a new app/agent Replit will generate a set of Mastra tools to interface with the AgentMail API, based on your use case and requirements.
+
+Below is a collections of prebuilt tools that Replit can use out of the box to serve virtually any use case.
+
+### Tools
+
+<CodeBlocks>
+    ```typescript title="TypeScript"
+    import { createTool } from '@mastra/core/tools'
+    import { z } from 'zod'
+
+    import { AgentMailClient } from 'agentmail'
+
+    const ListItemsInput = z.object({
+        limit: z.number().optional().describe('Max number of items to return'),
+        pageToken: z.string().optional().describe('Pagination page token'),
+    })
+
+    const InboxId = z.string().describe('ID of inbox')
+
+    const GetInboxInput = z.object({ inboxId: InboxId })
+
+    const CreateInboxInput = z.object({
+        username: z.string().optional().describe('Username'),
+        domain: z.string().optional().describe('Domain'),
+        displayName: z.string().optional().describe('Display name'),
+    })
+
+    const ListInboxItemsInput = ListItemsInput.extend({
+        inboxId: InboxId,
+        labels: z.array(z.string()).optional().describe('Filter items with labels'),
+        before: z.coerce.date().optional().describe('Filter items before datetime'),
+        after: z.coerce.date().optional().describe('Filter items after datetime'),
+    })
+
+    const GetThreadInput = GetInboxInput.extend({
+        threadId: z.string().describe('ID of thread'),
+    })
+
+    const MessageId = z.string().describe('ID of message')
+
+    const BaseMessageInput = z.object({
+        inboxId: InboxId,
+        text: z.string().optional().describe('Plain text body'),
+        html: z.string().optional().describe('HTML body'),
+        labels: z.array(z.string()).optional().describe('Labels'),
+    })
+
+    const SendMessageInput = BaseMessageInput.extend({
+        to: z.union([z.string(), z.array(z.string())]).describe('To recipients'),
+        cc: z
+            .union([z.string(), z.array(z.string())])
+            .optional()
+            .describe('CC recipients'),
+        bcc: z
+            .union([z.string(), z.array(z.string())])
+            .optional()
+            .describe('BCC recipients'),
+    })
+
+    const ReplyToMessageInput = BaseMessageInput.extend({ messageId: MessageId })
+
+    const UpdateMessageInput = z.object({
+        inboxId: InboxId,
+        messageId: MessageId,
+        addLabels: z.array(z.string()).optional().describe('Labels to add'),
+        removeLabels: z.array(z.string()).optional().describe('Labels to remove'),
+    })
+
+    const listInboxesTool = createTool({
+        id: 'list-inboxes',
+        description: 'List inboxes',
+        inputSchema: ListItemsInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.list(context)
+        },
+    })
+
+    const createInboxTool = createTool({
+        id: 'create-inbox',
+        description: 'Create inbox',
+        inputSchema: CreateInboxInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.create(context)
+        },
+    })
+
+    const deleteInboxTool = createTool({
+        id: 'delete-inbox',
+        description: 'Delete inbox',
+        inputSchema: GetInboxInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.delete(context.inboxId)
+        },
+    })
+
+    const listThreadsTool = createTool({
+        id: 'list-threads',
+        description: 'List threads',
+        inputSchema: ListInboxItemsInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.threads.list(context.inboxId, context)
+        },
+    })
+
+    const getThreadTool = createTool({
+        id: 'get-thread',
+        description: 'Get thread and its messages',
+        inputSchema: GetThreadInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.threads.get(context.inboxId, context.threadId)
+        },
+    })
+
+    const sendMessageTool = createTool({
+        id: 'send-message',
+        description: 'Send message',
+        inputSchema: SendMessageInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.messages.send(context.inboxId, context)
+        },
+    })
+
+    const replyToMessageTool = createTool({
+        id: 'reply-to-message',
+        description: 'Reply to message',
+        inputSchema: ReplyToMessageInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.messages.reply(context.inboxId, context.messageId, context)
+        },
+    })
+
+    const updateMessageTool = createTool({
+        id: 'update-message',
+        description: 'Update message',
+        inputSchema: UpdateMessageInput,
+        execute: ({ context }) => {
+            const client = new AgentMailClient()
+            return client.inboxes.messages.update(context.inboxId, context.messageId, context)
+        },
+    })
+
+    export const tools = {
+        listInboxesTool,
+        createInboxTool,
+        deleteInboxTool,
+        listThreadsTool,
+        getThreadTool,
+        sendMessageTool,
+        replyToMessageTool,
+        updateMessageTool,
+    }
+    ```
+
+</CodeBlocks>
+
+## About AgentMail
+
+AgentMail is the email inbox API for AI agents. It gives agents their own email inboxes, like Gmail does for humans. Unlike other email APIs, AgentMail is for both sending and receiving, supporting two-way email conversations.
+
+Email is critical to identity and communication on the internet. Much of the context that people use for their work exists within email. AgentMail enables AI agents to meet people where they work and use the internet like humans do.
+
+### Features
+
+1. **Programmatic inboxes:** Create, manage, and delete inboxes via API
+2. **Threads and replies:** Facilitate 2-way emals conversations with persistant and relevant context
+3. **Attachments:** Send, receive, and download attachments so agents can work with documents
+4. **Realtime events:** Build event-driven agents and systems with Webhooks and Websockets
+5. **Custom domains:** Whitelabel your or your customers' inboxes to automate client-facing work
+6. **Language/Framework SDKs:** Use your prefered language and framework
+
+### Use cases
+
+1. **Process inbound:** Receive, triage, and process inbound emails
+2. **Automate outbound:** Draft, schedule, and send outbound emails
+3. **Join conversations:** Address an agent directly or CC it in an existing email thread
+4. **Identify and authenticate:** Agents can sign up, receive 2FA code, and authenticate with any application
+
+### Verticals
+
+1. **Operations:** Automate internal workflows, vendor communications, and cross-team coordination
+2. **Support:** Handle customer inquiries, ticket management, and automated responses at scale
+3. **Procurement:** Streamline vendor onboarding, RFP processes, and purchase order management
+4. **Sales:** Automate lead qualification, follow-ups, and customer outreach campaigns
+5. **Recruiting:** Automate candidate outreach, interview scheduling, and applicant communication
+
+These are just a few select verticals, but we have seen AgentMail be effective in automating any email task across every function. If a human does it with email, it can be automated with AgentMail.

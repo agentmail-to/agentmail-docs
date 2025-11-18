@@ -114,6 +114,19 @@ navigation:
           - page: Pods
             icon: fa-solid fa-users
             path: pages/core-concepts/pods.mdx
+      - section: Integrations
+        contents:
+          - page: Overview
+            icon: fa-solid fa-list
+            path: pages/integrations/overview.mdx
+          - page: Replit
+            path: pages/integrations/replit.mdx
+          - page: Smithery
+            path: pages/integrations/smithery.mdx
+          - page: Mastra
+            path: pages/integrations/mastra.mdx
+          - page: CrewAI
+            path: pages/integrations/crewai.mdx
       - section: Guides
         contents:
           - page: Sending & Receiving Email
