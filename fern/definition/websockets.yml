@@ -7,16 +7,24 @@ types:
   Subscribe:
     properties:
       type: literal<"subscribe">
+      event_types: optional<events.EventTypes>
       inbox_ids:
-        type: list<string>
+        type: optional<list<string>>
         docs: IDs of the inboxes to subscribe to.
+      pod_ids:
+        type: optional<list<string>>
+        docs: IDs of the pods to subscribe to.
 
   Subscribed:
     properties:
       type: literal<"subscribed">
+      event_types: optional<events.EventTypes>
       inbox_ids:
-        type: list<string>
+        type: optional<list<string>>
         docs: IDs of the inboxes that have been subscribed to.
+      pod_ids:
+        type: optional<list<string>>
+        docs: IDs of the pods that have been subscribed to.
 
 channel:
   url: Websockets
@@ -52,3 +60,6 @@ channel:
     message_rejected:
       origin: server
       body: events.MessageRejectedEvent
+    domain_verified:
+      origin: server
+      body: events.DomainVerifiedEvent

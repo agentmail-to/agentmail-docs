@@ -2,6 +2,7 @@
 
 imports:
   global: ../__package__.yml
+  events: ../events.yml
 
 types:
   WebhookId:
@@ -16,25 +17,6 @@ types:
     type: string
     docs: URL of webhook endpoint.
 
-  EventType:
-    enum:
-      - name: MESSAGE_RECEIVED
-        value: message.received
-      - name: MESSAGE_SENT
-        value: message.sent
-      - name: MESSAGE_DELIVERED
-        value: message.delivered
-      - name: MESSAGE_BOUNCED
-        value: message.bounced
-      - name: MESSAGE_COMPLAINED
-        value: message.complained
-      - name: MESSAGE_REJECTED
-        value: message.rejected
-
-  EventTypes:
-    type: list<EventType>
-    docs: Event types to send. Must explicitly include all event types to receive.
-
   InboxIds:
     type: list<string>
     docs: Inbox IDs for which to send events. Omit to send events for all inboxes.
@@ -43,7 +25,7 @@ types:
     properties:
       webhook_id: WebhookId
       url: Url
-      event_types: optional<EventTypes>
+      event_types: optional<events.EventTypes>
       inbox_ids: optional<InboxIds>
       secret:
         type: string
@@ -71,7 +53,7 @@ types:
   CreateWebhookRequest:
     properties:
       url: Url
-      event_types: EventTypes
+      event_types: events.EventTypes
       inbox_ids: optional<InboxIds>
       client_id: optional<ClientId>
 

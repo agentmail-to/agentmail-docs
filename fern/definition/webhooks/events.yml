@@ -70,3 +70,12 @@ webhooks:
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
     payload: events.MessageRejectedEvent
+
+  domainVerified:
+    display-name: Domain Verified
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.DomainVerifiedEvent
