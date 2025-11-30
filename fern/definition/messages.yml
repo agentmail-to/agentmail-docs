@@ -117,6 +117,12 @@ types:
       preview: optional<MessagePreview>
       text: optional<MessageText>
       html: optional<MessageHtml>
+      extracted_text:
+        type: optional<string>
+        docs: Extracted new text content.
+      extracted_html:
+        type: optional<string>
+        docs: Extracted new HTML content.
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
