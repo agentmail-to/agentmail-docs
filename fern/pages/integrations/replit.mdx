@@ -75,6 +75,7 @@ Below is a collections of prebuilt tools that Replit can use out of the box to s
             .union([z.string(), z.array(z.string())])
             .optional()
             .describe('BCC recipients'),
+        subject: z.string().optional().describe('Subject'),
     })
 
     const ReplyToMessageInput = BaseMessageInput.extend({ messageId: MessageId })
