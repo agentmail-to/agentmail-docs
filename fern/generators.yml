@@ -1,12 +1,10 @@
 # yaml-language-server: $schema=https://schema.buildwithfern.dev/generators-yml.json
-
 default-group: local
-
 groups:
   local:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 3.17.0
+        version: 3.34.2
         config:
           namespaceExport: AgentMail
           noSerdeLayer: false
@@ -15,12 +13,12 @@ groups:
           shouldGenerateWebsocketClients: true
           packageJson:
             scripts:
-              build: 'npm run build:cjs && npm run build:esm && node -e "const
-                https=require(''https''),fs=require(''fs'');const
-                download=(f)=>new
-                Promise((res,rej)=>https.get(''https://docs.agentmail.to/''+f,r=>r.pipe(fs.createWriteStream(''dist/''+f)).on(''finish'',res).on(''error'',rej)));Promise.all([''llms.txt'',''llms-full.txt''].map(download)).catch(e=>{console.error(e);process.exit(1)});"'
+              build: >-
+                npm run build:cjs && npm run build:esm && node -e "const
+                https=require('https'),fs=require('fs');const download=(f)=>new
+                Promise((res,rej)=>https.get('https://docs.agentmail.to/'+f,r=>r.pipe(fs.createWriteStream('dist/'+f)).on('finish',res).on('error',rej)));Promise.all(['llms.txt','llms-full.txt'].map(download)).catch(e=>{console.error(e);process.exit(1)});"
       - name: fernapi/fern-python-sdk
-        version: 4.32.2
+        version: 4.41.2
         config:
           client_class_name: AgentMail
           pydantic_config:
@@ -29,7 +27,7 @@ groups:
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 3.17.0
+        version: 3.34.2
         output:
           location: npm
           package-name: agentmail
@@ -44,14 +42,14 @@ groups:
           shouldGenerateWebsocketClients: true
           packageJson:
             scripts:
-              build: 'npm run build:cjs && npm run build:esm && node -e "const
-                https=require(''https''),fs=require(''fs'');const
-                download=(f)=>new
-                Promise((res,rej)=>https.get(''https://docs.agentmail.to/''+f,r=>r.pipe(fs.createWriteStream(''dist/''+f)).on(''finish'',res).on(''error'',rej)));Promise.all([''llms.txt'',''llms-full.txt''].map(download)).catch(e=>{console.error(e);process.exit(1)});"'
+              build: >-
+                npm run build:cjs && npm run build:esm && node -e "const
+                https=require('https'),fs=require('fs');const download=(f)=>new
+                Promise((res,rej)=>https.get('https://docs.agentmail.to/'+f,r=>r.pipe(fs.createWriteStream('dist/'+f)).on('finish',res).on('error',rej)));Promise.all(['llms.txt','llms-full.txt'].map(download)).catch(e=>{console.error(e);process.exit(1)});"
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 4.32.2
+        version: 4.41.2
         output:
           location: pypi
           package-name: agentmail
@@ -66,7 +64,7 @@ groups:
   postman:
     generators:
       - name: fernapi/fern-postman
-        version: 0.4.2
+        version: 0.4.3
         output:
           location: postman
           api-key: ${POSTMAN_API_KEY}
