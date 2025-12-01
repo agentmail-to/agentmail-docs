@@ -188,6 +188,9 @@ navigation:
           - page: Smart Labeling Agent
             icon: fa-solid fa-life-ring
             path: pages/examples/smart-labeling-agent.mdx
+          - page: Sales Agent (WebSocket)
+            icon: fa-solid fa-headset
+            path: pages/examples/sales-agent-websocket.mdx
           - page: Live AgentMail Examples
             icon: fa-solid fa-video
             path: pages/examples/live-emails.mdx

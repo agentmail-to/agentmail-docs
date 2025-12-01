@@ -1,0 +1,831 @@
+---
+title: "Sales Agent with WebSocket"
+subtitle: "Build a real-time sales agent using WebSocket for instant email processing"
+slug: sales-agent-websocket
+description: "A step-by-step guide to building an AI-powered sales agent that uses WebSocket for real-time email processing without polling or webhooks."
+---
+
+## Overview
+
+Learn how to build a real-time sales agent that processes emails instantly using WebSocket connections. Unlike webhook-based agents that require ngrok and public URLs, this WebSocket approach connects directly to AgentMail for true real-time processing with minimal setup.
+
+This agent demonstrates a practical sales workflow: a manager delegates prospect outreach to the agent, which then handles the entire conversation autonomously while keeping the manager informed of key signals.
+
+## What You'll Build
+
+By the end of this guide, you'll have a working sales agent that:
+
+1. **Connects via WebSocket** for instant, real-time email processing (no webhooks or ngrok needed)
+2. **Handles manager emails** by extracting prospect info and sending personalized outreach
+3. **Processes prospect replies** with AI-powered, context-aware responses
+4. **Detects prospect intent** (interested, not interested, or asking questions)
+5. **Notifies the manager** when prospects show strong buying signals
+
+Here's the workflow:
+
+```
+Manager sends email with prospect info
+         ↓
+    Agent extracts prospect email
+         ↓
+    Agent generates AI sales pitch → Sends to prospect
+         ↓
+    Agent confirms to manager
+         ↓
+    [Prospect replies]
+         ↓
+    Agent detects intent + generates AI response
+         ↓
+    If interested → Notifies manager
+```
+
+## WebSocket vs Webhook: Why WebSocket?
+
+<Callout intent="info">
+**Key Advantage:** WebSocket connections are simpler to set up and provide true real-time processing.
+
+| Feature | Webhook Approach | WebSocket Approach |
+|---------|-----------------|-------------------|
+| Setup | Requires ngrok + public URL | No external tools needed |
+| Architecture | Flask server + HTTP | Pure async Python |
+| Latency | HTTP round-trip | Instant streaming |
+| Firewall | Must expose port | Outbound only |
+
+</Callout>
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+<Callout intent="info">
+**Required:**
+- Python 3.11 or higher installed
+- An [AgentMail account](https://console.agentmail.to) and API key
+- An [OpenAI account](https://platform.openai.com) and API key
+</Callout>
+
+## Project Setup
+
+### Step 1: Create Project Directory
+
+Create a new directory for your agent:
+
+```bash
+mkdir sales-agent-websocket
+cd sales-agent-websocket
+```
+
+### Step 2: Create the Agent Code
+
+Create a file named `main.py` and paste the following code:
+
+<Accordion title="Click to view full main.py code">
+```python
+"""
+Sales Agent using AgentMail WebSocket
+
+This is a simple example showing how to:
+- Connect to AgentMail via WebSocket for real-time email processing
+- Use OpenAI to handle sales conversations
+- Send emails to prospects and respond to replies
+"""
+
+import asyncio
+import os
+import re
+from dotenv import load_dotenv
+from agentmail import AsyncAgentMail
+from agentmail.websockets.client import AsyncWebsocketsClient
+from agentmail.websockets.types import Subscribe
+from agentmail.websockets.types.subscribed import Subscribed
+from agentmail.events.types.message_received_event import MessageReceivedEvent
+from openai import AsyncOpenAI
+
+# Load environment variables
+load_dotenv()
+
+# Initialize clients
+agentmail = AsyncAgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+openai = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Simple conversation history (thread_id -> messages)
+conversations = {}
+
+# Store manager email for notifications
+manager_email = None
+
+
+def extract_email(from_field):
+    """Extract email address from 'Name <email@example.com>' format"""
+    match = re.search(r'<(.+?)>', from_field)
+    return match.group(1) if match else from_field
+
+
+def is_from_manager(email_body):
+    """Simple check if email is from sales manager (contains prospect info)"""
+    keywords = ['prospect', 'lead', 'contact', 'reach out', 'email']
+    return any(keyword in email_body.lower() for keyword in keywords)
+
+
+def extract_prospect_info(email_body):
+    """Extract prospect email from manager's message"""
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    emails = re.findall(email_pattern, email_body)
+
+    # Return the first email found (should be the prospect's email in the message body)
+    if emails:
+        return emails[0]
+    return None
+
+
+async def get_ai_response(messages, system_prompt):
+    """Get response from OpenAI"""
+    try:
+        response = await openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                *messages
+            ],
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Error getting AI response: {e}")
+        return "I apologize, but I encountered an error. Please try again."
+
+
+async def send_email(inbox_id, to_email, subject, body):
+    """Send a new email"""
+    try:
+        await agentmail.inboxes.messages.send(
+            inbox_id=inbox_id,
+            to=[to_email],
+            subject=subject,
+            text=body
+        )
+        print(f"✓ Sent email to {to_email}")
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+
+async def reply_to_email(inbox_id, message_id, to_email, body):
+    """Reply to an email"""
+    try:
+        await agentmail.inboxes.messages.reply(
+            inbox_id=inbox_id,
+            message_id=message_id,
+            to=[to_email],  # Required parameter for replies
+            text=body
+        )
+        print(f"✓ Sent reply to {to_email}")
+    except Exception as e:
+        print(f"Error replying: {e}")
+
+
+async def handle_manager_email(inbox_id, message_id, from_email, subject, body):
+    """Handle email from sales manager - extract prospect and send sales pitch"""
+    global manager_email
+    manager_email = from_email  # Remember manager for future notifications
+
+    print(f"\n📧 Email from MANAGER: {from_email}")
+
+    # Extract prospect email
+    prospect_email = extract_prospect_info(body)
+    print(f"→ Extracted prospect email: {prospect_email}")
+
+    if not prospect_email:
+        await reply_to_email(
+            inbox_id,
+            message_id,
+            from_email,  # Reply back to the manager
+            "I couldn't find a prospect email address. Please include it in your message."
+        )
+        return
+
+    # Generate sales pitch using AI
+    system_prompt = """You are a helpful sales agent. Generate a brief, professional sales email
+    based on the manager's request. Keep it under 150 words. Be friendly and professional."""
+
+    messages = [{"role": "user", "content": f"Create a sales email based on this: {body}"}]
+    sales_pitch = await get_ai_response(messages, system_prompt)
+
+    # Send email to prospect
+    await send_email(
+        inbox_id,
+        prospect_email,
+        f"Introduction: {subject}" if subject else "Quick Introduction",
+        sales_pitch
+    )
+
+    # Confirm to manager
+    await reply_to_email(
+        inbox_id,
+        message_id,
+        from_email,  # Reply back to the manager
+        f"✓ I've sent an introduction email to {prospect_email}.\n\nHere's what I sent:\n\n{sales_pitch}"
+    )
+
+
+async def handle_prospect_email(inbox_id, message_id, thread_id, from_email, subject, body):
+    """Handle email from prospect - track conversation, detect intent, and notify manager"""
+    print(f"\n📧 Email from PROSPECT: {from_email}")
+
+    # Track conversation history
+    if thread_id not in conversations:
+        conversations[thread_id] = []
+    conversations[thread_id].append({"role": "user", "content": body})
+
+    # Detect prospect intent
+    intent_keywords = {
+        'interested': ['interested', 'demo', 'meeting', 'tell me more', 'sounds good'],
+        'not_interested': ['not interested', 'no thank', 'not right now', 'maybe later'],
+        'question': ['?', 'how', 'what', 'when', 'why', 'can you']
+    }
+
+    body_lower = body.lower()
+    intent = 'question'  # default
+    for key, keywords in intent_keywords.items():
+        if any(keyword in body_lower for keyword in keywords):
+            intent = key
+            break
+
+    # Generate AI response
+    system_prompt = """You are a helpful sales agent. Answer prospect questions professionally
+    and helpfully. Keep responses brief (under 100 words). Be friendly but professional."""
+
+    response = await get_ai_response(conversations[thread_id], system_prompt)
+
+    # Reply to prospect
+    await reply_to_email(inbox_id, message_id, from_email, response)
+
+    # Notify manager if strong intent signal
+    if manager_email and intent in ['interested', 'not_interested']:
+        status = "showing interest" if intent == 'interested' else "not interested at this time"
+        await send_email(
+            inbox_id,
+            manager_email,
+            f"Update: {from_email}",
+            f"Prospect {from_email} is {status}.\n\nTheir message:\n{body}\n\nMy response:\n{response}"
+        )
+        print(f"→ Notified manager about prospect's {intent}")
+
+    # Update conversation history
+    conversations[thread_id].append({"role": "assistant", "content": response})
+
+
+async def handle_new_email(message):
+    """Process incoming email from WebSocket"""
+    try:
+        # Extract message data using object attributes
+        inbox_id = message.inbox_id
+        message_id = message.message_id
+        thread_id = message.thread_id
+        from_field = message.from_ or ""  # SDK uses from_
+        from_email = extract_email(from_field)
+        subject = message.subject or ""
+        body = message.text or ""  # SDK uses text for the body
+
+        print(f"\n{'='*60}")
+        print(f"New email from: {from_email}")
+        print(f"Subject: {subject}")
+        print(f"{'='*60}")
+
+        # Determine if from manager or prospect
+        if is_from_manager(body):
+            await handle_manager_email(inbox_id, message_id, from_email, subject, body)
+        else:
+            await handle_prospect_email(inbox_id, message_id, thread_id, from_email, subject, body)
+
+    except Exception as e:
+        print(f"Error handling email: {e}")
+
+
+async def main():
+    """Main WebSocket loop"""
+    inbox_username = os.getenv("INBOX_USERNAME", "sales-agent")
+    inbox_id = f"{inbox_username}@agentmail.to"
+
+    print(f"\nSales Agent starting...")
+    print(f"Inbox: {inbox_id}")
+    print(f"✓ Connecting to AgentMail WebSocket...")
+
+    # Create WebSocket client using the agentmail client's wrapper
+    ws_client = AsyncWebsocketsClient(client_wrapper=agentmail._client_wrapper)
+
+    # Connect to WebSocket
+    try:
+        async with ws_client.connect() as socket:
+            print(f"✓ Connected! Listening for emails...\n")
+
+            # Subscribe to inbox
+            await socket.send_subscribe(Subscribe(inbox_ids=[inbox_id]))
+
+            # Listen for events
+            async for event in socket:
+                if isinstance(event, Subscribed):
+                    print(f"✓ Subscribed to: {event.inbox_ids}\n")
+
+                elif isinstance(event, MessageReceivedEvent):
+                    print(f"📨 New email received!")
+                    await handle_new_email(event.message)
+
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        print("\n\nShutting down gracefully...")
+    except Exception as e:
+        print(f"\nError: {e}")
+
+
+def run():
+    """Run the main function"""
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n✓ Shutdown complete")
+
+
+if __name__ == "__main__":
+    run()
+```
+</Accordion>
+
+### Step 3: Create Requirements File
+
+Create a file named `pyproject.toml`:
+
+```toml
+[project]
+name = "sales-agent-websocket"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+dependencies = [
+    "agentmail>=0.0.19",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
+```
+
+Or if you prefer `requirements.txt`:
+
+```txt
+agentmail>=0.0.19
+openai>=1.0.0
+python-dotenv>=1.0.0
+```
+
+### Step 4: Install Dependencies
+
+Install the required Python packages:
+
+```bash
+pip install -r requirements.txt
+# or with pyproject.toml
+pip install .
+```
+
+### Step 5: Configure Environment Variables
+
+Create a `.env` file with your credentials:
+
+```env
+# AgentMail Configuration
+AGENTMAIL_API_KEY=your_agentmail_api_key_here
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Inbox Settings
+INBOX_USERNAME=sales-agent
+```
+
+<Callout intent="info">
+**Note:** Unlike webhook-based agents, you don't need ngrok or a public URL. The WebSocket connection is outbound-only, so it works behind firewalls without any port forwarding.
+</Callout>
+
+## Code Walkthrough
+
+Let's understand how the agent works by breaking down the key components.
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Your Python Script                      │
+│                                                              │
+│  ┌──────────────┐     ┌──────────────┐     ┌─────────────┐  │
+│  │ AsyncAgent   │────▶│ WebSocket    │────▶│ Event       │  │
+│  │ Mail Client  │     │ Connection   │     │ Handler     │  │
+│  └──────────────┘     └──────────────┘     └─────────────┘  │
+│         │                    ▲                    │          │
+│         │                    │                    ▼          │
+│         │              Real-time            ┌─────────────┐  │
+│         │              Events               │ OpenAI      │  │
+│         │                                   │ Integration │  │
+│         ▼                                   └─────────────┘  │
+│  ┌──────────────┐                                           │
+│  │ Send/Reply   │◀──────────────────────────────────────────│
+│  │ Emails       │                                           │
+│  └──────────────┘                                           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+                    ┌──────────────────┐
+                    │   AgentMail      │
+                    │   Cloud          │
+                    └──────────────────┘
+```
+
+### 1. WebSocket Connection Setup
+
+The core of this agent is the WebSocket connection:
+
+```python
+from agentmail import AsyncAgentMail
+from agentmail.websockets.client import AsyncWebsocketsClient
+from agentmail.websockets.types import Subscribe
+from agentmail.websockets.types.subscribed import Subscribed
+from agentmail.events.types.message_received_event import MessageReceivedEvent
+
+# Initialize the async client
+agentmail = AsyncAgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+# Create WebSocket client using the agentmail client's wrapper
+ws_client = AsyncWebsocketsClient(client_wrapper=agentmail._client_wrapper)
+
+# Connect and subscribe
+async with ws_client.connect() as socket:
+    await socket.send_subscribe(Subscribe(inbox_ids=[inbox_id]))
+```
+
+**Key points:**
+- `AsyncAgentMail` is the async version of the client
+- `AsyncWebsocketsClient` manages the WebSocket connection
+- `Subscribe` specifies which inboxes to monitor
+- The connection is a context manager for automatic cleanup
+
+### 2. Event Handling Loop
+
+The agent uses an async iterator pattern to process events:
+
+```python
+async for event in socket:
+    if isinstance(event, Subscribed):
+        print(f"✓ Subscribed to: {event.inbox_ids}")
+
+    elif isinstance(event, MessageReceivedEvent):
+        await handle_new_email(event.message)
+```
+
+**Event types:**
+- `Subscribed` - Confirmation that subscription was successful
+- `MessageReceivedEvent` - A new email arrived in the inbox
+
+This pattern is cleaner than callback-based approaches and integrates naturally with Python's async/await.
+
+### 3. Email Processing Flow
+
+The agent routes emails based on content:
+
+```python
+async def handle_new_email(message):
+    # Extract fields from the message object
+    inbox_id = message.inbox_id
+    message_id = message.message_id
+    thread_id = message.thread_id
+    from_field = message.from_ or ""  # Note: SDK uses from_
+    from_email = extract_email(from_field)
+    subject = message.subject or ""
+    body = message.text or ""
+
+    # Route based on email content
+    if is_from_manager(body):
+        await handle_manager_email(inbox_id, message_id, from_email, subject, body)
+    else:
+        await handle_prospect_email(inbox_id, message_id, thread_id, from_email, subject, body)
+```
+
+**Email extraction helper:**
+
+```python
+def extract_email(from_field):
+    """Extract email from 'Name <email@example.com>' format"""
+    match = re.search(r'<(.+?)>', from_field)
+    return match.group(1) if match else from_field
+```
+
+### 4. Manager Email Handler
+
+When the manager sends an email with prospect info:
+
+```python
+async def handle_manager_email(inbox_id, message_id, from_email, subject, body):
+    global manager_email
+    manager_email = from_email  # Remember for notifications
+
+    # Extract prospect email using regex
+    prospect_email = extract_prospect_info(body)
+
+    if not prospect_email:
+        await reply_to_email(inbox_id, message_id, from_email,
+            "I couldn't find a prospect email. Please include it.")
+        return
+
+    # Generate AI sales pitch
+    sales_pitch = await get_ai_response(
+        [{"role": "user", "content": f"Create a sales email based on: {body}"}],
+        "You are a helpful sales agent. Generate a brief, professional email..."
+    )
+
+    # Send to prospect
+    await send_email(inbox_id, prospect_email, f"Introduction: {subject}", sales_pitch)
+
+    # Confirm to manager
+    await reply_to_email(inbox_id, message_id, from_email,
+        f"✓ Sent email to {prospect_email}.\n\nContent:\n{sales_pitch}")
+```
+
+### 5. Prospect Email Handler with Intent Detection
+
+The agent tracks conversations and detects prospect intent:
+
+```python
+async def handle_prospect_email(inbox_id, message_id, thread_id, from_email, subject, body):
+    # Track conversation history per thread
+    if thread_id not in conversations:
+        conversations[thread_id] = []
+    conversations[thread_id].append({"role": "user", "content": body})
+
+    # Detect intent with keyword matching
+    intent_keywords = {
+        'interested': ['interested', 'demo', 'meeting', 'tell me more'],
+        'not_interested': ['not interested', 'no thank', 'maybe later'],
+        'question': ['?', 'how', 'what', 'when', 'why']
+    }
+
+    intent = 'question'  # default
+    for key, keywords in intent_keywords.items():
+        if any(kw in body.lower() for kw in keywords):
+            intent = key
+            break
+
+    # Generate contextual AI response using conversation history
+    response = await get_ai_response(conversations[thread_id], system_prompt)
+
+    # Reply to prospect
+    await reply_to_email(inbox_id, message_id, from_email, response)
+
+    # Notify manager of strong signals
+    if manager_email and intent in ['interested', 'not_interested']:
+        await send_email(inbox_id, manager_email, f"Update: {from_email}",
+            f"Prospect is {intent}.\n\nTheir message:\n{body}")
+```
+
+### 6. AI Response Generation
+
+The agent uses OpenAI for generating responses:
+
+```python
+async def get_ai_response(messages, system_prompt):
+    try:
+        response = await openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                *messages  # Include conversation history
+            ],
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Error: {e}")
+        return "I apologize, but I encountered an error."
+```
+
+**Key points:**
+- Uses `gpt-4o-mini` for fast, cost-effective responses
+- Includes full conversation history for context
+- Graceful error handling with fallback message
+
+## Running the Agent
+
+Start the agent:
+
+```bash
+python main.py
+```
+
+You should see output like this:
+
+```
+Sales Agent starting...
+Inbox: sales-agent@agentmail.to
+✓ Connecting to AgentMail WebSocket...
+✓ Connected! Listening for emails...
+
+✓ Subscribed to: ['sales-agent@agentmail.to']
+```
+
+<Callout intent="success">
+**Success!** Your agent is now running and listening for emails in real-time.
+
+Leave this terminal window open - closing it will stop the agent.
+</Callout>
+
+## Testing Your Agent
+
+Let's verify everything works with some test scenarios.
+
+### Test Scenario 1: Manager Outreach Request
+
+**Send this email from your personal email:**
+
+```
+To: sales-agent@agentmail.to
+Subject: New lead - AI startup
+Body: Please reach out to this prospect: john@techstartup.com
+      They're interested in our API platform.
+```
+
+**Expected console output:**
+
+```
+============================================================
+New email from: your-email@gmail.com
+Subject: New lead - AI startup
+============================================================
+
+📧 Email from MANAGER: your-email@gmail.com
+→ Extracted prospect email: john@techstartup.com
+✓ Sent email to john@techstartup.com
+✓ Sent reply to your-email@gmail.com
+```
+
+**You'll receive:** A confirmation email with the sales pitch that was sent.
+
+### Test Scenario 2: Prospect Reply (Question)
+
+**Have someone reply to the sales pitch:**
+
+```
+Subject: Re: Introduction - New lead - AI startup
+Body: Hi, this looks interesting. How much does it cost?
+```
+
+**Expected console output:**
+
+```
+📧 Email from PROSPECT: john@techstartup.com
+✓ Sent reply to john@techstartup.com
+```
+
+### Test Scenario 3: Prospect Shows Interest
+
+**Prospect sends:**
+
+```
+Body: This sounds great! I'd love to schedule a demo.
+```
+
+**Expected console output:**
+
+```
+📧 Email from PROSPECT: john@techstartup.com
+✓ Sent reply to john@techstartup.com
+→ Notified manager about prospect's interested
+```
+
+**Manager receives:** An update email with the prospect's interest signal.
+
+<Callout intent="success">
+**It works!** The agent processed emails in real-time, generated AI responses, and notified you about the interested prospect.
+</Callout>
+
+## Customization
+
+### Modifying Intent Detection
+
+Update the `intent_keywords` dictionary in `handle_prospect_email()`:
+
+```python
+intent_keywords = {
+    'interested': ['interested', 'demo', 'meeting', 'pricing', 'sign up'],
+    'not_interested': ['not interested', 'unsubscribe', 'remove me'],
+    'question': ['?', 'how', 'what', 'when', 'can you'],
+    'urgent': ['urgent', 'asap', 'immediately']  # Add new intent
+}
+```
+
+### Adjusting AI Prompts
+
+Modify the system prompts in `handle_manager_email()` and `handle_prospect_email()`:
+
+```python
+system_prompt = """You are a sales agent for [Your Company].
+Our product: [Description]
+Pricing: [Tiers]
+Always be helpful and professional. Keep responses under 100 words."""
+```
+
+### Adding More Inbox Subscriptions
+
+Subscribe to multiple inboxes:
+
+```python
+await socket.send_subscribe(Subscribe(inbox_ids=[
+    "sales-agent@agentmail.to",
+    "support-agent@agentmail.to",
+    "info@yourdomain.com"
+]))
+```
+
+## Troubleshooting
+
+### Common Issues
+
+<Accordion title="WebSocket connection refused or timeout">
+**Problem:** Cannot connect to AgentMail WebSocket.
+
+**Solutions:**
+
+1. Verify your API key is correct:
+```python
+client = AsyncAgentMail(api_key="your-key")
+print(await client.inboxes.list())  # Should succeed
+```
+
+2. Check your internet connection and firewall settings
+3. Ensure you're using `agentmail>=0.0.19` which includes WebSocket support:
+```bash
+pip show agentmail
+```
+</Accordion>
+
+<Accordion title="ModuleNotFoundError: No module named 'agentmail.websockets'">
+**Problem:** WebSocket module not found.
+
+**Solution:** Update to the latest agentmail package:
+```bash
+pip install --upgrade agentmail
+```
+</Accordion>
+
+<Accordion title="OpenAI API Error: Invalid API Key">
+**Problem:** OpenAI requests failing.
+
+**Solutions:**
+
+1. Check your `.env` file has the correct `OPENAI_API_KEY`
+2. Verify the key at [OpenAI Dashboard](https://platform.openai.com/api-keys)
+3. Ensure the key has usage quota remaining
+</Accordion>
+
+<Accordion title="Emails not being received">
+**Problem:** Agent is running but not receiving emails.
+
+**Checklist:**
+
+1. Verify the inbox exists:
+```python
+client = AsyncAgentMail()
+print(await client.inboxes.get("sales-agent@agentmail.to"))
+```
+
+2. Check subscription confirmation in console output
+3. Send test email to the correct inbox address
+4. Verify the email isn't being filtered as spam
+</Accordion>
+
+<Accordion title="Agent crashes with asyncio errors">
+**Problem:** Async-related exceptions.
+
+**Solutions:**
+
+1. Ensure Python 3.11+ is installed:
+```bash
+python --version
+```
+
+2. Don't mix sync and async code improperly
+3. Use `asyncio.run(main())` as the entry point
+</Accordion>
+
+---
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Webhook-Based Agent" icon="fa-solid fa-bell" href="/auto-reply-agent">
+    Compare with the webhook approach for different use cases.
+  </Card>
+  <Card title="Smart Labeling Agent" icon="fa-solid fa-tags" href="/smart-labeling-agent">
+    Learn how to categorize emails with AI-powered labeling.
+  </Card>
+  <Card title="WebSocket API Reference" icon="fa-solid fa-plug" href="/api-reference/websockets">
+    Explore all WebSocket events and methods.
+  </Card>
+</CardGroup>
+
+---
+
+If you build something cool with AgentMail, we'd love to hear about it. Share in our [Discord community](https://discord.gg/hTYatWYWBc)!
