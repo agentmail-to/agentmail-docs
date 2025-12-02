@@ -15,6 +15,11 @@ title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
 ai-search:
+  location:
+    - docs
+  datasources:
+    - url: https://x.com/agentmail
+      title: Company Twitter
   system-prompt:
     You are an AI assistant. The user asking questions may be a developer, technical writer, or product manager. You can provide code examples.
     ONLY respond to questions using information from the documents. Stay on topic. You cannot book appointments, schedule meetings, or create support tickets.
