@@ -103,7 +103,7 @@ service:
       method: PATCH
       path: /{inbox_id}
       display-name: Update Inbox
-      docs: Updates the configuration or settings of an existing inbox such as display name or forwarding rules.
+      docs: Updates the configuration or settings of an existing inbox such as display name.
       path-parameters:
         inbox_id: InboxId
       request: UpdateInboxRequest
