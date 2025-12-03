@@ -79,6 +79,7 @@ service:
       method: GET
       path: ""
       display-name: List Metrics
+      docs: Retrieves aggregated email metrics across all inboxes in your account within a specified time range.
       request:
         name: ListMetricsRequest
         query-parameters:
