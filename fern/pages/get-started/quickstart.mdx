@@ -19,8 +19,6 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
     If you don't have an account yet, you can sign up directly from the console. Once you're logged in, you'll be able to manage your inboxes, view analytics, and create API keys.
   </Step>
 
-{" "}
-
 <Step title="Create an API Key">
   Now that you're in the console, you'll need to create an API key to
   authenticate your requests. Navigate to the API Keys section in your console
@@ -69,6 +67,16 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
       inbox = client.inboxes.create() # domain is optional
       print("Inbox created successfully!")
       print(inbox)
+
+      # Send Email
+
+      client.inboxes.messages.send(
+      inbox_id="your-email@example.com",
+      to="contact@agentmail.to",
+      subject="Hello from AgentMail!",
+      text="This is my first email sent with the AgentMail API."
+
+)
 
       ```
 
