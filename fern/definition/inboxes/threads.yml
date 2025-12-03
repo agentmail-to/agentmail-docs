@@ -18,6 +18,7 @@ service:
       method: GET
       path: ""
       display-name: List Threads
+      docs: Returns all email conversation threads in a specific inbox, grouped by related messages.
       request:
         name: ListThreadsRequest
         query-parameters:
@@ -35,6 +36,7 @@ service:
       method: GET
       path: /{thread_id}
       display-name: Get Thread
+      docs: Retrieves a complete email thread including all messages, participants, and conversation history.
       path-parameters:
         thread_id: threads.ThreadId
       response: threads.Thread
@@ -45,6 +47,7 @@ service:
       method: GET
       path: /{thread_id}/attachments/{attachment_id}
       display-name: Get Attachment
+      docs: Downloads an attachment from any message within the specified thread.
       path-parameters:
         thread_id: threads.ThreadId
         attachment_id: attachments.AttachmentId
@@ -56,6 +59,7 @@ service:
       method: DELETE
       path: /{thread_id}
       display-name: Delete Thread
+      docs: Permanently deletes an entire email thread and all its associated messages.
       path-parameters:
         thread_id: threads.ThreadId
       errors:

@@ -30,6 +30,7 @@ channel:
   url: Websockets
   path: /v0
   display-name: Connect
+  docs: Establishes a WebSocket connection for real-time bidirectional communication to receive instant email notifications and events.
   auth: true
   query-parameters:
     auth_token:

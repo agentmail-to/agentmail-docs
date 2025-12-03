@@ -17,6 +17,7 @@ service:
       method: GET
       path: ""
       display-name: List Inboxes
+      docs: Retrieves all inboxes within a specific pod for multi-tenant email isolation.
       request:
         name: ListInboxesRequest
         query-parameters:
@@ -34,6 +35,7 @@ service:
       method: GET
       path: /{inbox_id}
       display-name: Get Inbox
+      docs: Retrieves detailed information about a specific inbox within a pod.
       path-parameters:
         inbox_id: inboxes.InboxId
       response: inboxes.Inbox
@@ -44,6 +46,7 @@ service:
       method: POST
       path: ""
       display-name: Create Inbox
+      docs: Creates a new email inbox within a specific pod for tenant-isolated communication.
       request: inboxes.CreateInboxRequest
       response: inboxes.Inbox
       errors:
@@ -53,6 +56,7 @@ service:
       method: DELETE
       path: /{inbox_id}
       display-name: Delete Inbox
+      docs: Permanently deletes an inbox from a specific pod along with all its messages.
       path-parameters:
         inbox_id: inboxes.InboxId
       errors:
