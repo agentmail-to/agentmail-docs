@@ -91,7 +91,7 @@ service:
       method: POST
       path: ""
       display-name: Create Inbox
-      request: CreateInboxRequest
+      request: optional<CreateInboxRequest>
       response: Inbox
       errors:
         - global.ValidationError
