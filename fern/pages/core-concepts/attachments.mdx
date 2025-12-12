@@ -7,7 +7,7 @@ description: Learn how to send files as attachments, and download incoming attac
 
 ## What are `Attachments`?
 
-An `Attachment` is a file that is associated with a `Message`. This can be anything from a PDF invoice to a CSV report or an image(though we don't recommend sending images in the first email sent. We go more into this in the [deliverability section](/deliverability)). Your agents can both send `Attachments` in outgoing `Messages` and process `Attachments` from incoming `Messages`.
+An `Attachment` is a file that is associated with a `Message`. This can be anything from a PDF invoice to a CSV report or an image(though we don't recommend sending images in the first email sent. We go more into this in the [deliverability section](/email-deliverability)). Your agents can both send `Attachments` in outgoing `Messages` and process `Attachments` from incoming `Messages`.
 
 ## Sending `Attachments`
 
@@ -30,15 +30,15 @@ file_content = "This is the content of our report."
 encoded_content = base64.b64encode(file_content.encode()).decode()
 
 sent_message = client.inboxes.messages.send(
-    inbox_id="reports@agentmail.to",
-    to=["supervisor@example.com"],
-    subject="Q4 Financial Report",
-    text="Please see the attached report.",
-    attachments=[{
-        "content": encoded_content,
-        "filename": "Q4-report.txt",
-        "content_type": "text/plain"
-    }]
+inbox_id="reports@agentmail.to",
+to=["supervisor@example.com"],
+subject="Q4 Financial Report",
+text="Please see the attached report.",
+attachments=[{
+"content": encoded_content,
+"filename": "Q4-report.txt",
+"content_type": "text/plain"
+}]
 )
 
 ````
@@ -80,15 +80,15 @@ message_id = "msg_456"
 attachment_id = "attach_789" # From the message object
 
 file_data = client.inboxes.messages.get_attachment(
-    inbox_id=inbox_id,
-    message_id=message_id,
-    attachment_id=attachment_id
+inbox_id=inbox_id,
+message_id=message_id,
+attachment_id=attachment_id
 )
 
 # Now you can save the file
 
 with open("downloaded_file.pdf", "wb") as f:
-    f.write(file_data)
+f.write(file_data)
 
 ````
 
