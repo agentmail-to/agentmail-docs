@@ -113,6 +113,7 @@ types:
       event_type: literal<"message.received">
       event_id: EventId
       message: messages.Message
+      thread: threads.ThreadItem
 
   MessageSentEvent:
     properties:
