@@ -169,6 +169,10 @@ types:
     type: map<string, string>
     docs: Headers to include in message.
 
+  ReplyAll:
+    type: boolean
+    docs: Whether to reply to all original recipients (To and CC).
+
   SendMessageRequest:
     properties:
       labels: optional<MessageLabels>
@@ -187,7 +191,7 @@ types:
       message_id: MessageId
       thread_id: threads.ThreadId
 
-  ReplyToMessageRequest:
+  BaseReplyMessageRequest:
     properties:
       labels: optional<MessageLabels>
       reply_to: optional<SendMessageReplyTo>
@@ -198,6 +202,18 @@ types:
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
       headers: optional<SendMessageHeaders>
+
+  ReplyToMessageRequest:
+    extends: BaseReplyMessageRequest
+    properties:
+      reply_all: 
+        type: optional<ReplyAll>
+        docs: Whether to reply to all original recipients (To, CC, and BCC). If true, the reply will be sent to all recipients of the original message, not just the sender.
+
+  ReplyAllMessageRequest:
+    extends: BaseReplyMessageRequest
+    docs: Request for replying to all recipients (To, CC, BCC) without specifying 'reply_all' field.
+
 
   UpdateMessageRequest:
     properties:

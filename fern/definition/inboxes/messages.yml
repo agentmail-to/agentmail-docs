@@ -86,6 +86,19 @@ service:
         - global.NotFoundError
         - messages.MessageRejectedError
 
+    reply-all:
+      method: POST
+      path: /{message_id}/reply_all
+      display-name: Reply All Message
+      path-parameters:
+        message_id: messages.MessageId
+      request: messages.ReplyAllMessageRequest
+      response: messages.SendMessageResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - messages.MessageRejectedError
+
     update:
       method: PATCH
       path: /{message_id}
