@@ -88,7 +88,7 @@ service:
 
     reply-all:
       method: POST
-      path: /{message_id}/reply_all
+      path: /{message_id}/reply-all
       display-name: Reply All Message
       path-parameters:
         message_id: messages.MessageId
