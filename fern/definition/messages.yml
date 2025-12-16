@@ -187,6 +187,10 @@ types:
       message_id: MessageId
       thread_id: threads.ThreadId
 
+  ReplyAll:
+    type: boolean
+    docs: Reply to all recipients of the original message.
+
   ReplyToMessageRequest:
     properties:
       labels: optional<MessageLabels>
@@ -194,6 +198,16 @@ types:
       to: optional<SendMessageTo>
       cc: optional<SendMessageCc>
       bcc: optional<SendMessageBcc>
+      reply_all: optional<ReplyAll>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
+      attachments: optional<SendMessageAttachments>
+      headers: optional<SendMessageHeaders>
+
+  ReplyAllMessageRequest:
+    properties:
+      labels: optional<MessageLabels>
+      reply_to: optional<SendMessageReplyTo>
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
