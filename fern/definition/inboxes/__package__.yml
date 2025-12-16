@@ -8,6 +8,7 @@ navigation:
 
 imports:
   global: ../__package__.yml
+  pods: ../pods/__package__.yml
 
 types:
   InboxId:
@@ -24,6 +25,7 @@ types:
 
   Inbox:
     properties:
+      pod_id: pods.PodId
       inbox_id: InboxId
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
@@ -89,7 +91,7 @@ service:
       method: POST
       path: ""
       display-name: Create Inbox
-      request: CreateInboxRequest
+      request: optional<CreateInboxRequest>
       response: Inbox
       errors:
         - global.ValidationError

@@ -15,6 +15,8 @@ title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
 ai-search:
+  location:
+    - docs
   system-prompt:
     You are an AI assistant. The user asking questions may be a developer, technical writer, or product manager. You can provide code examples.
     ONLY respond to questions using information from the documents. Stay on topic. You cannot book appointments, schedule meetings, or create support tickets.
@@ -65,10 +67,10 @@ tabs:
   api:
     display-name: API Reference
     icon: terminal
-  changelog:
-    display-name: Changelog
-    icon: light clock
-    changelog: ./changelog
+  # changelog:
+  #   display-name: Changelog
+  #   icon: light clock
+  #   changelog: ./changelog
 
 experimental:
   dynamic-snippets: true
@@ -114,6 +116,19 @@ navigation:
           - page: Pods
             icon: fa-solid fa-users
             path: pages/core-concepts/pods.mdx
+      - section: Integrations
+        contents:
+          # - page: Overview
+          #   icon: fa-solid fa-list
+          #   path: pages/integrations/overview.mdx
+          - page: Replit
+            path: pages/integrations/replit.mdx
+          # - page: Smithery
+          #   path: pages/integrations/smithery.mdx
+          # - page: Mastra
+          #   path: pages/integrations/mastra.mdx
+          # - page: CrewAI
+          #   path: pages/integrations/crewai.mdx
       - section: Guides
         contents:
           - page: Sending & Receiving Email
@@ -226,4 +241,4 @@ navigation:
           - metrics
           - api-keys
           - pods
-  - tab: changelog
+  # - tab: changelog

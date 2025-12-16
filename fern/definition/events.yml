@@ -4,8 +4,30 @@ imports:
   inboxes: inboxes/__package__.yml
   threads: threads.yml
   messages: messages.yml
+  domains: domains.yml
 
 types:
+  EventType:
+    enum:
+      - name: MESSAGE_RECEIVED
+        value: message.received
+      - name: MESSAGE_SENT
+        value: message.sent
+      - name: MESSAGE_DELIVERED
+        value: message.delivered
+      - name: MESSAGE_BOUNCED
+        value: message.bounced
+      - name: MESSAGE_COMPLAINED
+        value: message.complained
+      - name: MESSAGE_REJECTED
+        value: message.rejected
+      - name: DOMAIN_VERIFIED
+        value: domain.verified
+
+  EventTypes:
+    type: list<EventType>
+    docs: Event types to subscribe to.
+
   EventId:
     type: string
     docs: ID of event.
@@ -91,6 +113,7 @@ types:
       event_type: literal<"message.received">
       event_id: EventId
       message: messages.Message
+      thread: threads.ThreadItem
 
   MessageSentEvent:
     properties:
@@ -126,3 +149,10 @@ types:
       event_type: literal<"message.rejected">
       event_id: EventId
       reject: Reject
+
+  DomainVerifiedEvent:
+    properties:
+      type: literal<"event">
+      event_type: literal<"domain.verified">
+      event_id: EventId
+      domain: domains.Domain

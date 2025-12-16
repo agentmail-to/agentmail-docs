@@ -117,6 +117,12 @@ types:
       preview: optional<MessagePreview>
       text: optional<MessageText>
       html: optional<MessageHtml>
+      extracted_text:
+        type: optional<string>
+        docs: Extracted new text content.
+      extracted_html:
+        type: optional<string>
+        docs: Extracted new HTML content.
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
@@ -159,6 +165,10 @@ types:
     type: list<attachments.SendAttachment>
     docs: Attachments to include in message.
 
+  SendMessageHeaders:
+    type: map<string, string>
+    docs: Headers to include in message.
+
   SendMessageRequest:
     properties:
       labels: optional<MessageLabels>
@@ -170,11 +180,16 @@ types:
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
+      headers: optional<SendMessageHeaders>
 
   SendMessageResponse:
     properties:
       message_id: MessageId
       thread_id: threads.ThreadId
+
+  ReplyAll:
+    type: boolean
+    docs: Reply to all recipients of the original message.
 
   ReplyToMessageRequest:
     properties:
@@ -183,9 +198,20 @@ types:
       to: optional<SendMessageTo>
       cc: optional<SendMessageCc>
       bcc: optional<SendMessageBcc>
+      reply_all: optional<ReplyAll>
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
+      headers: optional<SendMessageHeaders>
+
+  ReplyAllMessageRequest:
+    properties:
+      labels: optional<MessageLabels>
+      reply_to: optional<SendMessageReplyTo>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
+      attachments: optional<SendMessageAttachments>
+      headers: optional<SendMessageHeaders>
 
   UpdateMessageRequest:
     properties:
