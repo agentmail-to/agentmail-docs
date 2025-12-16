@@ -163,6 +163,11 @@ navigation:
           - page: Setup Guide
             icon: fa-solid fa-screwdriver-wrench
             path: pages/webhooks/webhook-setup.mdx
+      - section: WebSockets
+        contents:
+          - page: Overview
+            icon: fa-solid fa-plug
+            path: pages/websockets.mdx
       - section: Best Practices
         contents:
           - page: Email Deliverability

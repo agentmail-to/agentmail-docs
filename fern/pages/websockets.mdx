@@ -1,0 +1,372 @@
+---
+title: "WebSockets"
+subtitle: "Real-time, low-latency email event streaming"
+slug: websockets
+description: "Learn how to use WebSockets for instant email notifications without webhooks or polling."
+---
+
+WebSockets provide a persistent, bidirectional connection to AgentMail for receiving email events in real-time. Unlike webhooks, WebSockets don't require a public URL or external tools like ngrok.
+
+## Why Use WebSockets?
+
+| Feature | Webhook | WebSocket |
+|---------|---------|-----------|
+| Setup | Requires public URL + ngrok | No external tools needed |
+| Connection | HTTP request per event | Persistent connection |
+| Direction | AgentMail → Your server | Bidirectional |
+| Firewall | Must expose port | Outbound only |
+| Latency | HTTP round-trip | Instant streaming |
+
+---
+
+## Python SDK
+
+The Python SDK provides both synchronous and asynchronous WebSocket clients.
+
+### Async Usage
+
+```python
+import asyncio
+from agentmail import AsyncAgentMail, Subscribe, Subscribed, MessageReceivedEvent
+
+client = AsyncAgentMail(api_key="YOUR_API_KEY")
+
+async def main():
+    async with client.websockets.connect() as socket:
+        # Subscribe to inboxes
+        await socket.send_subscribe(Subscribe(inbox_ids=["agent@agentmail.to"]))
+
+        # Process events as they arrive
+        async for event in socket:
+            if isinstance(event, Subscribed):
+                print(f"Subscribed to: {event.inbox_ids}")
+            elif isinstance(event, MessageReceivedEvent):
+                print(f"New email from: {event.message.from_}")
+                print(f"Subject: {event.message.subject}")
+
+asyncio.run(main())
+```
+
+### Sync Usage
+
+```python
+from agentmail import AgentMail, Subscribe, Subscribed, MessageReceivedEvent
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+with client.websockets.connect() as socket:
+    # Subscribe to inboxes
+    socket.send_subscribe(Subscribe(inbox_ids=["agent@agentmail.to"]))
+
+    # Process events as they arrive
+    for event in socket:
+        if isinstance(event, Subscribed):
+            print(f"Subscribed to: {event.inbox_ids}")
+        elif isinstance(event, MessageReceivedEvent):
+            print(f"New email from: {event.message.from_}")
+            print(f"Subject: {event.message.subject}")
+```
+
+### Event Handler Pattern
+
+You can also use event handlers instead of iterating:
+
+```python
+import asyncio
+from agentmail import AsyncAgentMail, Subscribe, EventType
+
+client = AsyncAgentMail(api_key="YOUR_API_KEY")
+
+async def main():
+    async with client.websockets.connect() as socket:
+        # Register event handlers
+        socket.on(EventType.OPEN, lambda _: print("Connected"))
+        socket.on(EventType.MESSAGE, lambda msg: print("Received:", msg))
+        socket.on(EventType.CLOSE, lambda _: print("Disconnected"))
+        socket.on(EventType.ERROR, lambda err: print("Error:", err))
+
+        # Subscribe and start listening
+        await socket.send_subscribe(Subscribe(inbox_ids=["agent@agentmail.to"]))
+        await socket.start_listening()
+
+asyncio.run(main())
+```
+
+For sync usage with event handlers, run the listener in a background thread:
+
+```python
+import threading
+from agentmail import AgentMail, Subscribe, EventType
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+with client.websockets.connect() as socket:
+    socket.on(EventType.OPEN, lambda _: print("Connected"))
+    socket.on(EventType.MESSAGE, lambda msg: print("Received:", msg))
+    socket.on(EventType.CLOSE, lambda _: print("Disconnected"))
+    socket.on(EventType.ERROR, lambda err: print("Error:", err))
+
+    socket.send_subscribe(Subscribe(inbox_ids=["agent@agentmail.to"]))
+
+    # Start listening in background thread
+    listener = threading.Thread(target=socket.start_listening, daemon=True)
+    listener.start()
+    listener.join()
+```
+
+---
+
+## TypeScript SDK
+
+The TypeScript SDK provides a WebSocket client with automatic reconnection.
+
+### Basic Usage
+
+```typescript
+import { AgentMailClient, AgentMail } from "agentmail";
+
+const client = new AgentMailClient({
+  apiKey: process.env.AGENTMAIL_API_KEY,
+});
+
+async function main() {
+  const socket = await client.websockets.connect();
+
+  // Handle events
+  socket.on("open", () => {
+    console.log("Connected");
+
+    // Subscribe to inboxes after connection is open
+    socket.sendSubscribe({
+      type: "subscribe",
+      inboxIds: ["agent@agentmail.to"],
+    });
+  });
+
+  socket.on("message", (event: AgentMail.Subscribed | AgentMail.MessageReceivedEvent) => {
+    if (event.type === "subscribed") {
+      console.log("Subscribed to:", event.inboxIds);
+    } else if (event.type === "message_received") {
+      console.log("New email from:", event.message.from_);
+      console.log("Subject:", event.message.subject);
+    }
+  });
+
+  socket.on("close", (event) => {
+    console.log("Disconnected:", event.code, event.reason);
+  });
+
+  socket.on("error", (error) => {
+    console.error("Error:", error);
+  });
+}
+
+main();
+```
+
+### React/Next.js Usage
+
+Using the SDK with React:
+
+```typescript
+import { useEffect, useState } from "react";
+import { AgentMailClient, AgentMail } from "agentmail";
+
+function useAgentMailWebSocket(apiKey: string, inboxIds: string[]) {
+  const [lastMessage, setLastMessage] = useState<AgentMail.MessageReceivedEvent | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    const client = new AgentMailClient({ apiKey });
+
+    let socket: Awaited<ReturnType<typeof client.websockets.connect>>;
+
+    async function connect() {
+      socket = await client.websockets.connect();
+
+      socket.on("open", () => {
+        setIsConnected(true);
+        socket.sendSubscribe({
+          type: "subscribe",
+          inboxIds,
+        });
+      });
+
+      socket.on("message", (event) => {
+        if (event.type === "message_received") {
+          setLastMessage(event);
+        }
+      });
+
+      socket.on("close", () => setIsConnected(false));
+    }
+
+    connect();
+    return () => socket?.close();
+  }, [apiKey, inboxIds.join(",")]);
+
+  return { lastMessage, isConnected };
+}
+```
+
+---
+
+## Subscribe Options
+
+When subscribing to events, you can filter by inbox, pod, or event type:
+
+**Python:**
+```python
+from agentmail import Subscribe
+
+# Subscribe to specific inboxes
+Subscribe(inbox_ids=["inbox1@agentmail.to", "inbox2@agentmail.to"])
+
+# Subscribe to pods
+Subscribe(pod_ids=["pod-id-1", "pod-id-2"])
+
+# Subscribe to specific event types
+Subscribe(
+    inbox_ids=["agent@agentmail.to"],
+    event_types=["message.received", "message.sent"]
+)
+```
+
+**TypeScript:**
+```typescript
+// Subscribe to specific inboxes
+socket.sendSubscribe({
+  type: "subscribe",
+  inboxIds: ["inbox1@agentmail.to", "inbox2@agentmail.to"],
+});
+
+// Subscribe to pods
+socket.sendSubscribe({
+  type: "subscribe",
+  podIds: ["pod-id-1", "pod-id-2"],
+});
+
+// Subscribe to specific event types
+socket.sendSubscribe({
+  type: "subscribe",
+  inboxIds: ["agent@agentmail.to"],
+  eventTypes: ["message.received", "message.sent"],
+});
+```
+
+---
+
+## Event Types
+
+### Connection Events
+
+| Event | Python | TypeScript | Description |
+|-------|--------|------------|-------------|
+| `subscribed` | `Subscribed` | `AgentMail.Subscribed` | Subscription confirmed |
+
+### Message Events
+
+| Event | Python | TypeScript | Description |
+|-------|--------|------------|-------------|
+| `message_received` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | New email received |
+| `message_sent` | `MessageSentEvent` | `AgentMail.MessageSentEvent` | Email was sent |
+| `message_delivered` | `MessageDeliveredEvent` | `AgentMail.MessageDeliveredEvent` | Email was delivered |
+| `message_bounced` | `MessageBouncedEvent` | `AgentMail.MessageBouncedEvent` | Email bounced |
+| `message_complained` | `MessageComplainedEvent` | `AgentMail.MessageComplainedEvent` | Email marked as spam |
+| `message_rejected` | `MessageRejectedEvent` | `AgentMail.MessageRejectedEvent` | Email was rejected |
+
+### Domain Events
+
+| Event | Python | TypeScript | Description |
+|-------|--------|------------|-------------|
+| `domain_verified` | `DomainVerifiedEvent` | `AgentMail.DomainVerifiedEvent` | Domain verification completed |
+
+---
+
+## Message Properties
+
+The `event.message` object contains:
+
+| Python | TypeScript | Description |
+|--------|------------|-------------|
+| `inbox_id` | `inboxId` | Inbox that received the email |
+| `message_id` | `messageId` | Unique message ID |
+| `thread_id` | `threadId` | Conversation thread ID |
+| `from_` | `from_` | Sender email address |
+| `to` | `to` | Recipients list |
+| `subject` | `subject` | Subject line |
+| `text` | `text` | Plain text body |
+| `html` | `html` | HTML body (if present) |
+| `attachments` | `attachments` | List of attachments |
+
+---
+
+## Error Handling
+
+**Python:**
+```python
+from agentmail import AsyncAgentMail, Subscribe, MessageReceivedEvent
+from agentmail.core.api_error import ApiError
+
+client = AsyncAgentMail(api_key="YOUR_API_KEY")
+
+async def main():
+    try:
+        async with client.websockets.connect() as socket:
+            await socket.send_subscribe(Subscribe(inbox_ids=["agent@agentmail.to"]))
+
+            async for event in socket:
+                if isinstance(event, MessageReceivedEvent):
+                    await process_email(event.message)
+
+    except ApiError as e:
+        print(f"API error: {e.status_code} - {e.body}")
+    except Exception as e:
+        print(f"Connection error: {e}")
+```
+
+**TypeScript:**
+```typescript
+import { AgentMailClient, AgentMail, AgentMailError } from "agentmail";
+
+const client = new AgentMailClient({
+  apiKey: process.env.AGENTMAIL_API_KEY,
+});
+
+async function main() {
+  try {
+    const socket = await client.websockets.connect();
+
+    socket.on("open", () => {
+      socket.sendSubscribe({
+        type: "subscribe",
+        inboxIds: ["agent@agentmail.to"],
+      });
+    });
+
+    socket.on("message", (event: AgentMail.MessageReceivedEvent) => {
+      if (event.type === "message_received") {
+        processEmail(event.message);
+      }
+    });
+
+    socket.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
+
+    socket.on("close", (event) => {
+      console.log("Disconnected:", event.code, event.reason);
+    });
+  } catch (err) {
+    if (err instanceof AgentMailError) {
+      console.error(`API error: ${err.statusCode} - ${err.message}`);
+    } else {
+      console.error("Connection error:", err);
+    }
+  }
+}
+
+main();
+```
+
+---
