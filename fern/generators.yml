@@ -24,7 +24,7 @@ groups:
         output:
           location: npm
           package-name: agentmail
-          token: ${NPM_TOKEN}
+          token: OIDC
         github:
           repository: agentmail-to/agentmail-node
         config:
