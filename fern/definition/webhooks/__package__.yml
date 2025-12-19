@@ -32,7 +32,7 @@ types:
         docs: Secret for webhook signature verification.
       enabled:
         type: boolean
-        docs: Whether the webhook is enabled.
+        docs: Webhook is enabled.
       updated_at:
         type: datetime
         docs: Time at which webhook was last updated.

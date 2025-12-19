@@ -50,7 +50,7 @@ types:
 
   FeedbackEnabled:
     type: boolean
-    docs: Whether bounce and complaint notifications are sent to your inboxes.
+    docs: Bounce and complaint notifications are sent to your inboxes.
 
   ClientId:
     type: string

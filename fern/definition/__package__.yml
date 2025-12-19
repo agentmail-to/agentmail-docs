@@ -27,7 +27,7 @@ types:
 
   Ascending:
     type: boolean
-    docs: Whether to sort in ascending temporal order.
+    docs: Sort in ascending temporal order.
 
   OrganizationId:
     type: string
