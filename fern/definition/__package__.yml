@@ -29,6 +29,10 @@ types:
     type: boolean
     docs: Sort in ascending temporal order.
 
+  IncludeSpam:
+    type: boolean
+    docs: Include spam in results.
+
   OrganizationId:
     type: string
     docs: ID of organization.
