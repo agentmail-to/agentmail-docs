@@ -67,6 +67,10 @@ types:
     type: list<string>
     docs: IDs of previous messages in thread.
 
+  MessageHeaders:
+    type: map<string, string>
+    docs: Headers in message.
+
   MessageSize:
     type: integer
     docs: Size of message in bytes.
@@ -95,6 +99,7 @@ types:
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
+      headers: optional<MessageHeaders>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
@@ -126,6 +131,7 @@ types:
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
+      headers: optional<MessageHeaders>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
