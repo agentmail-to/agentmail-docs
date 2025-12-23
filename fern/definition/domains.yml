@@ -21,9 +21,12 @@ types:
 
   VerificationStatus:
     enum:
+      - NOT STARTED
       - PENDING
+      - INVALID
+      - FAILED
       - VERIFYING
-      - READY
+      - VERIFIED
 
   RecordStatus:
     enum:
