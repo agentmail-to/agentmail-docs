@@ -133,28 +133,6 @@ A BIND zone file is a text file that contains DNS resource records in a standard
     </Frame>
 
 <Tabs>
-  <Tab title="AWS Route 53">
-   
-    **Step 2: Import to Route 53**
-
-    1. Go to your Route 53 hosted zone for your domain
-    2. Click **"Import zone file"** in the top right corner
-    <Frame caption="Importing BIND zone file in AWS Route 53">
-      <img
-        src="../../../assets/aws-bind-import.png"
-        alt="AWS Route 53 BIND Import"
-      />
-    </Frame>
-    3. Paste the CONTENTS of downloaded BIND zone file
-      <Frame caption="Open the file with text editor and paste the contents. It should look similar to what we have in this image.">
-      <img
-        src="../../../assets/aws-paste.png"
-        alt="AWS Route 53 BIND Import"
-      />
-    </Frame>
-    4. Review the records and click **"Import"**
-
-  </Tab>
   <Tab title="Cloudflare">
     
     **Step 2: Import to Cloudflare**
@@ -176,6 +154,43 @@ A BIND zone file is a text file that contains DNS resource records in a standard
       />
     </Frame>
     4. Upload the downloaded BIND zone file as is
+
+  </Tab>
+  <Tab title="AWS Route 53">
+   
+    **Step 2: Import to Route 53**
+
+    1. Go to your Route 53 hosted zone for your domain
+    2. Click **"Import zone file"** in the top right corner
+    <Frame caption="Importing BIND zone file in AWS Route 53">
+      <img
+        src="../../../assets/aws-bind-import.png"
+        alt="AWS Route 53 BIND Import"
+      />
+    </Frame>
+    3. Paste the CONTENTS of downloaded BIND zone file
+      <Frame caption="Open the file with text editor and paste the contents. It should look similar to what we have in this image.">
+      <img
+        src="../../../assets/aws-paste.png"
+        alt="AWS Route 53 BIND Import"
+      />
+    </Frame>
+    4. Review the records and click **"Import"**
+
+    <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
+          **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)
+
+          **When entering TXT values in the Route 53 UI, you MUST do the following.**
+          1. Split the value into two quoted strings.
+            a. e.g.: "abcd" -> "ab""cd"
+          2. Ensure there is NO SPACE between the quoted strings. This will make or break validation.
+
+          **Correct:** `"first-part-of-value""second-part-of-value"`
+
+          **Wrong:** `"first-part-of-value" "second-part-of-value"` (space between strings)
+
+          If you accidentally include a space or click enter, Route 53 will create **two separate TXT records** instead of one concatenated record. This will cause email authentication to fail, and providers like **Gmail will reject your emails**.
+        </Warning>
 
   </Tab>
   <Tab title="Porkbun">
@@ -216,7 +231,7 @@ A BIND zone file is a text file that contains DNS resource records in a standard
 </Tabs>
 
 <Callout type="info" title="BIND Zone File Format">
-  Check that all records (CNAME, TXT, MX) have been correctly imported in the
+  Check that all records (TXT, MX) have been correctly imported in the
   console(the console will show in real time if we can find the records,
   typically within seconds).
 </Callout>
@@ -230,31 +245,10 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
     If you created your domain through the [AgentMail Console](https://console.agentmail.to), the DNS records are displayed in a simplified format that's ready for copy-paste into your DNS provider.
 
     <Tabs>
-      <Tab title="AWS Route 53">
-        In your hosted zone, click **"Create record"**.
-
-        - **CNAME (DKIM):**
-          - **Record name:** Copy the **Name** value directly from the console (e.g., `abc123._domainkey`).
-          - **Value:** Copy the **Value** from the console (e.g., `abc123.dkim.amazonses.com`).
-
-        - **TXT (DMARC/SPF):**
-          - **Record name:** Copy the **Name** value directly from the console (e.g., `_dmarc` or `mail`).
-          - **Value:** Copy the **Value** from the console, ensuring it is enclosed in quotes.
-
-        - **MX:**
-          - **Record name:** Enter the value exactly as we return it, whether its `@` or the subdomain.
-          - **Value:** Copy the **Value** from the console (e.g., `inbound-smtp.us-east-1.amazonaws.com`).
-          - **Priority:** Use the priority shown in the console (typically `10`).
-
-      </Tab>
       <Tab title="Cloudflare">
         In the dashboard (**DNS > Records**), click **"Add record"**.
 
-        - **CNAME (DKIM):**
-          - **Name:** Copy the **Name** value directly from the console.
-          - **Target:** Copy the **Value** from the console.
-
-        - **TXT (DMARC/SPF):**
+        - **TXT (DMARC/SPF/DKIM):**
           - **Name:** Copy the **Name** value directly from the console.
           - **Content:** Copy the **Value** from the console.
 
@@ -262,6 +256,35 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
           - **Name:** Enter `@` to apply the record to the root domain.
           - **Mail server:** Copy the **Value** from the console.
           - **Priority:** Use the priority shown in the console.
+
+      </Tab>
+      <Tab title="AWS Route 53">
+        In your hosted zone, click **"Create record"**.
+
+
+        - **TXT (DMARC/SPF):**
+          - **Record name:** Copy the **Name** value directly from the console (e.g., `_dmarc` or `mail` or `agentmail._domainkey`).
+          - **Value:** Copy the **Value** from the console, ensuring it is enclosed in quotes.
+
+        <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
+          **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)
+
+          **When entering TXT values in the Route 53 UI, you MUST do the following.**
+          1. Split the value into two quoted strings.
+            a. e.g.: "abcd" -> "ab""cd"
+          2. Ensure there is NO SPACE between the quoted strings. This will make or break validation.
+
+          **Correct:** `"first-part-of-value""second-part-of-value"`
+
+          **Wrong:** `"first-part-of-value" "second-part-of-value"` (space between strings)
+
+          If you accidentally include a space or click enter, Route 53 will create **two separate TXT records** instead of one concatenated record. This will cause email authentication to fail, and providers like **Gmail will reject your emails**.
+        </Warning>
+
+        - **MX:**
+          - **Record name:** Enter the value exactly as we return it, whether its `@` or the subdomain.
+          - **Value:** Copy the **Value** from the console (e.g., `inbound-smtp.us-east-1.amazonaws.com`).
+          - **Priority:** Use the priority shown in the console (typically `10`).
 
       </Tab>
     </Tabs>
@@ -275,34 +298,10 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
     If you're using the API directly, the DNS records are returned as fully qualified domain names (FQDNs) that require some manual parsing.
 
     <Tabs>
-      <Tab title="AWS Route 53">
-        In your hosted zone, click **"Create record"**.
-
-        - **CNAME (DKIM):**
-          - **Record name:** Enter the part of the `name` before your root domain (e.g., `{random_letters_numbers}._domainkey` for a `name` of `{random_letters_numbers}._domainkey.domain.com`).
-          - **Value:** Can directly copy paste the `value` from the API response (e.g., `{random_letters_numbers}.dkim.amazonses.com`).
-
-        <Frame caption="Example of adding a CNAME record in Route 53. Notice that AWS already appends the root domain (agentmail.cc) to the end of the name value!">
-          <img src="../../../assets/awsdomain.png" alt="AWS Route 53 Record Configuration" />
-        </Frame>
-
-        - **TXT (DMARC/SPF):**
-          - **Record name:** Enter the part of the `name` before your root domain (e.g., `_dmarc` for a `name` of `_dmarc.domain.com`, or `mail` for a `name` of `mail.domain.com`).
-          - **Value:** Can copy paste the`value` from the API, ensuring it is enclosed in quotes.
-
-        - **MX:**
-          - **Record name:** Leave this field blank to apply the record to the root domain.
-          - **Value:** This is critical. You must combine the `priority` and `value` from the API into a single string, separated by a space. For example: `10 inbound-smtp.us-east-1.amazonaws.com`.
-
-      </Tab>
       <Tab title="Cloudflare">
         In the dashboard (**DNS > Records**), click **"Add record"**.
 
-        - **CNAME (DKIM):**
-          - **Name:** Enter the part of the `name` before your root domain (e.g., `{random_letters_numbers}._domainkey`).
-          - **Target:** Copy paste the `value` from the API response.
-
-        - **TXT (DMARC/SPF):**
+        - **TXT (DMARC/SPF/DKIM):**
           - **Name:** Enter the part of the `name` before your root domain (e.g. `_dmarc`).
           - **Content:** Copy paste the `value` from the API response.
 
@@ -310,6 +309,33 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
           - **Name:** Enter the part of the name before your root domain
           - **Mail server:** Enter the `value` from the API.
           - **Priority:** Enter the `priority` from the API.
+
+      </Tab>
+      <Tab title="AWS Route 53">
+        In your hosted zone, click **"Create record"**.
+
+        - **TXT (DMARC/SPF/DKIM):**
+          - **Record name:** Enter the part of the `name` before your root domain (e.g., `_dmarc` for a `name` of `_dmarc.domain.com`, or `mail` for a `name` of `mail.domain.com`, or `agentmail._domainkey` for a `name` of agentmail._domainkey.agents.com).
+          - **Value:** Can copy paste the`value` from the API, ensuring it is enclosed in quotes.
+
+        <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
+          **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)
+
+          **When entering TXT values in the Route 53 UI, you MUST do the following.**
+          1. Split the value into two quoted strings.
+            a. e.g.: "abcd" -> "ab""cd"
+          2. Ensure there is NO SPACE between the quoted strings. This will make or break validation.
+
+          **Correct:** `"first-part-of-value""second-part-of-value"`
+
+          **Wrong:** `"first-part-of-value" "second-part-of-value"` (space between strings)
+
+          If you accidentally include a space or click enter, Route 53 will create **two separate TXT records** instead of one concatenated record. This will cause email authentication to fail, and providers like **Gmail will reject your emails**.
+        </Warning>
+
+        - **MX:**
+          - **Record name:** Leave this field blank to apply the record to the root domain.
+          - **Value:** This is critical. You must combine the `priority` and `value` from the API into a single string, separated by a space. For example: `10 inbound-smtp.us-east-1.amazonaws.com`.
 
       </Tab>
     </Tabs>
@@ -341,15 +367,15 @@ The status indicators will show you exactly where you are in the process:
 
 Here are instructions for some common DNS providers. This list is not exhaustive, so please consult your provider's documentation if you don't see it here.
 
-| DNS/Hosting Provider | Documentation Link                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **GoDaddy**          | [CNAME: Add a CNAME record](https://www.godaddy.com/help/add-a-cname-record-19236) <br/> [MX: Add an MX record](https://www.godaddy.com/help/add-an-mx-record-19234) <br/> [TXT: Add a TXT record](https://www.godaddy.com/help/add-a-txt-record-19232)                                                                                                                                                                                                                                                                                                   |
-| **DreamHost**        | [CNAME/MX/TXT: How do I add custom DNS records?](https://help.dreamhost.com/hc/en-us/articles/215414867-How-do-I-add-custom-DNS-records)                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| **Cloudflare**       | [MX: How do I add or edit mail or MX records?](https://support.cloudflare.com/hc/en-us/articles/200168806-Managing-DNS-records-in-Cloudflare) <br/> [TXT: Managing DNS records in Cloudflare](https://support.cloudflare.com/hc/en-us/articles/200168806-Managing-DNS-records-in-Cloudflare)                                                                                                                                                                                                                                                              |
-| **HostGator**        | [CNAME/MX/TXT: Manage DNS Records with HostGator/eNom](https://www.hostgator.com/help/article/manage-dns-records-with-hostgator-enom)                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **Namecheap**        | [CNAME: How to create a CNAME record](https://www.namecheap.com/support/knowledgebase/article.aspx/9646/2237/how-to-create-a-cname-record-for-your-domain/) <br/> [MX: How can I set up MX records required for mail service?](https://www.namecheap.com/support/knowledgebase/article.aspx/434/2237/how-can-i-set-up-mx-records-required-for-mail-service) <br/> [TXT: How do I add TXT/SPF/DKIM/DMARC records for my domain?](https://www.namecheap.com/support/knowledgebase/article.aspx/317/2237/how-do-i-add-txtspfdkimdmarc-records-for-my-domain) |
-| **Names.co.uk**      | [CNAME/MX/TXT: Changing your domain's DNS settings](https://www.names.co.uk/support/articles/changing-your-domains-dns-settings/)                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| **Wix**              | [CNAME: Adding or Updating CNAME Records](https://support.wix.com/en/article/adding-or-updating-cname-records-in-your-wix-account) <br/> [MX: Adding or Updating MX Records in Your Wix Account](https://support.wix.com/en/article/adding-or-updating-mx-records-in-your-wix-account) <br/> [TXT: Adding or Updating TXT Records in Your Wix Account](https://support.wix.com/en/article/adding-or-updating-txt-records-in-your-wix-account)                                                                                                             |
+| DNS/Hosting Provider | Documentation Link                                                                                                                                                                                                                                                                                                                                                                      |
+| :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **GoDaddy**          | [MX: Add an MX record](https://www.godaddy.com/help/add-an-mx-record-19234) <br/> [TXT: Add a TXT record](https://www.godaddy.com/help/add-a-txt-record-19232)                                                                                                                                                                                                                          |
+| **DreamHost**        | [How do I add custom DNS records?](https://help.dreamhost.com/hc/en-us/articles/215414867-How-do-I-add-custom-DNS-records)                                                                                                                                                                                                                                                              |
+| **Cloudflare**       | [MX: How do I add or edit mail or MX records?](https://support.cloudflare.com/hc/en-us/articles/200168806-Managing-DNS-records-in-Cloudflare) <br/> [TXT: Managing DNS records in Cloudflare](https://support.cloudflare.com/hc/en-us/articles/200168806-Managing-DNS-records-in-Cloudflare)                                                                                            |
+| **HostGator**        | [Manage DNS Records with HostGator/eNom](https://www.hostgator.com/help/article/manage-dns-records-with-hostgator-enom)                                                                                                                                                                                                                                                                 |
+| **Namecheap**        | [MX: How can I set up MX records required for mail service?](https://www.namecheap.com/support/knowledgebase/article.aspx/434/2237/how-can-i-set-up-mx-records-required-for-mail-service) <br/> [TXT: How do I add TXT/SPF/DKIM/DMARC records for my domain?](https://www.namecheap.com/support/knowledgebase/article.aspx/317/2237/how-do-i-add-txtspfdkimdmarc-records-for-my-domain) |
+| **Names.co.uk**      | [Changing your domain's DNS settings](https://www.names.co.uk/support/articles/changing-your-domains-dns-settings/)                                                                                                                                                                                                                                                                     |
+| **Wix**              | [MX: Adding or Updating MX Records in Your Wix Account](https://support.wix.com/en/article/adding-or-updating-mx-records-in-your-wix-account) <br/> [TXT: Adding or Updating TXT Records in Your Wix Account](https://support.wix.com/en/article/adding-or-updating-txt-records-in-your-wix-account)                                                                                    |
 
 <Callout type="success" title="Ready to Go!" icon="fa-solid fa-rocket">
   Once your domain status is `ready`, you can start creating `Inboxes` with your
