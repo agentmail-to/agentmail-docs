@@ -21,7 +21,7 @@ types:
 
   VerificationStatus:
     enum:
-      - NOT STARTED
+      - NOT_STARTED
       - PENDING
       - INVALID
       - FAILED
