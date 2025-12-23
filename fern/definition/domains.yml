@@ -31,7 +31,8 @@ types:
   RecordStatus:
     enum:
       - MISSING
-      - VERIFIED
+      - INVALID
+      - VALID
 
   VerificationRecord:
     properties:
