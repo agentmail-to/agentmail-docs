@@ -26,7 +26,15 @@ types:
 
   EventTypes:
     type: list<EventType>
-    docs: Event types to subscribe to.
+    docs: Event types for which to send events.
+
+  PodIds:
+    type: list<string>
+    docs: Pods for which to send events.
+
+  InboxIds:
+    type: list<string>
+    docs: Inboxes for which to send events.
 
   EventId:
     type: string
@@ -113,6 +121,7 @@ types:
       event_type: literal<"message.received">
       event_id: EventId
       message: messages.Message
+      thread: threads.ThreadItem
 
   MessageSentEvent:
     properties:

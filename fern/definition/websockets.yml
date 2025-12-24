@@ -8,23 +8,15 @@ types:
     properties:
       type: literal<"subscribe">
       event_types: optional<events.EventTypes>
-      inbox_ids:
-        type: optional<list<string>>
-        docs: IDs of the inboxes to subscribe to.
-      pod_ids:
-        type: optional<list<string>>
-        docs: IDs of the pods to subscribe to.
+      inbox_ids: optional<events.InboxIds>
+      pod_ids: optional<events.PodIds>
 
   Subscribed:
     properties:
       type: literal<"subscribed">
       event_types: optional<events.EventTypes>
-      inbox_ids:
-        type: optional<list<string>>
-        docs: IDs of the inboxes that have been subscribed to.
-      pod_ids:
-        type: optional<list<string>>
-        docs: IDs of the pods that have been subscribed to.
+      inbox_ids: optional<events.InboxIds>
+      pod_ids: optional<events.PodIds>
 
 channel:
   url: Websockets

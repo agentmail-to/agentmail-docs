@@ -21,14 +21,18 @@ types:
 
   VerificationStatus:
     enum:
+      - NOT_STARTED
       - PENDING
+      - INVALID
+      - FAILED
       - VERIFYING
-      - READY
+      - VERIFIED
 
   RecordStatus:
     enum:
       - MISSING
-      - VERIFIED
+      - INVALID
+      - VALID
 
   VerificationRecord:
     properties:
@@ -50,7 +54,7 @@ types:
 
   FeedbackEnabled:
     type: boolean
-    docs: Whether bounce and complaint notifications are sent to your inboxes.
+    docs: Bounce and complaint notifications are sent to your inboxes.
 
   ClientId:
     type: string

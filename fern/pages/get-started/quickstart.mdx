@@ -98,7 +98,7 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
 
         // Send an email from the new inbox
         console.log("Sending email...");
-        await client.inboxes.messages.send(inbox.inbox_id, {
+        await client.inboxes.messages.send(inbox.inboxId, {
           to: "your-email@example.com",
           subject: "Hello from AgentMail!",
           text: "This is my first email sent with the AgentMail API.",
@@ -123,7 +123,7 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
       python quickstart.py
       ```
 
-      ```bash title="Node"
+      ```bash title="TypeScript"
       npx ts-node quickstart.ts
       ```
     </CodeBlocks>

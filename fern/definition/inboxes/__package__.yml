@@ -93,8 +93,7 @@ service:
       method: POST
       path: ""
       display-name: Create Inbox
-      docs: Creates a new email inbox with a specified username and domain for your AI agent to send and receive emails.
-      request: CreateInboxRequest
+      request: optional<CreateInboxRequest>
       response: Inbox
       errors:
         - global.ValidationError

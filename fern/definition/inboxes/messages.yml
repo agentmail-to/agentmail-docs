@@ -28,6 +28,7 @@ service:
           before: optional<global.Before>
           after: optional<global.After>
           ascending: optional<global.Ascending>
+          include_spam: optional<global.IncludeSpam>
       response: messages.ListMessagesResponse
       errors:
         - global.NotFoundError
@@ -86,6 +87,19 @@ service:
       path-parameters:
         message_id: messages.MessageId
       request: messages.ReplyToMessageRequest
+      response: messages.SendMessageResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - messages.MessageRejectedError
+
+    reply-all:
+      method: POST
+      path: /{message_id}/reply-all
+      display-name: Reply All Message
+      path-parameters:
+        message_id: messages.MessageId
+      request: messages.ReplyAllMessageRequest
       response: messages.SendMessageResponse
       errors:
         - global.ValidationError

@@ -19,7 +19,7 @@ types:
 
   AttachmentInline:
     type: boolean
-    docs: Whether attachment is part of message body.
+    docs: Attachment is part of message body.
 
   AttachmentContent:
     type: string

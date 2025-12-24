@@ -67,6 +67,10 @@ types:
     type: list<string>
     docs: IDs of previous messages in thread.
 
+  MessageHeaders:
+    type: map<string, string>
+    docs: Headers in message.
+
   MessageSize:
     type: integer
     docs: Size of message in bytes.
@@ -95,6 +99,7 @@ types:
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
+      headers: optional<MessageHeaders>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
@@ -126,6 +131,7 @@ types:
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
       references: optional<MessageReferences>
+      headers: optional<MessageHeaders>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
@@ -187,6 +193,10 @@ types:
       message_id: MessageId
       thread_id: threads.ThreadId
 
+  ReplyAll:
+    type: boolean
+    docs: Reply to all recipients of the original message.
+
   ReplyToMessageRequest:
     properties:
       labels: optional<MessageLabels>
@@ -194,6 +204,16 @@ types:
       to: optional<SendMessageTo>
       cc: optional<SendMessageCc>
       bcc: optional<SendMessageBcc>
+      reply_all: optional<ReplyAll>
+      text: optional<MessageText>
+      html: optional<MessageHtml>
+      attachments: optional<SendMessageAttachments>
+      headers: optional<SendMessageHeaders>
+
+  ReplyAllMessageRequest:
+    properties:
+      labels: optional<MessageLabels>
+      reply_to: optional<SendMessageReplyTo>
       text: optional<MessageText>
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>

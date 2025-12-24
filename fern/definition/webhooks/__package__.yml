@@ -17,22 +17,19 @@ types:
     type: string
     docs: URL of webhook endpoint.
 
-  InboxIds:
-    type: list<string>
-    docs: Inbox IDs for which to send events. Omit to send events for all inboxes.
-
   Webhook:
     properties:
       webhook_id: WebhookId
       url: Url
       event_types: optional<events.EventTypes>
-      inbox_ids: optional<InboxIds>
+      pod_ids: optional<events.PodIds>
+      inbox_ids: optional<events.InboxIds>
       secret:
         type: string
         docs: Secret for webhook signature verification.
       enabled:
         type: boolean
-        docs: Whether the webhook is enabled.
+        docs: Webhook is enabled.
       updated_at:
         type: datetime
         docs: Time at which webhook was last updated.
@@ -54,7 +51,8 @@ types:
     properties:
       url: Url
       event_types: events.EventTypes
-      inbox_ids: optional<InboxIds>
+      pod_ids: optional<events.PodIds>
+      inbox_ids: optional<events.InboxIds>
       client_id: optional<ClientId>
 
 service:

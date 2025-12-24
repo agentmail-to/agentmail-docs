@@ -1,40 +1,49 @@
 ---
 title: "Webhook Events"
-subtitle: "A complete reference of the AgentMail webhook event and its payload."
 slug: events
 ---
 
-When you create a webhook, you subscribe to events from AgentMail. As of now, AgentMail supports a single event type: `message.received`. This event is your primary trigger for all agent-based workflows. We will be adding more event types in the future.
+As mentioned in the overview, webhooks allow us to create event-driven applications.
+
+AgentMail supports multiple event types that allow you to build comprehensive, event-driven workflows for your email agents.
 
 All webhook payloads follow the same basic structure:
 
 ```json
 {
-  "event": "event.name",
-  "data": {
-    // ... event-specific data object
-  }
+  "type": "event",
+  "event_type": "event.name",
+  "event_id": "evt_123abc..."
+  // ... event-specific data object
 }
 ```
 
-## Message Event
-
-The `message.received` event is triggered whenever a new email is successfully received and processed in one of your `Inboxes`.
+## Message Events
 
 ### `message.received`
 
-- **Description:** This is the main trigger to kick off your agent's workflow. Use this event to fetch the full message content, process it, and decide on the next action, such as generating a reply.
-- **Use Case:** Instantly kick off an agent's workflow to process and reply to an incoming email.
+- **Description:** Triggered whenever a new email is successfully received and processed in one of your `Inboxes`. This is the most common trigger to kick off agent workflows.
+- **Example use-case:** Kick off a internal workflow when a customer complaint email hits the support inbox
+
+<Callout>
+  Something here to notice is message.received is the only webhook event that
+  includes both the metadata on the `Thread` and the `Message` in the payload.
+  Other event types send only metadata on the event. Let us know if you need
+  metadata on other event types by emailing `support@agentmail.cc`
+</Callout>
 
 <CodeGroup>
-```json  
+```json
 {
-  "event": "message.received",
-  "data": {
-    "id": "msg_123abc",
-    "object": "message",
+  "type": "event",
+  "event_type": "message.received",
+  "event_id": "evt_123abc",
+  "message": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
+    "message_id": "msg_123abc",
+    "labels": ["received"],
+    "timestamp": "2023-10-27T10:00:00Z",
     "from": [
       {
         "name": "Jane Doe",
@@ -48,26 +57,205 @@ The `message.received` event is triggered whenever a new email is successfully r
       }
     ],
     "subject": "Question about my account",
+    "preview": "A short preview of the email text...",
+    "text": "The full text body of the email.",
+    "html": "<html>...</html>",
     "created_at": "2023-10-27T10:00:00Z"
-    // ... and other message properties
+  },
+  "thread": {
+    // ... thread properties
   }
 }
 ```
 </CodeGroup>
 
-## Future Events
+### `message.sent`
 
-We are working on expanding our event offerings. In the future, you can expect to see events related to email delivery status, such as:
+- **Description:** Triggered when a message is successfully sent from one of your `Inboxes`.
+- **Use Case:** Track outgoing messages, update your database, or trigger follow-up workflows after sending.
 
-- `delivery.success`
-- `delivery.bounced`
-- `delivery.complained`
-- and much more...
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.sent",
+  "event_id": "evt_456def",
+  "send": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "msg_123abc",
+    "timestamp": "2023-10-27T10:05:00Z",
+    "recipients": [
+      "recipient@example.com"
+    ]
+  }
+}
+```
+</CodeGroup>
 
-Stay tuned for updates as we roll out these new features!
+### `message.delivered`
+
+- **Description:** Triggered when a sent message is successfully delivered to the recipient's mail server.
+- **Use Case:** Confirm successful delivery, update message status, or trigger delivery confirmation workflows.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.delivered",
+  "event_id": "evt_789ghi",
+  "delivery": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "msg_123abc",
+    "timestamp": "2023-10-27T10:06:00Z",
+    "recipients": [
+      "recipient@example.com"
+    ]
+  }
+}
+```
+</CodeGroup>
+
+<AccordionGroup>
+  <Accordion
+    title="What is the difference between `message.sent` and `message.delivered?`"
+    defaultOpen={true}
+  >
+    `message.sent` means the message has succesfully left our servers and is out
+    to travel the network. This is typically happens before `message.delivered`
+    where `message.delivered` means the recieving email server(whether its Gmail
+    or Outlook) gives us the `200 OK` saying the email has been received. What
+    they do with the email after is unknown.
+  </Accordion>
+  <Accordion title="Does `message.delivered` mean I landed in their inbox?">
+    Nope. As mentioned `message.delivered` means the receiving email server,
+    whether it's Gmail or Outlook tells us "Hey AgentMail, we got your email,
+    we'll take it from here!". They typically have their own properitary
+    algorithms to determine whether the email is going to end up in the inbox or
+    spam, but rest assured we handle everything needed for providers like Gmail
+    to deem the emails primary inbox worthy
+  </Accordion>
+</AccordionGroup>
+
+### `message.bounced`
+
+- **Description:** Triggered when a sent message fails to deliver and bounces back. Includes bounce type and sub-type information.
+- **Use Case:** Handle bounced emails, update recipient status, or trigger bounce handling workflows.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.bounced",
+  "event_id": "evt_012jkl",
+  "bounce": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "msg_123abc",
+    "timestamp": "2023-10-27T10:07:00Z",
+    "type": "Permanent",
+    "sub_type": "General",
+    "recipients": [
+      {
+        "address": "invalid@example.com",
+        "status": "bounced"
+      }
+    ]
+  }
+}
+```
+</CodeGroup>
+
+### `message.complained`
+
+- **Description:** Triggered when a recipient marks your message as spam or files a complaint.
+- **Use Case:** Handle spam complaints, update sender reputation, or trigger complaint handling workflows.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.complained",
+  "event_id": "evt_345mno",
+  "complaint": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "msg_123abc",
+    "timestamp": "2023-10-27T10:08:00Z",
+    "type": "abuse",
+    "sub_type": "spam",
+    "recipients": [
+      "complainer@example.com"
+    ]
+  }
+}
+```
+</CodeGroup>
+
+### `message.rejected`
+
+- **Description:** Triggered when a message is rejected before being sent, typically due to validation errors or policy violations.
+- **Use Case:** Handle rejected messages, log rejection reasons, or trigger validation workflows.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.rejected",
+  "event_id": "evt_678pqr",
+  "reject": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "msg_123abc",
+    "timestamp": "2023-10-27T10:09:00Z",
+    "reason": "Invalid recipient address"
+  }
+}
+```
+</CodeGroup>
+
+<Warning>
+  If you send an email to a `bounced` address, `rejected` address, or
+  `complained` address we prevent you from sending to this email address ever
+  again to keep bounce rates low. Make sure to keep your account bounce rate
+  under 4%, otherwise we will put your account under review.
+</Warning>
+
+## Domain Events
+
+### `domain.verified`
+
+- **Description:** Triggered when a domain is successfully verified and ready to use for sending emails.
+- **Use Case:** Automatically enable domain-specific features, update domain status, or trigger post-verification workflows.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "domain.verified",
+  "event_id": "evt_901stu",
+  "domain": {
+    "domain_id": "dom_123abc",
+    "status": "verified",
+    "feedback_enabled": true,
+    "records": [
+      // ... DNS verification records
+    ],
+    "created_at": "2023-10-27T09:00:00Z",
+    "updated_at": "2023-10-27T10:00:00Z"
+  }
+}
+```
+</CodeGroup>
+
+## Event Filtering
+
+When creating a webhook, you can specify which events to subscribe to. This allows you to:
+
+- Reduce webhook traffic by only subscribing to events you need
+- Create specialized webhooks for specific workflows
+
+For example, if you only need to trigger workflows on incoming messages, you can subscribe to just `message.received`. If you're building a delivery tracking system, you might subscribe to `message.sent`, `message.delivered`, and `message.bounced`.
 
 If you have any specific webhook notifications you would like, please ping us in the `#feature-requests` channel in the [Discord](https://discord.gg/hTYatWYWBc)
-
-```
-
-```
