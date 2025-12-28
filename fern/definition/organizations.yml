@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  Organization:
+    docs: Organization details with usage limits and counts.
+    properties:
+      organization_id: global.OrganizationId
+      is_playground:
+        type: optional<boolean>
+        docs: Whether this is a playground organization.
+      inbox_limit:
+        type: optional<integer>
+        docs: Maximum number of inboxes allowed.
+      domain_limit:
+        type: optional<integer>
+        docs: Maximum number of domains allowed.
+      inbox_count:
+        type: integer
+        docs: Current number of inboxes.
+      domain_count:
+        type: integer
+        docs: Current number of domains.
+      updated_at:
+        type: datetime
+        docs: Time at which organization was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which organization was created.
+
+service:
+  url: Http
+  base-path: /organizations
+  auth: true
+
+  endpoints:
+    get:
+      method: GET
+      path: ""
+      display-name: Get Organization
+      docs: Get the current organization.
+      response: Organization
