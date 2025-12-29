@@ -163,6 +163,7 @@ service:
       method: GET
       path: ""
       display-name: List Drafts
+      docs: Retrieves all saved email drafts across all inboxes in your account.
       request:
         name: ListDraftsRequest
         query-parameters:
@@ -180,6 +181,7 @@ service:
       method: GET
       path: /{draft_id}
       display-name: Get Draft
+      docs: Retrieves a specific draft from any inbox with its full content and metadata.
       path-parameters:
         draft_id: DraftId
       response: Draft
