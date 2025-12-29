@@ -195,6 +195,9 @@ navigation:
           - page: Smart Labeling Agent
             icon: fa-solid fa-life-ring
             path: pages/examples/smart-labeling-agent.mdx
+          - page: Dinner Agent
+            icon: fa-solid fa-utensils
+            path: pages/examples/dinner-agent.mdx
           - page: Live AgentMail Examples
             icon: fa-solid fa-video
             path: pages/examples/live-emails.mdx
