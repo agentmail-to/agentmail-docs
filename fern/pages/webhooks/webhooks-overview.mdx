@@ -23,7 +23,7 @@ The process is straightforward:
         This is a public URL on your server that can accept `POST` requests. For local development, a tool like `ngrok` is perfect for creating a secure, public URL that tunnels to your local machine. Your endpoint should immediately return a `200 OK` response to acknowledge receipt and process the payload in the background to avoid timeouts.
     </Step>
     <Step title="2. Register the Endpoint with AgentMail">
-        You can register your URL using the AgentMail API. When you create a webhook, you'll specify your endpoint's URL. As AgentMail currently only supports the `message.received` event, there's no need to specify event types.
+        You can register your URL using the AgentMail API. When you create a webhook, you'll specify your endpoint's URL as well as event types you want to receive.
 
         <CodeBlocks>
         ```python
