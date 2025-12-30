@@ -8,21 +8,18 @@ types:
     docs: Organization details with usage limits and counts.
     properties:
       organization_id: global.OrganizationId
-      is_playground:
-        type: optional<boolean>
-        docs: Whether this is a playground organization.
-      inbox_limit:
-        type: optional<integer>
-        docs: Maximum number of inboxes allowed.
-      domain_limit:
-        type: optional<integer>
-        docs: Maximum number of domains allowed.
       inbox_count:
         type: integer
         docs: Current number of inboxes.
       domain_count:
         type: integer
         docs: Current number of domains.
+      inbox_limit:
+        type: optional<integer>
+        docs: Maximum number of inboxes allowed.
+      domain_limit:
+        type: optional<integer>
+        docs: Maximum number of domains allowed.
       updated_at:
         type: datetime
         docs: Time at which organization was last updated.
