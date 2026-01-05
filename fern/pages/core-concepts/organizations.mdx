@@ -1,0 +1,81 @@
+---
+title: Organizations
+subtitle: The top-level container for all your AgentMail resources.
+slug: organizations
+description: Learn how Organizations serve as the root entity that contains all your Inboxes, Domains, and API keys.
+---
+
+## What is an Organization?
+
+An `Organization` is the top-level entity in AgentMail that acts as a container for all your resources. When you sign up for AgentMail, an organization is automatically created for you.
+
+Your organization holds:
+- **Inboxes**: All the email accounts your agents use
+- **Domains**: Custom domains you've configured for sending emails
+- **API Keys**: Credentials for programmatic access
+- **Pods**: Groups of inboxes for organization
+
+## Usage Limits
+
+Each organization has configurable limits that control how many resources you can create:
+
+| Property | Description |
+|----------|-------------|
+| `inbox_count` | Current number of inboxes in your organization |
+| `domain_count` | Current number of domains configured |
+| `inbox_limit` | Maximum number of inboxes allowed |
+| `domain_limit` | Maximum number of domains allowed |
+
+<Tip>
+  Need higher limits? Contact us at [support@agentmail.cc](mailto:support@agentmail.cc) to discuss your requirements.
+</Tip>
+
+## Retrieving Your Organization
+
+You can retrieve your organization details to check your current usage and limits:
+
+<CodeBlocks>
+
+```python
+from agentmail import AgentMail
+
+# Initialize the client
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# Get your organization details
+org = client.organizations.get()
+
+print(f"Organization ID: {org.organization_id}")
+print(f"Inboxes: {org.inbox_count} / {org.inbox_limit or 'unlimited'}")
+print(f"Domains: {org.domain_count} / {org.domain_limit or 'unlimited'}")
+```
+
+```typescript
+import { AgentMailClient } from "agentmail";
+
+// Initialize the client
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// Get your organization details
+const org = await client.organizations.get();
+
+console.log(`Organization ID: ${org.organizationId}`);
+console.log(`Inboxes: ${org.inboxCount} / ${org.inboxLimit ?? "unlimited"}`);
+console.log(`Domains: ${org.domainCount} / ${org.domainLimit ?? "unlimited"}`);
+```
+
+</CodeBlocks>
+
+## Organization Response
+
+The `get` endpoint returns the following fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `organization_id` | string | Unique identifier for your organization |
+| `inbox_count` | integer | Current number of inboxes |
+| `domain_count` | integer | Current number of domains |
+| `inbox_limit` | integer (optional) | Maximum inboxes allowed |
+| `domain_limit` | integer (optional) | Maximum domains allowed |
+| `created_at` | datetime | When the organization was created |
+| `updated_at` | datetime | When the organization was last updated |
