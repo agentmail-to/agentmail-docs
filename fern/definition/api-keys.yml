@@ -62,6 +62,7 @@ service:
       method: GET
       path: ""
       display-name: List API Keys
+      docs: Retrieves all API keys configured for authenticating with the AgentMail API.
       request:
         name: ListApiKeysRequest
         query-parameters:
@@ -73,6 +74,7 @@ service:
       method: POST
       path: ""
       display-name: Create API Key
+      docs: Creates a new API key for authenticating API requests with a specified name.
       request: CreateApiKeyRequest
       response: CreateApiKeyResponse
       errors:
@@ -82,6 +84,7 @@ service:
       method: DELETE
       path: /{api_key}
       display-name: Delete API Key
+      docs: Revokes an API key, preventing it from being used for authentication.
       path-parameters:
         api_key: ApiKeyId
       errors:
