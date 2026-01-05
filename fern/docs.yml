@@ -246,4 +246,5 @@ navigation:
           - metrics
           - api-keys
           - pods
+          - organizations
   # - tab: changelog
