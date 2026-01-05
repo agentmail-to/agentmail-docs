@@ -134,6 +134,9 @@ navigation:
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx
+          - page: IMAP & SMTP
+            icon: fa-solid fa-envelope-open-text
+            path: pages/guides/imap-smtp.mdx
           # - page: Semantic Search
           #   path: pages/guides/semantic-search.mdx
           # - page: Automatic Labeling
