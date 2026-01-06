@@ -15,24 +15,9 @@ Your organization holds:
 - **API Keys**: Credentials for programmatic access
 - **Pods**: Groups of inboxes for organization
 
-## Usage Limits
-
-Each organization has configurable limits that control how many resources you can create:
-
-| Property | Description |
-|----------|-------------|
-| `inbox_count` | Current number of inboxes in your organization |
-| `domain_count` | Current number of domains configured |
-| `inbox_limit` | Maximum number of inboxes allowed |
-| `domain_limit` | Maximum number of domains allowed |
-
-<Tip>
-  Need higher limits? Contact us at [support@agentmail.cc](mailto:support@agentmail.cc) to discuss your requirements.
-</Tip>
-
 ## Retrieving Your Organization
 
-You can retrieve your organization details to check your current usage and limits:
+You can retrieve your organization details programmatically:
 
 <CodeBlocks>
 
@@ -46,8 +31,7 @@ client = AgentMail(api_key="YOUR_API_KEY")
 org = client.organizations.get()
 
 print(f"Organization ID: {org.organization_id}")
-print(f"Inboxes: {org.inbox_count} / {org.inbox_limit or 'unlimited'}")
-print(f"Domains: {org.domain_count} / {org.domain_limit or 'unlimited'}")
+print(f"Created at: {org.created_at}")
 ```
 
 ```typescript
@@ -60,8 +44,7 @@ const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
 const org = await client.organizations.get();
 
 console.log(`Organization ID: ${org.organizationId}`);
-console.log(`Inboxes: ${org.inboxCount} / ${org.inboxLimit ?? "unlimited"}`);
-console.log(`Domains: ${org.domainCount} / ${org.domainLimit ?? "unlimited"}`);
+console.log(`Created at: ${org.createdAt}`);
 ```
 
 </CodeBlocks>
@@ -73,9 +56,9 @@ The `get` endpoint returns the following fields:
 | Field | Type | Description |
 |-------|------|-------------|
 | `organization_id` | string | Unique identifier for your organization |
-| `inbox_count` | integer | Current number of inboxes |
-| `domain_count` | integer | Current number of domains |
-| `inbox_limit` | integer (optional) | Maximum inboxes allowed |
-| `domain_limit` | integer (optional) | Maximum domains allowed |
 | `created_at` | datetime | When the organization was created |
 | `updated_at` | datetime | When the organization was last updated |
+
+<Tip>
+  We're actively building more organization-level features. Stay tuned for upcoming updates!
+</Tip>
