@@ -39,7 +39,7 @@ types:
       filename: optional<AttachmentFilename>
       size: AttachmentSize
       content_type: optional<AttachmentContentType>
-      content_disposition: AttachmentContentDisposition
+      content_disposition: optional<AttachmentContentDisposition>
       content_id: optional<AttachmentContentId>
 
   SendAttachment:
