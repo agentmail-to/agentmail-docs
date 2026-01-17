@@ -1,0 +1,16 @@
+{
+  "name": "agentmail-docs",
+  "version": "1.0.0",
+  "description": "AgentMail Documentation",
+  "scripts": {
+    "generate-sitemap": "node generate-sitemap.js",
+    "prebuild": "npm run generate-sitemap"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.1"
+  },
+  "keywords": [
+    "agentmail",
+    "documentation"
+  ]
+}
