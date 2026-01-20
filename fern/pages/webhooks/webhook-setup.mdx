@@ -227,19 +227,19 @@ Check out the [Event-Driven Agent Example](/webhook-agent) for a more advanced i
 For production deployments:
 
 - **Use a dedicated server**: Deploy your webhook receiver to a cloud service (AWS, GCP, Heroku, etc.) instead of using ngrok
-- **Implement webhook verification**: Validate incoming requests are from AgentMail
+- **Implement webhook verification**: [Validate incoming requests](/webhook-verification) are authentically from AgentMail
 - **Add error handling**: Implement retry logic and error reporting
 - **Use async processing**: Return 200 immediately and process webhooks in background jobs
 - **Monitor webhook health**: Set up logging and alerting for failed webhook deliveries
 
 <CardGroup>
+  <Card title="Verifying Webhooks" href="/webhook-verification">
+    Learn how to verify webhook signatures for secure endpoints.
+  </Card>
   <Card title="Webhooks Overview" href="/overview">
     Learn more about how webhooks work and their payload structure.
   </Card>
   <Card title="Webhook Events" href="/events">
     Explore the full list of webhook event types.
-  </Card>
-  <Card title="Event-Driven Agent" href="/webhook-agent">
-    Build a complete agent that uses webhooks for real-time responses.
   </Card>
 </CardGroup>
