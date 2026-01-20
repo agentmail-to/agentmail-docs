@@ -42,6 +42,21 @@ types:
       content_disposition: optional<AttachmentContentDisposition>
       content_id: optional<AttachmentContentId>
 
+  AttachmentResponse:
+    properties:
+      attachment_id: AttachmentId
+      filename: optional<AttachmentFilename>
+      size: AttachmentSize
+      content_type: optional<AttachmentContentType>
+      content_disposition: optional<AttachmentContentDisposition>
+      content_id: optional<AttachmentContentId>
+      download_url:
+        type: string
+        docs: URL to download the attachment.
+      expires_at:
+        type: datetime
+        docs: Time at which the download URL expires.
+
   SendAttachment:
     properties:
       filename: optional<AttachmentFilename>
