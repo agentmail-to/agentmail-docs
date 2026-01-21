@@ -169,6 +169,9 @@ navigation:
           - page: Setup Guide
             icon: fa-solid fa-screwdriver-wrench
             path: pages/webhooks/webhook-setup.mdx
+          - page: Verifying Webhooks
+            icon: fa-solid fa-shield-halved
+            path: pages/webhooks/webhook-verification.mdx
       - section: WebSockets
         contents:
           - page: Overview
@@ -201,6 +204,9 @@ navigation:
           - page: Smart Labeling Agent
             icon: fa-solid fa-life-ring
             path: pages/examples/smart-labeling-agent.mdx
+          - page: Sales Agent (WebSocket)
+            icon: fa-solid fa-headset
+            path: pages/examples/sales-agent-websocket.mdx
           - page: Live AgentMail Examples
             icon: fa-solid fa-video
             path: pages/examples/live-emails.mdx
@@ -253,4 +259,5 @@ navigation:
           - metrics
           - api-keys
           - pods
+          - organizations
   # - tab: changelog
