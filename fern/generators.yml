@@ -4,23 +4,25 @@ groups:
   local:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 3.34.2
+        version: 3.43.13
         config:
           namespaceExport: AgentMail
           noSerdeLayer: false
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
+        smart-casing: false
       - name: fernapi/fern-python-sdk
-        version: 4.41.2
+        version: 4.48.1
         config:
           client_class_name: AgentMail
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
+        smart-casing: false
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 3.34.2
+        version: 3.43.13
         output:
           location: npm
           package-name: agentmail
@@ -38,10 +40,11 @@ groups:
                 npm run build:cjs && npm run build:esm && node -e "const
                 https=require('https'),fs=require('fs');const download=(f)=>new
                 Promise((res,rej)=>https.get('https://docs.agentmail.to/'+f,r=>r.pipe(fs.createWriteStream('dist/'+f)).on('finish',res).on('error',rej)));Promise.all(['llms.txt','llms-full.txt'].map(download)).catch(e=>{console.error(e);process.exit(1)});"
+        smart-casing: false
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 4.41.2
+        version: 4.48.1
         output:
           location: pypi
           package-name: agentmail
@@ -53,11 +56,13 @@ groups:
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
+        smart-casing: false
   postman:
     generators:
       - name: fernapi/fern-postman
-        version: 0.4.3
+        version: 0.5.0
         output:
           location: postman
           api-key: ${POSTMAN_API_KEY}
           workspace-id: 0b0ed383-d63d-4063-b758-aa02d7bf9edb
+        smart-casing: false
