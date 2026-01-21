@@ -49,7 +49,7 @@ service:
       path-parameters:
         thread_id: threads.ThreadId
         attachment_id: attachments.AttachmentId
-      response: file
+      response: attachments.AttachmentResponse
       errors:
         - global.NotFoundError
 
