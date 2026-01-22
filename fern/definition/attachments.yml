@@ -9,17 +9,25 @@ types:
     type: string
     docs: Filename of attachment.
 
-  AttachmentContentType:
-    type: string
-    docs: Content type of attachment.
-
   AttachmentSize:
     type: integer
     docs: Size of attachment in bytes.
 
-  AttachmentInline:
-    type: boolean
-    docs: Attachment is part of message body.
+  AttachmentContentType:
+    type: string
+    docs: Content type of attachment.
+
+  AttachmentContentDisposition:
+    enum:
+      - name: INLINE
+        value: inline
+      - name: ATTACHMENT
+        value: attachment
+    docs: Content disposition of attachment.
+
+  AttachmentContentId:
+    type: string
+    docs: Content ID of attachment.
 
   AttachmentContent:
     type: string
@@ -29,12 +37,30 @@ types:
     properties:
       attachment_id: AttachmentId
       filename: optional<AttachmentFilename>
-      content_type: optional<AttachmentContentType>
       size: AttachmentSize
-      inline: AttachmentInline
+      content_type: optional<AttachmentContentType>
+      content_disposition: optional<AttachmentContentDisposition>
+      content_id: optional<AttachmentContentId>
+
+  AttachmentResponse:
+    properties:
+      attachment_id: AttachmentId
+      filename: optional<AttachmentFilename>
+      size: AttachmentSize
+      content_type: optional<AttachmentContentType>
+      content_disposition: optional<AttachmentContentDisposition>
+      content_id: optional<AttachmentContentId>
+      download_url:
+        type: string
+        docs: URL to download the attachment.
+      expires_at:
+        type: datetime
+        docs: Time at which the download URL expires.
 
   SendAttachment:
     properties:
       filename: optional<AttachmentFilename>
       content_type: optional<AttachmentContentType>
+      content_disposition: optional<AttachmentContentDisposition>
+      content_id: optional<AttachmentContentId>
       content: AttachmentContent

@@ -28,10 +28,13 @@ Before configuring IMAP or SMTP, you'll need two pieces of information from the 
 
 <Steps>
   <Step title="Get Your Inbox ID (Username)">
-    Navigate to **Dashboard → Inboxes** and find the **Inbox ID** column. Your inbox ID is your inbox's email address (e.g., `myinbox@agentmail.to`). This will be your username for IMAP/SMTP authentication.
+    Navigate to **Dashboard → Inboxes** and find the **Inbox ID** column. Your
+    inbox ID is your inbox's email address (e.g., `myinbox@agentmail.to`). This
+    will be your username for IMAP authentication.
   </Step>
   <Step title="Get Your API Key (Password)">
-    Navigate to **Dashboard → API Keys** and create or copy an API key—this will be your password.
+    Navigate to **Dashboard → API Keys** and create or copy an API key—this will
+    be your password.
   </Step>
 </Steps>
 
@@ -40,19 +43,22 @@ Before configuring IMAP or SMTP, you'll need two pieces of information from the 
 Use IMAP to read emails from your AgentMail inbox.
 
 <Callout intent="warning" title="SSL/TLS Required">
-  SSL/TLS is **required** for all IMAP connections. Connections without SSL will be rejected. Make sure to enable SSL/TLS in your email client settings.
+  SSL/TLS is **required** for all IMAP connections. Connections without SSL will
+  be rejected. Make sure to enable SSL/TLS in your email client settings.
 </Callout>
 
-| Setting | Value |
-|---------|-------|
-| **Host** | `imap.agentmail.to` |
-| **Port** | `993` |
+| Setting      | Value                                           |
+| ------------ | ----------------------------------------------- |
+| **Host**     | `imap.agentmail.to`                             |
+| **Port**     | `993`                                           |
 | **Username** | Your inbox email (e.g., `myinbox@agentmail.to`) |
-| **Password** | Your API key |
-| **SSL/TLS** | **Required** (must be enabled) |
+| **Password** | Your API key                                    |
+| **SSL/TLS**  | **Required** (must be enabled)                  |
 
 <Callout intent="tip" title="Folder Support">
-  Currently, only the **INBOX** folder is accessible via IMAP. Other folders (Sent, Drafts, Trash) are not available through IMAP. Use the [AgentMail API](/introduction) for full folder access.
+  Currently, only the **INBOX** folder is accessible via IMAP. Other folders
+  (Sent, Drafts, Trash) are not available through IMAP. Use the [AgentMail
+  API](/introduction) for full folder access.
 </Callout>
 
 ### Python IMAP Example
@@ -128,19 +134,22 @@ imap.connect();
 Use SMTP to send emails from your AgentMail inbox.
 
 <Callout intent="warning" title="SSL/TLS Required">
-  SSL/TLS is **required** for all SMTP connections. Connections without SSL will be rejected. Make sure to enable SSL/TLS in your email client settings.
+  SSL/TLS is **required** for all SMTP connections. Connections without SSL will
+  be rejected. Make sure to enable SSL/TLS in your email client settings.
 </Callout>
 
-| Setting | Value |
-|---------|-------|
-| **Host** | `smtp.agentmail.to` |
-| **Port** | `465` |
-| **Username** | Your inbox email (e.g., `myinbox@agentmail.to`) |
-| **Password** | Your API key |
-| **SSL/TLS** | **Required** (must be enabled) |
+| Setting      | Value                          |
+| ------------ | ------------------------------ |
+| **Host**     | `smtp.agentmail.to`            |
+| **Port**     | `465`                          |
+| **Username** | agentmail                      |
+| **Password** | Your API key                   |
+| **SSL/TLS**  | **Required** (must be enabled) |
 
 <Callout intent="warning" title="From Address">
-  The "From" address in your email should match the email address of your inbox (e.g., `myinbox@agentmail.to`). Using a different From address may result in delivery failures.
+  The "From" address in your email should match the email address of your inbox
+  (e.g., `myinbox@agentmail.to`). Using a different From address may result in
+  delivery failures.
 </Callout>
 
 ### SMTP Limits
@@ -209,21 +218,21 @@ sendEmail().catch(console.error);
 
 ## Troubleshooting
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| "Authentication failed" | Invalid credentials | Verify your inbox email and API key from the console |
-| "Connection refused" | SSL not enabled | Enable SSL/TLS in your client settings |
-| "Connection timeout" | Firewall blocking ports | Ensure ports 993 (IMAP) and 465/587 (SMTP) are open |
-| "Sender not authorized" | Wrong From address | Use your inbox's email address as the From address |
-| "Folder not found" | Non-INBOX folder | Only INBOX is supported; use the API for other folders |
+| Error                   | Cause                   | Solution                                               |
+| ----------------------- | ----------------------- | ------------------------------------------------------ |
+| "Authentication failed" | Invalid credentials     | Verify your inbox email and API key from the console   |
+| "Connection refused"    | SSL not enabled         | Enable SSL/TLS in your client settings                 |
+| "Connection timeout"    | Firewall blocking ports | Ensure ports 993 (IMAP) and 465/587 (SMTP) are open    |
+| "Sender not authorized" | Wrong From address      | Use your inbox's email address as the From address     |
+| "Folder not found"      | Non-INBOX folder        | Only INBOX is supported; use the API for other folders |
 
 ## When to Use IMAP/SMTP vs API
 
-| Use Case | Recommendation |
-|----------|----------------|
-| Email client integration | IMAP/SMTP |
-| Simple programmatic sending | SMTP |
-| Full inbox management | API |
-| Real-time notifications | API (Webhooks) |
-| Access to all folders | API |
-| Bulk operations | API |
+| Use Case                    | Recommendation |
+| --------------------------- | -------------- |
+| Email client integration    | IMAP/SMTP      |
+| Simple programmatic sending | SMTP           |
+| Full inbox management       | API            |
+| Real-time notifications     | API (Webhooks) |
+| Access to all folders       | API            |
+| Bulk operations             | API            |
