@@ -7,7 +7,7 @@ description: Learn how AgentMail Inboxes act as scalable, API-first email accoun
 
 ## What is an Inbox?
 
-People are used to the traditional Gmail limitations -- only having one inbox. Thats of the past.
+People are used to the traditional Gmail limitations -- only having one inbox. That's of the past.
 
 An `Inbox` is now a fully loaded, programmatically accessible API resource re-designed for the scale of AI Agents.
 
@@ -16,7 +16,7 @@ Think of it as being similar to a Gmail or Outlook account, but built API-first.
 Unlike traditional email providers that are designed for human scale, AgentMail `Inboxes` are built to scale horizontally. You can create tens, hundreds, or even thousands of `Inboxes` for your agents on demand.
 
 <Tip>
-  Pssstt! Rather then sending 1000 emails from 1 `Inbox` sending 10 emails
+  Psst! Rather than sending 1000 emails from 1 `Inbox`, sending 10 emails
   across 100 `Inboxes` actually improves deliverability! Read more about
   optimizing for deliverability [here](/best-practices/email-deliverability)
 </Tip>
@@ -95,10 +95,10 @@ const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
 
 // --- Create an Inbox ---
 // Creates a new inbox with a default agentmail.to domain
-await client.inboxes.create({
-  username: “docs-testing”,
-  domain: “domain.com”,
-  displayName: “Docs Tester”,
+const newInbox = await client.inboxes.create({
+  username: "docs-testing",
+  domain: "domain.com",
+  displayName: "Docs Tester",
 });
 console.log(`Created Inbox: ${newInbox.id}`);
 
