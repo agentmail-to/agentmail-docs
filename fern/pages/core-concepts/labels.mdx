@@ -126,7 +126,7 @@ print(f"Found {filtered_threads.count} threads that need a follow-up.")
 
 ```typescript title="TypeScript"
 // Find all threads from a specific campaign that need a follow-up
-cosnt filteredThreads = await client.inboxes.threads.list(
+const filteredThreads = await client.inboxes.threads.list(
   "leads@agentmail.to",
   {
     labels: [

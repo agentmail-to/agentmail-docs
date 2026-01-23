@@ -122,16 +122,16 @@ All webhook payloads follow the same basic structure:
     title="What is the difference between `message.sent` and `message.delivered?`"
     defaultOpen={true}
   >
-    `message.sent` means the message has succesfully left our servers and is out
-    to travel the network. This is typically happens before `message.delivered`
-    where `message.delivered` means the recieving email server(whether its Gmail
+    `message.sent` means the message has successfully left our servers and is out
+    to travel the network. This typically happens before `message.delivered`
+    where `message.delivered` means the receiving email server (whether it's Gmail
     or Outlook) gives us the `200 OK` saying the email has been received. What
     they do with the email after is unknown.
   </Accordion>
   <Accordion title="Does `message.delivered` mean I landed in their inbox?">
     Nope. As mentioned `message.delivered` means the receiving email server,
     whether it's Gmail or Outlook tells us "Hey AgentMail, we got your email,
-    we'll take it from here!". They typically have their own properitary
+    we'll take it from here!". They typically have their own proprietary
     algorithms to determine whether the email is going to end up in the inbox or
     spam, but rest assured we handle everything needed for providers like Gmail
     to deem the emails primary inbox worthy
