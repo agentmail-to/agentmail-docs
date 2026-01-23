@@ -73,8 +73,8 @@ types:
       thread_id: ThreadId
       labels: ThreadLabels
       timestamp: ThreadTimestamp
-      received_timestamp: ThreadReceivedTimestamp
-      sent_timestamp: ThreadSentTimestamp
+      received_timestamp: optional<ThreadReceivedTimestamp>
+      sent_timestamp: optional<ThreadSentTimestamp>
       senders: ThreadSenders
       recipients: ThreadRecipients
       subject: optional<ThreadSubject>
@@ -92,8 +92,8 @@ types:
       thread_id: ThreadId
       labels: ThreadLabels
       timestamp: ThreadTimestamp
-      received_timestamp: ThreadReceivedTimestamp
-      sent_timestamp: ThreadSentTimestamp
+      received_timestamp: optional<ThreadReceivedTimestamp>
+      sent_timestamp: optional<ThreadSentTimestamp>
       senders: ThreadSenders
       recipients: ThreadRecipients
       subject: optional<ThreadSubject>
