@@ -1,0 +1,86 @@
+name: Update last updated date
+
+# Trigger this workflow when PRs are opened or updated
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main # Adjust to match your main branch name
+
+jobs:
+  update-last-updated:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to commit changes
+      pull-requests: write # Required to update the PR
+    steps:
+      # Step 1: Check out the PR branch
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }} # Check out the PR's source branch
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 2: Identify which MDX files changed in this PR
+      - name: Get changed MDX files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            **/*.mdx  # Only track changes to .mdx files
+
+      # Step 3: Update the last-updated field in each changed MDX file
+      - name: Update last-updated frontmatter
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          # Generate current date in "Month Day, Year" format (e.g., "December 11, 2025")
+          # Modify the date format here if you prefer a different style
+          CURRENT_DATE=$(date +"%B %-d, %Y")
+          echo "Current date: $CURRENT_DATE"
+
+          # Process each changed MDX file
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Processing: $file"
+
+            # Skip if file was deleted or doesn't exist
+            if [ ! -f "$file" ]; then
+              echo "File not found, skipping: $file"
+              continue
+            fi
+
+            # Check if file has frontmatter (must start with ---)
+            if ! head -1 "$file" | grep -q "^---"; then
+              echo "No frontmatter found, skipping: $file"
+              continue
+            # If file already has a last-updated field, update it
+            elif grep -q "^last-updated:" "$file"; then
+              echo "Updating existing last-updated field"
+              sed -i "s/^last-updated:.*$/last-updated: $CURRENT_DATE/" "$file"
+            # If file has frontmatter but no last-updated field, add it
+            else
+              echo "Adding last-updated field to existing frontmatter"
+              # This awk command inserts the last-updated field just before the closing ---
+              awk -v date="$CURRENT_DATE" '
+                BEGIN { in_frontmatter=0; added=0 }
+                NR==1 && /^---$/ { in_frontmatter=1; print; next }
+                in_frontmatter && /^---$/ && !added { print "last-updated: " date; added=1; print; in_frontmatter=0; next }
+                { print }
+              ' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+            fi
+          done
+
+      # Step 4: Commit and push the updated files back to the PR
+      - name: Commit changes
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          # Only commit if there are actual changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update last-updated date in MDX files"
+            git push
+          fi
