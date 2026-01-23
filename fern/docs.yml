@@ -124,6 +124,9 @@ navigation:
           # - page: Overview
           #   icon: fa-solid fa-list
           #   path: pages/integrations/overview.mdx
+          - page: MCP
+            icon: fa-solid fa-plug
+            path: pages/integrations/mcp.mdx
           - page: Replit
             path: pages/integrations/replit.mdx
           # - page: Smithery
