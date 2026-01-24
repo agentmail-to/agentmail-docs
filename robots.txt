@@ -1,0 +1,6 @@
+# robots.txt for AgentMail Documentation
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://docs.agentmail.to/sitemap.xml
