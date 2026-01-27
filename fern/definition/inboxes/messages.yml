@@ -100,6 +100,19 @@ service:
         - global.NotFoundError
         - messages.MessageRejectedError
 
+    forward:
+      method: POST
+      path: /{message_id}/forward
+      display-name: Forward Message
+      path-parameters:
+        message_id: messages.MessageId
+      request: messages.SendMessageRequest
+      response: messages.SendMessageResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - messages.MessageRejectedError
+
     update:
       method: PATCH
       path: /{message_id}
