@@ -29,10 +29,6 @@ types:
     type: string
     docs: Content ID of attachment.
 
-  AttachmentContent:
-    type: string
-    docs: Base64 encoded content of attachment.
-
   Attachment:
     properties:
       attachment_id: AttachmentId
@@ -63,4 +59,9 @@ types:
       content_type: optional<AttachmentContentType>
       content_disposition: optional<AttachmentContentDisposition>
       content_id: optional<AttachmentContentId>
-      content: AttachmentContent
+      content:
+        type: optional<string>
+        docs: Base64 encoded content of attachment.
+      url:
+        type: optional<string>
+        docs: URL to the attachment.
