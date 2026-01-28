@@ -1,0 +1,79 @@
+---
+title: "Claude Skill"
+description: "Teach Claude how to build email agents with the AgentMail API"
+---
+
+## What is a Claude Skill?
+
+A Claude Skill is a "skill pack" that helps Claude (in Cursor, Claude Code, or other IDEs) learn to use specific APIs and tools. It contains documentation, best practices, and code examples that Claude references when helping you build.
+
+With the AgentMail skill installed, Claude can:
+- Build email agents using the AgentMail SDK
+- Set up webhooks and websockets for real-time email processing
+- Write idempotent, production-ready code
+- Avoid common pitfalls (bounce handling, SPF records, etc.)
+
+## Repository
+
+**GitHub**: [github.com/agentmail-to/agentmail-claude-skill](https://github.com/agentmail-to/agentmail-claude-skill)
+
+### Structure
+
+```
+agentmail-claude-skill/
+├── SKILL.md              # Core skill file
+└── references/
+    ├── api-reference.md  # Complete API signatures
+    ├── webhook-events.md # Event types and payloads
+    └── examples.md       # Advanced agent patterns
+```
+
+## Installation
+
+### For Cursor
+
+```bash
+git clone https://github.com/agentmail-to/agentmail-claude-skill.git
+
+# Create the directory if it doesn't exist
+mkdir -p ~/.cursor/skills
+
+# Global (all projects)
+cp -r agentmail-claude-skill ~/.cursor/skills/agentmail
+
+# Or project-level
+cp -r agentmail-claude-skill .cursor/skills/agentmail
+```
+
+### For Claude Code
+
+```bash
+git clone https://github.com/agentmail-to/agentmail-claude-skill.git
+
+# Create the directory if it doesn't exist
+mkdir -p .claude/skills
+
+cp -r agentmail-claude-skill .claude/skills/agentmail
+```
+
+## Usage
+
+Once installed, Claude automatically uses the skill when you ask about:
+- Building email automation
+- Creating AI email agents
+- Setting up webhooks for email
+- Integrating email into AI workflows
+
+### Example Prompts
+
+```
+"Build an email agent that auto-replies to incoming messages"
+
+"Set up a webhook to process emails in real-time"
+
+"Create a multi-step workflow that tracks conversation state"
+
+"Send an email with an attachment using AgentMail"
+```
+
+Claude will reference the skill to write correct, idiomatic AgentMail code.
