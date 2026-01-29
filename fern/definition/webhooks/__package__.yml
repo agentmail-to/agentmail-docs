@@ -55,6 +55,21 @@ types:
       inbox_ids: optional<events.InboxIds>
       client_id: optional<ClientId>
 
+  UpdateWebhookRequest:
+    properties:
+      add_inbox_ids:
+        type: optional<events.InboxIds>
+        docs: Inbox IDs to subscribe to the webhook.
+      remove_inbox_ids:
+        type: optional<events.InboxIds>
+        docs: Inbox IDs to unsubscribe from the webhook.
+      add_pod_ids:
+        type: optional<events.PodIds>
+        docs: Pod IDs to subscribe to the webhook.
+      remove_pod_ids:
+        type: optional<events.PodIds>
+        docs: Pod IDs to unsubscribe from the webhook.
+
 service:
   url: Http
   base-path: /webhooks
@@ -81,6 +96,18 @@ service:
       response: Webhook
       errors:
         - global.NotFoundError
+
+    update:
+      method: PATCH
+      path: /{webhook_id}
+      display-name: Update Webhook
+      path-parameters:
+        webhook_id: WebhookId
+      request: UpdateWebhookRequest
+      response: Webhook
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
 
     create:
       method: POST

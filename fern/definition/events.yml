@@ -30,11 +30,11 @@ types:
 
   PodIds:
     type: list<string>
-    docs: Pods for which to send events.
+    docs: Pods for which to send events. Maximum 10 per webhook.
 
   InboxIds:
     type: list<string>
-    docs: Inboxes for which to send events.
+    docs: Inboxes for which to send events. Maximum 10 per webhook.
 
   EventId:
     type: string
