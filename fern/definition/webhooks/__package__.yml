@@ -57,10 +57,18 @@ types:
 
   UpdateWebhookRequest:
     properties:
-      add_inbox_ids: optional<events.InboxIds>
-      remove_inbox_ids: optional<events.InboxIds>
-      add_pod_ids: optional<events.PodIds>
-      remove_pod_ids: optional<events.PodIds>
+      add_inbox_ids:
+        type: optional<events.InboxIds>
+        docs: Inbox IDs to add to the webhook's channel filter.
+      remove_inbox_ids:
+        type: optional<events.InboxIds>
+        docs: Inbox IDs to remove from the webhook's channel filter.
+      add_pod_ids:
+        type: optional<events.PodIds>
+        docs: Pod IDs to add to the webhook's channel filter.
+      remove_pod_ids:
+        type: optional<events.PodIds>
+        docs: Pod IDs to remove from the webhook's channel filter.
 
 service:
   url: Http
