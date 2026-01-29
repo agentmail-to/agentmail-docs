@@ -59,16 +59,16 @@ types:
     properties:
       add_inbox_ids:
         type: optional<events.InboxIds>
-        docs: Inbox IDs to add to the webhook's channel filter.
+        docs: Inbox IDs to subscribe to the webhook.
       remove_inbox_ids:
         type: optional<events.InboxIds>
-        docs: Inbox IDs to remove from the webhook's channel filter.
+        docs: Inbox IDs to unsubscribe from the webhook.
       add_pod_ids:
         type: optional<events.PodIds>
-        docs: Pod IDs to add to the webhook's channel filter.
+        docs: Pod IDs to subscribe to the webhook.
       remove_pod_ids:
         type: optional<events.PodIds>
-        docs: Pod IDs to remove from the webhook's channel filter.
+        docs: Pod IDs to unsubscribe from the webhook.
 
 service:
   url: Http
