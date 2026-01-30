@@ -9,11 +9,73 @@ description: AgentMail's Moltbot (Clawdbot) integration
 
 Moltbot (formerly Clawdbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to Moltbot, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
 
-There are two ways to integrate AgentMail with Moltbot: using the AgentMail MCP server or creating a custom skill.
+There are three ways to integrate AgentMail with Moltbot: using the official AgentMail skill, the AgentMail MCP server, or creating a custom skill.
 
-## Option 1: MCP Server (Recommended)
+## Option 1: Official AgentMail Skill (Recommended)
 
-The simplest way to add email capabilities to Moltbot is through the AgentMail MCP server. Moltbot supports MCP (Model Context Protocol) servers, which allows it to connect to external tools like AgentMail.
+The easiest way to add email capabilities to Moltbot is by installing the official AgentMail skill from [skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail). This skill is maintained by the AgentMail team and provides comprehensive email functionality.
+
+### Installation
+
+Install the skill using the Moltbot CLI:
+
+```bash
+moltbot skills install agentmail-to/agentmail-skills/agentmail
+```
+
+Or install via ClawdHub:
+
+```bash
+clawdhub install agentmail
+```
+
+### Configuration
+
+Add your AgentMail API key to the skill configuration in `~/.clawdbot/moltbot.json`:
+
+```json
+{
+  "skills": {
+    "entries": {
+      "agentmail": {
+        "enabled": true,
+        "env": {
+          "AGENTMAIL_API_KEY": "your-api-key-here"
+        }
+      }
+    }
+  }
+}
+```
+
+Get your API key from the [AgentMail Console](https://console.agentmail.to).
+
+### Features
+
+The official skill includes:
+
+- **Inbox management:** Create scalable inboxes on-demand with unique email addresses
+- **Message operations:** Send emails with text and HTML content for best deliverability
+- **Thread management:** Group related messages in conversations
+- **Attachments:** Send and receive attachments with Base64 encoding
+- **Drafts:** Create drafts for human-in-the-loop approval before sending
+- **Pods:** Multi-tenant isolation for SaaS platforms
+- **Idempotency:** Safe retries on create operations
+- **Real-time events:** WebSocket and webhook support for notifications
+
+### Verify installation
+
+Check that the skill is loaded:
+
+```bash
+moltbot skills list --eligible
+```
+
+You should see `agentmail` in the list of available skills.
+
+## Option 2: MCP Server
+
+An alternative way to add email capabilities to Moltbot is through the AgentMail MCP server. Moltbot supports MCP (Model Context Protocol) servers, which allows it to connect to external tools like AgentMail.
 
 ### Setup
 
@@ -58,7 +120,7 @@ Once connected, Moltbot can use the following AgentMail tools:
 - **Thread management:** Access and manage email threads
 - **Attachments:** Handle email attachments
 
-## Option 2: Custom Skill
+## Option 3: Custom Skill
 
 For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for Moltbot.
 
@@ -210,6 +272,7 @@ Now Moltbot will be notified whenever a new email arrives, allowing it to proact
 
 ## Resources
 
+- [Official AgentMail Skill](https://skills.sh/agentmail-to/agentmail-skills/agentmail)
 - [AgentMail API Reference](/api-reference)
 - [AgentMail MCP Server](https://mcp.agentmail.to)
 - [Moltbot Documentation](https://docs.molt.bot)
