@@ -1,0 +1,216 @@
+---
+title: Moltbot
+subtitle: Give your Moltbot agent its own email inbox
+slug: integrations/moltbot
+description: AgentMail's Moltbot (Clawdbot) integration
+---
+
+## Getting started
+
+Moltbot (formerly Clawdbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to Moltbot, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
+
+There are two ways to integrate AgentMail with Moltbot: using the AgentMail MCP server or creating a custom skill.
+
+## Option 1: MCP Server (Recommended)
+
+The simplest way to add email capabilities to Moltbot is through the AgentMail MCP server. Moltbot supports MCP (Model Context Protocol) servers, which allows it to connect to external tools like AgentMail.
+
+### Setup
+
+1. Get your AgentMail API key from the [AgentMail Console](https://console.agentmail.to).
+
+2. Add the AgentMail MCP server to your Moltbot configuration. Edit your `~/.clawdbot/moltbot.json` file:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "agentmail": {
+        "command": "npx",
+        "args": ["-y", "@agentmail/mcp-server"],
+        "env": {
+          "AGENTMAIL_API_KEY": "your-api-key-here"
+        }
+      }
+    }
+  }
+}
+```
+
+3. Restart Moltbot to load the new MCP server:
+
+```bash
+moltbot restart
+```
+
+4. Verify the integration by asking Moltbot to list your inboxes:
+
+```
+List my AgentMail inboxes
+```
+
+### Available tools
+
+Once connected, Moltbot can use the following AgentMail tools:
+
+- **Inbox management:** Create, list, and delete inboxes
+- **Message operations:** Send, receive, and reply to emails
+- **Thread management:** Access and manage email threads
+- **Attachments:** Handle email attachments
+
+## Option 2: Custom Skill
+
+For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for Moltbot.
+
+### Create the skill directory
+
+Create a new skill in your Moltbot workspace:
+
+```bash
+mkdir -p ~/.clawdbot/skills/agentmail
+```
+
+### Create the skill file
+
+Create `~/.clawdbot/skills/agentmail/SKILL.md` with the following content:
+
+````markdown
+---
+name: agentmail
+description: Send and receive emails using AgentMail
+requires:
+  env:
+    - AGENTMAIL_API_KEY
+---
+
+# AgentMail Skill
+
+You can send and receive emails using the AgentMail API. Use the `exec` tool to run curl commands against the AgentMail API.
+
+## API Base URL
+
+```
+https://api.agentmail.to/v1
+```
+
+## Authentication
+
+Include your API key in the Authorization header:
+
+```
+Authorization: Bearer $AGENTMAIL_API_KEY
+```
+
+## Common Operations
+
+### List inboxes
+
+```bash
+curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  https://api.agentmail.to/v1/inboxes
+```
+
+### Create an inbox
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"display_name": "My Agent"}' \
+  https://api.agentmail.to/v1/inboxes
+```
+
+### Send an email
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": ["recipient@example.com"],
+    "subject": "Hello from Moltbot",
+    "text": "This email was sent by my AI assistant."
+  }' \
+  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages
+```
+
+### List messages in an inbox
+
+```bash
+curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages
+```
+
+### Reply to a message
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Thanks for your email!"}' \
+  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages/{message_id}/reply
+```
+````
+
+### Configure the skill
+
+Add your AgentMail API key to the skill configuration in `~/.clawdbot/moltbot.json`:
+
+```json
+{
+  "skills": {
+    "entries": {
+      "agentmail": {
+        "enabled": true,
+        "env": {
+          "AGENTMAIL_API_KEY": "your-api-key-here"
+        }
+      }
+    }
+  }
+}
+```
+
+### Verify the skill
+
+Check that the skill is loaded:
+
+```bash
+moltbot skills list --eligible
+```
+
+You should see `agentmail` in the list of available skills.
+
+## Example use cases
+
+Once AgentMail is integrated with Moltbot, you can ask your agent to:
+
+- "Create a new email inbox for my project"
+- "Check my inbox for new emails"
+- "Send an email to john@example.com about the meeting tomorrow"
+- "Reply to the latest email from Sarah"
+- "Forward the invoice email to accounting@company.com"
+
+## Real-time email notifications
+
+For proactive email handling, you can combine AgentMail webhooks with Moltbot's webhook support. This allows Moltbot to notify you immediately when new emails arrive.
+
+1. Set up a webhook endpoint in Moltbot (see [Moltbot webhook documentation](https://docs.molt.bot/automation/webhook))
+
+2. Register the webhook with AgentMail:
+
+```bash
+curl -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-moltbot-webhook-url",
+    "events": ["message.received"]
+  }' \
+  https://api.agentmail.to/v1/webhooks
+```
+
+Now Moltbot will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
+
+## Resources
+
+- [AgentMail API Reference](/api-reference)
+- [AgentMail MCP Server](https://mcp.agentmail.to)
+- [Moltbot Documentation](https://docs.molt.bot)
+- [Moltbot Skills Guide](https://docs.molt.bot/tools/skills)
