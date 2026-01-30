@@ -120,17 +120,6 @@ Use idempotency keys for safe retries on create operations. This prevents duplic
 
 The skill supports both WebSockets (persistent connection, no public URL needed) and webhooks (HTTP-based notifications) for real-time email notifications.
 
-## Best practices
-
-The skill documentation includes best practices for email deliverability:
-
-1. **Use custom domains** - Better deliverability and brand identity
-2. **Use idempotency keys** - Prevent duplicates on network errors
-3. **No images/links in first email** - Add CTAs after recipient replies
-4. **Diversify sending** - 100 inboxes x 100 emails beats 1 inbox x 10,000 emails
-5. **Warm up inboxes** - Start with 10 emails/day, gradually increase
-6. **Always send text + HTML** - Improves deliverability
-
 ## Example usage
 
 Once installed, you can ask your AI assistant to perform email tasks:
