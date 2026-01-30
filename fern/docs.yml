@@ -124,9 +124,15 @@ navigation:
           # - page: Overview
           #   icon: fa-solid fa-list
           #   path: pages/integrations/overview.mdx
+          - page: Skills
+            icon: fa-solid fa-wand-magic-sparkles
+            path: pages/integrations/skills.mdx
           - page: MCP
             icon: fa-solid fa-plug
             path: pages/integrations/mcp.mdx
+          - page: Moltbot
+            icon: fa-solid fa-robot
+            path: pages/integrations/moltbot.mdx
           - page: Replit
             path: pages/integrations/replit.mdx
           # - page: Smithery

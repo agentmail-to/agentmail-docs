@@ -1,0 +1,138 @@
+---
+title: Skills
+subtitle: Add AgentMail to AI coding assistants with the official skill
+slug: integrations/skills
+description: AgentMail's official skill for Moltbot, Claude Code, Cursor, and other AI assistants
+---
+
+## Getting started
+
+AgentMail provides an official skill that can be installed on AI coding assistants and agents that support the [AgentSkills](https://skills.sh) format. This includes Moltbot, Claude Code, Cursor, Codex, and other compatible tools.
+
+The skill is available at [skills.sh/agentmail-to/agentmail-skills/agentmail](https://skills.sh/agentmail-to/agentmail-skills/agentmail).
+
+## Installation
+
+### Moltbot
+
+Install the skill using the Moltbot CLI:
+
+```bash
+moltbot skills install agentmail-to/agentmail-skills/agentmail
+```
+
+Or install via ClawdHub:
+
+```bash
+clawdhub install agentmail
+```
+
+### Claude Code
+
+Add the skill to your Claude Code configuration:
+
+```bash
+claude-code skills install agentmail-to/agentmail-skills/agentmail
+```
+
+### Cursor
+
+Install the skill in Cursor:
+
+```bash
+cursor skills install agentmail-to/agentmail-skills/agentmail
+```
+
+### Manual installation
+
+You can also manually clone the skill repository:
+
+```bash
+git clone https://github.com/agentmail-to/agentmail-skills.git ~/.skills/agentmail
+```
+
+## Configuration
+
+After installation, configure your AgentMail API key. The method varies by platform:
+
+### Environment variable
+
+Set the `AGENTMAIL_API_KEY` environment variable:
+
+```bash
+export AGENTMAIL_API_KEY="your-api-key-here"
+```
+
+### Moltbot configuration
+
+Add the API key to `~/.clawdbot/moltbot.json`:
+
+```json
+{
+  "skills": {
+    "entries": {
+      "agentmail": {
+        "enabled": true,
+        "env": {
+          "AGENTMAIL_API_KEY": "your-api-key-here"
+        }
+      }
+    }
+  }
+}
+```
+
+Get your API key from the [AgentMail Console](https://console.agentmail.to).
+
+## Features
+
+The official AgentMail skill provides comprehensive email functionality:
+
+### Inboxes
+
+Create scalable inboxes on-demand. Each inbox has a unique email address that your AI agent can use to send and receive emails.
+
+### Messages
+
+Send emails with both plain text and HTML content for best deliverability. The skill handles proper formatting and headers automatically.
+
+### Threads
+
+Threads group related messages in a conversation, making it easy to follow email chains and maintain context across multiple exchanges.
+
+### Attachments
+
+Send and receive attachments with Base64 encoding. The skill can retrieve attachments from messages or threads.
+
+### Drafts
+
+Create drafts for human-in-the-loop approval before sending. This is useful when you want to review emails before they go out.
+
+### Pods
+
+Multi-tenant isolation for SaaS platforms. Each customer gets isolated inboxes, perfect for building email-enabled applications.
+
+### Idempotency
+
+Use idempotency keys for safe retries on create operations. This prevents duplicate emails when network errors occur.
+
+### Real-time events
+
+The skill supports both WebSockets (persistent connection, no public URL needed) and webhooks (HTTP-based notifications) for real-time email notifications.
+
+## Example usage
+
+Once installed, you can ask your AI assistant to perform email tasks:
+
+- "Create a new email inbox for my project"
+- "Send an email to john@example.com about the meeting tomorrow"
+- "Check my inbox for new emails"
+- "Reply to the latest email from Sarah"
+- "Create a draft response to the support ticket"
+
+## Resources
+
+- [Official AgentMail Skill on skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail)
+- [AgentMail Skills Repository](https://github.com/agentmail-to/agentmail-skills)
+- [AgentMail API Reference](/api-reference)
+- [AgentMail Console](https://console.agentmail.to)
