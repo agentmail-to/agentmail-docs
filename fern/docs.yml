@@ -124,6 +124,9 @@ navigation:
           # - page: Overview
           #   icon: fa-solid fa-list
           #   path: pages/integrations/overview.mdx
+          - page: Skills
+            icon: fa-solid fa-wand-magic-sparkles
+            path: pages/integrations/skills.mdx
           - page: MCP
             icon: fa-solid fa-plug
             path: pages/integrations/mcp.mdx
