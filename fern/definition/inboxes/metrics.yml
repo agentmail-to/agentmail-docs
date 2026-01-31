@@ -17,6 +17,7 @@ service:
       method: GET
       path: ""
       display-name: List Metrics
+      docs: Retrieves email metrics and statistics for a specific inbox within a given time range.
       request:
         name: ListInboxMetricsRequest
         query-parameters:
