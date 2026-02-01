@@ -138,6 +138,9 @@ types:
       subject: optional<DraftSubject>
       text: optional<DraftText>
       html: optional<DraftHtml>
+      attachments:
+        type: optional<list<attachments.SendAttachment>>
+        docs: Attachments to include in draft.
       in_reply_to: optional<DraftInReplyTo>
       send_at: optional<DraftSendAt>
       client_id: optional<DraftClientId>
