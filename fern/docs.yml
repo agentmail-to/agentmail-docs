@@ -130,9 +130,9 @@ navigation:
           - page: MCP
             icon: fa-solid fa-plug
             path: pages/integrations/mcp.mdx
-          - page: Moltbot
+          - page: Openclaw
             icon: fa-solid fa-robot
-            path: pages/integrations/moltbot.mdx
+            path: pages/integrations/openclaw.mdx
           - page: Replit
             path: pages/integrations/replit.mdx
           # - page: Smithery

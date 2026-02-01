@@ -1,0 +1,231 @@
+---
+title: Openclaw
+subtitle: Give your Openclaw agent its own email inbox
+slug: integrations/openclaw
+description: AgentMail's Openclaw integration
+---
+
+## Getting started
+
+Openclaw (formerly Moltbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to Openclaw, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
+
+There are two ways to integrate AgentMail with Openclaw: using the official AgentMail skill or creating a custom skill.
+
+## Option 1: Official AgentMail Skill (Recommended)
+
+The easiest way to add email capabilities to Openclaw is by installing the official AgentMail skill from [skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail). This skill is maintained by the AgentMail team and provides comprehensive email functionality.
+
+### Installation
+
+Install the skill using the Openclaw CLI:
+
+```bash
+openclaw skills install agentmail-to/agentmail-skills/agentmail
+```
+
+Or install via ClawdHub:
+
+```bash
+clawdhub install agentmail
+```
+
+### Configuration
+
+Add your AgentMail API key to the skill configuration in `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "skills": {
+    "entries": {
+      "agentmail": {
+        "enabled": true,
+        "env": {
+          "AGENTMAIL_API_KEY": "your-api-key-here"
+        }
+      }
+    }
+  }
+}
+```
+
+Get your API key from the [AgentMail Console](https://console.agentmail.to).
+
+### Features
+
+The official skill includes:
+
+- **Inbox management:** Create scalable inboxes on-demand with unique email addresses
+- **Message operations:** Send emails with text and HTML content for best deliverability
+- **Thread management:** Group related messages in conversations
+- **Attachments:** Send and receive attachments with Base64 encoding
+- **Drafts:** Create drafts for human-in-the-loop approval before sending
+- **Pods:** Multi-tenant isolation for SaaS platforms
+- **Idempotency:** Safe retries on create operations
+- **Real-time events:** WebSocket and webhook support for notifications
+
+### Verify installation
+
+Check that the skill is loaded:
+
+```bash
+openclaw skills list --eligible
+```
+
+You should see `agentmail` in the list of available skills.
+
+## Option 2: Custom Skill
+
+For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for Openclaw.
+
+### Create the skill directory
+
+Create a new skill in your Openclaw workspace:
+
+```bash
+mkdir -p ~/.openclaw/skills/agentmail
+```
+
+### Create the skill file
+
+Create `~/.openclaw/skills/agentmail/SKILL.md` with the following content:
+
+````markdown
+---
+name: agentmail
+description: Send and receive emails using AgentMail
+requires:
+  env:
+    - AGENTMAIL_API_KEY
+---
+
+# AgentMail Skill
+
+You can send and receive emails using the AgentMail API. Use the `exec` tool to run curl commands against the AgentMail API.
+
+## API Base URL
+
+```
+https://api.agentmail.to/v1
+```
+
+## Authentication
+
+Include your API key in the Authorization header:
+
+```
+Authorization: Bearer $AGENTMAIL_API_KEY
+```
+
+## Common Operations
+
+### List inboxes
+
+```bash
+curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  https://api.agentmail.to/v1/inboxes
+```
+
+### Create an inbox
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"display_name": "My Agent"}' \
+  https://api.agentmail.to/v1/inboxes
+```
+
+### Send an email
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": ["recipient@example.com"],
+    "subject": "Hello from Openclaw",
+    "text": "This email was sent by my AI assistant."
+  }' \
+  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages
+```
+
+### List messages in an inbox
+
+```bash
+curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages
+```
+
+### Reply to a message
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Thanks for your email!"}' \
+  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages/{message_id}/reply
+```
+````
+
+### Configure the skill
+
+Add your AgentMail API key to the skill configuration in `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "skills": {
+    "entries": {
+      "agentmail": {
+        "enabled": true,
+        "env": {
+          "AGENTMAIL_API_KEY": "your-api-key-here"
+        }
+      }
+    }
+  }
+}
+```
+
+### Verify the skill
+
+Check that the skill is loaded:
+
+```bash
+openclaw skills list --eligible
+```
+
+You should see `agentmail` in the list of available skills.
+
+## Example use cases
+
+Once AgentMail is integrated with Openclaw, you can ask your agent to:
+
+- "Create a new email inbox for my project"
+- "Check my inbox for new emails"
+- "Send an email to john@example.com about the meeting tomorrow"
+- "Reply to the latest email from Sarah"
+- "Forward the invoice email to accounting@company.com"
+
+## Real-time email notifications
+
+For proactive email handling, you can combine AgentMail webhooks with Openclaw's webhook support. This allows Openclaw to notify you immediately when new emails arrive.
+
+1. Set up a webhook endpoint in Openclaw (see [Openclaw webhook documentation](https://docs.openclaw.ai/automation/webhook))
+
+2. Register the webhook with AgentMail:
+
+```bash
+curl -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-openclaw-webhook-url",
+    "events": ["message.received"]
+  }' \
+  https://api.agentmail.to/v1/webhooks
+```
+
+Now Openclaw will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
+
+## Resources
+
+- [Official AgentMail Skill](https://skills.sh/agentmail-to/agentmail-skills/agentmail)
+- [AgentMail API Reference](/api-reference)
+- [Openclaw Documentation](https://docs.openclaw.ai)
+- [Openclaw Skills Guide](https://docs.openclaw.ai/tools/skills)
