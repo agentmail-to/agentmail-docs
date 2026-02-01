@@ -1,26 +1,26 @@
 ---
-title: Moltbot
-subtitle: Give your Moltbot agent its own email inbox
-slug: integrations/moltbot
-description: AgentMail's Moltbot (Clawdbot) integration
+title: Openclaw
+subtitle: Give your Openclaw agent its own email inbox
+slug: integrations/openclaw
+description: AgentMail's Openclaw integration
 ---
 
 ## Getting started
 
-Moltbot (formerly Clawdbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to Moltbot, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
+Openclaw (formerly Moltbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to Openclaw, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
 
-There are two ways to integrate AgentMail with Moltbot: using the official AgentMail skill or creating a custom skill.
+There are two ways to integrate AgentMail with Openclaw: using the official AgentMail skill or creating a custom skill.
 
 ## Option 1: Official AgentMail Skill (Recommended)
 
-The easiest way to add email capabilities to Moltbot is by installing the official AgentMail skill from [skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail). This skill is maintained by the AgentMail team and provides comprehensive email functionality.
+The easiest way to add email capabilities to Openclaw is by installing the official AgentMail skill from [skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail). This skill is maintained by the AgentMail team and provides comprehensive email functionality.
 
 ### Installation
 
-Install the skill using the Moltbot CLI:
+Install the skill using the Openclaw CLI:
 
 ```bash
-moltbot skills install agentmail-to/agentmail-skills/agentmail
+openclaw skills install agentmail-to/agentmail-skills/agentmail
 ```
 
 Or install via ClawdHub:
@@ -31,7 +31,7 @@ clawdhub install agentmail
 
 ### Configuration
 
-Add your AgentMail API key to the skill configuration in `~/.clawdbot/moltbot.json`:
+Add your AgentMail API key to the skill configuration in `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -68,26 +68,26 @@ The official skill includes:
 Check that the skill is loaded:
 
 ```bash
-moltbot skills list --eligible
+openclaw skills list --eligible
 ```
 
 You should see `agentmail` in the list of available skills.
 
 ## Option 2: Custom Skill
 
-For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for Moltbot.
+For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for Openclaw.
 
 ### Create the skill directory
 
-Create a new skill in your Moltbot workspace:
+Create a new skill in your Openclaw workspace:
 
 ```bash
-mkdir -p ~/.clawdbot/skills/agentmail
+mkdir -p ~/.openclaw/skills/agentmail
 ```
 
 ### Create the skill file
 
-Create `~/.clawdbot/skills/agentmail/SKILL.md` with the following content:
+Create `~/.openclaw/skills/agentmail/SKILL.md` with the following content:
 
 ````markdown
 ---
@@ -141,7 +141,7 @@ curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "to": ["recipient@example.com"],
-    "subject": "Hello from Moltbot",
+    "subject": "Hello from Openclaw",
     "text": "This email was sent by my AI assistant."
   }' \
   https://api.agentmail.to/v1/inboxes/{inbox_id}/messages
@@ -166,7 +166,7 @@ curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
 
 ### Configure the skill
 
-Add your AgentMail API key to the skill configuration in `~/.clawdbot/moltbot.json`:
+Add your AgentMail API key to the skill configuration in `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -188,14 +188,14 @@ Add your AgentMail API key to the skill configuration in `~/.clawdbot/moltbot.js
 Check that the skill is loaded:
 
 ```bash
-moltbot skills list --eligible
+openclaw skills list --eligible
 ```
 
 You should see `agentmail` in the list of available skills.
 
 ## Example use cases
 
-Once AgentMail is integrated with Moltbot, you can ask your agent to:
+Once AgentMail is integrated with Openclaw, you can ask your agent to:
 
 - "Create a new email inbox for my project"
 - "Check my inbox for new emails"
@@ -205,9 +205,9 @@ Once AgentMail is integrated with Moltbot, you can ask your agent to:
 
 ## Real-time email notifications
 
-For proactive email handling, you can combine AgentMail webhooks with Moltbot's webhook support. This allows Moltbot to notify you immediately when new emails arrive.
+For proactive email handling, you can combine AgentMail webhooks with Openclaw's webhook support. This allows Openclaw to notify you immediately when new emails arrive.
 
-1. Set up a webhook endpoint in Moltbot (see [Moltbot webhook documentation](https://docs.molt.bot/automation/webhook))
+1. Set up a webhook endpoint in Openclaw (see [Openclaw webhook documentation](https://docs.openclaw.ai/automation/webhook))
 
 2. Register the webhook with AgentMail:
 
@@ -215,17 +215,17 @@ For proactive email handling, you can combine AgentMail webhooks with Moltbot's 
 curl -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "url": "https://your-moltbot-webhook-url",
+    "url": "https://your-openclaw-webhook-url",
     "events": ["message.received"]
   }' \
   https://api.agentmail.to/v1/webhooks
 ```
 
-Now Moltbot will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
+Now Openclaw will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
 
 ## Resources
 
 - [Official AgentMail Skill](https://skills.sh/agentmail-to/agentmail-skills/agentmail)
 - [AgentMail API Reference](/api-reference)
-- [Moltbot Documentation](https://docs.molt.bot)
-- [Moltbot Skills Guide](https://docs.molt.bot/tools/skills)
+- [Openclaw Documentation](https://docs.openclaw.ai)
+- [Openclaw Skills Guide](https://docs.openclaw.ai/tools/skills)
