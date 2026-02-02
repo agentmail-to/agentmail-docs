@@ -1,0 +1,97 @@
+name: API Changelog Automation
+
+on:
+  pull_request:
+    paths:
+      - 'fern/definition/**/*.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-diff:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+        
+      - name: Install Fern CLI
+        run: npm install -g fern-api
+        
+      - name: Generate current OpenAPI spec
+        run: |
+          cd fern && fern export ../current-openapi.json
+        continue-on-error: true
+          
+      - name: Generate base OpenAPI spec
+        run: |
+          git checkout ${{ github.event.pull_request.base.sha }}
+          cd fern && fern export ../base-openapi.json || echo '{}' > ../base-openapi.json
+          git checkout ${{ github.event.pull_request.head.sha }}
+        continue-on-error: true
+          
+      - name: Run oasdiff changelog
+        id: oasdiff
+        uses: oasdiff/oasdiff-action/changelog@main
+        with:
+          base: base-openapi.json
+          revision: current-openapi.json
+          format: markdown
+          fail-on-diff: false
+        continue-on-error: true
+          
+      - name: Check if changes detected
+        id: check_changes
+        run: |
+          if [ -n "${{ steps.oasdiff.outputs.changelog }}" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "breaking_count=${{ steps.oasdiff.outputs.breaking }}" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "breaking_count=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Write changelog diff for local preview
+        if: steps.check_changes.outputs.has_changes == 'true'
+        env:
+          CHANGELOG_DIFF: ${{ steps.oasdiff.outputs.changelog }}
+        run: |
+          node -e "require('fs').writeFileSync('changelog-diff.md', process.env.CHANGELOG_DIFF || '')"
+
+      - name: Upload changelog diff for local preview
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-changelog-diff
+          path: changelog-diff.md
+          retention-days: 7
+          
+      - name: Comment on PR with diff
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const diff = `${{ steps.oasdiff.outputs.changelog }}`;
+            const breaking = ${{ steps.check_changes.outputs.breaking_count }} > 0;
+            const body = `## ${breaking ? '🚨 Breaking' : '✨'} API Changes\n\n\`\`\`markdown\n${diff}\n\`\`\`\n\n💡 Download \`api-changelog-diff\` artifact or tag @Fern Writer in #api-changelog for changelog.`;
+            await github.rest.issues.createComment({ issue_number: context.issue.number, owner: context.repo.owner, repo: context.repo.repo, body });
+          
+      - name: Post to Slack (if configured)
+        if: steps.check_changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANGELOG_CHANNEL }}
+          payload: |
+            {"text": "API changes in PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.html_url }} — Tag @Fern Writer in #api-changelog for changelog."}

@@ -1,18 +1,31 @@
+---
+tags: ["metrics-api", "new-feature", "sdk"]
+---
+
 ## Summary
 
-We're excited to introduce **Metrics Endpoints** - two new powerful endpoints that give you deep insights into your email deliverability and agent performance. Track critical events like bounces, deliveries, rejections, and complaints with detailed timestamps.
+We're excited to introduce **Metrics Endpoints** - two new powerful endpoints that give you deep insights into your email deliverability and agent performance. Track critical events like bounces, deliveries, rejections, and complaints with detailed timestamps to build smarter, self-optimizing email agents.
 
 ### What's new?
 
-New endpoints:
-
+**New endpoints:**
 - `GET /metrics` - Get comprehensive metrics across all your inboxes
 - `GET /inboxes/{inbox_id}/metrics` - Get metrics for a specific inbox
 
-Build smarter agents that monitor their own bounce rates, optimize send timing, and automatically adjust behavior based on deliverability metrics. This unlocks exciting possibilities for self-optimizing agents that can pause campaigns when performance drops or implement intelligent retry strategies.
+**Metrics tracked:**
+- Delivery events: sent, delivered, bounced, rejected
+- Error tracking: complaints, spam reports
+- Time-series data with detailed timestamps
+
+### Use cases
+
+Build agents that:
+- Monitor their own bounce rates in real-time
+- Optimize send timing based on historical performance
+- Automatically adjust behavior based on deliverability metrics
+- Pause campaigns when performance drops below thresholds
+- Implement intelligent retry strategies for better inbox placement
 
 <Note>
-  Ready to build smarter agents? Check out our [metrics
-  documentation](https://docs.agentmail.to/api-reference/metrics) to get
-  started.
+  Ready to build smarter agents? Check out our [Metrics API documentation](https://docs.agentmail.to/api-reference/metrics) to get started.
 </Note>

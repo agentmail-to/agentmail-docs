@@ -1,0 +1,58 @@
+---
+tags: ["domains-api", "new-feature", "sdk", "custom-domains"]
+---
+
+## Summary
+
+Introducing **Custom Domains** – add and verify your own domains for sending and receiving email. Use DNS verification (TXT, CNAME, MX), export zone files for easy DNS setup, and control feedback (bounce and complaint) delivery. Perfect for agents that need to send from your brand's domain with full control over deliverability.
+
+### What's new?
+
+**New endpoints:**
+- `GET /domains` - List all domains
+- `GET /domains/{domain_id}` - Get domain details and verification records
+- `POST /domains` - Create (add) a domain
+- `DELETE /domains/{domain_id}` - Remove a domain
+- `GET /domains/{domain_id}/zone-file` - Download zone file for DNS setup
+- `POST /domains/{domain_id}/verify` - Trigger domain verification
+
+**Domain features:**
+- DNS verification with TXT, CNAME, and MX records
+- Verification status: NOT_STARTED, PENDING, VERIFYING, VERIFIED, FAILED, INVALID
+- Per-record status (MISSING, INVALID, VALID) for targeted fixes
+- Zone file export for quick import at your DNS provider
+- Optional feedback (bounce/complaint) delivery per domain
+
+### Use cases
+
+Build systems where:
+- Agents send from your verified custom domain
+- You manage DNS in one place and sync via zone file
+- Verification status drives onboarding or monitoring
+- Bounce and complaint handling is configured per domain
+
+<CodeBlock language="python">
+```python
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# create a domain
+domain = client.domains.create(
+    domain="mail.example.com",
+    feedback_enabled=True
+)
+
+# get verification records and status
+domain = client.domains.get(domain_id=domain.domain_id)
+for record in domain.records:
+    print(f"{record.type} {record.name}: {record.status}")
+
+# trigger verification after updating DNS
+client.domains.verify(domain_id=domain.domain_id)
+```
+</CodeBlock>
+
+<Note>
+  Learn more in our [Custom Domains](https://docs.agentmail.to/guides/domains/custom-domains) and [Managing Domains](https://docs.agentmail.to/guides/domains/managing-domains) guides.
+</Note>
