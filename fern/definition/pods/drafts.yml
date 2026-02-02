@@ -4,6 +4,7 @@ imports:
   global: ../__package__.yml
   pods: __package__.yml
   drafts: ../drafts.yml
+  attachments: ../attachments.yml
 
 service:
   url: Http
@@ -37,5 +38,16 @@ service:
       path-parameters:
         draft_id: drafts.DraftId
       response: drafts.Draft
+      errors:
+        - global.NotFoundError
+
+    getAttachment:
+      method: GET
+      path: /{draft_id}/attachments/{attachment_id}
+      display-name: Get Attachment
+      path-parameters:
+        draft_id: drafts.DraftId
+        attachment_id: attachments.AttachmentId
+      response: attachments.AttachmentResponse
       errors:
         - global.NotFoundError

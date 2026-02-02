@@ -188,3 +188,14 @@ service:
       response: Draft
       errors:
         - global.NotFoundError
+
+    getAttachment:
+      method: GET
+      path: /{draft_id}/attachments/{attachment_id}
+      display-name: Get Attachment
+      path-parameters:
+        draft_id: DraftId
+        attachment_id: attachments.AttachmentId
+      response: attachments.AttachmentResponse
+      errors:
+        - global.NotFoundError
