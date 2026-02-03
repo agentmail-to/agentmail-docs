@@ -40,4 +40,4 @@ Instructions for creating changelog entries (e.g. when tagged in Slack or writin
 
 ## Checklist before finalizing
 
-- Summary states user benefit. When a code block is included, it is runnable (imports + client). Links valid. Breaking changes have before/after. Tags accurate. Technical accuracy matches API definition.
+- Summary states user benefit. Code is runnable. Links valid. Breaking changes have before/after. Tags accurate. Technical accuracy matches API definition.
