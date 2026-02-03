@@ -41,3 +41,11 @@ Instructions for creating changelog entries (e.g. when tagged in Slack or writin
 ## Checklist before finalizing
 
 - Summary states user benefit. Code is runnable. Links valid. Breaking changes have before/after. Tags accurate. Technical accuracy matches API definition.
+
+## Slack flow (API changelog)
+
+When the API Changelog workflow detects changes, it posts to your changelog Slack channel (if `SLACK_BOT_TOKEN` and `SLACK_CHANGELOG_CHANNEL` are set):
+
+- **Message:** `@here` + “Please @fern-writer to generate a changelog for this PR” + link. It tells people to reply with “produce a changelog for this” (and @fern-writer).
+- **Your move:** Reply to that message with “produce a changelog for this” and @fern-writer. The bot uses the PR link in the parent message as context (and can use the PR’s `api-changelog-diff` artifact or the bot comment on the PR for the diff).
+- **To actually ping the bot in Slack:** If “@fern-writer” in the message doesn’t notify the bot, replace it in the workflow with the bot’s Slack user ID, e.g. `<@U01234ABCD>` (use a secret like `SLACK_FERN_WRITER_USER_ID` and put `<@${{ secrets.SLACK_FERN_WRITER_USER_ID }}>` in the payload).

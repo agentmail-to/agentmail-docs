@@ -94,4 +94,4 @@ jobs:
         with:
           channel-id: ${{ secrets.SLACK_CHANGELOG_CHANNEL }}
           payload: |
-            {"text": "API changes in PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.html_url }} — Tag @Fern Writer in #api-changelog for changelog."}
+            {"text": "<!here> Please @fern-writer to generate a changelog for this PR: ${{ github.event.pull_request.html_url }}\n\nReply to this message with \"produce a changelog for this\" (and @fern-writer) to trigger the bot."}
