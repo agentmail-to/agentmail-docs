@@ -105,7 +105,7 @@ You can send and receive emails using the AgentMail API. Use the `exec` tool to 
 ## API Base URL
 
 ```
-https://api.agentmail.to/v1
+https://api.agentmail.to/v0
 ```
 
 ## Authentication
@@ -122,7 +122,7 @@ Authorization: Bearer $AGENTMAIL_API_KEY
 
 ```bash
 curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
-  https://api.agentmail.to/v1/inboxes
+  https://api.agentmail.to/v0/inboxes
 ```
 
 ### Create an inbox
@@ -131,7 +131,7 @@ curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
 curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"display_name": "My Agent"}' \
-  https://api.agentmail.to/v1/inboxes
+  https://api.agentmail.to/v0/inboxes
 ```
 
 ### Send an email
@@ -144,14 +144,14 @@ curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
     "subject": "Hello from Openclaw",
     "text": "This email was sent by my AI assistant."
   }' \
-  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages
+  https://api.agentmail.to/v0/inboxes/{inbox_id}/messages
 ```
 
 ### List messages in an inbox
 
 ```bash
 curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
-  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages
+  https://api.agentmail.to/v0/inboxes/{inbox_id}/messages
 ```
 
 ### Reply to a message
@@ -160,7 +160,7 @@ curl -s -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
 curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"text": "Thanks for your email!"}' \
-  https://api.agentmail.to/v1/inboxes/{inbox_id}/messages/{message_id}/reply
+  https://api.agentmail.to/v0/inboxes/{inbox_id}/messages/{message_id}/reply
 ```
 ````
 
@@ -218,7 +218,7 @@ curl -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
     "url": "https://your-openclaw-webhook-url",
     "events": ["message.received"]
   }' \
-  https://api.agentmail.to/v1/webhooks
+  https://api.agentmail.to/v0/webhooks
 ```
 
 Now Openclaw will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
