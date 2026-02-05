@@ -82,7 +82,7 @@ jobs:
           script: |
             const diff = `${{ steps.oasdiff.outputs.changelog }}`;
             const breaking = ${{ steps.check_changes.outputs.breaking_count }} > 0;
-            const body = `## ${breaking ? '🚨 Breaking' : '✨'} API Changes\n\n\`\`\`markdown\n${diff}\n\`\`\`\n\n💡 Download \`api-changelog-diff\` artifact or tag @Fern Writer in #api-changelog for changelog.`;
+            const body = `## ${breaking ? '🚨 Breaking' : '✨'} API Changes\n\n\`\`\`markdown\n${diff}\n\`\`\`\n\n💡 Download \`api-changelog-diff\` artifact or tag @Fern Writer in #github-prs for changelog.`;
             await github.rest.issues.createComment({ issue_number: context.issue.number, owner: context.repo.owner, repo: context.repo.repo, body });
           
       - name: Post to Slack (if configured)
