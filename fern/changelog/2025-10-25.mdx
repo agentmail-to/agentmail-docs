@@ -1,0 +1,67 @@
+---
+tags: ["drafts-api", "new-feature", "sdk"]
+---
+
+## Summary
+
+Introducing the **Drafts API** – compose and manage email drafts before sending. Create drafts, update them over time, schedule send times, and send when ready. Perfect for agents that need to build messages incrementally, support reply threading, or queue emails for later delivery.
+
+### What's new?
+
+**New endpoints:**
+- `GET /drafts` - List all drafts (with optional filters)
+- `GET /drafts/{draft_id}` - Get a draft
+- `POST /inboxes/{inbox_id}/drafts` - Create a draft in an inbox
+- `PATCH /inboxes/{inbox_id}/drafts/{draft_id}` - Update a draft
+- `POST /inboxes/{inbox_id}/drafts/{draft_id}/send` - Send a draft
+- `DELETE /inboxes/{inbox_id}/drafts/{draft_id}` - Delete a draft
+
+**Draft features:**
+- Compose with to, cc, bcc, subject, plain text, and HTML body
+- Reply threading via `in_reply_to` and `references`
+- Schedule send with `send_at` for delayed delivery
+- Attachments and labels
+- List and filter drafts by inbox, labels, or time range
+
+### Use cases
+
+Build agents that:
+- Compose multi-step replies before sending
+- Schedule follow-up emails for optimal delivery
+- Queue outbound messages and send in batches
+- Edit drafts based on new context or user feedback
+- Maintain proper email threads with `in_reply_to`
+
+<CodeBlock language="python">
+```python
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# create a draft in an inbox
+draft = client.inboxes.drafts.create(
+    inbox_id="support@example.com",
+    to=["user@example.com"],
+    subject="Re: Your request",
+    text="We're looking into it.",
+    in_reply_to="<message-id@example.com>"
+)
+
+# update the draft
+client.inboxes.drafts.update(
+    inbox_id="support@example.com",
+    draft_id=draft.draft_id,
+    text="We've resolved your request."
+)
+
+# send the draft
+client.inboxes.drafts.send(
+    inbox_id="support@example.com",
+    draft_id=draft.draft_id
+)
+```
+</CodeBlock>
+
+<Note>
+  Learn more about composing and sending in our [Drafts](https://docs.agentmail.to/core-concepts/drafts) documentation.
+</Note>

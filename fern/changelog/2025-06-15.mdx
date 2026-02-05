@@ -1,0 +1,84 @@
+---
+tags: ["pods-api", "new-feature", "sdk", "collaboration"]
+---
+
+## Summary
+
+Introducing **Pods** - team collaboration spaces for AgentMail. Share inboxes, domains, and resources across your organization while maintaining granular control. Perfect for teams building multi-agent email systems that need organized resource management.
+
+### What's new?
+
+**New endpoints:**
+- `POST /pods` - Create a new pod (team workspace)
+- `GET /pods` - List all pods in your organization
+- `GET /pods/{pod_id}` - Get pod details
+- `DELETE /pods/{pod_id}` - Delete a pod
+- `POST /pods/{pod_id}/inboxes` - Create inbox within a pod
+- `POST /pods/{pod_id}/domains` - Add custom domain to a pod
+- `GET /pods/{pod_id}/threads` - List threads within a pod
+- `GET /pods/{pod_id}/metrics` - Get metrics for a pod
+
+**Pod features:**
+- Shared inbox access across team members
+- Per-pod domain configuration
+- Isolated metrics and analytics per pod
+- Organized resource hierarchy
+
+### Use cases
+
+Build systems where:
+- Multiple agents share email infrastructure
+- Different teams manage their own inboxes independently
+- Resources are organized by department or project
+- Analytics are tracked per team workspace
+- Billing and usage can be attributed to specific teams
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# create a pod for your sales team
+pod = client.pods.create(
+    name="Sales Team",
+    description="Shared resources for sales agents"
+)
+
+# create an inbox in the pod
+inbox = client.pods.inboxes.create(
+    pod_id=pod.pod_id,
+    inbox_id="sales@example.com"
+)
+
+# list all pods
+pods = client.pods.list()
+for pod in pods.pods:
+    print(f"Pod: {pod.name} ({len(pod.inbox_ids)} inboxes)")
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// create a pod for your sales team
+const pod = await client.pods.create({
+  name: "Sales Team",
+  description: "Shared resources for sales agents",
+});
+
+// create an inbox in the pod
+await client.pods.inboxes.create(pod.podId, "sales@example.com");
+
+// list all pods
+const { pods } = await client.pods.list();
+for (const p of pods) {
+  console.log(`Pod: ${p.name} (${p.inboxIds?.length ?? 0} inboxes)`);
+}
+```
+</CodeBlocks>
+
+<Note>
+  Learn more about organizing teams with [Pods](https://docs.agentmail.to/core-concepts/pods) in our documentation.
+</Note>

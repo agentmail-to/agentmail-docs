@@ -70,10 +70,10 @@ tabs:
   api:
     display-name: API Reference
     icon: terminal
-  # changelog:
-  #   display-name: Changelog
-  #   icon: light clock
-  #   changelog: ./changelog
+  changelog:
+    display-name: Changelog
+    icon: light clock
+    changelog: ./changelog
 
 experimental:
   dynamic-snippets: true
@@ -124,15 +124,9 @@ navigation:
           # - page: Overview
           #   icon: fa-solid fa-list
           #   path: pages/integrations/overview.mdx
-          - page: Skills
-            icon: fa-solid fa-wand-magic-sparkles
-            path: pages/integrations/skills.mdx
           - page: MCP
             icon: fa-solid fa-plug
             path: pages/integrations/mcp.mdx
-          - page: Openclaw
-            icon: fa-solid fa-robot
-            path: pages/integrations/openclaw.mdx
           - page: Replit
             path: pages/integrations/replit.mdx
           # - page: Smithery
@@ -268,4 +262,4 @@ navigation:
           - api-keys
           - pods
           - organizations
-  # - tab: changelog
+  - tab: changelog
