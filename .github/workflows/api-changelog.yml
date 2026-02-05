@@ -88,5 +88,6 @@ jobs:
           script: |
             const diff = process.env.CHANGELOG_DIFF || '';
             const breaking = (Number(process.env.BREAKING_COUNT) || 0) > 0;
-            const body = `## ${breaking ? '🚨 Breaking' : '✨'} API Changes\n\n\`\`\`markdown\n${diff}\n\`\`\`\n\n💡 Download \`api-changelog-diff\` artifact or tag @Fern Writer in #github-prs for changelog.`;
+            const safeDiff = diff.replace(/\`\`\`/g, '\\`\\`\\`');
+            const body = `## ${breaking ? '🚨 Breaking' : '✨'} API Changes\n\n\`\`\`markdown\n${safeDiff}\n\`\`\`\n\n💡 Download \`api-changelog-diff\` artifact or tag @Fern Writer in #github-prs for changelog.`;
             await github.rest.issues.createComment({ issue_number: context.issue.number, owner: context.repo.owner, repo: context.repo.repo, body });
