@@ -25,26 +25,34 @@ tags: ["area-api", "change-type", "deliverable"]
 
 **Migration guide:**
 
-<CodeBlock language="python">
-```python
+<CodeBlocks>
+```python title="Python"
 # before
 from agentmail import AgentMail
 client = AgentMail(api_key="key")
-
-# old way of doing it
 result = client.old_method(param="value")
 
-# after  
+# after
 from agentmail import AgentMail
 client = AgentMail(api_key="key")
-
-# new way with updated API
 result = client.new_method(
     param="value",
     new_param="required_value"  # new: required parameter
 )
 ```
-</CodeBlock>
+
+```typescript title="TypeScript"
+// before
+import { AgentMail } from "agentmail";
+const client = new AgentMail({ apiKey: "key" });
+const result = await client.oldMethod("value");
+
+// after
+import { AgentMail } from "agentmail";
+const client = new AgentMail({ apiKey: "key" });
+const result = await client.newMethod("value", { newParam: "required_value" });
+```
+</CodeBlocks>
 
 **Timeline**: Old behavior will be supported until [DATE]. Please migrate by [DATE].
 

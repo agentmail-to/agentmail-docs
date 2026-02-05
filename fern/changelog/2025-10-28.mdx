@@ -31,8 +31,8 @@ Build systems where:
 - Verification status drives onboarding or monitoring
 - Bounce and complaint handling is configured per domain
 
-<CodeBlock language="python">
-```python
+<CodeBlocks>
+```python title="Python"
 from agentmail import AgentMail
 
 client = AgentMail(api_key="your-api-key")
@@ -51,7 +51,28 @@ for record in domain.records:
 # trigger verification after updating DNS
 client.domains.verify(domain_id=domain.domain_id)
 ```
-</CodeBlock>
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// create a domain
+const domain = await client.domains.create({
+  domain: "mail.example.com",
+  feedbackEnabled: true,
+});
+
+// get verification records and status
+const domainDetails = await client.domains.get(domain.domainId);
+for (const record of domainDetails.records) {
+  console.log(`${record.type} ${record.name}: ${record.status}`);
+}
+
+// trigger verification after updating DNS
+await client.domains.verify(domain.domainId);
+```
+</CodeBlocks>
 
 <Note>
   Learn more in our [Custom Domains](https://docs.agentmail.to/guides/domains/custom-domains) and [Managing Domains](https://docs.agentmail.to/guides/domains/managing-domains) guides.

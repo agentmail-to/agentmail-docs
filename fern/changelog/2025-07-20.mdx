@@ -1,5 +1,5 @@
 ---
-tags: ["websockets", "new-feature", "sdk", "real-time"]
+tags: ["websockets", "new-feature", "sdk"]
 ---
 
 ## Summary
@@ -35,8 +35,8 @@ Build agents that:
 - Scale to handle high-volume email operations
 - React to bounces and complaints immediately
 
-<CodeBlock language="python">
-```python
+<CodeBlocks>
+```python title="Python"
 from agentmail import AgentMail
 
 client = AgentMail(api_key="your-api-key")
@@ -48,17 +48,28 @@ async with client.websockets.subscribe(
     async for event in ws:
         if event.type == "message.received":
             print(f"New email from: {event.data.from_}")
-            
-            # process and respond immediately
             response = await generate_response(event.data.text)
-            
-            # reply instantly  
             await client.messages.reply(
                 message_id=event.data.message_id,
                 text=response
             )
 ```
-</CodeBlock>
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// subscribe to events for an inbox
+for await (const event of client.websockets.subscribe("support@example.com")) {
+  if (event.type === "message.received") {
+    console.log("New email from:", event.data.from);
+    const response = await generateResponse(event.data.text);
+    await client.messages.reply(event.data.messageId, response);
+  }
+}
+```
+</CodeBlocks>
 
 <Note>
   Get started with [WebSocket Streaming](https://docs.agentmail.to/websockets) to build real-time email agents.

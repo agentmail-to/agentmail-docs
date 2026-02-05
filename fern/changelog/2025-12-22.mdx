@@ -1,5 +1,5 @@
 ---
-tags: ["webhooks", "events", "new-feature", "sdk"]
+tags: ["webhooks", "new-feature", "sdk"]
 ---
 
 ## Summary
@@ -30,8 +30,8 @@ Build agents that:
 - Trigger workflows on domain verification
 - Verify webhook signatures for security
 
-<CodeBlock language="python">
-```python
+<CodeBlocks>
+```python title="Python"
 from agentmail import AgentMail
 
 client = AgentMail(api_key="your-api-key")
@@ -42,7 +42,6 @@ def handle_webhook(request):
     event_id = request.headers.get("svix-id")
     signature = request.headers.get("svix-signature")
     payload = request.json()
-    # verify signature, then:
     if payload.get("event_type") == "message.received":
         message = payload.get("message")
         # process new email
@@ -50,7 +49,28 @@ def handle_webhook(request):
         domain = payload.get("domain")
         # domain is verified
 ```
-</CodeBlock>
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// in your webhook handler: verify signature and handle event
+// (use Svix or the raw headers for verification)
+function handleWebhook(request: Request) {
+  const eventId = request.headers.get("svix-id");
+  const signature = request.headers.get("svix-signature");
+  const payload = request.json();
+  if (payload.event_type === "message.received") {
+    const message = payload.message;
+    // process new email
+  } else if (payload.event_type === "domain.verified") {
+    const domain = payload.domain;
+    // domain is verified
+  }
+}
+```
+</CodeBlocks>
 
 <Note>
   Set up and verify webhooks in our [Webhooks](https://docs.agentmail.to/webhooks/webhooks-overview) documentation.
