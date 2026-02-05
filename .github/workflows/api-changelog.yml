@@ -84,14 +84,3 @@ jobs:
             const breaking = ${{ steps.check_changes.outputs.breaking_count }} > 0;
             const body = `## ${breaking ? '🚨 Breaking' : '✨'} API Changes\n\n\`\`\`markdown\n${diff}\n\`\`\`\n\n💡 Download \`api-changelog-diff\` artifact or tag @Fern Writer in #github-prs for changelog.`;
             await github.rest.issues.createComment({ issue_number: context.issue.number, owner: context.repo.owner, repo: context.repo.repo, body });
-          
-      - name: Post to Slack (if configured)
-        if: steps.check_changes.outputs.has_changes == 'true'
-        continue-on-error: true
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          channel-id: ${{ secrets.SLACK_CHANGELOG_CHANNEL }}
-          payload: |
-            {"text": "<!here> Please @fern-writer to generate a changelog for this PR: ${{ github.event.pull_request.html_url }}\n\nReply to this message with \"produce a changelog for this\" (and @fern-writer) to trigger the bot."}
