@@ -1,0 +1,76 @@
+---
+tags: ["websockets", "new-feature", "sdk"]
+---
+
+## Summary
+
+Introducing **WebSocket Streaming** - receive email events in real-time as they happen. Build reactive agents that respond instantly to new messages, deliveries, and bounces without polling. Perfect for building interactive, event-driven email experiences.
+
+### What's new?
+
+**WebSocket endpoint:**
+- `wss://ws.agentmail.to/v0` - Real-time event streaming
+
+**Events streamed:**
+- `message.received` - New inbound email detected
+- `message.sent` - Outbound email sent successfully
+- `message.delivered` - Delivery confirmed by recipient server
+- `message.bounced` - Bounce detected (permanent or temporary)
+- `message.complained` - Spam complaint received
+
+**Connection features:**
+- JWT-based authentication for secure connections
+- Automatic reconnection with exponential backoff
+- Event filtering by inbox for targeted subscriptions
+- Low-latency delivery (typically under 100ms)
+- Support for thousands of concurrent connections
+
+### Use cases
+
+Build agents that:
+- Respond to emails within seconds of receipt
+- Monitor deliverability in real-time across all inboxes
+- Trigger workflows instantly on specific events
+- Build interactive conversational email experiences
+- Scale to handle high-volume email operations
+- React to bounces and complaints immediately
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# subscribe to events for an inbox
+async with client.websockets.subscribe(
+    inbox_id="support@example.com"
+) as ws:
+    async for event in ws:
+        if event.type == "message.received":
+            print(f"New email from: {event.data.from_}")
+            response = await generate_response(event.data.text)
+            await client.messages.reply(
+                message_id=event.data.message_id,
+                text=response
+            )
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// subscribe to events for an inbox
+for await (const event of client.websockets.subscribe("support@example.com")) {
+  if (event.type === "message.received") {
+    console.log("New email from:", event.data.from);
+    const response = await generateResponse(event.data.text);
+    await client.messages.reply(event.data.messageId, response);
+  }
+}
+```
+</CodeBlocks>
+
+<Note>
+  Get started with [WebSocket Streaming](https://docs.agentmail.to/websockets) to build real-time email agents.
+</Note>

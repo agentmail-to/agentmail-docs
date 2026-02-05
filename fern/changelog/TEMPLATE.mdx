@@ -1,0 +1,119 @@
+---
+tags: ["area-api", "change-type", "deliverable"]
+---
+
+## Summary
+
+[2-3 sentences explaining what changed and why it matters to users. Focus on the benefit they get from this update. Use action-oriented language like "Build agents that..." or "Monitor X in real-time".]
+
+### What's new?
+
+**New endpoints:**
+- `METHOD /path` - Description of what it does and why users care
+
+**New features:**
+- **Feature name**: Brief description focusing on user benefit
+- **Another feature**: Brief description
+
+**Changes:**
+- Modified behavior in X
+- New parameter Y available
+
+### Breaking changes
+
+⚠️ **[Clear description of what broke and why the change was necessary]**
+
+**Migration guide:**
+
+<CodeBlocks>
+```python title="Python"
+# before
+from agentmail import AgentMail
+client = AgentMail(api_key="key")
+result = client.old_method(param="value")
+
+# after
+from agentmail import AgentMail
+client = AgentMail(api_key="key")
+result = client.new_method(
+    param="value",
+    new_param="required_value"  # new: required parameter
+)
+```
+
+```typescript title="TypeScript"
+// before
+import { AgentMail } from "agentmail";
+const client = new AgentMail({ apiKey: "key" });
+const result = await client.oldMethod("value");
+
+// after
+import { AgentMail } from "agentmail";
+const client = new AgentMail({ apiKey: "key" });
+const result = await client.newMethod("value", { newParam: "required_value" });
+```
+</CodeBlocks>
+
+**Timeline**: Old behavior will be supported until [DATE]. Please migrate by [DATE].
+
+### Use cases
+
+Build agents that:
+- Use case example 1 with specific benefit
+- Use case example 2 with specific benefit
+- Use case example 3 with specific benefit
+- Use case example 4 with specific benefit
+
+### SDK Updates
+
+- Python SDK `v1.x.x` - [View release](https://github.com/agentmail-to/agentmail-python/releases/vX.X.X)
+- Node SDK `v1.x.x` - [View release](https://github.com/agentmail-to/agentmail-node/releases/vX.X.X)
+
+**New methods:**
+- `client.namespace.new_method()` - Description
+- `client.another.method()` - Description
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# example showing the new feature
+result = client.endpoint.method(
+    inbox_id="user@example.com",
+    param="value"
+)
+
+# process the result
+for item in result.items:
+    print(f"Item: {item.name}")
+```
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// example showing the new feature
+const result = await client.endpoint.method("user@example.com", { param: "value" });
+
+// process the result
+for (const item of result.items) {
+  console.log(`Item: ${item.name}`);
+}
+```
+</CodeBlocks>
+
+<Note>
+  [Call-to-action with link to relevant docs. For example: "Learn more about X in our [Feature Guide](https://docs.agentmail.to/path)" or "Check out the [API Reference](https://docs.agentmail.to/api-reference/endpoint) for detailed examples"]
+</Note>
+
+---
+
+## Notes for using this template:
+
+- **Filename**: Save as `YYYY-MM-DD.mdx` (e.g., `2026-01-30.mdx`)
+- **Tags**: Choose 2-4 tags that accurately describe the change
+- **Code examples**: Make them runnable with proper imports; **code comments: use lowercase** (e.g. `# create a draft` not `# Create a draft`)
+- **Links**: Ensure all links are valid and point to correct documentation
+- **Tone**: Helpful and encouraging, focused on what users can now build
