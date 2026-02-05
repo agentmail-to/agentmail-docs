@@ -32,8 +32,8 @@ Build agents that:
 - Edit drafts based on new context or user feedback
 - Maintain proper email threads with `in_reply_to`
 
-<CodeBlock language="python">
-```python
+<CodeBlocks>
+```python title="Python"
 from agentmail import AgentMail
 
 client = AgentMail(api_key="your-api-key")
@@ -60,7 +60,31 @@ client.inboxes.drafts.send(
     draft_id=draft.draft_id
 )
 ```
-</CodeBlock>
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// create a draft in an inbox
+const draft = await client.inboxes.drafts.create("support@example.com", {
+  to: ["user@example.com"],
+  subject: "Re: Your request",
+  text: "We're looking into it.",
+  inReplyTo: "<message-id@example.com>",
+});
+
+// update the draft
+await client.inboxes.drafts.update(
+  "support@example.com",
+  draft.draftId,
+  { text: "We've resolved your request." }
+);
+
+// send the draft
+await client.inboxes.drafts.send("support@example.com", draft.draftId);
+```
+</CodeBlocks>
 
 <Note>
   Learn more about composing and sending in our [Drafts](https://docs.agentmail.to/core-concepts/drafts) documentation.
