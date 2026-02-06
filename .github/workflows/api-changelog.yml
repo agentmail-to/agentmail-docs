@@ -46,7 +46,6 @@ jobs:
           base: base-openapi.json
           revision: current-openapi.json
           format: markdown
-          fail-on-diff: false
         continue-on-error: true
           
       - name: Check if changes detected
