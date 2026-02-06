@@ -79,7 +79,7 @@ jobs:
           retention-days: 7
           
       - name: Comment on PR with diff
-        if: steps.check_changes.outputs.has_changes == 'true'
+        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'pull_request'
         env:
           CHANGELOG_DIFF: ${{ steps.oasdiff.outputs.changelog }}
           BREAKING_COUNT: ${{ steps.check_changes.outputs.breaking_count || 0 }}
