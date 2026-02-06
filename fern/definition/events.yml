@@ -1,4 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+# test: trigger API changelog workflow (safe to revert)
 
 imports:
   inboxes: inboxes/__package__.yml
