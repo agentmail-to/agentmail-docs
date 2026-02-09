@@ -20,6 +20,21 @@ types:
       domain_limit:
         type: optional<integer>
         docs: Maximum number of domains allowed.
+      billing_id:
+        type: optional<string>
+        docs: Provider-agnostic billing customer ID.
+      billing_type:
+        type: optional<string>
+        docs: Billing provider type (e.g. "stripe").
+      billing_subscription_id:
+        type: optional<string>
+        docs: Active billing subscription ID.
+      authentication_id:
+        type: optional<string>
+        docs: Provider-agnostic authentication ID.
+      authentication_type:
+        type: optional<string>
+        docs: Authentication provider type.
       updated_at:
         type: datetime
         docs: Time at which organization was last updated.
