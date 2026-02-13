@@ -24,9 +24,9 @@ channel:
   display-name: Connect
   auth: true
   query-parameters:
-    api_key:
-      type: string
-      docs: Your API key.
+    auth_token:
+      type: optional<string>
+      docs: Your API key. Required if Authorization header is not set.
   messages:
     subscribe:
       origin: client
