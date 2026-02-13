@@ -186,6 +186,9 @@ navigation:
           - page: Overview
             icon: fa-solid fa-plug
             path: pages/websockets.mdx
+          - page: Quickstart
+            icon: fa-solid fa-bolt
+            path: pages/websockets-quickstart.mdx
       - section: Best Practices
         contents:
           - page: Email Deliverability
