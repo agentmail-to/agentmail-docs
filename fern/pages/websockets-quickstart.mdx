@@ -1,0 +1,50 @@
+---
+title: "WebSockets Quickstart"
+subtitle: "Get started with real-time email event streaming"
+slug: websockets/quickstart
+---
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+
+async function main() {
+  const socket = await client.websockets.connect({
+    apiKey: process.env.AGENTMAIL_API_KEY,
+  });
+
+  socket.on("message", async (event) => {
+    if (event.type === "subscribed") {
+      console.log("Subscribed to", event.inboxIds);
+    } else if (event.eventType === "message.received") {
+      console.log(`Received message from: ${event.message.from}`);
+    }
+  });
+
+  await socket.waitForOpen();
+
+  socket.sendSubscribe({
+    type: "subscribe",
+    inboxIds: ["my-agent@agentmail.to"],
+  });
+}
+
+main();
+```
+
+```python title="Python"
+from agentmail import AgentMail, MessageReceivedEvent, Subscribe, Subscribed
+
+client = AgentMail()
+
+with client.websockets.connect() as socket:
+    socket.send_subscribe(Subscribe(inbox_ids=["my-agent@agentmail.to"]))
+
+    for event in socket:
+        if isinstance(event, Subscribed):
+            print(f"Subscribed to {event.inbox_ids}")
+        elif isinstance(event, MessageReceivedEvent):
+            msg = event.message
+            print(f"Received message from: {msg.from_}")
+```
