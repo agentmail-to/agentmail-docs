@@ -80,6 +80,11 @@ experimental:
 
 default-language: python
 
+redirects:
+  - source: /integrations/moltbot
+    destination: /integrations/openclaw
+    permanent: true
+
 navigation:
   - tab: docs
     layout:
