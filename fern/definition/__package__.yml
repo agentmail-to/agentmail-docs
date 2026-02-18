@@ -41,12 +41,14 @@ types:
     type: string
     docs: Name of error.
 
+  ErrorMessage:
+    type: string
+    docs: Error message.
+
   ErrorResponse:
     properties:
       name: ErrorName
-      message:
-        type: string
-        docs: Error message.
+      message: ErrorMessage
 
   ValidationErrorResponse:
     properties:

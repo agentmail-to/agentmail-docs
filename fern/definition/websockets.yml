@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 imports:
+  global: __package__.yml
   events: events.yml
 
 types:
@@ -17,6 +18,12 @@ types:
       event_types: optional<events.EventTypes>
       inbox_ids: optional<events.InboxIds>
       pod_ids: optional<events.PodIds>
+
+  Error:
+    properties:
+      type: literal<"error">
+      name: global.ErrorName
+      message: global.ErrorMessage
 
 channel:
   url: Websockets
@@ -55,3 +62,6 @@ channel:
     domain_verified:
       origin: server
       body: events.DomainVerifiedEvent
+    error:
+      origin: server
+      body: Error
