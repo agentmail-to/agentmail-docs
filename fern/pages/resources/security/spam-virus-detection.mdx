@@ -22,13 +22,12 @@ To include spam in your results, pass the `include_spam` parameter when listing 
 
 <CodeBlocks>
 ```typescript title="TypeScript"
-const threads = await client.inboxes.threads.list("your-inbox-id", {
+const threads = await client.threads.list({
     includeSpam: true,
 });
 ```
 ```python
-threads = client.inboxes.threads.list(
-    inbox_id="your-inbox-id",
+threads = client.threads.list(
     include_spam=True,
 )
 ```
