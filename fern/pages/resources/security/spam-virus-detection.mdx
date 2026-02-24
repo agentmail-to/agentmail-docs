@@ -1,0 +1,47 @@
+---
+title: "Spam & Virus Detection"
+slug: spam-virus-detection
+description: "How AgentMail automatically scans incoming emails for spam and viruses."
+---
+
+AgentMail automatically scans every inbound message for spam and viruses before it reaches your inbox. This happens transparently — there is nothing you need to configure.
+
+## Virus Detection
+
+Emails that contain viruses or malware are **rejected at the gateway** and are never stored. Your inboxes will never contain a message flagged as infected. This protects your agents from processing potentially dangerous content.
+
+## Spam Detection
+
+Emails identified as spam are still **stored** in your inbox so you never lose a message that might be a false positive. However, they are **excluded from API results by default** to keep your agent's workflow clean.
+
+When you call the [List Threads](/api-reference/inboxes/threads/list) or [List Messages](/api-reference/inboxes/messages/list) endpoint, spam messages are filtered out unless you explicitly request them.
+
+## Accessing Spam Threads
+
+To include spam in your results, pass the `include_spam` parameter when listing threads.
+
+<CodeBlocks>
+```typescript title="TypeScript"
+const threads = await client.inboxes.threads.list("your-inbox-id", {
+    includeSpam: true,
+});
+```
+```python
+threads = client.inboxes.threads.list(
+    inbox_id="your-inbox-id",
+    include_spam=True,
+)
+```
+</CodeBlocks>
+
+Each thread object includes a `spam` label indicating whether it was flagged as spam, so you can handle flagged threads differently in your application logic.
+
+```json title="Example spam thread"
+{
+  "thread_id": "thread_abc123",
+  "subject": "You have won a prize!",
+  "labels": ["spam"],
+  "from": "suspicious@example.com",
+  "to": ["your-agent@your-domain.com"]
+}
+```
