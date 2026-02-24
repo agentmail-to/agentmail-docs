@@ -256,6 +256,9 @@ navigation:
               - page: SOC 2 Compliance
                 icon: fa-solid fa-certificate
                 path: pages/resources/security/soc2.mdx
+              - page: Spam & Virus Detection
+                icon: fa-solid fa-shield-virus
+                path: pages/resources/security/spam-virus-detection.mdx
 
   - tab: api
     layout:
