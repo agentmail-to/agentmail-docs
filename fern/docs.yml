@@ -85,6 +85,116 @@ redirects:
     destination: /integrations/openclaw
     permanent: true
 
+  # --- 404 redirects from crawl report ---
+
+  # Old v0 API paths
+  - source: /v0/webhooks/webhook_id
+    destination: /overview
+  - source: /v0/webhooks
+    destination: /overview
+  - source: /v0/inboxes/:inbox_id/messages/:message_id/forward
+    destination: /api-reference/inboxes/messages/forward
+  - source: /v0/pods/pod_id/drafts
+    destination: /api-reference/pods/drafts/list
+  - source: /v0/domains/:domain_id/verify
+    destination: /api-reference/domains/verify
+  - source: /v0/pods/:pod_id/domains
+    destination: /api-reference/pods/list
+  - source: /v0/inboxes/:inbox_id/messages/:message_id
+    destination: /api-reference/inboxes/messages/list
+  - source: /v0/pods/pod_id/inboxes
+    destination: /api-reference/pods/list
+  - source: /v0/inboxes/:inbox_id/threads/:thread_id
+    destination: /api-reference/inboxes/threads/list
+  - source: /v0/pods/pod_id/threads/thread_id
+    destination: /api-reference/pods/threads/list
+  - source: /v0/inboxes/:inbox_id/metrics
+    destination: /api-reference/inboxes/metrics/get
+  - source: /v0/pods/:pod_id/drafts/:draft_id
+    destination: /api-reference/pods/drafts/get
+  - source: /v0/inboxes/inbox_id/messages/send
+    destination: /api-reference/inboxes/messages/send
+  - source: /v0/threads/:thread_id/attachments/:attachment_id
+    destination: /api-reference/threads/get-attachment
+  - source: /v0/webhooks/:webhook_id
+    destination: /api-reference/webhooks/get
+  - source: /v0/inboxes/:inbox_id/drafts
+    destination: /api-reference/inboxes/drafts/get
+  - source: /v0/drafts/:draft_id
+    destination: /api-reference/drafts/get
+  - source: /v0/inboxes/:inbox_id/threads
+    destination: /api-reference/inboxes/threads/get
+  - source: /v0/inboxes/:inbox_id
+    destination: /api-reference/inboxes/get
+  - source: /v0/pods/:pod_id
+    destination: /api-reference/pods/get
+  - source: /v0/inboxes/inbox_id/messages
+    destination: /api-reference/inboxes/messages/list
+  - source: /v0/inboxes/:inbox_id/messages/:message_id/attachments/:attachment_id
+    destination: /api-reference/inboxes/messages/get-attachment
+  - source: /v0/pods/:pod_id/inboxes/:inbox_id
+    destination: /api-reference/pods/inboxes/get
+  - source: /v0/inboxes/:inbox_id/drafts/:draft_id/send
+    destination: /api-reference/inboxes/drafts/send
+  - source: /v0/inboxes/:inbox_id/messages/:message_id/raw
+    destination: /api-reference/inboxes/messages/get-raw
+  - source: /v0/inboxes/:inbox_id/drafts/:draft_id
+    destination: /api-reference/inboxes/drafts/get
+  - source: /v0/threads/:thread_id
+    destination: /api-reference/threads/get
+  - source: /v0/inboxes/:inbox_id/messages/send
+    destination: /api-reference/inboxes/messages/send
+  - source: /v0/inboxes/inbox_id
+    destination: /api-reference/inboxes/get
+  - source: /v0/domains/:domain_id
+    destination: /api-reference/domains/get
+  - source: /v0/pods/:pod_id/drafts
+    destination: /api-reference/pods/drafts/list
+  - source: /v0/domains/:domain_id/zone-file
+    destination: /api-reference/domains/get-zone-file
+  - source: /v0/pods/:pod_id/threads
+    destination: /api-reference/pods/threads/list
+
+  # Old docs paths
+  - source: /documentation/resources/support
+    destination: /support
+  - source: /integrations/smithery
+    destination: /integrations/skills
+  - source: /core-concepts/drafts
+    destination: /drafts
+  - source: /webhooks
+    destination: /overview
+  - source: /integrations/crewai
+    destination: /integrations/skills
+  - source: /api-keys
+    destination: /api-reference/api-keys/list
+  - source: /verify
+    destination: /api-reference/domains/verify
+  - source: /api-reference/threads/delete
+    destination: /api-reference/inboxes/threads/delete
+  - source: /deliverability
+    destination: /email-deliverability
+  - source: /reply-all
+    destination: /api-reference/inboxes/messages/reply-all
+  - source: /api-reference/threads/delete?explorer=true
+    destination: /api-reference/inboxes/threads/delete
+  - source: /integrations/overview
+    destination: /integrations/skills
+  - source: /pods
+    destination: /documentation/core-concepts/pods
+  - source: /domains
+    destination: /custom-domains
+  - source: /best-practices/email-deliverability
+    destination: /email-deliverability
+  - source: /api-reference/inboxes/messages/get-raw-message
+    destination: /api-reference/inboxes/messages/get-raw
+  - source: /webhook/agentmail
+    destination: /webhook-verification
+  - source: /get-started/quickstart
+    destination: /quickstart
+  - source: /pods/
+    destination: /documentation/core-concepts/pods
+
 navigation:
   - tab: docs
     layout:
