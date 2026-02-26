@@ -10,14 +10,15 @@ import { AgentMailClient } from "agentmail";
 const client = new AgentMailClient();
 
 async function main() {
-  const socket = await client.websockets.connect({
-    apiKey: process.env.AGENTMAIL_API_KEY,
-  });
+  const socket = await client.websockets.connect();
 
   socket.on("message", async (event) => {
     if (event.type === "subscribed") {
       console.log("Subscribed to", event.inboxIds);
-    } else if (event.eventType === "message.received") {
+    } else if (
+      event.type === "event" &&
+      event.eventType === "message.received"
+    ) {
       console.log(`Received message from: ${event.message.from}`);
     }
   });
