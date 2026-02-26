@@ -11,6 +11,10 @@ environments:
     urls:
       Http: https://x402.api.agentmail.to
       Websockets: wss://x402.ws.agentmail.to
+  prod-mpp:
+    urls:
+      Http: https://mpp.api.agentmail.to
+      Websockets: wss://mpp.ws.agentmail.to
   eu-prod:
     urls:
       Http: https://api.agentmail.eu
