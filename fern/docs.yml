@@ -250,6 +250,9 @@ navigation:
             path: pages/integrations/openclaw.mdx
           - page: Replit
             path: pages/integrations/replit.mdx
+          - page: Claude Skill
+            icon: fa-solid fa-wand-magic-sparkles
+            path: pages/integrations/claude-skill.mdx
           # - page: Smithery
           #   path: pages/integrations/smithery.mdx
           # - page: Mastra
