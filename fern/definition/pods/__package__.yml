@@ -5,6 +5,7 @@ navigation:
   - threads.yml
   - drafts.yml
   - domains.yml
+  - list-entries.yml
 
 imports:
   global: ../__package__.yml

@@ -1,0 +1,115 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  Direction:
+    enum:
+      - send
+      - receive
+    docs: Direction of list entry.
+
+  ListType:
+    enum:
+      - allow
+      - block
+    docs: Type of list entry.
+
+  EntryType:
+    enum:
+      - email
+      - domain
+    docs: Whether the entry is an email address or domain.
+
+  ListEntry:
+    properties:
+      entry:
+        type: string
+        docs: Email address or domain of list entry.
+      organization_id: global.OrganizationId
+      pod_id:
+        type: optional<string>
+        docs: ID of pod, if entry is pod-scoped.
+      inbox_id:
+        type: optional<string>
+        docs: ID of inbox, if entry is inbox-scoped.
+      reason:
+        type: optional<string>
+        docs: Reason for adding the entry.
+      direction: Direction
+      list_type: ListType
+      entry_type: EntryType
+      created_at:
+        type: datetime
+        docs: Time at which entry was created.
+
+  ListListEntriesResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      entries:
+        type: list<ListEntry>
+        docs: Ordered by entry ascending.
+
+  CreateListEntryRequest:
+    properties:
+      entry:
+        type: string
+        docs: Email address or domain to add.
+      reason:
+        type: optional<string>
+        docs: Reason for adding the entry.
+
+service:
+  url: Http
+  base-path: /lists/{direction}/{type}
+  path-parameters:
+    direction: Direction
+    type: ListType
+  auth: true
+
+  endpoints:
+    create:
+      method: POST
+      path: ""
+      display-name: Create List Entry
+      request: CreateListEntryRequest
+      response: ListEntry
+      errors:
+        - global.ValidationError
+
+    list:
+      method: GET
+      path: ""
+      display-name: List List Entries
+      request:
+        name: ListListEntriesRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListListEntriesResponse
+
+    get:
+      method: GET
+      path: /{entry}
+      display-name: Get List Entry
+      path-parameters:
+        entry:
+          type: string
+          docs: Email address or domain.
+      response: ListEntry
+      errors:
+        - global.NotFoundError
+
+    delete:
+      method: DELETE
+      path: /{entry}
+      display-name: Delete List Entry
+      path-parameters:
+        entry:
+          type: string
+          docs: Email address or domain.
+      errors:
+        - global.NotFoundError

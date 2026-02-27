@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  pods: __package__.yml
+  listEntries: ../list-entries.yml
+
+service:
+  url: Http
+  base-path: /pods/{pod_id}/lists/{direction}/{type}
+  path-parameters:
+    pod_id: pods.PodId
+    direction: listEntries.Direction
+    type: listEntries.ListType
+  auth: true
+
+  endpoints:
+    create:
+      method: POST
+      path: ""
+      display-name: Create List Entry
+      request: listEntries.CreateListEntryRequest
+      response: listEntries.ListEntry
+      errors:
+        - global.ValidationError
+
+    list:
+      method: GET
+      path: ""
+      display-name: List List Entries
+      request:
+        name: ListListEntriesRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: listEntries.ListListEntriesResponse
+
+    get:
+      method: GET
+      path: /{entry}
+      display-name: Get List Entry
+      path-parameters:
+        entry:
+          type: string
+          docs: Email address or domain.
+      response: listEntries.ListEntry
+      errors:
+        - global.NotFoundError
+
+    delete:
+      method: DELETE
+      path: /{entry}
+      display-name: Delete List Entry
+      path-parameters:
+        entry:
+          type: string
+          docs: Email address or domain.
+      errors:
+        - global.NotFoundError

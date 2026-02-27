@@ -33,6 +33,10 @@ types:
     type: boolean
     docs: Include spam in results.
 
+  IncludeBlocked:
+    type: boolean
+    docs: Include blocked in results.
+
   OrganizationId:
     type: string
     docs: ID of organization.
