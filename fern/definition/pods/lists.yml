@@ -3,15 +3,15 @@
 imports:
   global: ../__package__.yml
   pods: __package__.yml
-  listEntries: ../lists.yml
+  lists: ../lists.yml
 
 service:
   url: Http
   base-path: /pods/{pod_id}/lists/{direction}/{type}
   path-parameters:
     pod_id: pods.PodId
-    direction: listEntries.Direction
-    type: listEntries.ListType
+    direction: lists.Direction
+    type: lists.ListType
   auth: true
 
   endpoints:
@@ -19,8 +19,8 @@ service:
       method: POST
       path: ""
       display-name: Create List Entry
-      request: listEntries.CreateListEntryRequest
-      response: listEntries.PodListEntry
+      request: lists.CreateListEntryRequest
+      response: lists.PodListEntry
       errors:
         - global.ValidationError
 
@@ -33,7 +33,7 @@ service:
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
-      response: listEntries.PodListListEntriesResponse
+      response: lists.PodListListEntriesResponse
 
     get:
       method: GET
@@ -43,7 +43,7 @@ service:
         entry:
           type: string
           docs: Email address or domain.
-      response: listEntries.PodListEntry
+      response: lists.PodListEntry
       errors:
         - global.NotFoundError
 
