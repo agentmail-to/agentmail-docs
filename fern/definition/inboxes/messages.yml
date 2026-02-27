@@ -28,6 +28,7 @@ service:
           after: optional<global.After>
           ascending: optional<global.Ascending>
           include_spam: optional<global.IncludeSpam>
+          include_blocked: optional<global.IncludeBlocked>
       response: messages.ListMessagesResponse
       errors:
         - global.NotFoundError

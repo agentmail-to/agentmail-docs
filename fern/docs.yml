@@ -383,6 +383,7 @@ navigation:
           - messages
           - drafts
           - domains
+          - lists
           - webhooks
           - websockets
           - metrics
