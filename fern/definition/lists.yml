@@ -22,18 +22,12 @@ types:
       - domain
     docs: Whether the entry is an email address or domain.
 
-  ListEntry:
+  ListEntryBase:
     properties:
       entry:
         type: string
         docs: Email address or domain of list entry.
       organization_id: global.OrganizationId
-      pod_id:
-        type: optional<string>
-        docs: ID of pod, if entry is pod-scoped.
-      inbox_id:
-        type: optional<string>
-        docs: ID of inbox, if entry is inbox-scoped.
       reason:
         type: optional<string>
         docs: Reason for adding the entry.
@@ -43,6 +37,28 @@ types:
       created_at:
         type: datetime
         docs: Time at which entry was created.
+
+  ListEntry:
+    extends: ListEntryBase
+
+  PodListEntry:
+    extends: ListEntryBase
+    properties:
+      pod_id:
+        type: string
+        docs: ID of pod.
+      inbox_id:
+        type: optional<string>
+        docs: ID of inbox, if entry is inbox-scoped.
+
+  PodListListEntriesResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      entries:
+        type: list<PodListEntry>
+        docs: Ordered by entry ascending.
 
   ListListEntriesResponse:
     properties:
@@ -83,7 +99,7 @@ service:
     list:
       method: GET
       path: ""
-      display-name: List List Entries
+      display-name: List Entries
       request:
         name: ListListEntriesRequest
         query-parameters:
