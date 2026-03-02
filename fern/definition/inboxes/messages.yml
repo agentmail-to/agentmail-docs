@@ -18,6 +18,7 @@ service:
       method: GET
       path: ""
       display-name: List Messages
+      docs: Returns all email messages in a specific inbox with options to filter by thread, date, or status.
       request:
         name: ListMessagesRequest
         query-parameters:
@@ -37,6 +38,7 @@ service:
       method: GET
       path: /{message_id}
       display-name: Get Message
+      docs: Retrieves the full content of a specific email message including body, headers, and attachments.
       path-parameters:
         message_id: messages.MessageId
       response: messages.Message
@@ -47,6 +49,7 @@ service:
       method: GET
       path: /{message_id}/attachments/{attachment_id}
       display-name: Get Attachment
+      docs: Downloads the binary content of a specific email attachment.
       path-parameters:
         message_id: messages.MessageId
         attachment_id: attachments.AttachmentId
@@ -58,6 +61,7 @@ service:
       method: GET
       path: /{message_id}/raw
       display-name: Get Raw Message
+      docs: Returns the raw email message content including all headers and MIME parts.
       path-parameters:
         message_id: messages.MessageId
       response: file
@@ -68,6 +72,7 @@ service:
       method: POST
       path: /send
       display-name: Send Message
+      docs: Sends a new email message from the specified inbox to one or more recipients.
       request: messages.SendMessageRequest
       response: messages.SendMessageResponse
       errors:
@@ -79,6 +84,7 @@ service:
       method: POST
       path: /{message_id}/reply
       display-name: Reply To Message
+      docs: Sends a reply to an existing message, automatically maintaining the email thread and conversation context.
       path-parameters:
         message_id: messages.MessageId
       request: messages.ReplyToMessageRequest
@@ -118,6 +124,7 @@ service:
       method: PATCH
       path: /{message_id}
       display-name: Update Message
+      docs: Updates message metadata such as read status, labels, or custom flags.
       path-parameters:
         message_id: messages.MessageId
       request: messages.UpdateMessageRequest

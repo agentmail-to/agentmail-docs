@@ -116,6 +116,7 @@ service:
       method: GET
       path: ""
       display-name: List Domains
+      docs: Retrieves all custom domains configured for your AgentMail account.
       request:
         name: ListDomainsRequest
         query-parameters:
@@ -127,6 +128,7 @@ service:
       method: GET
       path: /{domain_id}
       display-name: Get Domain
+      docs: Returns detailed information about a specific domain including verification status and DNS records.
       path-parameters:
         domain_id: DomainId
       response: Domain
@@ -137,6 +139,7 @@ service:
       method: GET
       path: /{domain_id}/zone-file
       display-name: Get Zone File
+      docs: Returns the DNS zone file configuration needed for proper email delivery (SPF, DKIM, DMARC records).
       path-parameters:
         domain_id: DomainId
       response: file
@@ -147,6 +150,7 @@ service:
       method: POST
       path: ""
       display-name: Create Domain
+      docs: Adds a new custom domain to your account for creating branded email addresses for your agents.
       request: CreateDomainRequest
       response: Domain
       errors:
@@ -156,6 +160,7 @@ service:
       method: DELETE
       path: /{domain_id}
       display-name: Delete Domain
+      docs: Removes a custom domain from your account and disables any inboxes using that domain.
       path-parameters:
         domain_id: DomainId
       errors:
@@ -165,6 +170,7 @@ service:
       method: POST
       path: /{domain_id}/verify
       display-name: Verify Domain
+      docs: Initiates domain verification process to confirm ownership through DNS records.
       path-parameters:
         domain_id: DomainId
       errors:

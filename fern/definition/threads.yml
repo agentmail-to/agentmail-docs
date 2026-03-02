@@ -127,6 +127,7 @@ service:
       method: GET
       path: ""
       display-name: List Threads
+      docs: Retrieves threads across all inboxes in your account for a global view of email conversations.
       request:
         name: ListThreadsRequest
         query-parameters:
@@ -146,6 +147,7 @@ service:
       method: GET
       path: /{thread_id}
       display-name: Get Thread
+      docs: Retrieves a complete email thread from any inbox with all messages and conversation history.
       path-parameters:
         thread_id: ThreadId
       response: Thread
@@ -156,6 +158,7 @@ service:
       method: GET
       path: /{thread_id}/attachments/{attachment_id}
       display-name: Get Attachment
+      docs: Downloads an attachment from any message within the thread across all inboxes.
       path-parameters:
         thread_id: ThreadId
         attachment_id: attachments.AttachmentId
