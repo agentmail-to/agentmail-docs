@@ -250,6 +250,9 @@ navigation:
             path: pages/integrations/openclaw.mdx
           - page: Replit
             path: pages/integrations/replit.mdx
+          - page: x402
+            icon: fa-solid fa-credit-card
+            path: pages/integrations/x402.mdx
           # - page: Smithery
           #   path: pages/integrations/smithery.mdx
           # - page: Mastra

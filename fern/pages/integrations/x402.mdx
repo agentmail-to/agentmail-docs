@@ -1,0 +1,79 @@
+---
+title: x402
+subtitle: Pay-per-use AgentMail with the x402 payment protocol
+slug: integrations/x402
+description: AgentMail's x402 integration for HTTP-native payments
+---
+
+## Getting started
+
+[x402](https://www.x402.org/) is an open payment protocol that enables HTTP-native payments. By integrating x402 with AgentMail, your agents can pay for API usage directly over HTTP without managing API keys or subscriptions.
+
+### Prerequisites
+
+- An EVM-compatible wallet with funds (e.g., USDC on Base)
+- Node.js installed
+
+### Install dependencies
+
+```bash
+npm install agentmail @x402/fetch @x402/evm viem
+```
+
+### Quickstart
+
+<CodeBlocks>
+    ```typescript title="TypeScript"
+    import { privateKeyToAccount } from "viem/accounts";
+    import { x402Client } from "@x402/fetch";
+    import { ExactEvmScheme } from "@x402/evm/exact/client";
+
+    import { AgentMailClient } from "agentmail";
+
+    // setup x402 client
+    const PRIVATE_KEY = "0x...";
+
+    const signer = privateKeyToAccount(PRIVATE_KEY);
+
+    const x402 = new x402Client();
+    x402.register("eip155:*", new ExactEvmScheme(signer));
+
+    // setup AgentMail client
+    export const client = new AgentMailClient({ x402 });
+
+    // create inbox
+    const inboxRes = await client.inboxes.create({
+      username: `x402-${Date.now()}`,
+    });
+    console.log("Created inbox: ", inboxRes.inboxId);
+
+    // subscribe to inbox
+    const socket = await client.websockets.connect();
+    console.log("Connected to websocket");
+
+    socket.on("message", async (event) => {
+      if (event.type === "subscribed") {
+        console.log("Subscribed to", event.inboxIds);
+      } else if (event.type === "event" && event.eventType === "message.received") {
+        console.log("Received message from: ", event.message.from);
+      }
+    });
+
+    socket.sendSubscribe({
+      type: "subscribe",
+      inboxIds: [inboxRes.inboxId],
+    });
+    ```
+</CodeBlocks>
+
+## How it works
+
+When you pass an `x402` client to `AgentMailClient`, the SDK automatically handles payment negotiation for each API request. If the server responds with a `402 Payment Required` status, the x402 client signs a payment using your wallet and retries the request with the payment attached.
+
+This means your agent can use the full AgentMail API (inboxes, messages, threads, attachments) without needing a traditional API key. Payment happens per-request over HTTP.
+
+## Resources
+
+- [x402 documentation](https://www.x402.org/)
+- [AgentMail API reference](/api-reference)
+- [WebSockets overview](/websockets)
