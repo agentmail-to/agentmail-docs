@@ -213,6 +213,9 @@ navigation:
           #   path: pages/get-started/what-is-agentmail.mdx
       - section: Core Concepts
         contents:
+          - page: Organizations
+            icon: fa-solid fa-building
+            path: pages/core-concepts/organizations.mdx
           - page: Inboxes
             icon: fa-solid fa-inbox
             path: pages/core-concepts/inboxes.mdx
@@ -382,6 +385,7 @@ navigation:
           python: agentmail
           typescript: agentmail
         layout:
+          - organizations
           - inboxes
           - threads
           - messages
