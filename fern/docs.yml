@@ -249,6 +249,7 @@ navigation:
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
           - page: Replit
+            icon: fa-solid fa-laptop-code
             path: pages/integrations/replit.mdx
           - page: x402
             icon: fa-solid fa-credit-card
