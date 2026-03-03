@@ -91,7 +91,13 @@ def webhook_handler():
     except WebhookVerificationError as e:
         return ('', 400)
 
-    # Do something with the message...
+    # handle by event type (msg is the verified payload)
+    if msg.get("event_type") == "message.received":
+        # process incoming email...
+        pass
+    elif msg.get("event_type") == "domain.verified":
+        # enable domain features...
+        pass
 
     return ('', 204)
 
@@ -124,8 +130,12 @@ app.post(
       const wh = new Webhook(secret);
       const msg = wh.verify(payload, headers);
 
-      // Do something with the message...
-      console.log("Webhook verified:", msg);
+      // handle by event type (msg is the verified payload)
+      if (msg.event_type === "message.received") {
+        // process incoming email...
+      } else if (msg.event_type === "domain.verified") {
+        // enable domain features...
+      }
 
       res.status(204).send();
     } catch (err) {
@@ -180,7 +190,13 @@ def webhook_handler():
         print(f"Verification failed: {e}")
         return ('', 400)
 
-    # Do something with the message...
+    # handle by event type (msg is the verified payload)
+    if msg.get("event_type") == "message.received":
+        # process incoming email...
+        pass
+    elif msg.get("event_type") == "domain.verified":
+        # enable domain features...
+        pass
 
     return ('', 204)
 
@@ -212,8 +228,12 @@ app.post(
       const wh = new Webhook(secret);
       const msg = wh.verify(payload, headers);
 
-      // Do something with the message...
-      console.log("Webhook verified:", msg);
+      // handle by event type (msg is the verified payload)
+      if (msg.event_type === "message.received") {
+        // process incoming email...
+      } else if (msg.event_type === "domain.verified") {
+        // enable domain features...
+      }
 
       res.status(204).send();
     } catch (err) {

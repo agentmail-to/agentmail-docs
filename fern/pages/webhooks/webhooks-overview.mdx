@@ -14,6 +14,21 @@ This event-driven approach is more efficient and allows you to build fast, respo
 - **Real-Time Speed:** Build conversational agents that can reply to incoming emails in seconds.
 - **Efficiency:** Eliminates the need for constant polling, which saves you computational resources and simplifies your application logic.
 
+## Available Events
+
+AgentMail supports seven webhook event types. When creating a webhook, you can subscribe to specific events or receive all of them. See [Webhook Events](/events) for full payload details.
+
+**Message events:**
+- **`message.received`** — New email received and processed in one of your inboxes
+- **`message.sent`** — Message successfully sent from your inbox
+- **`message.delivered`** — Delivery confirmed by the recipient's mail server
+- **`message.bounced`** — Message failed to deliver and bounced back
+- **`message.complained`** — Recipient marked your message as spam
+- **`message.rejected`** — Message rejected before send (validation or policy)
+
+**Domain events:**
+- **`domain.verified`** — Custom domain successfully verified
+
 ## The Webhook Workflow
 
 The process is straightforward:
@@ -28,25 +43,28 @@ The process is straightforward:
         <CodeBlocks>
         ```python
         client.webhooks.create(
-            url="https://<your-ngrok-url>.ngrok-free.app/webhooks"
+            url="https://<your-ngrok-url>.ngrok-free.app/webhooks",
+            events=["message.received", "message.sent"],
         )
         ```
         ```typescript
         await client.webhooks.create({
             url: "https://<your-ngrok-url>.ngrok-free.app/webhooks",
+            events: ["message.received", "message.sent"],
         });
         ```
         </CodeBlocks>
+        Specify which events to receive; omit `events` to subscribe to all event types.
     </Step>
     <Step title="3. AgentMail Sends Events">
-        When a new message is received in one of your inboxes, AgentMail will immediately send a `POST` request with a JSON payload to your registered URL.
+        When an event occurs (e.g. a new message is received, a message is delivered, or a domain is verified), AgentMail sends a `POST` request with a JSON payload to your registered URL.
     </Step>
 
 </Steps>
 
 ## Payload Structure
 
-When AgentMail sends a webhook, the payload will have the following structure.
+When AgentMail sends a webhook, the payload includes `event_type` and `event_id`, plus event-specific data. The example below shows a `message.received` payload; other events use different top-level objects (`send`, `delivery`, `bounce`, etc.). See [Webhook Events](/events) for each event's payload shape.
 
 ```json Webhook Payload
 {
@@ -88,7 +106,7 @@ When AgentMail sends a webhook, the payload will have the following structure.
 
 ### Field Descriptions
 
-- **`event_type`** (`string`): The name of the event. Currently, this will always be `message.received`.
+- **`event_type`** (`string`): The event type (e.g. `message.received`, `message.sent`, `message.delivered`). Payload structure varies by event—see [Webhook Events](/events) for each event's shape.
 - **`event_id`** (`string`): A unique identifier for this specific event delivery.
 - **`message`** (`object`): A dictionary containing the full details of the received email message.
   - **`from_`** (`array<string>`): The sender's email address. Note the trailing underscore to avoid conflict with the Python keyword.
