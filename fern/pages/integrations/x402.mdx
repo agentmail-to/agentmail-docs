@@ -20,19 +20,24 @@ To authenticate with x402 instead of an API key, you must use the x402-specific 
 
 ### Prerequisites
 
-- An EVM-compatible wallet with funds (e.g., USDC on Base)
+- A crypto wallet with USDC funds (EVM-compatible wallet on Base, or a Solana wallet)
 - Node.js installed
 
 ### Install dependencies
 
-```bash
-npm install agentmail @x402/fetch @x402/evm viem
-```
+<CodeBlocks>
+    ```bash title="EVM"
+    npm install agentmail @x402/fetch @x402/evm viem
+    ```
+    ```bash title="Solana"
+    npm install agentmail @x402/fetch @x402/svm @solana/kit @scure/base
+    ```
+</CodeBlocks>
 
 ### Quickstart
 
 <CodeBlocks>
-    ```typescript title="TypeScript"
+    ```typescript title="EVM"
     import { privateKeyToAccount } from "viem/accounts";
     import { x402Client } from "@x402/fetch";
     import { ExactEvmScheme } from "@x402/evm/exact/client";
@@ -40,7 +45,7 @@ npm install agentmail @x402/fetch @x402/evm viem
     import { AgentMailClient } from "agentmail";
 
 
-    // Setup x402 client
+    // setup x402 client
 
     const PRIVATE_KEY = "0x...";
 
@@ -50,12 +55,12 @@ npm install agentmail @x402/fetch @x402/evm viem
     x402.register("eip155:*", new ExactEvmScheme(signer));
 
 
-    // Setup AgentMail client
+    // setup AgentMail client
 
     export const client = new AgentMailClient({ x402 });
 
 
-    // Create inbox
+    // create inbox
 
     const inboxRes = await client.inboxes.create({
       username: `x402-${Date.now()}`,
@@ -63,7 +68,59 @@ npm install agentmail @x402/fetch @x402/evm viem
     console.log("Created inbox: ", inboxRes.inboxId);
 
 
-    // Subscribe to inbox
+    // subscribe to inbox
+
+    const socket = await client.websockets.connect();
+    console.log("Connected to websocket");
+
+    socket.on("message", async (event) => {
+      if (event.type === "subscribed") {
+        console.log("Subscribed to", event.inboxIds);
+      } else if (event.type === "event" && event.eventType === "message.received") {
+        console.log("Received message from: ", event.message.from);
+      }
+    });
+
+    socket.sendSubscribe({
+      type: "subscribe",
+      inboxIds: [inboxRes.inboxId],
+    });
+    ```
+    ```typescript title="Solana"
+    import { createKeyPairSignerFromBytes } from "@solana/kit";
+    import { base58 } from "@scure/base";
+    import { x402Client } from "@x402/fetch";
+    import { ExactSvmClient, toClientSvmSigner } from "@x402/svm";
+
+    import { AgentMailClient } from "agentmail";
+
+
+    // setup x402 client
+
+    const PRIVATE_KEY = "base58-encoded-private-key...";
+
+    const keypair = await createKeyPairSignerFromBytes(
+      base58.decode(PRIVATE_KEY)
+    );
+
+    const x402 = new x402Client();
+    x402.register("solana:*", new ExactSvmClient(toClientSvmSigner(keypair)));
+
+
+    // setup AgentMail client
+
+    export const client = new AgentMailClient({ x402 });
+
+
+    // create inbox
+
+    const inboxRes = await client.inboxes.create({
+      username: `x402-${Date.now()}`,
+    });
+    console.log("Created inbox: ", inboxRes.inboxId);
+
+
+    // subscribe to inbox
 
     const socket = await client.websockets.connect();
     console.log("Connected to websocket");
