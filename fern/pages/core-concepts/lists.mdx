@@ -1,0 +1,88 @@
+---
+title: Lists
+subtitle: Filter emails by allowing or blocking specific addresses and domains.
+slug: lists
+description: Learn how to use Lists to control which email addresses and domains your agents can send to or receive from.
+---
+
+## What are Lists?
+
+`Lists` allow you to filter emails by allowing or blocking specific email addresses or domains. There are four list types based on two dimensions:
+
+- **Direction**: `send` or `receive`
+- **Type**: `allow` or `block`
+
+| List | Description |
+| --- | --- |
+| Receive allow | Only accept emails from these addresses or domains |
+| Receive block | Reject emails from these addresses or domains |
+| Send allow | Only send emails to these addresses or domains |
+| Send block | Prevent sending emails to these addresses or domains |
+
+Each entry can be either a full email address (e.g., `partner@example.com`) or an entire domain (e.g., `example.com`).
+
+## SDK examples
+
+### List entries
+
+Retrieve entries from a list with optional pagination.
+
+<CodeBlocks>
+```python title="Python"
+entries = client.lists.list("receive", "allow", limit=10)
+```
+
+```typescript title="TypeScript"
+const entries = await client.lists.list("receive", "allow", { limit: 10 });
+```
+</CodeBlocks>
+
+### Create entry
+
+Add an email address or domain to a list. The `reason` parameter is optional and available on block lists.
+
+<CodeBlocks>
+```python title="Python"
+# allow list - no reason needed
+client.lists.create("receive", "allow", entry="partner@example.com")
+
+# block list - reason optional
+client.lists.create("receive", "block", entry="spam@example.com", reason="spam")
+```
+
+```typescript title="TypeScript"
+// allow list - no reason needed
+await client.lists.create("receive", "allow", { entry: "partner@example.com" });
+
+// block list - reason optional
+await client.lists.create("receive", "block", { entry: "spam@example.com", reason: "spam" });
+```
+</CodeBlocks>
+
+### Get entry
+
+Retrieve a specific entry from a list by its email address or domain.
+
+<CodeBlocks>
+```python title="Python"
+entry = client.lists.get("receive", "allow", entry="partner@example.com")
+```
+
+```typescript title="TypeScript"
+const entry = await client.lists.get("receive", "allow", "partner@example.com");
+```
+</CodeBlocks>
+
+### Delete entry
+
+Remove an entry from a list.
+
+<CodeBlocks>
+```python title="Python"
+client.lists.delete("receive", "allow", entry="partner@example.com")
+```
+
+```typescript title="TypeScript"
+await client.lists.delete("receive", "allow", "partner@example.com");
+```
+</CodeBlocks>
