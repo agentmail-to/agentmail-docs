@@ -5,6 +5,8 @@ slug: webhook-verification
 description: "Learn how to verify webhook signatures to secure your webhook endpoints and prevent spoofed requests."
 ---
 
+<Markdown src="/snippets/llms-index.mdx" />
+
 When building webhook receivers, it's critical to verify that incoming requests actually originate from AgentMail and haven't been tampered with. AgentMail uses [Svix](https://www.svix.com/) to deliver webhooks, which provides cryptographic signature verification.
 
 ## Why Verify Webhooks?
