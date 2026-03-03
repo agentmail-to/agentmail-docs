@@ -5,6 +5,38 @@ slug: quickstart
 description: Follow this guide to make your first AgentMail API request and create a new email inbox.
 ---
 
+## Quickest start
+
+<CodeBlocks>
+  ```bash title="Python"
+  pip install agentmail
+  ```
+
+  ```bash title="TypeScript"
+  npm install agentmail
+  ```
+</CodeBlocks>
+
+Get your API key from the [Console](https://console.agentmail.to) and replace `am_...` in the code below.
+
+<CodeBlocks>
+  ```python title="Python"
+  from agentmail import AgentMail
+
+  client = AgentMail(api_key="am_...")
+  inbox = client.inboxes.create()
+  client.inboxes.messages.send(inbox.inbox_id, to="user@example.com", subject="Hello", text="Hello from my agent!")
+  ```
+
+  ```typescript title="TypeScript"
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: "am_..." });
+  const inbox = await client.inboxes.create();
+  await client.inboxes.messages.send(inbox.inboxId, { to: "user@example.com", subject: "Hello", text: "Hello from my agent!" });
+  ```
+</CodeBlocks>
+
 This guide will walk you through installing the AgentMail SDK, authenticating with your API key, and creating your first email inbox.
 
 <Steps>
@@ -71,12 +103,11 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
       # Send Email
 
       client.inboxes.messages.send(
-      inbox_id="your-email@example.com",
-      to="contact@agentmail.to",
-      subject="Hello from AgentMail!",
-      text="This is my first email sent with the AgentMail API."
-
-)
+        inbox.inbox_id,
+        to="your-email@example.com",
+        subject="Hello from AgentMail!",
+        text="This is my first email sent with the AgentMail API.",
+      )
 
       ```
 
