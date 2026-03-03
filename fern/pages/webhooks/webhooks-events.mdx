@@ -32,25 +32,26 @@ async function handleWebhook(payload: Record<string, unknown>) {
   if (eventType === "message.received") {
     const event = await serialization.events.MessageReceivedEvent.parse(payload);
     // access typed fields
-    console.log(event.ok ? event.value.message.subject : event.errors);
+    console.log(event.message.subject);
+    console.log(event.thread.messageCount);
   } else if (eventType === "message.sent") {
     const event = await serialization.events.MessageSentEvent.parse(payload);
-    console.log(event.ok ? event.value.send.recipients : event.errors);
+    console.log(event.send.recipients);
   } else if (eventType === "message.bounced") {
     const event = await serialization.events.MessageBouncedEvent.parse(payload);
-    console.log(event.ok ? event.value.bounce.type : event.errors);
+    console.log(event.bounce.type);
   } else if (eventType === "message.delivered") {
     const event = await serialization.events.MessageDeliveredEvent.parse(payload);
-    console.log(event.ok ? event.value.delivery.recipients : event.errors);
+    console.log(event.delivery.recipients);
   } else if (eventType === "message.complained") {
     const event = await serialization.events.MessageComplainedEvent.parse(payload);
-    console.log(event.ok ? event.value.complaint.type : event.errors);
+    console.log(event.complaint.type);
   } else if (eventType === "message.rejected") {
     const event = await serialization.events.MessageRejectedEvent.parse(payload);
-    console.log(event.ok ? event.value.reject.reason : event.errors);
+    console.log(event.reject.reason);
   } else if (eventType === "domain.verified") {
     const event = await serialization.events.DomainVerifiedEvent.parse(payload);
-    console.log(event.ok ? event.value.domain.status : event.errors);
+    console.log(event.domain.status);
   }
 }
 ```
