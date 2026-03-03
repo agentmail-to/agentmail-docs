@@ -23,6 +23,37 @@ All webhook payloads follow the same basic structure:
 The AgentMail SDKs export typed classes for each webhook event, so you can parse raw payloads into fully typed objects.
 
 <CodeBlocks>
+```typescript title="TypeScript"
+import { serialization } from "agentmail";
+
+async function handleWebhook(payload: Record<string, unknown>) {
+  const eventType = payload.event_type;
+
+  if (eventType === "message.received") {
+    const event = await serialization.events.MessageReceivedEvent.parse(payload);
+    // access typed fields
+    console.log(event.ok ? event.value.message.subject : event.errors);
+  } else if (eventType === "message.sent") {
+    const event = await serialization.events.MessageSentEvent.parse(payload);
+    console.log(event.ok ? event.value.send.recipients : event.errors);
+  } else if (eventType === "message.bounced") {
+    const event = await serialization.events.MessageBouncedEvent.parse(payload);
+    console.log(event.ok ? event.value.bounce.type : event.errors);
+  } else if (eventType === "message.delivered") {
+    const event = await serialization.events.MessageDeliveredEvent.parse(payload);
+    console.log(event.ok ? event.value.delivery.recipients : event.errors);
+  } else if (eventType === "message.complained") {
+    const event = await serialization.events.MessageComplainedEvent.parse(payload);
+    console.log(event.ok ? event.value.complaint.type : event.errors);
+  } else if (eventType === "message.rejected") {
+    const event = await serialization.events.MessageRejectedEvent.parse(payload);
+    console.log(event.ok ? event.value.reject.reason : event.errors);
+  } else if (eventType === "domain.verified") {
+    const event = await serialization.events.DomainVerifiedEvent.parse(payload);
+    console.log(event.ok ? event.value.domain.status : event.errors);
+  }
+}
+```
 ```python title="Python"
 from agentmail import (
     MessageReceivedEvent,
@@ -60,38 +91,6 @@ def handle_webhook(payload: dict):
     elif event_type == "domain.verified":
         event = DomainVerifiedEvent(**payload)
         print(event.domain.status)
-```
-```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
-
-function handleWebhook(payload: Record<string, unknown>) {
-  const eventType = payload.event_type;
-
-  if (eventType === "message.received") {
-    const event = payload as AgentMail.MessageReceivedEvent;
-    // access typed fields
-    console.log(event.message.subject);
-    console.log(event.thread.messageCount);
-  } else if (eventType === "message.sent") {
-    const event = payload as AgentMail.MessageSentEvent;
-    console.log(event.send.recipients);
-  } else if (eventType === "message.bounced") {
-    const event = payload as AgentMail.MessageBouncedEvent;
-    console.log(event.bounce.type);
-  } else if (eventType === "message.delivered") {
-    const event = payload as AgentMail.MessageDeliveredEvent;
-    console.log(event.delivery.recipients);
-  } else if (eventType === "message.complained") {
-    const event = payload as AgentMail.MessageComplainedEvent;
-    console.log(event.complaint.type);
-  } else if (eventType === "message.rejected") {
-    const event = payload as AgentMail.MessageRejectedEvent;
-    console.log(event.reject.reason);
-  } else if (eventType === "domain.verified") {
-    const event = payload as AgentMail.DomainVerifiedEvent;
-    console.log(event.domain.status);
-  }
-}
 ```
 </CodeBlocks>
 
