@@ -85,6 +85,11 @@ Here's the step-by-step logic for a polling-based conversational agent.
         const messageIdToReplyTo = lastMessage.message_id;
         ```
         </CodeBlocks>
+
+        <Tip>
+          Use `last_message.extracted_text` (or `extracted_html`) when you need
+          just the new reply content, without quoted history.
+        </Tip>
     </Step>
     <Step title="3. Send the Reply and Update Labels">
         Now that you have the `message_id` to reply to, you can send your agent's response. It's also a best practice to update the `Labels` on the original `Message` at the same time, removing the `unreplied` `Label` and adding a `replied` `Label` to prevent the agent from replying to the same message twice.

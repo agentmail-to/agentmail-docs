@@ -33,6 +33,10 @@ description: "Find answers to common questions about AgentMail, from core concep
     polling the API for new messages. You can learn how to set them up in our
     [Webhooks Overview](/overview).
   </Accordion>
+  <Accordion title="How do I get just the new content from a reply?">
+    Use `extracted_text` or `extracted_html` on the Message object. AgentMail
+    strips quoted text automatically, so you get only the new reply content.
+  </Accordion>
   <Accordion title="How do I make sure I don't end up in spam?">
     Email deliverability is a complex topic. We go in depth in our [Email
     Deliverability best practices guide](/email-deliverability).
