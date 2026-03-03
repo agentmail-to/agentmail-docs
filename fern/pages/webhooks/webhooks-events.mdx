@@ -18,6 +18,83 @@ All webhook payloads follow the same basic structure:
 }
 ```
 
+## Parsing events with SDKs
+
+The AgentMail SDKs export typed classes for each webhook event, so you can parse raw payloads into fully typed objects.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import (
+    MessageReceivedEvent,
+    MessageSentEvent,
+    MessageBouncedEvent,
+    MessageDeliveredEvent,
+    MessageComplainedEvent,
+    MessageRejectedEvent,
+    DomainVerifiedEvent,
+)
+
+def handle_webhook(payload: dict):
+    event_type = payload.get("event_type")
+
+    if event_type == "message.received":
+        event = MessageReceivedEvent(**payload)
+        # access typed fields
+        print(event.message.subject)
+        print(event.thread.message_count)
+    elif event_type == "message.sent":
+        event = MessageSentEvent(**payload)
+        print(event.send.recipients)
+    elif event_type == "message.bounced":
+        event = MessageBouncedEvent(**payload)
+        print(event.bounce.type)
+    elif event_type == "message.delivered":
+        event = MessageDeliveredEvent(**payload)
+        print(event.delivery.recipients)
+    elif event_type == "message.complained":
+        event = MessageComplainedEvent(**payload)
+        print(event.complaint.type)
+    elif event_type == "message.rejected":
+        event = MessageRejectedEvent(**payload)
+        print(event.reject.reason)
+    elif event_type == "domain.verified":
+        event = DomainVerifiedEvent(**payload)
+        print(event.domain.status)
+```
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+function handleWebhook(payload: Record<string, unknown>) {
+  const eventType = payload.event_type;
+
+  if (eventType === "message.received") {
+    const event = payload as AgentMail.MessageReceivedEvent;
+    // access typed fields
+    console.log(event.message.subject);
+    console.log(event.thread.messageCount);
+  } else if (eventType === "message.sent") {
+    const event = payload as AgentMail.MessageSentEvent;
+    console.log(event.send.recipients);
+  } else if (eventType === "message.bounced") {
+    const event = payload as AgentMail.MessageBouncedEvent;
+    console.log(event.bounce.type);
+  } else if (eventType === "message.delivered") {
+    const event = payload as AgentMail.MessageDeliveredEvent;
+    console.log(event.delivery.recipients);
+  } else if (eventType === "message.complained") {
+    const event = payload as AgentMail.MessageComplainedEvent;
+    console.log(event.complaint.type);
+  } else if (eventType === "message.rejected") {
+    const event = payload as AgentMail.MessageRejectedEvent;
+    console.log(event.reject.reason);
+  } else if (eventType === "domain.verified") {
+    const event = payload as AgentMail.DomainVerifiedEvent;
+    console.log(event.domain.status);
+  }
+}
+```
+</CodeBlocks>
+
 ## Message Events
 
 ### `message.received`
