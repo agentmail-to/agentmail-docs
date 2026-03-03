@@ -228,6 +228,9 @@ navigation:
           - page: Labels
             icon: fa-solid fa-tags
             path: pages/core-concepts/labels.mdx
+          - page: Lists
+            icon: fa-solid fa-filter
+            path: pages/core-concepts/lists.mdx
           - page: Attachments
             icon: fa-solid fa-paperclip
             path: pages/core-concepts/attachments.mdx
