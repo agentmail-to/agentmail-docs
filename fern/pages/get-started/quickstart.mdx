@@ -31,9 +31,11 @@ Get your API key from the [Console](https://console.agentmail.to) and replace `a
   ```typescript title="TypeScript"
   import { AgentMailClient } from "agentmail";
 
-  const client = new AgentMailClient({ apiKey: "am_..." });
-  const inbox = await client.inboxes.create();
-  await client.inboxes.messages.send(inbox.inboxId, { to: "user@example.com", subject: "Hello", text: "Hello from my agent!" });
+  (async () => {
+    const client = new AgentMailClient({ apiKey: "am_..." });
+    const inbox = await client.inboxes.create();
+    await client.inboxes.messages.send(inbox.inboxId, { to: "user@example.com", subject: "Hello", text: "Hello from my agent!" });
+  })();
   ```
 </CodeBlocks>
 
