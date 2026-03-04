@@ -239,6 +239,9 @@ navigation:
             path: pages/core-concepts/pods.mdx
       - section: Integrations
         contents:
+          - page: AI Onboarding
+            icon: fa-solid fa-robot
+            path: pages/integrations/ai-onboarding.mdx
           # - page: Overview
           #   icon: fa-solid fa-list
           #   path: pages/integrations/overview.mdx
