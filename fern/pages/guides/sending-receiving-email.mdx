@@ -25,6 +25,47 @@ client.inboxes.messages.send(
 )
 ```
 
+## Scheduled sending
+
+You can schedule an email to be sent at a future time by passing the `send_at` parameter when creating a `Draft`. This is useful for timing outreach during a recipient's business hours or spacing out follow-up sequences.
+
+When you provide `send_at`, the `Draft` is automatically sent at the specified time — no need to call the send endpoint separately. You can track the delivery status using the `send_status` field on the `Draft`, which will be `scheduled`, `sending`, or `failed`.
+
+<CodeBlocks>
+```python
+from datetime import datetime
+
+# schedule a draft to send tomorrow at 9am UTC
+draft = client.inboxes.drafts.create(
+    inbox_id="outreach@agentmail.to",
+    to=["recipient@example.com"],
+    subject="Quick question about your garden",
+    text="Hi, I wanted to follow up on the seedling order.",
+    html="<p>Hi, I wanted to follow up on the seedling order.</p>",
+    send_at=datetime(2026, 3, 5, 9, 0, 0),
+)
+
+print(f"Draft {draft.draft_id} scheduled, status: {draft.send_status}")
+```
+```typescript
+// schedule a draft to send tomorrow at 9am UTC
+const draft = await client.inboxes.drafts.create(
+    "outreach@agentmail.to",
+    {
+        to: ["recipient@example.com"],
+        subject: "Quick question about your garden",
+        text: "Hi, I wanted to follow up on the seedling order.",
+        html: "<p>Hi, I wanted to follow up on the seedling order.</p>",
+        sendAt: new Date("2026-03-05T09:00:00Z"),
+    }
+);
+
+console.log(`Draft ${draft.draftId} scheduled, status: ${draft.sendStatus}`);
+```
+</CodeBlocks>
+
+To cancel a scheduled send, delete the `Draft` before the `send_at` time. To reschedule, update the `Draft` with a new `send_at` value.
+
 ## The Conversational Loop
 
 A common task for an agent is to check for replies in an `Inbox` and then respond to them. While using `Webhooks` is the most efficient method for this, you can also build a simple polling mechanism.
