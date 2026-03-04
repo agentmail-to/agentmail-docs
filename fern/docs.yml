@@ -85,6 +85,11 @@ redirects:
     destination: /integrations/openclaw
     permanent: true
 
+  # FAQ shortcut (canonical path is /docs/resources/faq)
+  - source: /faq
+    destination: /docs/resources/faq
+    permanent: false
+
   # --- 404 redirects from crawl report ---
 
   # Old v0 API paths
@@ -240,7 +245,7 @@ navigation:
       - section: Integrations
         contents:
           - page: AI Onboarding
-            icon: fa-solid fa-robot
+            icon: fa-solid fa-user-plus
             path: pages/integrations/ai-onboarding.mdx
           # - page: Overview
           #   icon: fa-solid fa-list
