@@ -35,6 +35,16 @@ service:
       errors:
         - global.ValidationError
 
+    get:
+      method: GET
+      path: /{domain_id}
+      display-name: Get Domain
+      path-parameters:
+        domain_id: domains.DomainId
+      response: domains.Domain
+      errors:
+        - global.NotFoundError
+
     delete:
       method: DELETE
       path: /{domain_id}
