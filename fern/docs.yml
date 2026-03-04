@@ -256,7 +256,7 @@ navigation:
           - page: MCP
             icon: fa-solid fa-plug
             path: pages/integrations/mcp.mdx
-          - page: Openclaw
+          - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
           - page: Replit
