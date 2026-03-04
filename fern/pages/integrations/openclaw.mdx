@@ -1,25 +1,25 @@
 <Markdown src="/snippets/llms-index.mdx" />
 
 ---
-title: Openclaw
-subtitle: Give your Openclaw agent its own email inbox
+title: OpenClaw
+subtitle: Give your OpenClaw agent its own email inbox
 slug: integrations/openclaw
-description: AgentMail's Openclaw integration
+description: AgentMail's OpenClaw integration
 ---
 
 ## Getting started
 
-Openclaw (formerly Moltbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to Openclaw, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
+OpenClaw (formerly Moltbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to OpenClaw, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
 
-There are two ways to integrate AgentMail with Openclaw: using the official AgentMail skill or creating a custom skill.
+There are two ways to integrate AgentMail with OpenClaw: using the official AgentMail skill or creating a custom skill.
 
 ## Option 1: Official AgentMail Skill (Recommended)
 
-The easiest way to add email capabilities to Openclaw is by installing the official AgentMail skill from [skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail). This skill is maintained by the AgentMail team and provides comprehensive email functionality.
+The easiest way to add email capabilities to OpenClaw is by installing the official AgentMail skill from [skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail). This skill is maintained by the AgentMail team and provides comprehensive email functionality.
 
 ### Installation
 
-Install the skill using the Openclaw CLI:
+Install the skill using the OpenClaw CLI:
 
 ```bash
 openclaw skills install agentmail-to/agentmail-skills/agentmail
@@ -77,11 +77,11 @@ You should see `agentmail` in the list of available skills.
 
 ## Option 2: Custom Skill
 
-For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for Openclaw.
+For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for OpenClaw.
 
 ### Create the skill directory
 
-Create a new skill in your Openclaw workspace:
+Create a new skill in your OpenClaw workspace:
 
 ```bash
 mkdir -p ~/.openclaw/skills/agentmail
@@ -143,10 +143,10 @@ curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "to": ["recipient@example.com"],
-    "subject": "Hello from Openclaw",
+    "subject": "Hello from OpenClaw",
     "text": "This email was sent by my AI assistant."
   }' \
-  https://api.agentmail.to/v0/inboxes/{inbox_id}/messages
+  https://api.agentmail.to/v0/inboxes/{inbox_id}/messages/send
 ```
 
 ### List messages in an inbox
@@ -197,7 +197,7 @@ You should see `agentmail` in the list of available skills.
 
 ## Example use cases
 
-Once AgentMail is integrated with Openclaw, you can ask your agent to:
+Once AgentMail is integrated with OpenClaw, you can ask your agent to:
 
 - "Create a new email inbox for my project"
 - "Check my inbox for new emails"
@@ -207,9 +207,9 @@ Once AgentMail is integrated with Openclaw, you can ask your agent to:
 
 ## Real-time email notifications
 
-For proactive email handling, you can combine AgentMail webhooks with Openclaw's webhook support. This allows Openclaw to notify you immediately when new emails arrive.
+For proactive email handling, you can combine AgentMail webhooks with OpenClaw's webhook support. This allows OpenClaw to notify you immediately when new emails arrive.
 
-1. Set up a webhook endpoint in Openclaw (see [Openclaw webhook documentation](https://docs.openclaw.ai/automation/webhook))
+1. Set up a webhook endpoint in OpenClaw (see [OpenClaw webhook documentation](https://docs.openclaw.ai/automation/webhook))
 
 2. Register the webhook with AgentMail:
 
@@ -223,11 +223,11 @@ curl -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   https://api.agentmail.to/v0/webhooks
 ```
 
-Now Openclaw will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
+Now OpenClaw will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
 
 ## Resources
 
 - [Official AgentMail Skill](https://skills.sh/agentmail-to/agentmail-skills/agentmail)
 - [AgentMail API Reference](/api-reference)
-- [Openclaw Documentation](https://docs.openclaw.ai)
-- [Openclaw Skills Guide](https://docs.openclaw.ai/tools/skills)
+- [OpenClaw Documentation](https://docs.openclaw.ai)
+- [OpenClaw Skills Guide](https://docs.openclaw.ai/tools/skills)
