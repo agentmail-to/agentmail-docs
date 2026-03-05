@@ -223,6 +223,63 @@ Check out the [Event-Driven Agent Example](/webhook-agent) for a more advanced i
   </Accordion>
 </AccordionGroup>
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for webhook setup in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Webhook Setup — copy into Cursor/Claude.
+
+  Flow: 1) ngrok http 3000 → copy URL. 2) inboxes.create(client_id=...) 3) webhooks.create(url=ngrok+/webhooks, events=[...], client_id=...)
+  4) Flask POST /webhooks: return 200 immediately, process request.json in background.
+  Local: use http://127.0.0.1:3000 in browser, not ngrok URL.
+  """
+  from flask import Flask, request, Response
+  from agentmail import AgentMail
+
+  app = Flask(__name__)
+  client = AgentMail()
+
+  inbox = client.inboxes.create(username="webhook-demo", client_id="webhook-demo-inbox")
+  wh = client.webhooks.create(url="https://YOUR_NGROK.ngrok-free.app/webhooks", events=["message.received"], client_id="webhook-demo-webhook")
+
+  @app.route("/webhooks", methods=["POST"])
+  def receive():
+    payload = request.json
+    print(payload.get("event_type"), payload.get("message", {}).get("subject"))
+    return Response(status=200)
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Webhook Setup — copy into Cursor/Claude.
+   *
+   * Flow: 1) ngrok http 3000. 2) inboxes.create({ clientId }). 3) webhooks.create({ url, eventTypes, clientId })
+   * 4) Express POST /webhooks: res.status(200).send(), process req.body async.
+   * Use express.raw() if you add Svix verification later.
+   */
+  import express from "express";
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+  const inbox = await client.inboxes.create({ username: "webhook-demo", clientId: "webhook-demo-inbox" });
+  await client.webhooks.create({
+    url: "https://YOUR_NGROK.ngrok-free.app/webhooks",
+    eventTypes: ["message.received"],
+    clientId: "webhook-demo-webhook",
+  });
+
+  const app = express();
+  app.post("/webhooks", express.json(), (req, res) => {
+    console.log(req.body.event_type, req.body.message?.subject);
+    res.status(200).send();
+  });
+  app.listen(3000);
+  ```
+</CodeBlocks>
+
 ## Production Considerations
 
 For production deployments:

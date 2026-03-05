@@ -127,3 +127,81 @@ console.log(`Found ${allDrafts.count} drafts pending review.`);
 ````
 
 </CodeBlocks>
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Drafts API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Drafts — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+
+  API reference:
+  - inboxes.drafts.create(inbox_id, to, subject?, text?, html?, cc?, bcc?, reply_to?, attachments?)
+  - inboxes.drafts.get(inbox_id, draft_id)
+  - inboxes.drafts.update(inbox_id, draft_id, to?, subject?, text?, html?, ...)
+  - inboxes.drafts.send(inbox_id, draft_id) — converts to Message, deletes draft
+  - inboxes.drafts.delete(inbox_id, draft_id)
+  - inboxes.drafts.list(inbox_id, limit?, page_token?, labels?)
+  - drafts.list(limit?, page_token?) — org-wide
+
+  Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
+  """
+  import os
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  inbox_id = "agent@agentmail.to"
+
+  draft = client.inboxes.drafts.create(inbox_id, to=["review@example.com"], subject="[REVIEW] Proposed reply")
+  retrieved = client.inboxes.drafts.get(inbox_id, draft.draft_id)
+  sent = client.inboxes.drafts.send(inbox_id, draft.draft_id)
+  print(sent.message_id)
+
+  all_drafts = client.drafts.list()
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Drafts — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   *
+   * API reference:
+   * - inboxes.drafts.create(inboxId, { to, subject?, text?, html?, cc?, bcc?, replyTo?, attachments? })
+   * - inboxes.drafts.get(inboxId, draftId)
+   * - inboxes.drafts.update(inboxId, draftId, { to?, subject?, text?, html?, ... })
+   * - inboxes.drafts.send(inboxId, draftId) — converts to Message, deletes draft
+   * - inboxes.drafts.delete(inboxId, draftId)
+   * - inboxes.drafts.list(inboxId, { limit?, pageToken?, labels? })
+   * - drafts.list({ limit?, pageToken? }) — org-wide
+   *
+   * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const inboxId = "agent@agentmail.to";
+
+    const draft = await client.inboxes.drafts.create(inboxId, {
+      to: ["review@example.com"],
+      subject: "[REVIEW] Proposed reply",
+    });
+    const retrieved = await client.inboxes.drafts.get(inboxId, draft.draftId);
+    const sent = await client.inboxes.drafts.send(inboxId, draft.draftId);
+    console.log(sent.messageId);
+
+    const allDrafts = await client.drafts.list();
+  }
+  main();
+  ```
+</CodeBlocks>

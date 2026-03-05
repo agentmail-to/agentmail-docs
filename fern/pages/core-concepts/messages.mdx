@@ -174,6 +174,100 @@ console.log(`Retrieved message with subject: ${message.subject}`);
 
 When receiving replies or forwards, use `extracted_text` or `extracted_html` for just the new content—quoted history is stripped automatically.
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Messages API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Messages — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+
+  API reference:
+  - messages.send(inbox_id, to, subject, text, html?, cc?, bcc?, reply_to?, labels?, attachments?)
+  - messages.list(inbox_id, limit?, page_token?, labels?)
+  - messages.get(inbox_id, message_id)
+  - messages.reply(inbox_id, message_id, text, html?, attachments?, reply_all?)
+  - messages.forward(inbox_id, message_id, to, subject?, text?, html?)
+  - messages.update(inbox_id, message_id, add_labels?, remove_labels?)
+  - messages.get_attachment(inbox_id, message_id, attachment_id)
+  - messages.get_raw(inbox_id, message_id)
+
+  Reply content: use extracted_text/extracted_html for new content without quoted history.
+  Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
+  """
+  import os
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  inbox_id = "agent@agentmail.to"
+
+  # Send
+  sent = client.inboxes.messages.send(inbox_id, to="user@example.com", subject="Hi", text="Body", labels=["outreach"])
+  print(sent.message_id, sent.thread_id)
+
+  # List, get
+  res = client.inboxes.messages.list(inbox_id, limit=10)
+  for msg in res.messages:
+      content = msg.extracted_text or msg.text
+  msg = client.inboxes.messages.get(inbox_id, res.messages[0].message_id)
+
+  # Reply
+  reply = client.inboxes.messages.reply(inbox_id, msg.message_id, text="Thanks!")
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Messages — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   *
+   * API reference:
+   * - messages.send(inboxId, { to, subject, text, html?, cc?, bcc?, replyTo?, labels?, attachments? })
+   * - messages.list(inboxId, { limit?, pageToken?, labels? })
+   * - messages.get(inboxId, messageId)
+   * - messages.reply(inboxId, messageId, { text, html?, attachments?, replyAll? })
+   * - messages.forward(inboxId, messageId, { to, subject?, text?, html? })
+   * - messages.update(inboxId, messageId, { addLabels?, removeLabels? })
+   * - messages.getAttachment(inboxId, messageId, attachmentId)
+   * - messages.getRaw(inboxId, messageId)
+   *
+   * Reply content: use extractedText/extractedHtml for new content without quoted history.
+   * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const inboxId = "agent@agentmail.to";
+
+    const sent = await client.inboxes.messages.send(inboxId, {
+      to: "user@example.com",
+      subject: "Hi",
+      text: "Body",
+      labels: ["outreach"],
+    });
+    console.log(sent.messageId, sent.threadId);
+
+    const res = await client.inboxes.messages.list(inboxId, { limit: 10 });
+    for (const msg of res.messages) {
+      const content = msg.extractedText ?? msg.text;
+    }
+    const msg = await client.inboxes.messages.get(inboxId, res.messages[0].messageId);
+
+    await client.inboxes.messages.reply(inboxId, msg.messageId, { text: "Thanks!" });
+  }
+  main();
+  ```
+</CodeBlocks>
+
 ### Crafting Your Message: HTML, Text, and CSS
 
 When sending a `Message`, you can provide the body in two formats: `text` for a plain-text version and `html` for a rich, styled version.

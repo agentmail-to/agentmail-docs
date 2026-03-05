@@ -125,3 +125,69 @@ console.log(`Total Inboxes: ${allInboxes.count}`);
   default domain. Check out our [guide on managing
   domains](/guides/domains/managing-domains) to learn more.
 </Tip>
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Inboxes API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Inboxes — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+
+  API reference:
+  - inboxes.create(username?, domain?, display_name?, client_id?) — client_id for idempotent retries
+  - inboxes.get(inbox_id)
+  - inboxes.list(limit?, page_token?)
+  - inboxes.update(inbox_id, display_name)
+  - inboxes.delete(inbox_id)
+
+  Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
+  """
+  import os
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  # Create (client_id for idempotent retries)
+  inbox = client.inboxes.create(client_id="my-inbox-v1")
+
+  # Get, list
+  retrieved = client.inboxes.get(inbox.inbox_id)
+  all_inboxes = client.inboxes.list(limit=20)
+  print(f"Total: {all_inboxes.count}")
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Inboxes — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   *
+   * API reference:
+   * - inboxes.create({ username?, domain?, displayName?, clientId? })
+   * - inboxes.get(inboxId)
+   * - inboxes.list({ limit?, pageToken? })
+   * - inboxes.update(inboxId, { displayName })
+   * - inboxes.delete(inboxId)
+   *
+   * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const inbox = await client.inboxes.create({ clientId: "my-inbox-v1" });
+    const retrieved = await client.inboxes.get(inbox.inboxId);
+    const allInboxes = await client.inboxes.list({ limit: 20 });
+    console.log("Total:", allInboxes.count);
+  }
+  main();
+  ```
+</CodeBlocks>

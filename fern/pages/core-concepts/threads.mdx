@@ -104,3 +104,80 @@ console.log(`Retrieved thread ${thread.thread_id} with ${thread.messages.length}
 ````
 
 </CodeBlocks>
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Threads API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Threads — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+
+  API reference:
+  - inboxes.threads.list(inbox_id, limit?, page_token?, labels?, before?, after?, ascending?)
+  - inboxes.threads.get(inbox_id, thread_id)
+  - inboxes.threads.get_attachment(inbox_id, thread_id, attachment_id)
+  - inboxes.threads.delete(inbox_id, thread_id)
+  - threads.list(limit?, page_token?, labels?) — org-wide, all inboxes
+  - threads.get(thread_id) — org-wide
+  - threads.get_attachment(thread_id, attachment_id)
+
+  Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
+  """
+  import os
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  inbox_id = "agent@agentmail.to"
+
+  # Per-inbox threads
+  inbox_threads = client.inboxes.threads.list(inbox_id=inbox_id, limit=20)
+  thread = client.inboxes.threads.get(inbox_id, inbox_threads.threads[0].thread_id)
+
+  # Org-wide threads
+  all_threads = client.threads.list(limit=50)
+  single = client.threads.get(all_threads.threads[0].thread_id)
+  print(f"Thread has {len(single.messages)} messages")
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Threads — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   *
+   * API reference:
+   * - inboxes.threads.list(inboxId, { limit?, pageToken?, labels?, before?, after?, ascending? })
+   * - inboxes.threads.get(inboxId, threadId)
+   * - inboxes.threads.getAttachment(inboxId, threadId, attachmentId)
+   * - inboxes.threads.delete(inboxId, threadId)
+   * - threads.list({ limit?, pageToken?, labels? }) — org-wide
+   * - threads.get(threadId) — org-wide
+   * - threads.getAttachment(threadId, attachmentId)
+   *
+   * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const inboxId = "agent@agentmail.to";
+
+    const inboxThreads = await client.inboxes.threads.list(inboxId, { limit: 20 });
+    const thread = await client.inboxes.threads.get(inboxId, inboxThreads.threads[0].threadId);
+
+    const allThreads = await client.threads.list({ limit: 50 });
+    const single = await client.threads.get(allThreads.threads[0].threadId);
+    console.log("Thread has", single.messages.length, "messages");
+  }
+  main();
+  ```
+</CodeBlocks>

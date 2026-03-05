@@ -142,3 +142,64 @@ const fileData = await client.inboxes.threads.get_attachment(
 ````
 
 </CodeBlocks>
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Attachments usage in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Attachments — copy into Cursor/Claude.
+
+  Send: attachments=[{ content: base64_string, filename?, content_type? }] in messages.send/reply.
+  Get attachment_id from message.attachments or thread.attachments.
+
+  - messages.get_attachment(inbox_id, message_id, attachment_id) → bytes
+  - threads.get_attachment(inbox_id, thread_id, attachment_id) → bytes
+  """
+  import base64
+  from agentmail import AgentMail
+
+  client = AgentMail(api_key="YOUR_API_KEY")
+
+  encoded = base64.b64encode(b"file content").decode()
+  client.inboxes.messages.send(
+    "agent@agentmail.to",
+    to="user@example.com",
+    subject="Report",
+    text="See attachment",
+    attachments=[{"content": encoded, "filename": "report.txt", "content_type": "text/plain"}],
+  )
+
+  data = client.inboxes.messages.get_attachment("inbox@am.to", "msg_123", "att_456")
+  with open("downloaded.pdf", "wb") as f:
+    f.write(data)
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Attachments — copy into Cursor/Claude.
+   *
+   * Send: attachments: [{ content: base64String, filename?, contentType? }] in messages.send/reply.
+   * Get attachmentId from message.attachments or thread.attachments.
+   *
+   * - messages.getAttachment(inboxId, messageId, attachmentId) → Buffer/Blob
+   * - threads.getAttachment(inboxId, threadId, attachmentId) → Buffer/Blob
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+  const encoded = Buffer.from("file content").toString("base64");
+  await client.inboxes.messages.send("agent@agentmail.to", {
+    to: "user@example.com",
+    subject: "Report",
+    text: "See attachment",
+    attachments: [{ content: encoded, filename: "report.txt", contentType: "text/plain" }],
+  });
+
+  const data = await client.inboxes.messages.getAttachment("inbox@am.to", "msg_123", "att_456");
+  ```
+</CodeBlocks>
+
