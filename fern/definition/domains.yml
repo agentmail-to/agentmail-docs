@@ -121,6 +121,7 @@ service:
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
       response: ListDomainsResponse
 
     get:
