@@ -196,7 +196,10 @@ Copy one of the blocks below into Cursor or Claude for webhook verification in o
   import { Webhook } from "svix";
 
   const app = express();
-  const secret = process.env.AGENTMAIL_WEBHOOK_SECRET!;
+  const secret = process.env.AGENTMAIL_WEBHOOK_SECRET;
+  if (!secret) {
+    throw new Error("AGENTMAIL_WEBHOOK_SECRET environment variable is required");
+  }
 
   app.post("/webhooks", express.raw({ type: "application/json" }), (req, res) => {
     try {

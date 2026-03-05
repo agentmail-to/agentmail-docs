@@ -184,8 +184,8 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
    * Send: attachments: [{ content: base64String, filename?, contentType? }] in messages.send/reply.
    * Get attachmentId from message.attachments or thread.attachments.
    *
-   * - messages.getAttachment(inboxId, messageId, attachmentId) → Buffer/Blob
-   * - threads.getAttachment(inboxId, threadId, attachmentId) → Buffer/Blob
+   * - messages.get_attachment(inboxId, messageId, attachmentId) → Buffer/Blob
+   * - threads.get_attachment(inboxId, threadId, attachmentId) → Buffer/Blob
    */
   import { AgentMailClient } from "agentmail";
 
@@ -199,7 +199,7 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
     attachments: [{ content: encoded, filename: "report.txt", contentType: "text/plain" }],
   });
 
-  const data = await client.inboxes.messages.getAttachment("inbox@am.to", "msg_123", "att_456");
+  const data = await client.inboxes.messages.get_attachment("inbox@am.to", "msg_123", "att_456");
   ```
 </CodeBlocks>
 

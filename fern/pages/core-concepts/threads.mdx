@@ -138,12 +138,14 @@ Copy one of the blocks below into Cursor or Claude for complete Threads API know
 
   # Per-inbox threads
   inbox_threads = client.inboxes.threads.list(inbox_id=inbox_id, limit=20)
-  thread = client.inboxes.threads.get(inbox_id, inbox_threads.threads[0].thread_id)
+  if inbox_threads.threads:
+      thread = client.inboxes.threads.get(inbox_id, inbox_threads.threads[0].thread_id)
 
   # Org-wide threads
   all_threads = client.threads.list(limit=50)
-  single = client.threads.get(all_threads.threads[0].thread_id)
-  print(f"Thread has {len(single.messages)} messages")
+  if all_threads.threads:
+      single = client.threads.get(all_threads.threads[0].thread_id)
+      print(f"Thread has {len(single.messages)} messages")
   ```
 
   ```typescript title="TypeScript"
@@ -172,11 +174,15 @@ Copy one of the blocks below into Cursor or Claude for complete Threads API know
     const inboxId = "agent@agentmail.to";
 
     const inboxThreads = await client.inboxes.threads.list(inboxId, { limit: 20 });
-    const thread = await client.inboxes.threads.get(inboxId, inboxThreads.threads[0].threadId);
+    if (inboxThreads.threads.length > 0) {
+      const thread = await client.inboxes.threads.get(inboxId, inboxThreads.threads[0].threadId);
+    }
 
     const allThreads = await client.threads.list({ limit: 50 });
-    const single = await client.threads.get(allThreads.threads[0].threadId);
-    console.log("Thread has", single.messages.length, "messages");
+    if (allThreads.threads.length > 0) {
+      const single = await client.threads.get(allThreads.threads[0].threadId);
+      console.log("Thread has", single.messages.length, "messages");
+    }
   }
   main();
   ```

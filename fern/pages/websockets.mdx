@@ -407,12 +407,16 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
   import { AgentMailClient } from "agentmail";
 
   const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
-  const socket = await client.websockets.connect();
-  socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: ["agent@agentmail.to"] }));
-  socket.on("message", (e) => {
-    if (e.type === "subscribed") console.log(e.inboxIds);
-    if (e.type === "message_received") console.log(e.message.subject);
-  });
+
+  async function main() {
+    const socket = await client.websockets.connect();
+    socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: ["agent@agentmail.to"] }));
+    socket.on("message", (e) => {
+      if (e.type === "subscribed") console.log(e.inboxIds);
+      if (e.type === "message_received") console.log(e.message.subject);
+    });
+  }
+  main().catch(console.error);
   ```
 </CodeBlocks>
 
