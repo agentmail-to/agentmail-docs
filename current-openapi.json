@@ -1,0 +1,6914 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "api",
+    "version": ""
+  },
+  "paths": {
+    "/v0/inboxes": {
+      "get": {
+        "operationId": "inboxes_list",
+        "tags": [
+          "Inboxes"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inboxesListInboxesResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Inboxes",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "inboxes_create",
+        "tags": [
+          "Inboxes"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inboxesInbox"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Inbox",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/inboxesCreateInboxRequest",
+                "nullable": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}": {
+      "get": {
+        "operationId": "inboxes_get",
+        "tags": [
+          "Inboxes"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inboxesInbox"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Inbox",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "inboxes_update",
+        "tags": [
+          "Inboxes"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inboxesInbox"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update Inbox",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/inboxesUpdateInboxRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "inboxes_delete",
+        "tags": [
+          "Inboxes"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Inbox",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods": {
+      "get": {
+        "operationId": "pods_list",
+        "tags": [
+          "Pods"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/podsListPodsResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Pods",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "pods_create",
+        "tags": [
+          "Pods"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/podsPod"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Pod",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/podsCreatePodRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/pods/{pod_id}": {
+      "get": {
+        "operationId": "pods_get",
+        "tags": [
+          "Pods"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/podsPod"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Pod",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "pods_delete",
+        "tags": [
+          "Pods"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Pod",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/webhooks": {
+      "get": {
+        "operationId": "webhooks_list",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhooksListWebhooksResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Webhooks",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "webhooks_create",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhooksWebhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Webhook",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/webhooksCreateWebhookRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/webhooks/{webhook_id}": {
+      "get": {
+        "operationId": "webhooks_get",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/webhooksWebhookId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhooksWebhook"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Webhook",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "webhooks_update",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/webhooksWebhookId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhooksWebhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update Webhook",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/webhooksUpdateWebhookRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "webhooks_delete",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/webhooksWebhookId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Webhook",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/api-keys": {
+      "get": {
+        "operationId": "apiKeys_list",
+        "tags": [
+          "ApiKeys"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListApiKeysResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List API Keys",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "apiKeys_create",
+        "tags": [
+          "ApiKeys"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateApiKeyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create API Key",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiKeyRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/api-keys/{api_key}": {
+      "delete": {
+        "operationId": "apiKeys_delete",
+        "tags": [
+          "ApiKeys"
+        ],
+        "parameters": [
+          {
+            "name": "api_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ApiKeyId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete API Key",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/domains": {
+      "get": {
+        "operationId": "domains_list",
+        "tags": [
+          "Domains"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDomainsResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Domains",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "domains_create",
+        "tags": [
+          "Domains"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Domain"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Domain",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDomainRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/domains/{domain_id}": {
+      "get": {
+        "operationId": "domains_get",
+        "tags": [
+          "Domains"
+        ],
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DomainId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Domain"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Domain",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "domains_delete",
+        "tags": [
+          "Domains"
+        ],
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DomainId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Domain",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/domains/{domain_id}/zone-file": {
+      "get": {
+        "operationId": "domains_getZoneFile",
+        "tags": [
+          "Domains"
+        ],
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DomainId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Zone File",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/domains/{domain_id}/verify": {
+      "post": {
+        "operationId": "domains_verify",
+        "tags": [
+          "Domains"
+        ],
+        "parameters": [
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DomainId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify Domain",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/drafts": {
+      "get": {
+        "operationId": "drafts_list",
+        "tags": [
+          "Drafts"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Labels",
+              "nullable": true
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Before",
+              "nullable": true
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/After",
+              "nullable": true
+            }
+          },
+          {
+            "name": "ascending",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Ascending",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDraftsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Drafts",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/drafts/{draft_id}": {
+      "get": {
+        "operationId": "drafts_get",
+        "tags": [
+          "Drafts"
+        ],
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DraftId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Draft",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/drafts": {
+      "get": {
+        "operationId": "inboxes_drafts_list",
+        "tags": [
+          "InboxesDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Labels",
+              "nullable": true
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Before",
+              "nullable": true
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/After",
+              "nullable": true
+            }
+          },
+          {
+            "name": "ascending",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Ascending",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDraftsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Drafts",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "inboxes_drafts_create",
+        "tags": [
+          "InboxesDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Draft",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDraftRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}/drafts/{draft_id}": {
+      "get": {
+        "operationId": "inboxes_drafts_get",
+        "tags": [
+          "InboxesDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DraftId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Draft",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "inboxes_drafts_update",
+        "tags": [
+          "InboxesDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DraftId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update Draft",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDraftRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "inboxes_drafts_delete",
+        "tags": [
+          "InboxesDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DraftId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Draft",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/drafts/{draft_id}/send": {
+      "post": {
+        "operationId": "inboxes_drafts_send",
+        "tags": [
+          "InboxesDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DraftId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Send Draft",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMessageRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages": {
+      "get": {
+        "operationId": "inboxes_messages_list",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Labels",
+              "nullable": true
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Before",
+              "nullable": true
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/After",
+              "nullable": true
+            }
+          },
+          {
+            "name": "ascending",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Ascending",
+              "nullable": true
+            }
+          },
+          {
+            "name": "include_spam",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/IncludeSpam",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListMessagesResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Messages",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages/{message_id}": {
+      "get": {
+        "operationId": "inboxes_messages_get",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MessageId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Message",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "inboxes_messages_update",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MessageId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update Message",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMessageRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}": {
+      "get": {
+        "operationId": "inboxes_messages_getAttachment",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MessageId"
+            }
+          },
+          {
+            "name": "attachment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AttachmentId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Attachment",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages/{message_id}/raw": {
+      "get": {
+        "operationId": "inboxes_messages_getRaw",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MessageId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Raw Message",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages/send": {
+      "post": {
+        "operationId": "inboxes_messages_send",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Send Message",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages/{message_id}/reply": {
+      "post": {
+        "operationId": "inboxes_messages_reply",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MessageId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Reply To Message",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyToMessageRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages/{message_id}/reply-all": {
+      "post": {
+        "operationId": "inboxes_messages_reply-all",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MessageId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Reply All Message",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyAllMessageRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}/messages/{message_id}/forward": {
+      "post": {
+        "operationId": "inboxes_messages_forward",
+        "tags": [
+          "InboxesMessages"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MessageId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Forward Message",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/inboxes/{inbox_id}/metrics": {
+      "get": {
+        "operationId": "inboxes_metrics_get",
+        "tags": [
+          "InboxesMetrics"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "event_types",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/MetricEventTypes",
+              "nullable": true
+            }
+          },
+          {
+            "name": "start_timestamp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MetricStartTimestamp"
+            }
+          },
+          {
+            "name": "end_timestamp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MetricEndTimestamp"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListMetricsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Metrics",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/threads": {
+      "get": {
+        "operationId": "inboxes_threads_list",
+        "tags": [
+          "InboxesThreads"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Labels",
+              "nullable": true
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Before",
+              "nullable": true
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/After",
+              "nullable": true
+            }
+          },
+          {
+            "name": "ascending",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Ascending",
+              "nullable": true
+            }
+          },
+          {
+            "name": "include_spam",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/IncludeSpam",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListThreadsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Threads",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/threads/{thread_id}": {
+      "get": {
+        "operationId": "inboxes_threads_get",
+        "tags": [
+          "InboxesThreads"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ThreadId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Thread",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "inboxes_threads_delete",
+        "tags": [
+          "InboxesThreads"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ThreadId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Thread",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/inboxes/{inbox_id}/threads/{thread_id}/attachments/{attachment_id}": {
+      "get": {
+        "operationId": "inboxes_threads_getAttachment",
+        "tags": [
+          "InboxesThreads"
+        ],
+        "parameters": [
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          },
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ThreadId"
+            }
+          },
+          {
+            "name": "attachment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AttachmentId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Attachment",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/metrics": {
+      "get": {
+        "operationId": "metrics_list",
+        "tags": [
+          "Metrics"
+        ],
+        "parameters": [
+          {
+            "name": "event_types",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/MetricEventTypes",
+              "nullable": true
+            }
+          },
+          {
+            "name": "start_timestamp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MetricStartTimestamp"
+            }
+          },
+          {
+            "name": "end_timestamp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MetricEndTimestamp"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListMetricsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Metrics",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/organizations": {
+      "get": {
+        "description": "Get the current organization.",
+        "operationId": "organizations_get",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Organization",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods/{pod_id}/domains": {
+      "get": {
+        "operationId": "pods_domains_list",
+        "tags": [
+          "PodsDomains"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDomainsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Domains",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "pods_domains_create",
+        "tags": [
+          "PodsDomains"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Domain"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Domain",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDomainRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/pods/{pod_id}/domains/{domain_id}": {
+      "delete": {
+        "operationId": "pods_domains_delete",
+        "tags": [
+          "PodsDomains"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "domain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DomainId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Domain",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods/{pod_id}/drafts": {
+      "get": {
+        "operationId": "pods_drafts_list",
+        "tags": [
+          "PodsDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Labels",
+              "nullable": true
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Before",
+              "nullable": true
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/After",
+              "nullable": true
+            }
+          },
+          {
+            "name": "ascending",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Ascending",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDraftsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Drafts",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods/{pod_id}/drafts/{draft_id}": {
+      "get": {
+        "operationId": "pods_drafts_get",
+        "tags": [
+          "PodsDrafts"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DraftId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Draft",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods/{pod_id}/inboxes": {
+      "get": {
+        "operationId": "pods_inboxes_list",
+        "tags": [
+          "PodsInboxes"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inboxesListInboxesResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Inboxes",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "pods_inboxes_create",
+        "tags": [
+          "PodsInboxes"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inboxesInbox"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Inbox",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/inboxesCreateInboxRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v0/pods/{pod_id}/inboxes/{inbox_id}": {
+      "get": {
+        "operationId": "pods_inboxes_get",
+        "tags": [
+          "PodsInboxes"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inboxesInbox"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Inbox",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "pods_inboxes_delete",
+        "tags": [
+          "PodsInboxes"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "inbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/inboxesInboxId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete Inbox",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods/{pod_id}/threads": {
+      "get": {
+        "operationId": "pods_threads_list",
+        "tags": [
+          "PodsThreads"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Labels",
+              "nullable": true
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Before",
+              "nullable": true
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/After",
+              "nullable": true
+            }
+          },
+          {
+            "name": "ascending",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Ascending",
+              "nullable": true
+            }
+          },
+          {
+            "name": "include_spam",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/IncludeSpam",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListThreadsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Threads",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods/{pod_id}/threads/{thread_id}": {
+      "get": {
+        "operationId": "pods_threads_get",
+        "tags": [
+          "PodsThreads"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ThreadId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Thread",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/pods/{pod_id}/threads/{thread_id}/attachments/{attachment_id}": {
+      "get": {
+        "operationId": "pods_threads_getAttachment",
+        "tags": [
+          "PodsThreads"
+        ],
+        "parameters": [
+          {
+            "name": "pod_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/podsPodId"
+            }
+          },
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ThreadId"
+            }
+          },
+          {
+            "name": "attachment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AttachmentId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Attachment",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/threads": {
+      "get": {
+        "operationId": "threads_list",
+        "tags": [
+          "Threads"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Limit",
+              "nullable": true
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PageToken",
+              "nullable": true
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Labels",
+              "nullable": true
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Before",
+              "nullable": true
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/After",
+              "nullable": true
+            }
+          },
+          {
+            "name": "ascending",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Ascending",
+              "nullable": true
+            }
+          },
+          {
+            "name": "include_spam",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/IncludeSpam",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListThreadsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Threads",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/threads/{thread_id}": {
+      "get": {
+        "operationId": "threads_get",
+        "tags": [
+          "Threads"
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ThreadId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Thread",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v0/threads/{thread_id}/attachments/{attachment_id}": {
+      "get": {
+        "operationId": "threads_getAttachment",
+        "tags": [
+          "Threads"
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ThreadId"
+            }
+          },
+          {
+            "name": "attachment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AttachmentId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Attachment",
+        "servers": [
+          {
+            "url": "https://api.agentmail.to"
+          },
+          {
+            "url": "https://api.agentmail.dev"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Limit": {
+        "title": "Limit",
+        "type": "integer",
+        "description": "Limit of number of items returned."
+      },
+      "Count": {
+        "title": "Count",
+        "type": "integer",
+        "description": "Number of items returned."
+      },
+      "PageToken": {
+        "title": "PageToken",
+        "type": "string",
+        "description": "Page token for pagination."
+      },
+      "Labels": {
+        "title": "Labels",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Labels to filter by."
+      },
+      "Before": {
+        "title": "Before",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp before which to filter by."
+      },
+      "After": {
+        "title": "After",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp after which to filter by."
+      },
+      "Ascending": {
+        "title": "Ascending",
+        "type": "boolean",
+        "description": "Sort in ascending temporal order."
+      },
+      "IncludeSpam": {
+        "title": "IncludeSpam",
+        "type": "boolean",
+        "description": "Include spam in results."
+      },
+      "OrganizationId": {
+        "title": "OrganizationId",
+        "type": "string",
+        "description": "ID of organization."
+      },
+      "ErrorName": {
+        "title": "ErrorName",
+        "type": "string",
+        "description": "Name of error."
+      },
+      "ErrorResponse": {
+        "title": "ErrorResponse",
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/ErrorName"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message."
+          }
+        },
+        "required": [
+          "name",
+          "message"
+        ]
+      },
+      "ValidationErrorResponse": {
+        "title": "ValidationErrorResponse",
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/ErrorName"
+          },
+          "errors": {
+            "description": "Validation errors."
+          }
+        },
+        "required": [
+          "name",
+          "errors"
+        ]
+      },
+      "inboxesInboxId": {
+        "title": "inboxesInboxId",
+        "type": "string",
+        "description": "ID of inbox."
+      },
+      "inboxesDisplayName": {
+        "title": "inboxesDisplayName",
+        "type": "string",
+        "description": "Display name: `Display Name <username@domain.com>`."
+      },
+      "inboxesClientId": {
+        "title": "inboxesClientId",
+        "type": "string",
+        "description": "Client ID of inbox."
+      },
+      "inboxesInbox": {
+        "title": "inboxesInbox",
+        "type": "object",
+        "properties": {
+          "pod_id": {
+            "$ref": "#/components/schemas/podsPodId"
+          },
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "display_name": {
+            "$ref": "#/components/schemas/inboxesDisplayName",
+            "nullable": true
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/inboxesClientId",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which inbox was last updated."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which inbox was created."
+          }
+        },
+        "required": [
+          "pod_id",
+          "inbox_id",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "inboxesListInboxesResponse": {
+        "title": "inboxesListInboxesResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Limit",
+            "nullable": true
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "inboxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/inboxesInbox"
+            },
+            "description": "Ordered by `created_at` descending."
+          }
+        },
+        "required": [
+          "count",
+          "inboxes"
+        ]
+      },
+      "inboxesCreateInboxRequest": {
+        "title": "inboxesCreateInboxRequest",
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "description": "Username of address. Randomly generated if not specified."
+          },
+          "domain": {
+            "type": "string",
+            "nullable": true,
+            "description": "Domain of address. Must be verified domain. Defaults to `agentmail.to`."
+          },
+          "display_name": {
+            "$ref": "#/components/schemas/inboxesDisplayName",
+            "nullable": true
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/inboxesClientId",
+            "nullable": true
+          }
+        }
+      },
+      "inboxesUpdateInboxRequest": {
+        "title": "inboxesUpdateInboxRequest",
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "$ref": "#/components/schemas/inboxesDisplayName"
+          }
+        },
+        "required": [
+          "display_name"
+        ]
+      },
+      "podsPodId": {
+        "title": "podsPodId",
+        "type": "string",
+        "description": "ID of pod."
+      },
+      "podsName": {
+        "title": "podsName",
+        "type": "string",
+        "description": "Name of pod."
+      },
+      "podsClientId": {
+        "title": "podsClientId",
+        "type": "string",
+        "description": "Client ID of pod."
+      },
+      "podsPod": {
+        "title": "podsPod",
+        "type": "object",
+        "properties": {
+          "pod_id": {
+            "$ref": "#/components/schemas/podsPodId"
+          },
+          "name": {
+            "$ref": "#/components/schemas/podsName"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which pod was last updated."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which pod was created."
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/podsClientId",
+            "nullable": true
+          }
+        },
+        "required": [
+          "pod_id",
+          "name",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "podsListPodsResponse": {
+        "title": "podsListPodsResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Limit",
+            "nullable": true
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "pods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/podsPod"
+            },
+            "description": "Ordered by `created_at` descending."
+          }
+        },
+        "required": [
+          "count",
+          "pods"
+        ]
+      },
+      "podsCreatePodRequest": {
+        "title": "podsCreatePodRequest",
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/podsName",
+            "nullable": true
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/podsClientId",
+            "nullable": true
+          }
+        }
+      },
+      "webhooksWebhookId": {
+        "title": "webhooksWebhookId",
+        "type": "string",
+        "description": "ID of webhook."
+      },
+      "webhooksClientId": {
+        "title": "webhooksClientId",
+        "type": "string",
+        "description": "Client ID of webhook."
+      },
+      "webhooksUrl": {
+        "title": "webhooksUrl",
+        "type": "string",
+        "description": "URL of webhook endpoint."
+      },
+      "webhooksWebhook": {
+        "title": "webhooksWebhook",
+        "type": "object",
+        "properties": {
+          "webhook_id": {
+            "$ref": "#/components/schemas/webhooksWebhookId"
+          },
+          "url": {
+            "$ref": "#/components/schemas/webhooksUrl"
+          },
+          "event_types": {
+            "$ref": "#/components/schemas/EventTypes",
+            "nullable": true
+          },
+          "pod_ids": {
+            "$ref": "#/components/schemas/PodIds",
+            "nullable": true
+          },
+          "inbox_ids": {
+            "$ref": "#/components/schemas/InboxIds",
+            "nullable": true
+          },
+          "secret": {
+            "type": "string",
+            "description": "Secret for webhook signature verification."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Webhook is enabled."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which webhook was last updated."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which webhook was created."
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/webhooksClientId",
+            "nullable": true
+          }
+        },
+        "required": [
+          "webhook_id",
+          "url",
+          "secret",
+          "enabled",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "webhooksListWebhooksResponse": {
+        "title": "webhooksListWebhooksResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Limit",
+            "nullable": true
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "webhooks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/webhooksWebhook"
+            },
+            "description": "Ordered by `created_at` descending."
+          }
+        },
+        "required": [
+          "count",
+          "webhooks"
+        ]
+      },
+      "webhooksCreateWebhookRequest": {
+        "title": "webhooksCreateWebhookRequest",
+        "type": "object",
+        "properties": {
+          "url": {
+            "$ref": "#/components/schemas/webhooksUrl"
+          },
+          "event_types": {
+            "$ref": "#/components/schemas/EventTypes"
+          },
+          "pod_ids": {
+            "$ref": "#/components/schemas/PodIds",
+            "nullable": true
+          },
+          "inbox_ids": {
+            "$ref": "#/components/schemas/InboxIds",
+            "nullable": true
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/webhooksClientId",
+            "nullable": true
+          }
+        },
+        "required": [
+          "url",
+          "event_types"
+        ]
+      },
+      "webhooksUpdateWebhookRequest": {
+        "title": "webhooksUpdateWebhookRequest",
+        "type": "object",
+        "properties": {
+          "add_inbox_ids": {
+            "$ref": "#/components/schemas/InboxIds",
+            "nullable": true,
+            "description": "Inbox IDs to subscribe to the webhook."
+          },
+          "remove_inbox_ids": {
+            "$ref": "#/components/schemas/InboxIds",
+            "nullable": true,
+            "description": "Inbox IDs to unsubscribe from the webhook."
+          },
+          "add_pod_ids": {
+            "$ref": "#/components/schemas/PodIds",
+            "nullable": true,
+            "description": "Pod IDs to subscribe to the webhook."
+          },
+          "remove_pod_ids": {
+            "$ref": "#/components/schemas/PodIds",
+            "nullable": true,
+            "description": "Pod IDs to unsubscribe from the webhook."
+          }
+        }
+      },
+      "ApiKeyId": {
+        "title": "ApiKeyId",
+        "type": "string",
+        "description": "ID of api key."
+      },
+      "Prefix": {
+        "title": "Prefix",
+        "type": "string",
+        "description": "Prefix of api key."
+      },
+      "Name": {
+        "title": "Name",
+        "type": "string",
+        "description": "Name of api key."
+      },
+      "CreatedAt": {
+        "title": "CreatedAt",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which api key was created."
+      },
+      "ApiKey": {
+        "title": "ApiKey",
+        "type": "object",
+        "properties": {
+          "api_key_id": {
+            "$ref": "#/components/schemas/ApiKeyId"
+          },
+          "prefix": {
+            "$ref": "#/components/schemas/Prefix"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "used_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Time at which api key was last used."
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/CreatedAt"
+          }
+        },
+        "required": [
+          "api_key_id",
+          "prefix",
+          "name",
+          "created_at"
+        ]
+      },
+      "CreateApiKeyResponse": {
+        "title": "CreateApiKeyResponse",
+        "type": "object",
+        "properties": {
+          "api_key_id": {
+            "$ref": "#/components/schemas/ApiKeyId"
+          },
+          "api_key": {
+            "type": "string",
+            "description": "API key."
+          },
+          "prefix": {
+            "$ref": "#/components/schemas/Prefix"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/CreatedAt"
+          }
+        },
+        "required": [
+          "api_key_id",
+          "api_key",
+          "prefix",
+          "name",
+          "created_at"
+        ]
+      },
+      "ListApiKeysResponse": {
+        "title": "ListApiKeysResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "api_keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiKey"
+            },
+            "description": "Ordered by `created_at` descending."
+          }
+        },
+        "required": [
+          "count",
+          "api_keys"
+        ]
+      },
+      "CreateApiKeyRequest": {
+        "title": "CreateApiKeyRequest",
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "AttachmentId": {
+        "title": "AttachmentId",
+        "type": "string",
+        "description": "ID of attachment."
+      },
+      "AttachmentFilename": {
+        "title": "AttachmentFilename",
+        "type": "string",
+        "description": "Filename of attachment."
+      },
+      "AttachmentSize": {
+        "title": "AttachmentSize",
+        "type": "integer",
+        "description": "Size of attachment in bytes."
+      },
+      "AttachmentContentType": {
+        "title": "AttachmentContentType",
+        "type": "string",
+        "description": "Content type of attachment."
+      },
+      "AttachmentContentDisposition": {
+        "title": "AttachmentContentDisposition",
+        "type": "string",
+        "enum": [
+          "inline",
+          "attachment"
+        ],
+        "description": "Content disposition of attachment."
+      },
+      "AttachmentContentId": {
+        "title": "AttachmentContentId",
+        "type": "string",
+        "description": "Content ID of attachment."
+      },
+      "Attachment": {
+        "title": "Attachment",
+        "type": "object",
+        "properties": {
+          "attachment_id": {
+            "$ref": "#/components/schemas/AttachmentId"
+          },
+          "filename": {
+            "$ref": "#/components/schemas/AttachmentFilename",
+            "nullable": true
+          },
+          "size": {
+            "$ref": "#/components/schemas/AttachmentSize"
+          },
+          "content_type": {
+            "$ref": "#/components/schemas/AttachmentContentType",
+            "nullable": true
+          },
+          "content_disposition": {
+            "$ref": "#/components/schemas/AttachmentContentDisposition",
+            "nullable": true
+          },
+          "content_id": {
+            "$ref": "#/components/schemas/AttachmentContentId",
+            "nullable": true
+          }
+        },
+        "required": [
+          "attachment_id",
+          "size"
+        ]
+      },
+      "AttachmentResponse": {
+        "title": "AttachmentResponse",
+        "type": "object",
+        "properties": {
+          "attachment_id": {
+            "$ref": "#/components/schemas/AttachmentId"
+          },
+          "filename": {
+            "$ref": "#/components/schemas/AttachmentFilename",
+            "nullable": true
+          },
+          "size": {
+            "$ref": "#/components/schemas/AttachmentSize"
+          },
+          "content_type": {
+            "$ref": "#/components/schemas/AttachmentContentType",
+            "nullable": true
+          },
+          "content_disposition": {
+            "$ref": "#/components/schemas/AttachmentContentDisposition",
+            "nullable": true
+          },
+          "content_id": {
+            "$ref": "#/components/schemas/AttachmentContentId",
+            "nullable": true
+          },
+          "download_url": {
+            "type": "string",
+            "description": "URL to download the attachment."
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which the download URL expires."
+          }
+        },
+        "required": [
+          "attachment_id",
+          "size",
+          "download_url",
+          "expires_at"
+        ]
+      },
+      "SendAttachment": {
+        "title": "SendAttachment",
+        "type": "object",
+        "properties": {
+          "filename": {
+            "$ref": "#/components/schemas/AttachmentFilename",
+            "nullable": true
+          },
+          "content_type": {
+            "$ref": "#/components/schemas/AttachmentContentType",
+            "nullable": true
+          },
+          "content_disposition": {
+            "$ref": "#/components/schemas/AttachmentContentDisposition",
+            "nullable": true
+          },
+          "content_id": {
+            "$ref": "#/components/schemas/AttachmentContentId",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true,
+            "description": "Base64 encoded content of attachment."
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL to the attachment."
+          }
+        }
+      },
+      "DomainId": {
+        "title": "DomainId",
+        "type": "string",
+        "description": "The name of the domain. (e.g., \" your-domain.com\")"
+      },
+      "DomainName": {
+        "title": "DomainName",
+        "type": "string",
+        "description": "The name of the domain. (e.g., \"example.com\")"
+      },
+      "RecordType": {
+        "title": "RecordType",
+        "type": "string",
+        "enum": [
+          "TXT",
+          "CNAME",
+          "MX"
+        ]
+      },
+      "VerificationStatus": {
+        "title": "VerificationStatus",
+        "type": "string",
+        "enum": [
+          "NOT_STARTED",
+          "PENDING",
+          "INVALID",
+          "FAILED",
+          "VERIFYING",
+          "VERIFIED"
+        ]
+      },
+      "RecordStatus": {
+        "title": "RecordStatus",
+        "type": "string",
+        "enum": [
+          "MISSING",
+          "INVALID",
+          "VALID"
+        ]
+      },
+      "VerificationRecord": {
+        "title": "VerificationRecord",
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/RecordType",
+            "description": "The type of the DNS record."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name or host of the record."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the record."
+          },
+          "status": {
+            "$ref": "#/components/schemas/RecordStatus",
+            "description": "The verification status of this specific record."
+          },
+          "priority": {
+            "type": "integer",
+            "nullable": true,
+            "description": "The priority of the MX record."
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "value",
+          "status"
+        ]
+      },
+      "FeedbackEnabled": {
+        "title": "FeedbackEnabled",
+        "type": "boolean",
+        "description": "Bounce and complaint notifications are sent to your inboxes."
+      },
+      "ClientId": {
+        "title": "ClientId",
+        "type": "string",
+        "description": "Client ID of domain."
+      },
+      "Domain": {
+        "title": "Domain",
+        "type": "object",
+        "properties": {
+          "pod_id": {
+            "$ref": "#/components/schemas/podsPodId",
+            "nullable": true
+          },
+          "domain_id": {
+            "$ref": "#/components/schemas/DomainId"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VerificationStatus",
+            "description": "The verification status of the domain."
+          },
+          "feedback_enabled": {
+            "$ref": "#/components/schemas/FeedbackEnabled"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VerificationRecord"
+            },
+            "description": "A list of DNS records required to verify the domain."
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/ClientId",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which the domain was last updated."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which the domain was created."
+          }
+        },
+        "required": [
+          "domain_id",
+          "status",
+          "feedback_enabled",
+          "records",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "DomainItem": {
+        "title": "DomainItem",
+        "type": "object",
+        "properties": {
+          "pod_id": {
+            "$ref": "#/components/schemas/podsPodId",
+            "nullable": true
+          },
+          "domain_id": {
+            "$ref": "#/components/schemas/DomainId"
+          },
+          "feedback_enabled": {
+            "$ref": "#/components/schemas/FeedbackEnabled"
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/ClientId",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which the domain was last updated."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which the domain was created."
+          }
+        },
+        "required": [
+          "domain_id",
+          "feedback_enabled",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "ListDomainsResponse": {
+        "title": "ListDomainsResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Limit",
+            "nullable": true
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainItem"
+            },
+            "description": "Ordered by `created_at` descending."
+          }
+        },
+        "required": [
+          "count",
+          "domains"
+        ]
+      },
+      "CreateDomainRequest": {
+        "title": "CreateDomainRequest",
+        "type": "object",
+        "properties": {
+          "domain": {
+            "$ref": "#/components/schemas/DomainName"
+          },
+          "feedback_enabled": {
+            "$ref": "#/components/schemas/FeedbackEnabled"
+          }
+        },
+        "required": [
+          "domain",
+          "feedback_enabled"
+        ]
+      },
+      "DraftId": {
+        "title": "DraftId",
+        "type": "string",
+        "description": "ID of draft."
+      },
+      "DraftClientId": {
+        "title": "DraftClientId",
+        "type": "string",
+        "description": "Client ID of draft."
+      },
+      "DraftLabels": {
+        "title": "DraftLabels",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Labels of draft."
+      },
+      "DraftReplyTo": {
+        "title": "DraftReplyTo",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Reply-to addresses. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "DraftTo": {
+        "title": "DraftTo",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "DraftCc": {
+        "title": "DraftCc",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Addresses of CC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "DraftBcc": {
+        "title": "DraftBcc",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "DraftSubject": {
+        "title": "DraftSubject",
+        "type": "string",
+        "description": "Subject of draft."
+      },
+      "DraftPreview": {
+        "title": "DraftPreview",
+        "type": "string",
+        "description": "Text preview of draft."
+      },
+      "DraftText": {
+        "title": "DraftText",
+        "type": "string",
+        "description": "Plain text body of draft."
+      },
+      "DraftHtml": {
+        "title": "DraftHtml",
+        "type": "string",
+        "description": "HTML body of draft."
+      },
+      "DraftAttachments": {
+        "title": "DraftAttachments",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Attachment"
+        },
+        "description": "Attachments in draft."
+      },
+      "DraftInReplyTo": {
+        "title": "DraftInReplyTo",
+        "type": "string",
+        "description": "ID of message being replied to."
+      },
+      "DraftSendStatus": {
+        "title": "DraftSendStatus",
+        "type": "string",
+        "enum": [
+          "scheduled",
+          "sending",
+          "failed"
+        ],
+        "description": "Schedule send status of draft."
+      },
+      "DraftSendAt": {
+        "title": "DraftSendAt",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which to schedule send draft."
+      },
+      "DraftUpdatedAt": {
+        "title": "DraftUpdatedAt",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which draft was last updated."
+      },
+      "DraftItem": {
+        "title": "DraftItem",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "draft_id": {
+            "$ref": "#/components/schemas/DraftId"
+          },
+          "labels": {
+            "$ref": "#/components/schemas/DraftLabels"
+          },
+          "to": {
+            "$ref": "#/components/schemas/DraftTo",
+            "nullable": true
+          },
+          "cc": {
+            "$ref": "#/components/schemas/DraftCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/DraftBcc",
+            "nullable": true
+          },
+          "subject": {
+            "$ref": "#/components/schemas/DraftSubject",
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/DraftPreview",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/DraftAttachments",
+            "nullable": true
+          },
+          "send_status": {
+            "$ref": "#/components/schemas/DraftSendStatus",
+            "nullable": true
+          },
+          "send_at": {
+            "$ref": "#/components/schemas/DraftSendAt",
+            "nullable": true
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/DraftUpdatedAt"
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "draft_id",
+          "labels",
+          "updated_at"
+        ]
+      },
+      "Draft": {
+        "title": "Draft",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "draft_id": {
+            "$ref": "#/components/schemas/DraftId"
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/DraftClientId",
+            "nullable": true
+          },
+          "labels": {
+            "$ref": "#/components/schemas/DraftLabels"
+          },
+          "reply_to": {
+            "$ref": "#/components/schemas/DraftReplyTo",
+            "nullable": true
+          },
+          "to": {
+            "$ref": "#/components/schemas/DraftTo",
+            "nullable": true
+          },
+          "cc": {
+            "$ref": "#/components/schemas/DraftCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/DraftBcc",
+            "nullable": true
+          },
+          "subject": {
+            "$ref": "#/components/schemas/DraftSubject",
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/DraftPreview",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/DraftText",
+            "nullable": true
+          },
+          "html": {
+            "$ref": "#/components/schemas/DraftHtml",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/DraftAttachments",
+            "nullable": true
+          },
+          "in_reply_to": {
+            "$ref": "#/components/schemas/DraftInReplyTo",
+            "nullable": true
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "IDs of previous messages in thread."
+          },
+          "send_status": {
+            "$ref": "#/components/schemas/DraftSendStatus",
+            "nullable": true
+          },
+          "send_at": {
+            "$ref": "#/components/schemas/DraftSendAt",
+            "nullable": true
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/DraftUpdatedAt"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which draft was created."
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "draft_id",
+          "labels",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "ListDraftsResponse": {
+        "title": "ListDraftsResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Limit",
+            "nullable": true
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "drafts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DraftItem"
+            },
+            "description": "Ordered by `updated_at` descending."
+          }
+        },
+        "required": [
+          "count",
+          "drafts"
+        ]
+      },
+      "CreateDraftRequest": {
+        "title": "CreateDraftRequest",
+        "type": "object",
+        "properties": {
+          "labels": {
+            "$ref": "#/components/schemas/DraftLabels",
+            "nullable": true
+          },
+          "reply_to": {
+            "$ref": "#/components/schemas/DraftReplyTo",
+            "nullable": true
+          },
+          "to": {
+            "$ref": "#/components/schemas/DraftTo",
+            "nullable": true
+          },
+          "cc": {
+            "$ref": "#/components/schemas/DraftCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/DraftBcc",
+            "nullable": true
+          },
+          "subject": {
+            "$ref": "#/components/schemas/DraftSubject",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/DraftText",
+            "nullable": true
+          },
+          "html": {
+            "$ref": "#/components/schemas/DraftHtml",
+            "nullable": true
+          },
+          "in_reply_to": {
+            "$ref": "#/components/schemas/DraftInReplyTo",
+            "nullable": true
+          },
+          "send_at": {
+            "$ref": "#/components/schemas/DraftSendAt",
+            "nullable": true
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/DraftClientId",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateDraftRequest": {
+        "title": "UpdateDraftRequest",
+        "type": "object",
+        "properties": {
+          "reply_to": {
+            "$ref": "#/components/schemas/DraftReplyTo",
+            "nullable": true
+          },
+          "to": {
+            "$ref": "#/components/schemas/DraftTo",
+            "nullable": true
+          },
+          "cc": {
+            "$ref": "#/components/schemas/DraftCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/DraftBcc",
+            "nullable": true
+          },
+          "subject": {
+            "$ref": "#/components/schemas/DraftSubject",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/DraftText",
+            "nullable": true
+          },
+          "html": {
+            "$ref": "#/components/schemas/DraftHtml",
+            "nullable": true
+          },
+          "send_at": {
+            "$ref": "#/components/schemas/DraftSendAt",
+            "nullable": true
+          }
+        }
+      },
+      "EventType": {
+        "title": "EventType",
+        "type": "string",
+        "enum": [
+          "message.received",
+          "message.sent",
+          "message.delivered",
+          "message.bounced",
+          "message.complained",
+          "message.rejected",
+          "domain.verified"
+        ]
+      },
+      "EventTypes": {
+        "title": "EventTypes",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EventType"
+        },
+        "description": "Event types for which to send events."
+      },
+      "PodIds": {
+        "title": "PodIds",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Pods for which to send events. Maximum 10 per webhook."
+      },
+      "InboxIds": {
+        "title": "InboxIds",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Inboxes for which to send events. Maximum 10 per webhook."
+      },
+      "EventId": {
+        "title": "EventId",
+        "type": "string",
+        "description": "ID of event."
+      },
+      "Timestamp": {
+        "title": "Timestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of event."
+      },
+      "Recipient": {
+        "title": "Recipient",
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Recipient address."
+          },
+          "status": {
+            "type": "string",
+            "description": "Recipient status."
+          }
+        },
+        "required": [
+          "address",
+          "status"
+        ]
+      },
+      "Send": {
+        "title": "Send",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Sent recipients."
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "message_id",
+          "timestamp",
+          "recipients"
+        ]
+      },
+      "Delivery": {
+        "title": "Delivery",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Delivered recipients."
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "message_id",
+          "timestamp",
+          "recipients"
+        ]
+      },
+      "Bounce": {
+        "title": "Bounce",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "type": {
+            "type": "string",
+            "description": "Bounce type."
+          },
+          "sub_type": {
+            "type": "string",
+            "description": "Bounce sub-type."
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recipient"
+            },
+            "description": "Bounced recipients."
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "message_id",
+          "timestamp",
+          "type",
+          "sub_type",
+          "recipients"
+        ]
+      },
+      "Complaint": {
+        "title": "Complaint",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "type": {
+            "type": "string",
+            "description": "Complaint type."
+          },
+          "sub_type": {
+            "type": "string",
+            "description": "Complaint sub-type."
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Complained recipients."
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "message_id",
+          "timestamp",
+          "type",
+          "sub_type",
+          "recipients"
+        ]
+      },
+      "Reject": {
+        "title": "Reject",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reject reason."
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "message_id",
+          "timestamp",
+          "reason"
+        ]
+      },
+      "MessageReceivedEvent": {
+        "title": "MessageReceivedEvent",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "event_type": {
+            "type": "string",
+            "const": "message.received"
+          },
+          "event_id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "message": {
+            "$ref": "#/components/schemas/Message"
+          },
+          "thread": {
+            "$ref": "#/components/schemas/ThreadItem"
+          }
+        },
+        "required": [
+          "type",
+          "event_type",
+          "event_id",
+          "message",
+          "thread"
+        ]
+      },
+      "MessageSentEvent": {
+        "title": "MessageSentEvent",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "event_type": {
+            "type": "string",
+            "const": "message.sent"
+          },
+          "event_id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "send": {
+            "$ref": "#/components/schemas/Send"
+          }
+        },
+        "required": [
+          "type",
+          "event_type",
+          "event_id",
+          "send"
+        ]
+      },
+      "MessageDeliveredEvent": {
+        "title": "MessageDeliveredEvent",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "event_type": {
+            "type": "string",
+            "const": "message.delivered"
+          },
+          "event_id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          }
+        },
+        "required": [
+          "type",
+          "event_type",
+          "event_id",
+          "delivery"
+        ]
+      },
+      "MessageBouncedEvent": {
+        "title": "MessageBouncedEvent",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "event_type": {
+            "type": "string",
+            "const": "message.bounced"
+          },
+          "event_id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "bounce": {
+            "$ref": "#/components/schemas/Bounce"
+          }
+        },
+        "required": [
+          "type",
+          "event_type",
+          "event_id",
+          "bounce"
+        ]
+      },
+      "MessageComplainedEvent": {
+        "title": "MessageComplainedEvent",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "event_type": {
+            "type": "string",
+            "const": "message.complained"
+          },
+          "event_id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "complaint": {
+            "$ref": "#/components/schemas/Complaint"
+          }
+        },
+        "required": [
+          "type",
+          "event_type",
+          "event_id",
+          "complaint"
+        ]
+      },
+      "MessageRejectedEvent": {
+        "title": "MessageRejectedEvent",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "event_type": {
+            "type": "string",
+            "const": "message.rejected"
+          },
+          "event_id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "reject": {
+            "$ref": "#/components/schemas/Reject"
+          }
+        },
+        "required": [
+          "type",
+          "event_type",
+          "event_id",
+          "reject"
+        ]
+      },
+      "DomainVerifiedEvent": {
+        "title": "DomainVerifiedEvent",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "event_type": {
+            "type": "string",
+            "const": "domain.verified"
+          },
+          "event_id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/Domain"
+          }
+        },
+        "required": [
+          "type",
+          "event_type",
+          "event_id",
+          "domain"
+        ]
+      },
+      "MessageId": {
+        "title": "MessageId",
+        "type": "string",
+        "description": "ID of message."
+      },
+      "MessageLabels": {
+        "title": "MessageLabels",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Labels of message."
+      },
+      "MessageTimestamp": {
+        "title": "MessageTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which message was sent or drafted."
+      },
+      "MessageFrom": {
+        "title": "MessageFrom",
+        "type": "string",
+        "description": "Address of sender. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "MessageReplyTo": {
+        "title": "MessageReplyTo",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Addresses of reply-to recipients. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "MessageTo": {
+        "title": "MessageTo",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "MessageCc": {
+        "title": "MessageCc",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Addresses of CC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "MessageBcc": {
+        "title": "MessageBcc",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "MessageSubject": {
+        "title": "MessageSubject",
+        "type": "string",
+        "description": "Subject of message."
+      },
+      "MessagePreview": {
+        "title": "MessagePreview",
+        "type": "string",
+        "description": "Text preview of message."
+      },
+      "MessageText": {
+        "title": "MessageText",
+        "type": "string",
+        "description": "Plain text body of message."
+      },
+      "MessageHtml": {
+        "title": "MessageHtml",
+        "type": "string",
+        "description": "HTML body of message."
+      },
+      "MessageAttachments": {
+        "title": "MessageAttachments",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Attachment"
+        },
+        "description": "Attachments in message."
+      },
+      "MessageInReplyTo": {
+        "title": "MessageInReplyTo",
+        "type": "string",
+        "description": "ID of message being replied to."
+      },
+      "MessageReferences": {
+        "title": "MessageReferences",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "IDs of previous messages in thread."
+      },
+      "MessageHeaders": {
+        "title": "MessageHeaders",
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Headers in message."
+      },
+      "MessageSize": {
+        "title": "MessageSize",
+        "type": "integer",
+        "description": "Size of message in bytes."
+      },
+      "MessageUpdatedAt": {
+        "title": "MessageUpdatedAt",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which message was last updated."
+      },
+      "MessageCreatedAt": {
+        "title": "MessageCreatedAt",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which message was created."
+      },
+      "MessageItem": {
+        "title": "MessageItem",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "labels": {
+            "$ref": "#/components/schemas/MessageLabels"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/MessageTimestamp"
+          },
+          "from": {
+            "$ref": "#/components/schemas/MessageFrom"
+          },
+          "to": {
+            "$ref": "#/components/schemas/MessageTo"
+          },
+          "cc": {
+            "$ref": "#/components/schemas/MessageCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/MessageBcc",
+            "nullable": true
+          },
+          "subject": {
+            "$ref": "#/components/schemas/MessageSubject",
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/MessagePreview",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/MessageAttachments",
+            "nullable": true
+          },
+          "in_reply_to": {
+            "$ref": "#/components/schemas/MessageInReplyTo",
+            "nullable": true
+          },
+          "references": {
+            "$ref": "#/components/schemas/MessageReferences",
+            "nullable": true
+          },
+          "headers": {
+            "$ref": "#/components/schemas/MessageHeaders",
+            "nullable": true
+          },
+          "size": {
+            "$ref": "#/components/schemas/MessageSize"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/MessageUpdatedAt"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/MessageCreatedAt"
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "message_id",
+          "labels",
+          "timestamp",
+          "from",
+          "to",
+          "size",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "Message": {
+        "title": "Message",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "labels": {
+            "$ref": "#/components/schemas/MessageLabels"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/MessageTimestamp"
+          },
+          "from": {
+            "$ref": "#/components/schemas/MessageFrom"
+          },
+          "reply_to": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "Reply-to addresses. In format `username@domain.com` or `Display Name <username@domain.com>`."
+          },
+          "to": {
+            "$ref": "#/components/schemas/MessageTo"
+          },
+          "cc": {
+            "$ref": "#/components/schemas/MessageCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/MessageBcc",
+            "nullable": true
+          },
+          "subject": {
+            "$ref": "#/components/schemas/MessageSubject",
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/MessagePreview",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/MessageText",
+            "nullable": true
+          },
+          "html": {
+            "$ref": "#/components/schemas/MessageHtml",
+            "nullable": true
+          },
+          "extracted_text": {
+            "type": "string",
+            "nullable": true,
+            "description": "Extracted new text content."
+          },
+          "extracted_html": {
+            "type": "string",
+            "nullable": true,
+            "description": "Extracted new HTML content."
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/MessageAttachments",
+            "nullable": true
+          },
+          "in_reply_to": {
+            "$ref": "#/components/schemas/MessageInReplyTo",
+            "nullable": true
+          },
+          "references": {
+            "$ref": "#/components/schemas/MessageReferences",
+            "nullable": true
+          },
+          "headers": {
+            "$ref": "#/components/schemas/MessageHeaders",
+            "nullable": true
+          },
+          "size": {
+            "$ref": "#/components/schemas/MessageSize"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/MessageUpdatedAt"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/MessageCreatedAt"
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "message_id",
+          "labels",
+          "timestamp",
+          "from",
+          "to",
+          "size",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "ListMessagesResponse": {
+        "title": "ListMessagesResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Limit",
+            "nullable": true
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageItem"
+            },
+            "description": "Ordered by `timestamp` descending."
+          }
+        },
+        "required": [
+          "count",
+          "messages"
+        ]
+      },
+      "Addresses": {
+        "title": "Addresses",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "SendMessageReplyTo": {
+        "title": "SendMessageReplyTo",
+        "$ref": "#/components/schemas/Addresses",
+        "description": "Reply-to address or addresses."
+      },
+      "SendMessageTo": {
+        "title": "SendMessageTo",
+        "$ref": "#/components/schemas/Addresses",
+        "description": "Recipient address or addresses."
+      },
+      "SendMessageCc": {
+        "title": "SendMessageCc",
+        "$ref": "#/components/schemas/Addresses",
+        "description": "CC recipient address or addresses."
+      },
+      "SendMessageBcc": {
+        "title": "SendMessageBcc",
+        "$ref": "#/components/schemas/Addresses",
+        "description": "BCC recipient address or addresses."
+      },
+      "SendMessageAttachments": {
+        "title": "SendMessageAttachments",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SendAttachment"
+        },
+        "description": "Attachments to include in message."
+      },
+      "SendMessageHeaders": {
+        "title": "SendMessageHeaders",
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Headers to include in message."
+      },
+      "SendMessageRequest": {
+        "title": "SendMessageRequest",
+        "type": "object",
+        "properties": {
+          "labels": {
+            "$ref": "#/components/schemas/MessageLabels",
+            "nullable": true
+          },
+          "reply_to": {
+            "$ref": "#/components/schemas/SendMessageReplyTo",
+            "nullable": true
+          },
+          "to": {
+            "$ref": "#/components/schemas/SendMessageTo",
+            "nullable": true
+          },
+          "cc": {
+            "$ref": "#/components/schemas/SendMessageCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/SendMessageBcc",
+            "nullable": true
+          },
+          "subject": {
+            "$ref": "#/components/schemas/MessageSubject",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/MessageText",
+            "nullable": true
+          },
+          "html": {
+            "$ref": "#/components/schemas/MessageHtml",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/SendMessageAttachments",
+            "nullable": true
+          },
+          "headers": {
+            "$ref": "#/components/schemas/SendMessageHeaders",
+            "nullable": true
+          }
+        }
+      },
+      "SendMessageResponse": {
+        "title": "SendMessageResponse",
+        "type": "object",
+        "properties": {
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          }
+        },
+        "required": [
+          "message_id",
+          "thread_id"
+        ]
+      },
+      "ReplyAll": {
+        "title": "ReplyAll",
+        "type": "boolean",
+        "description": "Reply to all recipients of the original message."
+      },
+      "ReplyToMessageRequest": {
+        "title": "ReplyToMessageRequest",
+        "type": "object",
+        "properties": {
+          "labels": {
+            "$ref": "#/components/schemas/MessageLabels",
+            "nullable": true
+          },
+          "reply_to": {
+            "$ref": "#/components/schemas/SendMessageReplyTo",
+            "nullable": true
+          },
+          "to": {
+            "$ref": "#/components/schemas/SendMessageTo",
+            "nullable": true
+          },
+          "cc": {
+            "$ref": "#/components/schemas/SendMessageCc",
+            "nullable": true
+          },
+          "bcc": {
+            "$ref": "#/components/schemas/SendMessageBcc",
+            "nullable": true
+          },
+          "reply_all": {
+            "$ref": "#/components/schemas/ReplyAll",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/MessageText",
+            "nullable": true
+          },
+          "html": {
+            "$ref": "#/components/schemas/MessageHtml",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/SendMessageAttachments",
+            "nullable": true
+          },
+          "headers": {
+            "$ref": "#/components/schemas/SendMessageHeaders",
+            "nullable": true
+          }
+        }
+      },
+      "ReplyAllMessageRequest": {
+        "title": "ReplyAllMessageRequest",
+        "type": "object",
+        "properties": {
+          "labels": {
+            "$ref": "#/components/schemas/MessageLabels",
+            "nullable": true
+          },
+          "reply_to": {
+            "$ref": "#/components/schemas/SendMessageReplyTo",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/MessageText",
+            "nullable": true
+          },
+          "html": {
+            "$ref": "#/components/schemas/MessageHtml",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/SendMessageAttachments",
+            "nullable": true
+          },
+          "headers": {
+            "$ref": "#/components/schemas/SendMessageHeaders",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateMessageRequest": {
+        "title": "UpdateMessageRequest",
+        "type": "object",
+        "properties": {
+          "add_labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "Labels to add to message."
+          },
+          "remove_labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "Labels to remove from message."
+          }
+        }
+      },
+      "MetricEventType": {
+        "title": "MetricEventType",
+        "type": "string",
+        "enum": [
+          "message.sent",
+          "message.delivered",
+          "message.bounced",
+          "message.delayed",
+          "message.rejected",
+          "message.complained",
+          "message.received"
+        ],
+        "description": "Type of metric event."
+      },
+      "MetricTimestamp": {
+        "title": "MetricTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp when the metric event occurred."
+      },
+      "MetricEventTypes": {
+        "title": "MetricEventTypes",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/MetricEventType"
+        },
+        "description": "List of metric event types to filter by."
+      },
+      "MetricStartTimestamp": {
+        "title": "MetricStartTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Start timestamp for the metrics query range."
+      },
+      "MetricEndTimestamp": {
+        "title": "MetricEndTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "End timestamp for the metrics query range."
+      },
+      "MessageMetrics": {
+        "title": "MessageMetrics",
+        "type": "object",
+        "properties": {
+          "sent": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricTimestamp"
+            },
+            "nullable": true,
+            "description": "Timestamps when messages were sent."
+          },
+          "delivered": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricTimestamp"
+            },
+            "nullable": true,
+            "description": "Timestamps when messages were delivered."
+          },
+          "bounced": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricTimestamp"
+            },
+            "nullable": true,
+            "description": "Timestamps when messages bounced."
+          },
+          "delayed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricTimestamp"
+            },
+            "nullable": true,
+            "description": "Timestamps when messages were delayed."
+          },
+          "rejected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricTimestamp"
+            },
+            "nullable": true,
+            "description": "Timestamps when messages were rejected."
+          },
+          "complained": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricTimestamp"
+            },
+            "nullable": true,
+            "description": "Timestamps when messages received complaints."
+          },
+          "received": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricTimestamp"
+            },
+            "nullable": true,
+            "description": "Timestamps when messages were received."
+          }
+        }
+      },
+      "ListMetricsResponse": {
+        "title": "ListMetricsResponse",
+        "type": "object",
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/MessageMetrics",
+            "nullable": true,
+            "description": "Message metrics grouped by event type."
+          }
+        }
+      },
+      "Organization": {
+        "title": "Organization",
+        "type": "object",
+        "description": "Organization details with usage limits and counts.",
+        "properties": {
+          "organization_id": {
+            "$ref": "#/components/schemas/OrganizationId"
+          },
+          "inbox_count": {
+            "type": "integer",
+            "description": "Current number of inboxes."
+          },
+          "domain_count": {
+            "type": "integer",
+            "description": "Current number of domains."
+          },
+          "inbox_limit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Maximum number of inboxes allowed."
+          },
+          "domain_limit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Maximum number of domains allowed."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which organization was last updated."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which organization was created."
+          }
+        },
+        "required": [
+          "organization_id",
+          "inbox_count",
+          "domain_count",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "ThreadId": {
+        "title": "ThreadId",
+        "type": "string",
+        "description": "ID of thread."
+      },
+      "ThreadLabels": {
+        "title": "ThreadLabels",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Labels of thread."
+      },
+      "ThreadTimestamp": {
+        "title": "ThreadTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of last sent or received message."
+      },
+      "ThreadReceivedTimestamp": {
+        "title": "ThreadReceivedTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of last received message."
+      },
+      "ThreadSentTimestamp": {
+        "title": "ThreadSentTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of last sent message."
+      },
+      "ThreadSenders": {
+        "title": "ThreadSenders",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Senders in thread. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "ThreadRecipients": {
+        "title": "ThreadRecipients",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Recipients in thread. In format `username@domain.com` or `Display Name <username@domain.com>`."
+      },
+      "ThreadSubject": {
+        "title": "ThreadSubject",
+        "type": "string",
+        "description": "Subject of thread."
+      },
+      "ThreadPreview": {
+        "title": "ThreadPreview",
+        "type": "string",
+        "description": "Text preview of last message in thread."
+      },
+      "ThreadAttachments": {
+        "title": "ThreadAttachments",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Attachment"
+        },
+        "description": "Attachments in thread."
+      },
+      "ThreadLastMessageId": {
+        "title": "ThreadLastMessageId",
+        "type": "string",
+        "description": "ID of last message in thread."
+      },
+      "ThreadMessageCount": {
+        "title": "ThreadMessageCount",
+        "type": "integer",
+        "description": "Number of messages in thread."
+      },
+      "ThreadSize": {
+        "title": "ThreadSize",
+        "type": "integer",
+        "description": "Size of thread in bytes."
+      },
+      "ThreadUpdatedAt": {
+        "title": "ThreadUpdatedAt",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which thread was last updated."
+      },
+      "ThreadCreatedAt": {
+        "title": "ThreadCreatedAt",
+        "type": "string",
+        "format": "date-time",
+        "description": "Time at which thread was created."
+      },
+      "ThreadItem": {
+        "title": "ThreadItem",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "labels": {
+            "$ref": "#/components/schemas/ThreadLabels"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/ThreadTimestamp"
+          },
+          "received_timestamp": {
+            "$ref": "#/components/schemas/ThreadReceivedTimestamp",
+            "nullable": true
+          },
+          "sent_timestamp": {
+            "$ref": "#/components/schemas/ThreadSentTimestamp",
+            "nullable": true
+          },
+          "senders": {
+            "$ref": "#/components/schemas/ThreadSenders"
+          },
+          "recipients": {
+            "$ref": "#/components/schemas/ThreadRecipients"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/ThreadSubject",
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ThreadPreview",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/ThreadAttachments",
+            "nullable": true
+          },
+          "last_message_id": {
+            "$ref": "#/components/schemas/ThreadLastMessageId"
+          },
+          "message_count": {
+            "$ref": "#/components/schemas/ThreadMessageCount"
+          },
+          "size": {
+            "$ref": "#/components/schemas/ThreadSize"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/ThreadUpdatedAt"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/ThreadCreatedAt"
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "labels",
+          "timestamp",
+          "senders",
+          "recipients",
+          "last_message_id",
+          "message_count",
+          "size",
+          "updated_at",
+          "created_at"
+        ]
+      },
+      "Thread": {
+        "title": "Thread",
+        "type": "object",
+        "properties": {
+          "inbox_id": {
+            "$ref": "#/components/schemas/inboxesInboxId"
+          },
+          "thread_id": {
+            "$ref": "#/components/schemas/ThreadId"
+          },
+          "labels": {
+            "$ref": "#/components/schemas/ThreadLabels"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/ThreadTimestamp"
+          },
+          "received_timestamp": {
+            "$ref": "#/components/schemas/ThreadReceivedTimestamp",
+            "nullable": true
+          },
+          "sent_timestamp": {
+            "$ref": "#/components/schemas/ThreadSentTimestamp",
+            "nullable": true
+          },
+          "senders": {
+            "$ref": "#/components/schemas/ThreadSenders"
+          },
+          "recipients": {
+            "$ref": "#/components/schemas/ThreadRecipients"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/ThreadSubject",
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ThreadPreview",
+            "nullable": true
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/ThreadAttachments",
+            "nullable": true
+          },
+          "last_message_id": {
+            "$ref": "#/components/schemas/ThreadLastMessageId"
+          },
+          "message_count": {
+            "$ref": "#/components/schemas/ThreadMessageCount"
+          },
+          "size": {
+            "$ref": "#/components/schemas/ThreadSize"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/ThreadUpdatedAt"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/ThreadCreatedAt"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            },
+            "description": "Messages in thread. Ordered by `timestamp` ascending."
+          }
+        },
+        "required": [
+          "inbox_id",
+          "thread_id",
+          "labels",
+          "timestamp",
+          "senders",
+          "recipients",
+          "last_message_id",
+          "message_count",
+          "size",
+          "updated_at",
+          "created_at",
+          "messages"
+        ]
+      },
+      "ListThreadsResponse": {
+        "title": "ListThreadsResponse",
+        "type": "object",
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/Count"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Limit",
+            "nullable": true
+          },
+          "next_page_token": {
+            "$ref": "#/components/schemas/PageToken",
+            "nullable": true
+          },
+          "threads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThreadItem"
+            },
+            "description": "Ordered by `timestamp` descending."
+          }
+        },
+        "required": [
+          "count",
+          "threads"
+        ]
+      },
+      "webhooksSvixId": {
+        "title": "webhooksSvixId",
+        "type": "string",
+        "description": "ID of webhook message."
+      },
+      "webhooksSvixTimestamp": {
+        "title": "webhooksSvixTimestamp",
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of webhook message."
+      },
+      "webhooksSvixSignature": {
+        "title": "webhooksSvixSignature",
+        "type": "string",
+        "description": "Signature of webhook message."
+      },
+      "Subscribe": {
+        "title": "Subscribe",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "subscribe"
+          },
+          "event_types": {
+            "$ref": "#/components/schemas/EventTypes",
+            "nullable": true
+          },
+          "inbox_ids": {
+            "$ref": "#/components/schemas/InboxIds",
+            "nullable": true
+          },
+          "pod_ids": {
+            "$ref": "#/components/schemas/PodIds",
+            "nullable": true
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "Subscribed": {
+        "title": "Subscribed",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "subscribed"
+          },
+          "event_types": {
+            "$ref": "#/components/schemas/EventTypes",
+            "nullable": true
+          },
+          "inbox_ids": {
+            "$ref": "#/components/schemas/InboxIds",
+            "nullable": true
+          },
+          "pod_ids": {
+            "$ref": "#/components/schemas/PodIds",
+            "nullable": true
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

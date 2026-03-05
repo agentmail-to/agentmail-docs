@@ -1,4 +1,4 @@
-name: Sync to Stainless
+name: Sync OpenAPI spec
 
 on:
   push:
@@ -24,15 +24,10 @@ jobs:
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
 
-      - name: Push to Stainless
+      - name: Commit spec
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           SPEC_FILE=$(find openapi -name "openapi.*" -type f | head -1)
-          jq -n --arg spec "$(cat "$SPEC_FILE")" \
-            '{project: "agentmail", branch: "main", revision: {"openapi.json": {content: $spec}}}' \
-            > /tmp/stainless-body.json
-          curl -sf -X POST "https://api.stainless.com/v0/builds" \
-            -H "Authorization: Bearer $STAINLESS_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d @/tmp/stainless-body.json
-        env:
-          STAINLESS_API_KEY: ${{ secrets.STAINLESS_API_KEY }}
+          git add "$SPEC_FILE"
+          git diff --staged --quiet || git commit -m "chore: update openapi spec" && git push

@@ -2,4 +2,3 @@
 **/.preview/
 **/generated/
 .DS_Store
-*-openapi.json
