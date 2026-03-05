@@ -13,7 +13,7 @@ imports:
 types:
   InboxId:
     type: string
-    docs: The ID of the inbox.
+    docs: ID of inbox.
 
   DisplayName:
     type: string
