@@ -245,7 +245,10 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
         console.log("Email sent successfully!");
       }
 
-      main();
+      main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
       ```
     </CodeBlocks>
     <Note>
