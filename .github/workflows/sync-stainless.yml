@@ -1,0 +1,44 @@
+name: Sync to Stainless
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "fern/definition/**"
+      - "fern/generators.yml"
+      - "fern/api.yml"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Install Fern
+        run: npm install -g fern-api
+
+      - name: Install Stainless CLI
+        run: go install github.com/stainless-api/stainless-api-cli/cmd/stl@latest
+
+      - name: Generate OpenAPI spec
+        run: fern generate --group openapi --local
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+
+      - name: Push to Stainless
+        run: |
+          SPEC_FILE=$(find openapi -name "openapi.*" -type f | head -1)
+          SPEC_CONTENT=$(python3 -c "import sys,json; print(json.dumps(open('$SPEC_FILE').read()))")
+          stl builds create \
+            --project agentmail \
+            --branch main \
+            --revision "openapi.json: {content: $SPEC_CONTENT}"
+        env:
+          STAINLESS_API_KEY: ${{ secrets.STAINLESS_API_KEY }}
