@@ -27,10 +27,12 @@ jobs:
       - name: Push to Stainless
         run: |
           SPEC_FILE=$(find openapi -name "openapi.*" -type f | head -1)
-          SPEC_CONTENT=$(python3 -c "import sys,json; print(json.dumps({'openapi.json': {'content': open('$SPEC_FILE').read()}}))")
+          jq -n --arg spec "$(cat "$SPEC_FILE")" \
+            '{project: "agentmail", branch: "main", revision: {"openapi.json": {content: $spec}}}' \
+            > /tmp/stainless-body.json
           curl -sf -X POST "https://api.stainless.com/v0/builds" \
             -H "Authorization: Bearer $STAINLESS_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"project\": \"agentmail\", \"branch\": \"main\", \"revision\": $SPEC_CONTENT}"
+            -d @/tmp/stainless-body.json
         env:
           STAINLESS_API_KEY: ${{ secrets.STAINLESS_API_KEY }}
