@@ -6,6 +6,7 @@ navigation:
   - drafts.yml
   - domains.yml
   - lists.yml
+  - api-keys.yml
 
 imports:
   global: ../__package__.yml
