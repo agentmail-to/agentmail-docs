@@ -1,0 +1,64 @@
+---
+tags: ["webhooks", "enhancement"]
+---
+
+## Summary
+
+**Update Webhook subscriptions** -- modify which inboxes and pods a webhook listens to without recreating it. Add or remove inbox and pod IDs on an existing webhook so agents can adjust event filtering on the fly.
+
+### What's new?
+
+**New endpoint:**
+- `PATCH /webhooks/{webhook_id}` - Update a webhook's inbox and pod subscriptions
+
+**Parameters:**
+- `add_inbox_ids` - Inbox IDs to subscribe to the webhook
+- `remove_inbox_ids` - Inbox IDs to unsubscribe from the webhook
+- `add_pod_ids` - Pod IDs to subscribe to the webhook
+- `remove_pod_ids` - Pod IDs to unsubscribe from the webhook
+
+**Clarifications:**
+- Inbox and pod ID limits are now documented as maximum 10 per webhook
+
+### Use cases
+
+Build agents that:
+- Dynamically subscribe new inboxes to an existing webhook as they are created
+- Remove inboxes from a webhook when they are no longer needed
+- Rotate pod subscriptions without deleting and recreating the webhook
+- Scale event filtering as your agent's scope changes
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# add a new inbox to an existing webhook
+webhook = client.webhooks.update(
+    webhook_id="wh_abc123",
+    add_inbox_ids=["support@example.com"],
+    remove_pod_ids=["old-pod-id"]
+)
+
+print(f"Updated webhook: {webhook.webhook_id}")
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// add a new inbox to an existing webhook
+const webhook = await client.webhooks.update("wh_abc123", {
+  addInboxIds: ["support@example.com"],
+  removePodIds: ["old-pod-id"],
+});
+
+console.log(`Updated webhook: ${webhook.webhookId}`);
+```
+</CodeBlocks>
+
+<Note>
+  Learn more about configuring webhooks in the [Webhooks overview](https://docs.agentmail.to/webhooks/webhooks-overview).
+</Note>
