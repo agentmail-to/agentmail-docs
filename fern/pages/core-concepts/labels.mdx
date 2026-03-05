@@ -142,6 +142,70 @@ console.log(`Found ${filteredThreads.count} threads that need a follow-up.`);
 
 </CodeBlocks>
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Labels usage in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Labels — copy into Cursor/Claude.
+
+  Labels are string tags on Messages and Threads for state, campaigns, triage.
+
+  - Send: messages.send(..., labels=["campaign", "follow-up"])
+  - Update: inboxes.messages.update(inbox_id, message_id, add_labels=[...], remove_labels=[...])
+  - Filter: messages.list(inbox_id, labels=[...]), threads.list(inbox_id, labels=[...]), drafts.list(inbox_id, labels=[...])
+
+  Use kebab-case or snake_case consistently.
+  """
+  from agentmail import AgentMail
+
+  client = AgentMail(api_key="YOUR_API_KEY")
+
+  # Send with labels
+  client.inboxes.messages.send("out@agentmail.to", to="user@example.com", subject="Hi", text="Body", labels=["q4-campaign"])
+
+  # Update labels
+  client.inboxes.messages.update("out@agentmail.to", "msg_123", add_labels=["resolved"], remove_labels=["pending"])
+
+  # Filter by labels
+  threads = client.inboxes.threads.list("out@agentmail.to", labels=["q4-campaign", "follow-up"])
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Labels — copy into Cursor/Claude.
+   *
+   * Labels are string tags on Messages and Threads for state, campaigns, triage.
+   *
+   * - Send: messages.send(inboxId, { ..., labels: ["campaign", "follow-up"] })
+   * - Update: messages.update(inboxId, messageId, { addLabels: [...], removeLabels: [...] })
+   * - Filter: messages.list(inboxId, { labels: [...] }), threads.list(inboxId, { labels: [...] }), drafts.list(inboxId, { labels: [...] })
+   *
+   * Use kebab-case or camelCase consistently.
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+  async function main() {
+    await client.inboxes.messages.send("out@agentmail.to", {
+      to: "user@example.com",
+      subject: "Hi",
+      text: "Body",
+      labels: ["q4-campaign"],
+    });
+    await client.inboxes.messages.update("out@agentmail.to", "msg_123", {
+      addLabels: ["resolved"],
+      removeLabels: ["pending"],
+    });
+    const threads = await client.inboxes.threads.list("out@agentmail.to", { labels: ["q4-campaign", "follow-up"] });
+  }
+  main();
+  ```
+</CodeBlocks>
+
 ## Best Practices
 
 - **Be Consistent:** Establish a clear and consistent naming convention for your labels (e.g., `kebab-case`, `snake_case`).

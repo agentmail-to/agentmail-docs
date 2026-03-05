@@ -370,3 +370,54 @@ main();
 ```
 
 ---
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail WebSockets — copy into Cursor/Claude. Real-time events, no public URL needed.
+
+  Sync: with client.websockets.connect() as socket: socket.send_subscribe(Subscribe(inbox_ids=[...])); for event in socket: ...
+  Async: async with client.websockets.connect() as socket: await socket.send_subscribe(...); async for event in socket: ...
+  Subscribe(inbox_ids=[...], pod_ids=[...], event_types=[...])
+  Event types: Subscribed, MessageReceivedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent
+  """
+  from agentmail import AgentMail, Subscribe, Subscribed, MessageReceivedEvent
+
+  client = AgentMail(api_key="YOUR_API_KEY")
+  with client.websockets.connect() as socket:
+    socket.send_subscribe(Subscribe(inbox_ids=["agent@agentmail.to"]))
+    for event in socket:
+      if isinstance(event, Subscribed): print(event.inbox_ids)
+      elif isinstance(event, MessageReceivedEvent): print(event.message.subject)
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail WebSockets — copy into Cursor/Claude. Real-time events, no public URL.
+   *
+   * const socket = await client.websockets.connect();
+   * socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: [...] }));
+   * socket.on("message", (e) => { if (e.type === "subscribed") ...; if (e.type === "message_received") ... });
+   * socket.on("close" | "error", ...);
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+  async function main() {
+    const socket = await client.websockets.connect();
+    socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: ["agent@agentmail.to"] }));
+    socket.on("message", (e) => {
+      if (e.type === "subscribed") console.log(e.inboxIds);
+      if (e.type === "message_received") console.log(e.message.subject);
+    });
+  }
+  main().catch(console.error);
+  ```
+</CodeBlocks>
+
+---

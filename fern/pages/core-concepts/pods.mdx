@@ -96,6 +96,61 @@ This gives you a unified view of all activity within a customer's workspace, mak
 - "List all threads across all of Customer Y's team inboxes"
 - "Display all pending drafts for Customer Z"
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Pods API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Pods — copy into Cursor/Claude. Multi-tenant isolation.
+
+  API reference:
+  - pods.create(client_id?) — client_id for idempotent mapping to your tenant IDs
+  - pods.get(pod_id), pods.list(limit?, page_token?), pods.delete(pod_id)
+  - pods.inboxes.list(pod_id, ...), pods.inboxes.create(pod_id, ...), pods.inboxes.delete(pod_id, inbox_id)
+  - pods.domains.list(pod_id, ...), pods.domains.create(pod_id, ...), pods.domains.delete(pod_id, domain_id)
+  - pods.threads.list(pod_id, ...), pods.drafts.list(pod_id, ...)
+
+  Delete order: inboxes + domains first, then pod. Deleting inbox/domain cascades to messages/threads.
+  """
+  from agentmail import AgentMail
+
+  client = AgentMail(api_key="YOUR_API_KEY")
+
+  pod = client.pods.create(client_id="tenant-acme-1")
+  inboxes = client.pods.inboxes.list(pod.pod_id)
+  inbox = client.pods.inboxes.create(pod.pod_id, username="support", display_name="Support")
+  threads = client.pods.threads.list(pod.pod_id, limit=20)
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Pods — copy into Cursor/Claude. Multi-tenant isolation.
+   *
+   * API reference:
+   * - pods.create({ clientId? })
+   * - pods.get(podId), pods.list({ limit?, pageToken? }), pods.delete(podId)
+   * - pods.inboxes.list(podId, ...), pods.inboxes.create(podId, ...), pods.inboxes.delete(podId, inboxId)
+   * - pods.domains.list(podId, ...), pods.domains.create(podId, ...), pods.domains.delete(podId, domainId)
+   * - pods.threads.list(podId, ...), pods.drafts.list(podId, ...)
+   *
+   * Delete order: inboxes + domains first, then pod.
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+  async function main() {
+    const pod = await client.pods.create({ clientId: "tenant-acme-1" });
+    const inboxes = await client.pods.inboxes.list(pod.podId);
+    const inbox = await client.pods.inboxes.create(pod.podId, { username: "support", displayName: "Support" });
+    const threads = await client.pods.threads.list(pod.podId, { limit: 20 });
+  }
+  main();
+  ```
+</CodeBlocks>
+
 ## Important Considerations
 
 ### Pod Deletion Constraints

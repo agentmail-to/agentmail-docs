@@ -95,6 +95,72 @@ def handle_webhook(payload: dict):
 ```
 </CodeBlocks>
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for webhook event parsing in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Webhook Events — copy into Cursor/Claude.
+
+  Parse typed events: MessageReceivedEvent (has message+thread), MessageSentEvent (send), MessageBouncedEvent (bounce),
+  MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint), MessageRejectedEvent (reject), DomainVerifiedEvent (domain).
+  Only message.received includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
+  """
+  from agentmail import (
+    MessageReceivedEvent, MessageSentEvent, MessageBouncedEvent,
+    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent,
+  )
+
+  def handle(payload: dict):
+    t = payload.get("event_type")
+    if t == "message.received": e = MessageReceivedEvent(**payload); print(e.message.subject, e.thread.message_count)
+    elif t == "message.sent": e = MessageSentEvent(**payload); print(e.send.recipients)
+    elif t == "message.bounced": e = MessageBouncedEvent(**payload); print(e.bounce.type)
+    elif t == "message.delivered": e = MessageDeliveredEvent(**payload)
+    elif t == "message.complained": e = MessageComplainedEvent(**payload)
+    elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
+    elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Webhook Events — copy into Cursor/Claude.
+   *
+   * Parse with serialization.events.MessageReceivedEvent.parse(payload), etc.
+   * Only message.received has message+thread; others have send/delivery/bounce/complaint/reject/domain.
+   */
+  import { serialization } from "agentmail";
+
+  async function handle(payload: Record<string, unknown>) {
+    const t = payload.event_type;
+    if (t === "message.received") {
+      const e = await serialization.events.MessageReceivedEvent.parse(payload);
+      console.log(e.message.subject, e.thread.messageCount);
+    } else if (t === "message.sent") {
+      const e = await serialization.events.MessageSentEvent.parse(payload);
+      console.log(e.send.recipients);
+    } else if (t === "message.bounced") {
+      const e = await serialization.events.MessageBouncedEvent.parse(payload);
+      console.log(e.bounce.type);
+    } else if (t === "message.delivered") {
+      const e = await serialization.events.MessageDeliveredEvent.parse(payload);
+      console.log(e.delivery);
+    } else if (t === "message.complained") {
+      const e = await serialization.events.MessageComplainedEvent.parse(payload);
+      console.log(e.complaint);
+    } else if (t === "message.rejected") {
+      const e = await serialization.events.MessageRejectedEvent.parse(payload);
+      console.log(e.reject);
+    } else if (t === "domain.verified") {
+      const e = await serialization.events.DomainVerifiedEvent.parse(payload);
+      console.log(e.domain);
+    }
+  }
+  ```
+</CodeBlocks>
+
 ## Message Events
 
 ### `message.received`

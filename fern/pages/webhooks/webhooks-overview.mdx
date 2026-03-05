@@ -122,6 +122,73 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
   - **`attachments`** (`array<object>`): A list of attachments, each with its own `attachment_id`, `filename`, `content_type`, `size`, and `inline` status.
   - **`in_reply_to`** (`string`): The `message_id` of the email this message is a reply to, if applicable.
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Webhooks API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Webhooks — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+  Return 200 immediately; process payload in background.
+
+  API reference:
+  - webhooks.create(url, events?, inbox_ids?, pod_ids?, client_id?)
+  - webhooks.get(webhook_id), webhooks.list(limit?, page_token?)
+  - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?)
+  - webhooks.delete(webhook_id)
+
+  Events: message.received, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+  Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
+  """
+  import os
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  wh = client.webhooks.create(url="https://your-server.com/webhooks", events=["message.received"], client_id="my-webhook-v1")
+  all_wh = client.webhooks.list()
+  secret = client.webhooks.get(wh.webhook_id).secret
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Webhooks — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   * Return 200 immediately; process payload in background.
+   *
+   * API reference:
+   * - webhooks.create({ url, eventTypes?, inboxIds?, podIds?, clientId? })
+   * - webhooks.get(webhookId), webhooks.list({ limit?, pageToken? })
+   * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds? })
+   * - webhooks.delete(webhookId)
+   *
+   * Events: message.received, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+   * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const wh = await client.webhooks.create({
+      url: "https://your-server.com/webhooks",
+      eventTypes: ["message.received"],
+      clientId: "my-webhook-v1",
+    });
+    const allWh = await client.webhooks.list();
+    const secret = (await client.webhooks.get(wh.webhookId)).secret;
+  }
+  main();
+  ```
+</CodeBlocks>
+
 ## Next Steps
 
 <CardGroup>
