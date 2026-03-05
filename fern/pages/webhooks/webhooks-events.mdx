@@ -144,8 +144,19 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     } else if (t === "message.bounced") {
       const e = await serialization.events.MessageBouncedEvent.parse(payload);
       console.log(e.bounce.type);
+    } else if (t === "message.delivered") {
+      const e = await serialization.events.MessageDeliveredEvent.parse(payload);
+      console.log(e.delivery);
+    } else if (t === "message.complained") {
+      const e = await serialization.events.MessageComplainedEvent.parse(payload);
+      console.log(e.complaint);
+    } else if (t === "message.rejected") {
+      const e = await serialization.events.MessageRejectedEvent.parse(payload);
+      console.log(e.reject);
+    } else if (t === "domain.verified") {
+      const e = await serialization.events.DomainVerifiedEvent.parse(payload);
+      console.log(e.domain);
     }
-    // message.delivered, message.complained, message.rejected, domain.verified similar
   }
   ```
 </CodeBlocks>
