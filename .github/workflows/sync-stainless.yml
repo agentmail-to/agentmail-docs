@@ -1,6 +1,7 @@
 name: Sync OpenAPI spec
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,6 +9,9 @@ on:
       - "fern/definition/**"
       - "fern/generators.yml"
       - "fern/api.yml"
+
+permissions:
+  contents: write
 
 jobs:
   sync:
