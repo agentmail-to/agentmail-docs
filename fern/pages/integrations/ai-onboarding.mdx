@@ -1,0 +1,290 @@
+---
+title: AI Onboarding
+subtitle: Everything you need to onboard your AI agent to AgentMail
+slug: ai-onboarding
+description: >-
+  Resources for AI coding assistants, MCP servers, skills, and agent-friendly documentation.
+---
+
+<llms-only>
+> Everything you need to onboard your AI agent to AgentMail — the email platform built for AI agents.
+</llms-only>
+
+If you're developing with AI, AgentMail offers several resources to improve your experience.
+
+- [AgentMail MCP Server](#agentmail-mcp-server)
+- [AgentMail Docs for Agents](#agentmail-docs-for-agents)
+- [AgentMail Skills](#agentmail-skills)
+- [Quick Start for Agents](#quick-start-for-agents)
+- [AI Builder Integrations](#ai-builder-integrations)
+
+## Prerequisite: Create an API Key
+
+You'll need a human to create an AgentMail account at [console.agentmail.to](https://console.agentmail.to). Once you have an account, create an API key from the dashboard. With an API key, your agent can create inboxes, send and receive emails, manage threads, and more.
+
+<Info>
+  AgentMail's free tier includes 3 inboxes and 3,000 emails/month — no credit card required. Your agent can start building immediately.
+</Info>
+
+## AgentMail MCP Server
+
+MCP (Model Context Protocol) is an open protocol that standardizes how applications provide context to LLMs. The AgentMail MCP server gives your AI agent tools to create inboxes, send emails, manage threads, and more.
+
+### Setup
+
+Add this to your MCP client configuration (Claude Code, Cursor, Codex, etc.):
+
+```json
+{
+  "mcpServers": {
+    "AgentMail": {
+      "command": "npx",
+      "args": ["-y", "agentmail-mcp"],
+      "env": {
+        "AGENTMAIL_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+You can selectively enable specific tools using the `--tools` argument:
+
+```json
+{
+  "mcpServers": {
+    "AgentMail": {
+      "command": "npx",
+      "args": ["-y", "agentmail-mcp", "--tools", "get_message,send_message,reply_to_message"],
+      "env": {
+        "AGENTMAIL_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+| Tool | Description |
+| -- | -- |
+| `create_inbox` | Create a new email inbox for an agent |
+| `list_inboxes` | List all inboxes in your account |
+| `get_inbox` | Get details of a specific inbox |
+| `delete_inbox` | Delete an inbox |
+| `send_message` | Send an email from an agent inbox |
+| `reply_to_message` | Reply to an email in a thread |
+| `forward_message` | Forward an email |
+| `update_message` | Update message labels or status |
+| `list_threads` | List email threads in an inbox |
+| `get_thread` | Get a full email thread with messages |
+| `get_attachment` | Download an email attachment |
+
+<Card title="MCP Server on GitHub" icon="fa-brands fa-github" href="https://github.com/agentmail-to/agentmail-mcp">
+  View the source code, contribute, or report issues.
+</Card>
+
+## AgentMail Docs for Agents
+
+You can give your agent current docs in three ways:
+
+1. **Full documentation index**
+
+   A structured index of every doc page with descriptions:
+
+   ```
+   https://docs.agentmail.to/llms.txt
+   ```
+2. **Complete docs in one file**
+
+   Every doc page concatenated into a single file for full context:
+
+   ```
+   https://docs.agentmail.to/llms-full.txt
+   ```
+3. **Markdown versions of any page**
+
+   Every doc page is available as Markdown. Append `.md` to any page URL:
+
+   ```
+   https://docs.agentmail.to/quickstart.md
+   ```
+
+## AgentMail Skills
+
+Skills give AI agents specialized knowledge for specific tasks. Install the AgentMail skill to give your coding assistant full email capabilities:
+
+### Claude Code
+
+```bash
+claude-code skills install agentmail-to/agentmail-skills/agentmail
+```
+
+### Cursor
+
+```bash
+cursor skills install agentmail-to/agentmail-skills/agentmail
+```
+
+### Codex
+
+```bash
+codex skills install agentmail-to/agentmail-skills/agentmail
+```
+
+### Manual Installation
+
+```bash
+git clone https://github.com/agentmail-to/agentmail-skills.git ~/.skills/agentmail
+```
+
+Then set your API key:
+
+```bash
+export AGENTMAIL_API_KEY="your-api-key-here"
+```
+
+<Card title="Skills on GitHub" icon="fa-brands fa-github" href="https://github.com/agentmail-to/agentmail-skills">
+  View the skill source and full documentation.
+</Card>
+
+## Quick Start for Agents
+
+Create an inbox and send your first email in a few lines:
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="am_...")
+inbox = client.inboxes.create(display_name="My AI Agent")
+print(f"Agent email: {inbox.inbox_id}")
+
+# Send an email
+client.inboxes.messages.send(
+    inbox.inbox_id,
+    to="user@example.com",
+    subject="Hello from my AI agent",
+    text="Hi! I'm an AI agent with my own email address."
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+const inbox = await client.inboxes.create({ displayName: "My AI Agent" });
+console.log(`Agent email: ${inbox.inboxId}`);
+
+// Send an email
+await client.inboxes.messages.send(inbox.inboxId, {
+    to: "user@example.com",
+    subject: "Hello from my AI agent",
+    text: "Hi! I'm an AI agent with my own email address."
+});
+```
+
+</CodeBlocks>
+
+### Receive and reply to emails
+
+<CodeBlocks>
+
+```python title="Python"
+# List threads in the inbox
+threads = client.inboxes.threads.list(inbox_id=inbox.inbox_id)
+
+# Get the latest thread
+thread = client.inboxes.threads.get(
+    inbox_id=inbox.inbox_id,
+    thread_id=threads.threads[0].thread_id
+)
+
+# Reply to the latest message
+latest_message = thread.messages[-1]
+client.inboxes.messages.reply(
+    inbox_id=inbox.inbox_id,
+    message_id=latest_message.message_id,
+    to=[latest_message.from_],
+    text="Thanks for your email! I'll look into this."
+)
+```
+
+```typescript title="TypeScript"
+// List threads in the inbox
+const threads = await client.inboxes.threads.list(inbox.inboxId);
+
+// Get the latest thread
+const thread = await client.inboxes.threads.get(
+    inbox.inboxId,
+    threads.threads[0].threadId
+);
+
+// Reply to the latest message
+const latestMessage = thread.messages[thread.messages.length - 1];
+await client.inboxes.messages.reply(
+    inbox.inboxId,
+    latestMessage.messageId,
+    { to: [latestMessage.from], text: "Thanks for your email! I'll look into this." }
+);
+```
+
+</CodeBlocks>
+
+## AI Builder Integrations
+
+AgentMail integrates with popular AI development platforms:
+
+<CardGroup cols={2}>
+  <Card title="Replit" icon="fa-solid fa-code" href="/integrations/replit">
+    Build email agents on Replit with our template.
+  </Card>
+
+  <Card title="LiveKit" icon="fa-solid fa-microphone" href="/integrate-livekit-agents">
+    Add email to LiveKit voice agents.
+  </Card>
+
+  <Card title="OpenClaw" icon="fa-solid fa-robot" href="/integrations/openclaw">
+    Use AgentMail with OpenClaw agents.
+  </Card>
+
+  <Card title="WebSockets" icon="fa-solid fa-bolt" href="/websockets">
+    Real-time email events without webhooks.
+  </Card>
+</CardGroup>
+
+## What Makes AgentMail Different?
+
+Unlike traditional email APIs (SendGrid, Resend, Mailgun) that are built for one-way transactional email, AgentMail is built for **two-way agent communication**:
+
+| Feature | AgentMail | Traditional Email APIs |
+| -- | -- | -- |
+| Per-agent inboxes | ✅ Create thousands via API | ❌ Shared sending domains |
+| Receive & parse emails | ✅ Native with threads | ⚠️ Limited or add-on |
+| Threaded conversations | ✅ First-class API support | ❌ Not supported |
+| Allowlists/blocklists | ✅ Per-inbox controls | ❌ Not available |
+| Multi-tenant (Pods) | ✅ Built-in isolation | ❌ Build it yourself |
+| WebSocket events | ✅ Real-time streaming | ❌ Webhooks only |
+| IMAP/SMTP access | ✅ Full protocol support | ❌ API-only |
+| Usage-based pricing | ✅ Pay per email | ❌ Per-inbox subscriptions |
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Full Quickstart Guide" icon="fa-solid fa-rocket" href="/quickstart">
+    Step-by-step setup with environment variables and best practices.
+  </Card>
+
+  <Card title="API Reference" icon="fa-solid fa-code" href="/api-reference">
+    Full interactive API documentation.
+  </Card>
+
+  <Card title="Example: Auto-Reply Agent" icon="fa-solid fa-bolt" href="/examples/auto-reply-agent">
+    Build an agent that responds to emails in real-time.
+  </Card>
+
+  <Card title="FAQ" icon="fa-solid fa-book" href="/resources/faq">
+    Answers to common questions about email, deliverability, and agent patterns.
+  </Card>
+</CardGroup>
