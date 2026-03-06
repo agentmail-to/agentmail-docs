@@ -19,6 +19,7 @@ service:
       method: GET
       path: ""
       display-name: List Drafts
+      docs: Retrieves all saved email drafts in a specific inbox that haven't been sent yet.
       request:
         name: ListDraftsRequest
         query-parameters:
@@ -36,6 +37,7 @@ service:
       method: GET
       path: /{draft_id}
       display-name: Get Draft
+      docs: Retrieves the content and metadata of a specific email draft for editing or review.
       path-parameters:
         draft_id: drafts.DraftId
       response: drafts.Draft
@@ -57,6 +59,7 @@ service:
       method: POST
       path: ""
       display-name: Create Draft
+      docs: Creates a new email draft with recipient, subject, and body content that can be edited before sending.
       request: drafts.CreateDraftRequest
       response: drafts.Draft
       errors:
@@ -66,6 +69,7 @@ service:
       method: PATCH
       path: /{draft_id}
       display-name: Update Draft
+      docs: Updates the content or recipients of an existing draft before it is sent.
       path-parameters:
         draft_id: drafts.DraftId
       request: drafts.UpdateDraftRequest
@@ -77,6 +81,7 @@ service:
       method: POST
       path: /{draft_id}/send
       display-name: Send Draft
+      docs: Converts a draft into a sent message, delivering it to the specified recipients.
       path-parameters:
         draft_id: drafts.DraftId
       request: messages.UpdateMessageRequest
@@ -90,6 +95,7 @@ service:
       method: DELETE
       path: /{draft_id}
       display-name: Delete Draft
+      docs: Permanently removes a draft from the inbox without sending it.
       path-parameters:
         draft_id: drafts.DraftId
       errors:
