@@ -1,32 +1,28 @@
 ---
-tags: ["webhooks", "enhancement"]
+tags: ["pods-api", "new-feature"]
 ---
 
 ## Summary
 
-**Update Webhook subscriptions** -- modify which inboxes and pods a webhook listens to without recreating it. Add or remove inbox and pod IDs on an existing webhook so agents can adjust event filtering on the fly.
+**Pod-scoped API keys** — create API keys that are restricted to a single pod. A pod-scoped key can only access resources within its pod, so multi-tenant platforms can issue narrower credentials per tenant instead of sharing an organization-wide key.
 
 ### What's new?
 
-**New endpoint:**
-- `PATCH /webhooks/{webhook_id}` - Update a webhook's inbox and pod subscriptions
+**New endpoints:**
+- `POST /pods/{pod_id}/api-keys` - Create an API key scoped to a pod
+- `GET /pods/{pod_id}/api-keys` - List API keys for a pod
+- `DELETE /pods/{pod_id}/api-keys/{api_key}` - Delete a pod-scoped API key
 
-**Parameters:**
-- `add_inbox_ids` - Inbox IDs to subscribe to the webhook
-- `remove_inbox_ids` - Inbox IDs to unsubscribe from the webhook
-- `add_pod_ids` - Pod IDs to subscribe to the webhook
-- `remove_pod_ids` - Pod IDs to unsubscribe from the webhook
-
-**Clarifications:**
-- Inbox and pod ID limits are now documented as maximum 10 per webhook
+**New field:**
+- `pod_id` on API key objects — indicates the pod the key is scoped to. When set, the key can only access resources within that pod.
 
 ### Use cases
 
 Build agents that:
-- Dynamically subscribe new inboxes to an existing webhook as they are created
-- Remove inboxes from a webhook when they are no longer needed
-- Rotate pod subscriptions without deleting and recreating the webhook
-- Scale event filtering as your agent's scope changes
+- Issue per-tenant API keys so each customer's agent only accesses its own pod
+- Rotate credentials at the pod level without affecting other tenants
+- Enforce least-privilege access in multi-tenant platforms
+- Audit API key usage per pod
 
 <CodeBlocks>
 ```python title="Python"
@@ -34,14 +30,15 @@ from agentmail import AgentMail
 
 client = AgentMail(api_key="your-api-key")
 
-# add a new inbox to an existing webhook
-webhook = client.webhooks.update(
-    webhook_id="wh_abc123",
-    add_inbox_ids=["support@example.com"],
-    remove_pod_ids=["old-pod-id"]
+# create an api key scoped to a pod
+response = client.pods.api_keys.create(
+    pod_id="pod_abc123",
+    name="tenant-agent-key"
 )
 
-print(f"Updated webhook: {webhook.webhook_id}")
+# use the scoped key — it can only access this pod's resources
+scoped_client = AgentMail(api_key=response.api_key)
+inboxes = scoped_client.inboxes.list()
 ```
 
 ```typescript title="TypeScript"
@@ -49,16 +46,17 @@ import { AgentMail } from "agentmail";
 
 const client = new AgentMail({ apiKey: "your-api-key" });
 
-// add a new inbox to an existing webhook
-const webhook = await client.webhooks.update("wh_abc123", {
-  addInboxIds: ["support@example.com"],
-  removePodIds: ["old-pod-id"],
+// create an api key scoped to a pod
+const response = await client.pods.apiKeys.create("pod_abc123", {
+  name: "tenant-agent-key",
 });
 
-console.log(`Updated webhook: ${webhook.webhookId}`);
+// use the scoped key — it can only access this pod's resources
+const scopedClient = new AgentMail({ apiKey: response.apiKey });
+const inboxes = await scopedClient.inboxes.list();
 ```
 </CodeBlocks>
 
 <Note>
-  Learn more about configuring webhooks in the [Webhooks overview](https://docs.agentmail.to/webhooks/webhooks-overview).
+  Learn more about multi-tenant isolation in the [Pods](https://docs.agentmail.to/core-concepts/pods) documentation.
 </Note>
