@@ -138,6 +138,7 @@ service:
           ascending: optional<global.Ascending>
           include_spam: optional<global.IncludeSpam>
           include_blocked: optional<global.IncludeBlocked>
+          include_trash: optional<global.IncludeTrash>
       response: ListThreadsResponse
       errors:
         - global.NotFoundError
