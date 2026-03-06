@@ -44,17 +44,17 @@ The process is straightforward:
         ```python
         client.webhooks.create(
             url="https://<your-ngrok-url>.ngrok-free.app/webhooks",
-            events=["message.received", "message.sent"],
+            event_types=["message.received", "message.sent"],
         )
         ```
         ```typescript
         await client.webhooks.create({
             url: "https://<your-ngrok-url>.ngrok-free.app/webhooks",
-            events: ["message.received", "message.sent"],
+            eventTypes: ["message.received", "message.sent"],
         });
         ```
         </CodeBlocks>
-        Specify which events to receive; omit `events` to subscribe to all event types.
+        Specify which events to receive; omit `event_types` to subscribe to all event types.
     </Step>
     <Step title="3. AgentMail Sends Events">
         When an event occurs (e.g. a new message is received, a message is delivered, or a domain is verified), AgentMail sends a `POST` request with a JSON payload to your registered URL.
@@ -135,7 +135,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   Return 200 immediately; process payload in background.
 
   API reference:
-  - webhooks.create(url, events?, inbox_ids?, pod_ids?, client_id?)
+  - webhooks.create(url, event_types?, inbox_ids?, pod_ids?, client_id?)
   - webhooks.get(webhook_id), webhooks.list(limit?, page_token?)
   - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?)
   - webhooks.delete(webhook_id)
@@ -150,7 +150,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   load_dotenv()
   client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
-  wh = client.webhooks.create(url="https://your-server.com/webhooks", events=["message.received"], client_id="my-webhook-v1")
+  wh = client.webhooks.create(url="https://your-server.com/webhooks", event_types=["message.received"], client_id="my-webhook-v1")
   all_wh = client.webhooks.list()
   secret = client.webhooks.get(wh.webhook_id).secret
   ```

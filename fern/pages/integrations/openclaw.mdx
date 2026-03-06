@@ -216,7 +216,7 @@ curl -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://your-openclaw-webhook-url",
-    "events": ["message.received"]
+    "event_types": ["message.received"]
   }' \
   https://api.agentmail.to/v0/webhooks
 ```
