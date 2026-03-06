@@ -1,0 +1,126 @@
+---
+title: "How do I manage threaded conversations?"
+subtitle: Maintain context across multi-turn email conversations with your agent.
+slug: knowledge-base/threaded-conversations
+---
+
+Threads are how AgentMail organizes conversations. Every time your agent sends a new email, a thread is created. Replies are automatically grouped into the same thread, giving your agent full conversation context.
+
+## How threads work
+
+1. Your agent sends an email, and a new thread is created automatically
+2. The recipient replies, and the reply is added to the same thread
+3. Your agent replies back, and it is added to the same thread
+4. The full conversation history stays organized in one place
+
+You never need to create threads manually. AgentMail handles threading automatically using standard email headers (`Message-ID`, `In-Reply-To`, `References`).
+
+## Listing threads
+
+### Per inbox
+
+```python
+threads = client.inboxes.threads.list(
+    inbox_id="agent@agentmail.to"
+)
+
+for t in threads.threads:
+    print(f"Thread: {t.subject} ({t.message_count} messages)")
+```
+
+### Across your entire organization
+
+```python
+# Get all threads from every inbox in your organization
+all_threads = client.threads.list()
+```
+
+This org-wide query is useful for building supervisor agents that monitor conversations across a fleet of other agents, analytics dashboards, or routing systems that escalate conversations between agents.
+
+## Getting a full thread
+
+Retrieve a thread by its ID to access all messages in the conversation:
+
+```python
+thread = client.threads.get(thread_id="thread_abc123")
+
+for message in thread.messages:
+    print(f"From: {message.from_}")
+    print(f"Subject: {message.subject}")
+    print(f"Body: {message.text}")
+```
+
+## Replying in a thread
+
+To continue a conversation, reply to the most recent message in the thread:
+
+```python
+# Get the thread and find the latest message
+thread = client.threads.get(thread_id="thread_abc123")
+last_message = thread.messages[-1]
+
+# Reply to continue the conversation
+client.inboxes.messages.reply(
+    inbox_id="agent@agentmail.to",
+    message_id=last_message.message_id,
+    text="Thanks for your message! Here's what I found...",
+    html="<p>Thanks for your message! Here's what I found...</p>"
+)
+```
+
+<Note>
+Always provide both `text` and `html` when sending replies. This ensures readability across all email clients and improves deliverability.
+</Note>
+
+## Handling quoted text in replies
+
+When people reply to emails, their email client often includes the entire previous conversation as quoted text. AgentMail provides `extracted_text` and `extracted_html` fields on received messages, which contain only the new reply content without the quoted history.
+
+```python
+# Use extracted_text to get only the new content
+new_content = message.extracted_text
+
+# Falls back to full text if extraction isn't available
+content = message.extracted_text or message.text
+```
+
+This prevents your agent from re-processing the entire conversation history on every reply.
+
+## Using labels to track conversation state
+
+Combine threads with labels to manage your agent's workflow. For example, you can track which threads need a reply:
+
+```python
+# Find threads that need a reply
+unreplied = client.inboxes.threads.list(
+    inbox_id="agent@agentmail.to",
+    labels=["unreplied"]
+)
+
+for thread in unreplied.threads:
+    thread_detail = client.threads.get(thread.thread_id)
+    last_message = thread_detail.messages[-1]
+    
+    # Process and reply
+    reply_text = your_agent.process(last_message)
+    client.inboxes.messages.reply(
+        inbox_id="agent@agentmail.to",
+        message_id=last_message.message_id,
+        text=reply_text
+    )
+    
+    # Update labels
+    client.inboxes.messages.update(
+        inbox_id="agent@agentmail.to",
+        message_id=last_message.message_id,
+        add_labels=["replied"],
+        remove_labels=["unreplied"]
+    )
+```
+
+## Tips
+
+- Use threads to maintain context in multi-turn conversations, so your agent can reference what was said earlier
+- Query org-wide threads with `client.threads.list()` to build dashboards or route conversations between agents
+- Use labels like `unreplied`, `replied`, `escalated`, and `resolved` to track conversation state
+- Always reply to the **last message** in a thread to keep email headers correct

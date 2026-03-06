@@ -1,0 +1,107 @@
+---
+title: "How do I handle inbound emails with my agent?"
+subtitle: Compare webhooks, WebSockets, and polling for processing incoming emails.
+slug: knowledge-base/handling-inbound-emails
+---
+
+AgentMail offers two ways to process incoming emails, each suited to different use cases.
+
+## 1. Webhooks (Recommended for Production)
+
+Configure a webhook URL and AgentMail will send a POST request to your endpoint whenever an email arrives. This is the most reliable approach for production applications.
+
+```python
+from flask import Flask, request
+from agentmail import AgentMail
+
+app = Flask(__name__)
+client = AgentMail()
+
+@app.route("/webhooks", methods=["POST"])
+def handle_webhook():
+    payload = request.json
+    
+    if payload["event_type"] == "message.received":
+        message = payload["message"]
+        
+        # Your agent processes the email here
+        reply_text = your_agent.process(message)
+        
+        # Reply in the same thread
+        client.inboxes.messages.reply(
+            inbox_id=message["inbox_id"],
+            message_id=message["message_id"],
+            text=reply_text
+        )
+    
+    return "OK", 200
+```
+
+Register your webhook via the API:
+
+```python
+client.webhooks.create(
+    url="https://your-domain.ngrok-free.app/webhooks",
+    events=["message.received"],
+)
+```
+
+<Note>
+Always return a `200 OK` immediately and process the webhook in the background. If your endpoint takes too long to respond, AgentMail will retry delivery. Also, filter out `message.sent` events to prevent your agent from replying to its own messages in a loop.
+</Note>
+
+For local development, use [ngrok](https://ngrok.com) to expose your local server. See the [Webhook Setup Guide](/webhook-setup) for full instructions.
+
+## 2. WebSockets (Best for Real-Time, No Public URL)
+
+Stream email events over a persistent connection. No public URL or ngrok needed, which makes this ideal for local development and desktop agents.
+
+```python
+import asyncio
+from agentmail import AsyncAgentMail, Subscribe, Subscribed, MessageReceivedEvent
+
+client = AsyncAgentMail()
+
+async def main():
+    async with client.websockets.connect() as socket:
+        await socket.send_subscribe(Subscribe(
+            inbox_ids=["agent@agentmail.to"]
+        ))
+
+        async for event in socket:
+            if isinstance(event, Subscribed):
+                print(f"Subscribed to: {event.inbox_ids}")
+            elif isinstance(event, MessageReceivedEvent):
+                print(f"New email from: {event.message.from_}")
+                print(f"Subject: {event.message.subject}")
+
+asyncio.run(main())
+```
+
+The SDK also provides a synchronous client if you prefer:
+
+```python
+from agentmail import AgentMail, Subscribe, MessageReceivedEvent
+
+client = AgentMail()
+
+with client.websockets.connect() as socket:
+    socket.send_subscribe(Subscribe(
+        inbox_ids=["agent@agentmail.to"]
+    ))
+
+    for event in socket:
+        if isinstance(event, MessageReceivedEvent):
+            print(f"New email from: {event.message.from_}")
+```
+
+See the [WebSocket Overview](/websockets) for more details.
+
+## Which should I use?
+
+| Method | Best for | Requires public URL? | Real-time? |
+| --- | --- | --- | --- |
+| Webhooks | Production applications | Yes | Yes |
+| WebSockets | Local dev, desktop agents | No | Yes |
+
+For most production use cases, **webhooks** are recommended. They are reliable, event-driven, and integrate well with serverless platforms. If you need real-time events without exposing a public URL, **WebSockets** are the best option.

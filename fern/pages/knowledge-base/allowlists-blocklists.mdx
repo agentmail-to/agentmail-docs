@@ -1,0 +1,91 @@
+---
+title: "How do I set up allowlists and blocklists?"
+subtitle: Control who your AI agent can send to and receive from.
+slug: knowledge-base/allowlists-blocklists
+---
+
+Allowlists and blocklists let you control who your AI agent can communicate with. This is a critical safety feature for autonomous agents running in production with minimal human oversight.
+
+## How Lists work
+
+AgentMail provides four list types based on two dimensions, **direction** (send or receive) and **type** (allow or block):
+
+| List | What it does |
+| --- | --- |
+| Receive allow | Only accept emails from these addresses or domains |
+| Receive block | Reject emails from these addresses or domains |
+| Send allow | Only send emails to these addresses or domains |
+| Send block | Prevent sending emails to these addresses or domains |
+
+Each entry can be either a full email address (e.g., `partner@example.com`) or an entire domain (e.g., `example.com`).
+
+## Setting up lists via the SDK
+
+### Add an entry
+
+```python
+from agentmail import AgentMail
+
+client = AgentMail()
+
+# Allow receiving from a specific domain
+client.lists.create("receive", "allow", entry="trusted-corp.com")
+
+# Block a specific sender (with optional reason)
+client.lists.create("receive", "block", entry="spam@example.com", reason="spam")
+
+# Restrict sending to only certain addresses
+client.lists.create("send", "allow", entry="verified-prospect@example.com")
+
+# Prevent sending to a domain
+client.lists.create("send", "block", entry="competitor.com")
+```
+
+### List entries
+
+```python
+# View all entries in a list
+entries = client.lists.list("receive", "allow")
+```
+
+### Remove an entry
+
+```python
+client.lists.delete("receive", "block", entry="spam@example.com")
+```
+
+## Common patterns for agents
+
+**Outreach agent:** Use a send allowlist to restrict your agent to only email verified prospects. This prevents the agent from accidentally emailing the wrong people.
+
+```python
+# Only allow sending to verified prospects
+for prospect in verified_prospects:
+    client.lists.create("send", "allow", entry=prospect.email)
+```
+
+**Support agent:** Use a receive allowlist to restrict your agent to only respond to emails from customer domains.
+
+```python
+# Only accept emails from customer domains
+client.lists.create("receive", "allow", entry="customer-a.com")
+client.lists.create("receive", "allow", entry="customer-b.com")
+```
+
+**Anti-spam:** Use a receive blocklist to filter out known spam senders or unwanted automated emails.
+
+```python
+# Block known spam domains
+client.lists.create("receive", "block", entry="spam-domain.com", reason="spam")
+```
+
+## Why this matters for agents
+
+Without guardrails, an autonomous agent could email the wrong people, respond to phishing attempts, or get caught in infinite email loops with another bot. Lists are your safety rails. They are especially important for:
+
+- **Production agents** operating with minimal human oversight
+- **Outreach agents** that should only contact approved recipients
+- **Support agents** that should only respond to known customers
+- **Any agent** that needs protection from spam, phishing, or abuse
+
+For more details on the Lists API, see the [Lists core concept](/lists) documentation.

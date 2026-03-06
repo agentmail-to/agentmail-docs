@@ -1,0 +1,68 @@
+---
+title: "DNS Guide: GoDaddy"
+subtitle: Step-by-step instructions for adding AgentMail DNS records in GoDaddy.
+slug: knowledge-base/dns-godaddy
+---
+
+## Steps
+
+1. Log in to your [GoDaddy account](https://www.godaddy.com)
+2. Go to **My Products**, find your domain, and click **DNS**
+3. Scroll down to the **DNS Records** section
+4. Click **Add** to create each record AgentMail requires
+
+## Adding a TXT Record (SPF)
+
+| Field | Value |
+| --- | --- |
+| Type | `TXT` |
+| Name | `@` (or your subdomain) |
+| Value | The SPF value from AgentMail (e.g., `v=spf1 include:agentmail.to ~all`) |
+| TTL | `1 Hour` |
+
+<Warning>
+GoDaddy automatically wraps TXT values in double quotes, so do **not** add your own quotes around the value. If you do, the record will end up double-quoted and fail validation. Also, if you already have an SPF record, add `include:agentmail.to` to the existing record rather than creating a second one.
+</Warning>
+
+## Adding a CNAME Record (DKIM)
+
+| Field | Value |
+| --- | --- |
+| Type | `CNAME` |
+| Name | The DKIM selector from AgentMail (e.g., `agentmail._domainkey`) |
+| Value | The DKIM target from AgentMail |
+| TTL | `1 Hour` |
+
+<Warning>
+GoDaddy automatically appends your domain to the Name field. Enter only the subdomain portion. For example, enter `agentmail._domainkey`, not `agentmail._domainkey.yourdomain.com`.
+</Warning>
+
+## Adding an MX Record (Receiving)
+
+| Field | Value |
+| --- | --- |
+| Type | `MX` |
+| Name | `@` (or your subdomain) |
+| Value | The MX target from AgentMail |
+| Priority | `10` |
+| TTL | `1 Hour` |
+
+If you want to receive emails on a subdomain to avoid conflicts with your existing email provider, use the subdomain instead of `@` in the Name field.
+
+## Verification
+
+After adding all records, go back to the [AgentMail Console](https://console.agentmail.to) and click **Verify Domain**.
+
+GoDaddy DNS typically propagates within **15 to 30 minutes**, but it can occasionally take longer. If verification does not succeed right away, wait and try again.
+
+## Common GoDaddy Issues
+
+- **Double-quoted TXT values:** GoDaddy adds quotes around TXT records automatically. If you paste a value that already includes quotes, the final record will be double-quoted and will fail. Paste the raw value without quotes.
+
+- **Name field auto-appends domain:** GoDaddy appends your domain to the Name field. Enter only the subdomain portion (e.g., `agentmail._domainkey`). If you enter the full hostname, it will be duplicated as `agentmail._domainkey.yourdomain.com.yourdomain.com`.
+
+- **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
+
+- **DNS managed elsewhere:** If you have changed your nameservers away from GoDaddy (e.g., to Cloudflare or Route 53), records added in the GoDaddy DNS panel will have no effect. Add records at the provider that controls your nameservers instead.
+
+- **Parked domain or forwarding:** If your domain is parked or has forwarding enabled, GoDaddy may override your MX records. Disable parking and forwarding before setting up email receiving.

@@ -1,0 +1,120 @@
+---
+title: "How do I build a human-in-the-loop workflow?"
+subtitle: Keep humans in control of your agent's email communications.
+slug: knowledge-base/human-in-the-loop
+---
+
+AgentMail provides several mechanisms for keeping humans involved when agents send emails. You can combine these approaches to match the level of oversight your workflow requires.
+
+## 1. CC or BCC a human on every email
+
+The simplest approach: copy a human on every email your agent sends so they have full visibility.
+
+```python
+client.inboxes.messages.send(
+    inbox_id="agent@yourdomain.com",
+    to=["customer@example.com"],
+    cc=["manager@yourcompany.com"],
+    subject="Re: Your request",
+    text="I've processed your refund...",
+    html="<p>I've processed your refund...</p>"
+)
+```
+
+The manager sees every outgoing email and can step in if something looks wrong. Use `bcc` instead of `cc` if you want the oversight to be invisible to the recipient.
+
+## 2. Drafts for review before sending
+
+Use Drafts to let your agent compose emails that a human reviews and approves before they go out. This is ideal for high-stakes emails like contracts, legal communications, or financial matters.
+
+```python
+# Agent composes a draft
+draft = client.inboxes.drafts.create(
+    inbox_id="agent@yourdomain.com",
+    to=["important-client@example.com"],
+    subject="Contract proposal",
+    text="Here is our proposal...",
+    html="<p>Here is our proposal...</p>"
+)
+
+print(f"Draft created: {draft.draft_id}")
+
+# Human reviews the draft, then approves it
+sent_message = client.inboxes.drafts.send(
+    inbox_id="agent@yourdomain.com",
+    draft_id=draft.draft_id
+)
+```
+
+You can also list all pending drafts across your entire organization, which is useful for building a central approval dashboard:
+
+```python
+# List all drafts across every inbox in the organization
+all_drafts = client.drafts.list()
+print(f"{all_drafts.count} drafts pending review")
+```
+
+For more details, see the [Drafts core concept](/drafts) documentation.
+
+## 3. Labels for escalation
+
+Use labels to flag messages that need human attention. Your agent can detect situations it cannot handle and tag them for review.
+
+```python
+# Agent detects a situation that needs human review
+client.inboxes.messages.update(
+    inbox_id="agent@yourdomain.com",
+    message_id=msg.message_id,
+    add_labels=["needs-human-review", "escalation"]
+)
+```
+
+Then build a dashboard or webhook listener that alerts a human when specific labels appear:
+
+```python
+@app.route("/webhooks", methods=["POST"])
+def handle_webhook():
+    payload = request.json
+    if payload["event_type"] == "message.received":
+        message = payload["message"]
+        
+        # Check if agent flagged this for review
+        if "needs-human-review" in message.get("labels", []):
+            notify_human(message)
+    
+    return "OK", 200
+```
+
+## 4. Allowlists as guardrails
+
+Restrict which addresses your agent can email autonomously. For addresses outside the allowlist, route the message through a human approval flow using drafts.
+
+```python
+# Only allow autonomous sending to known customers
+client.lists.create("send", "allow", entry="trusted-customer.com")
+
+# For unknown recipients, create a draft instead of sending directly
+def send_or_draft(inbox_id, to, subject, text, html):
+    # Check if recipient is on the allowlist
+    try:
+        client.lists.get("send", "allow", entry=to)
+        # Recipient is allowed, send directly
+        client.inboxes.messages.send(
+            inbox_id=inbox_id, to=[to],
+            subject=subject, text=text, html=html
+        )
+    except:
+        # Not on allowlist, create draft for human review
+        client.inboxes.drafts.create(
+            inbox_id=inbox_id, to=[to],
+            subject=subject, text=text, html=html
+        )
+```
+
+## Best practices
+
+- **Start with CC + drafts** for new agents until you trust their behavior
+- **Graduate to autonomous sending** for routine emails, and keep drafts for high-value communications
+- **Always have an escalation path:** agents should know when to stop and ask for help
+- **Use labels consistently** across your agents so dashboards and alerting work reliably
+- **Combine approaches:** for example, use allowlists for autonomous sending to known recipients, drafts for unknown recipients, and CC a human on everything during the first week

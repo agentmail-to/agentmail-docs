@@ -1,0 +1,70 @@
+---
+title: "DNS Guide: Namecheap"
+subtitle: Step-by-step instructions for adding AgentMail DNS records in Namecheap.
+slug: knowledge-base/dns-namecheap
+---
+
+## Steps
+
+1. Log in to your [Namecheap account](https://www.namecheap.com)
+2. Go to **Domain List** → click **Manage** next to your domain
+3. Select the **Advanced DNS** tab
+4. Click **Add New Record** for each record AgentMail requires
+
+<Note>
+Make sure your domain is using **Namecheap BasicDNS** or **Namecheap PremiumDNS** as its nameserver. If you've pointed your nameservers to another provider (e.g., Cloudflare), you'll need to add records there instead.
+</Note>
+
+## Adding a TXT Record (SPF)
+
+| Field | Value |
+| --- | --- |
+| Type | `TXT Record` |
+| Host | `@` (or your subdomain) |
+| Value | The SPF value from AgentMail (e.g., `v=spf1 include:agentmail.to ~all`) |
+| TTL | `Automatic` |
+
+<Warning>
+If you already have an SPF record for your domain, do **not** create a second one. Instead, add `include:agentmail.to` to your existing SPF record. Having multiple SPF records will cause validation failures.
+</Warning>
+
+## Adding a CNAME Record (DKIM)
+
+| Field | Value |
+| --- | --- |
+| Type | `CNAME Record` |
+| Host | The DKIM selector from AgentMail (e.g., `agentmail._domainkey`) |
+| Value | The DKIM target from AgentMail |
+| TTL | `Automatic` |
+
+<Warning>
+**Namecheap automatically appends your domain to the Host field.** Enter only the subdomain portion. For example, enter `agentmail._domainkey`, not `agentmail._domainkey.yourdomain.com`.
+</Warning>
+
+## Adding an MX Record (Receiving)
+
+| Field | Value |
+| --- | --- |
+| Type | `MX Record` |
+| Host | `@` (or your subdomain) |
+| Value | The MX target from AgentMail |
+| Priority | `10` |
+| TTL | `Automatic` |
+
+If you want to receive emails on a subdomain to avoid conflicts with your existing email provider, use the subdomain (e.g., `mail`) instead of `@` in the Host field.
+
+## Verification
+
+After adding all records, go back to the [AgentMail Console](https://console.agentmail.to) and click **Verify Domain**.
+
+Namecheap DNS typically propagates within **15 to 30 minutes**, but in some cases it can take up to a few hours. If verification doesn't succeed immediately, wait and try again.
+
+## Common Namecheap Issues
+
+- **Host field auto-appends domain:** Namecheap adds your domain automatically. If your DKIM selector is `agentmail._domainkey`, enter just that, not the full `agentmail._domainkey.yourdomain.com`. If you enter the full value, the actual record will end up as `agentmail._domainkey.yourdomain.com.yourdomain.com`.
+
+- **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
+
+- **Wrong nameserver:** If your domain uses **Custom DNS** nameservers (e.g., pointing to Cloudflare or Route 53), records added in the Namecheap Advanced DNS panel will have no effect. Add your records at the provider that controls your nameservers instead.
+
+- **Propagation delays:** Unlike some providers, Namecheap propagation can take 15 to 30 minutes. If verification fails, wait and retry before troubleshooting further.
