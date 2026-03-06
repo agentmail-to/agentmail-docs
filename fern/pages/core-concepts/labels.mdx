@@ -77,7 +77,7 @@ You can modify the `Labels` on a `Message` that has already been sent using the 
 
 client.messages.update(
 inbox_id='outbound@domain.com',
-message_id='msg_id_123',
+message_id='<abc123@agentmail.to>',
 add_labels=["resolved"],
 remove_labels=['unresolved']
 )
@@ -90,7 +90,7 @@ remove_labels=['unresolved']
 
 await client.inboxes.messages.update(
   "my_inbox@domain.com",
-  "msg_id_123",
+  "<abc123@agentmail.to>",
   {
     addLabels: [
         "resolved"
@@ -167,7 +167,7 @@ Copy one of the blocks below into Cursor or Claude for complete Labels usage in 
   client.inboxes.messages.send("out@agentmail.to", to="user@example.com", subject="Hi", text="Body", labels=["q4-campaign"])
 
   # Update labels
-  client.inboxes.messages.update("out@agentmail.to", "msg_123", add_labels=["resolved"], remove_labels=["pending"])
+  client.inboxes.messages.update("out@agentmail.to", "<abc123@agentmail.to>", add_labels=["resolved"], remove_labels=["pending"])
 
   # Filter by labels
   threads = client.inboxes.threads.list("out@agentmail.to", labels=["q4-campaign", "follow-up"])
@@ -196,7 +196,7 @@ Copy one of the blocks below into Cursor or Claude for complete Labels usage in 
       text: "Body",
       labels: ["q4-campaign"],
     });
-    await client.inboxes.messages.update("out@agentmail.to", "msg_123", {
+    await client.inboxes.messages.update("out@agentmail.to", "<abc123@agentmail.to>", {
       addLabels: ["resolved"],
       removeLabels: ["pending"],
     });

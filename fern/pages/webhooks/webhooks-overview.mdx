@@ -75,7 +75,7 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
     "organization_id": "org_abc123...",
     "inbox_id": "inbox_def456...",
     "thread_id": "thd_ghi789...",
-    "message_id": "msg_jkl012...",
+    "message_id": "<jkl012@agentmail.to>",
     "labels": ["received"],
     "timestamp": "2023-10-27T10:00:00Z",
     "reply_to": ["reply-to@example.com"],
@@ -95,8 +95,8 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
         "inline": false
       }
     ],
-    "in_reply_to": "msg_parent456...",
-    "references": ["msg_ref1...", "msg_ref2..."],
+    "in_reply_to": "<parent456@agentmail.to>",
+    "references": ["<ref001@agentmail.to>", "<ref002@agentmail.to>"],
     "sort_key": "some-sort-key",
     "updated_at": "2023-10-27T10:00:05Z",
     "created_at": "2023-10-27T10:00:00Z"
