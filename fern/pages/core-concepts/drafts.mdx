@@ -232,6 +232,122 @@ for (const draft of scheduled.drafts) {
 - `failed` — The send attempt failed. You can retry by updating `send_at` to a new time.
 </Callout>
 
+### Conditional Follow-Ups
+
+A common pattern is "send a follow-up in 3 days, but only if they haven't replied." You can implement this by scheduling a follow-up `Draft`, then cancelling it via `Webhook` if a reply arrives.
+
+**1. Send the initial email and schedule the follow-up:**
+
+<CodeBlocks>
+```python title="Python"
+from datetime import datetime, timedelta
+
+inbox_id = "outreach@domain.com"
+
+# Send initial email
+initial = client.inboxes.messages.send(
+    inbox_id=inbox_id,
+    to=["prospect@example.com"],
+    subject="Quick question about your workflow",
+    text="Hi, I noticed your team is scaling quickly..."
+)
+
+# Schedule follow-up for 3 days later
+follow_up_time = (datetime.utcnow() + timedelta(days=3)).replace(hour=9, minute=0, second=0)
+
+follow_up = client.inboxes.drafts.create(
+    inbox_id=inbox_id,
+    to=["prospect@example.com"],
+    subject="Re: Quick question about your workflow",
+    text="Hi again — just bumping this in case it got buried...",
+    in_reply_to=initial.message_id,
+    send_at=follow_up_time.isoformat() + "Z"
+)
+
+# Tag the thread so your webhook handler can find the draft
+client.inboxes.threads.update(
+    inbox_id=inbox_id,
+    thread_id=initial.thread_id,
+    add_labels=[f"follow-up:{follow_up.draft_id}"]
+)
+```
+
+```typescript title="TypeScript"
+const inboxId = "outreach@domain.com";
+
+// Send initial email
+const initial = await client.inboxes.messages.send(inboxId, {
+    to: ["prospect@example.com"],
+    subject: "Quick question about your workflow",
+    text: "Hi, I noticed your team is scaling quickly..."
+});
+
+// Schedule follow-up for 3 days later
+const followUpTime = new Date();
+followUpTime.setDate(followUpTime.getDate() + 3);
+followUpTime.setUTCHours(9, 0, 0, 0);
+
+const followUp = await client.inboxes.drafts.create(inboxId, {
+    to: ["prospect@example.com"],
+    subject: "Re: Quick question about your workflow",
+    text: "Hi again — just bumping this in case it got buried...",
+    inReplyTo: initial.messageId,
+    sendAt: followUpTime.toISOString()
+});
+
+// Tag the thread so your webhook handler can find the draft
+await client.inboxes.threads.update(inboxId, initial.threadId, {
+    addLabels: [`follow-up:${followUp.draftId}`]
+});
+```
+</CodeBlocks>
+
+**2. Cancel on reply via webhook:**
+
+When a reply comes in, look for the `follow-up:<draft_id>` label on the thread and delete the draft.
+
+<CodeBlocks>
+```python title="Python"
+# In your webhook handler for "message.received":
+thread = client.inboxes.threads.get(inbox_id=inbox_id, thread_id=thread_id)
+
+for label in thread.labels:
+    if label.startswith("follow-up:"):
+        draft_id = label.split("follow-up:")[1]
+        try:
+            client.inboxes.drafts.delete(inbox_id=inbox_id, draft_id=draft_id)
+        except Exception:
+            pass  # Draft may have already been sent
+        client.inboxes.threads.update(
+            inbox_id=inbox_id, thread_id=thread_id,
+            remove_labels=[label]
+        )
+        break
+```
+
+```typescript title="TypeScript"
+// In your webhook handler for "message.received":
+const thread = await client.inboxes.threads.get(inboxId, threadId);
+
+for (const label of thread.labels) {
+    if (label.startsWith("follow-up:")) {
+        const draftId = label.split("follow-up:")[1];
+        try {
+            await client.inboxes.drafts.delete(inboxId, draftId);
+        } catch {
+            // Draft may have already been sent
+        }
+        await client.inboxes.threads.update(inboxId, threadId, {
+            removeLabels: [label]
+        });
+        break;
+    }
+}
+```
+</CodeBlocks>
+
+If the prospect replies, the follow-up is cancelled. If they don't, it sends automatically at the scheduled time.
+
 ## Org-Wide `Draft` Management
 
 Similar to `Threads`, you can list all `Drafts` across your entire `Organization`. This is perfect for building a central dashboard where a human supervisor can view, approve, or delete any `Draft` created by any agent in your fleet.

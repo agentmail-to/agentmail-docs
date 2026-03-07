@@ -271,9 +271,6 @@ navigation:
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx
-          - page: Scheduled & Conditional Sending
-            icon: fa-solid fa-clock
-            path: pages/guides/scheduled-sending.mdx
           - page: IMAP & SMTP
             icon: fa-solid fa-envelope-open-text
             path: pages/guides/imap-smtp.mdx
