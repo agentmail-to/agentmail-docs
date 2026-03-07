@@ -417,6 +417,12 @@ Here is an example of a well-structured and styled HTML header:
   <img src="../../assets/css-rendered.png" alt="rendered css" />
 </Frame>
 
+## A Note on `text` Availability
+
+The `text` and `preview` fields on a received `Message` are derived from the email's plain-text (`text/plain`) MIME part. Some email clients — particularly Gmail and Outlook — send forwarded emails as HTML-only, with no plain-text part. In these cases, `text` and `preview` will be absent.
+
+When processing incoming messages, always treat `html` as the primary content source and `text` as optional.
+
 ## Receiving `Messages`
 
 While you can periodically list `Messages` to check for new emails, the most efficient way to handle incoming `Messages` for your agents is with `Webhooks`. By configuring a `Webhook` endpoint, AgentMail can notify your application/agent in real-time as soon as a new `Message` arrives, so you can take action on them.
