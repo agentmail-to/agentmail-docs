@@ -145,7 +145,7 @@ Create a `Draft` with the `send_at` field and AgentMail handles the rest. The em
 ```python title="Python"
 from datetime import datetime, timedelta
 
-# Schedule for next business day at 9 AM UTC
+# Schedule for tomorrow at 9 AM UTC
 send_time = (datetime.utcnow() + timedelta(days=1)).replace(hour=9, minute=0, second=0)
 
 client.inboxes.drafts.create(
@@ -159,9 +159,9 @@ client.inboxes.drafts.create(
 ```
 
 ```typescript title="TypeScript"
-// Schedule for next business day at 9 AM UTC
+// Schedule for tomorrow at 9 AM UTC
 const sendTime = new Date();
-sendTime.setDate(sendTime.getDate() + 1);
+sendTime.setUTCDate(sendTime.getUTCDate() + 1);
 sendTime.setUTCHours(9, 0, 0, 0);
 
 await client.inboxes.drafts.create(
