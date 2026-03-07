@@ -32,6 +32,12 @@ By strategically applying `Labels`, you can build sophisticated agent systems. H
     `billing-question`, `feature-request`, or `bug-report`, allowing specialized
     agents or human teams to handle them efficiently.
   </Step>
+  <Step title="Read/Unread Tracking">
+    Use `Labels` to track which `Messages` your agent has already processed.
+    After handling a `Message`, add a `read` label and remove `unread`. Then
+    filter by `labels=["unread"]` to only fetch new messages — preventing your
+    agent from reprocessing the same emails. See [Marking Messages as Read](/messages#marking-messages-as-read) for code examples.
+  </Step>
 </Steps>
 
 ## Core Capabilities

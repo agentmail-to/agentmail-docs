@@ -430,4 +430,48 @@ While you can periodically list `Messages` to check for new emails, the most eff
     Learn how to set up webhooks for real-time message processing.
   </Card>
 </CardGroup>
+
+### Marking Messages as Read
+
+AgentMail doesn't have a dedicated "mark as read" endpoint — instead, you use [Labels](/labels) to track read/unread state. This is a common pattern to prevent your agent from reprocessing the same emails.
+
+<CodeBlocks>
+```python title="Python"
+# Mark a message as read after processing
+client.inboxes.messages.update(
+    inbox_id="agent@agentmail.to",
+    message_id=msg.message_id,
+    add_labels=["read"],
+    remove_labels=["unread"]
+)
+
+# Only fetch unread messages
+unread = client.inboxes.messages.list(
+    inbox_id="agent@agentmail.to",
+    labels=["unread"]
+)
+```
+
+```typescript title="TypeScript"
+// Mark a message as read after processing
+await client.inboxes.messages.update(
+  "agent@agentmail.to",
+  msg.messageId,
+  {
+    addLabels: ["read"],
+    removeLabels: ["unread"],
+  }
+);
+
+// Only fetch unread messages
+const unread = await client.inboxes.messages.list(
+  "agent@agentmail.to",
+  { labels: ["unread"] }
+);
+```
+</CodeBlocks>
+
+<Callout intent="info" title="Avoiding duplicate processing">
+If your agent uses webhooks, mark each message as `read` (or `processed`) immediately after handling it. Then, if your agent restarts or reprocesses, filter by `labels=["unread"]` to skip messages that have already been handled.
+</Callout>
 ````
