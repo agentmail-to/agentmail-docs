@@ -1,0 +1,169 @@
+---
+title: CLI
+subtitle: Manage inboxes and messages from the command line
+slug: cli
+description: Install and use the AgentMail CLI to create inboxes, send emails, and manage messages from your terminal.
+---
+
+The AgentMail CLI provides a command-line interface for managing inboxes and messages. It is useful for scripting, automation, CI/CD pipelines, and quick manual operations without writing SDK code.
+
+## Installation
+
+Install globally via npm, or run directly with `npx`:
+
+```bash
+npm install -g @stepandel/agentmail-cli
+```
+
+Verify the installation:
+
+```bash
+agentmail --version
+```
+
+## Authentication
+
+The CLI requires an API key from the [AgentMail Console](https://console.agentmail.to). Two configuration methods are available:
+
+### Config file (persistent)
+
+```bash
+agentmail config set-key YOUR_API_KEY
+```
+
+This stores the key at `~/.agentmail/config.json` and persists across terminal sessions.
+
+### Environment variable
+
+```bash
+export AGENTMAIL_API_KEY=YOUR_API_KEY
+```
+
+The environment variable takes precedence over the config file when both are set.
+
+### Verify configuration
+
+```bash
+agentmail config show
+```
+
+## Inbox commands
+
+### Create an inbox
+
+```bash
+agentmail inbox create
+```
+
+| Option | Description |
+| --- | --- |
+| `--username <username>` | Username for the inbox email |
+| `--domain <domain>` | Custom domain for the inbox |
+| `--display-name <name>` | Display name for the inbox |
+| `--json` | Output as JSON |
+
+### List inboxes
+
+```bash
+agentmail inbox list
+```
+
+| Option | Description |
+| --- | --- |
+| `--limit <n>` | Maximum number of inboxes to return |
+| `--json` | Output as JSON |
+
+### Get inbox details
+
+```bash
+agentmail inbox get <inbox-id>
+```
+
+### Delete an inbox
+
+```bash
+agentmail inbox delete <inbox-id>
+```
+
+## Message commands
+
+### Send a message
+
+```bash
+agentmail message send \
+  --from <inbox-id> \
+  --to recipient@example.com \
+  --subject "Hello" \
+  --text "Hello from AgentMail CLI"
+```
+
+| Option | Description |
+| --- | --- |
+| `--from <inbox-id>` | Inbox ID to send from |
+| `--to <email>` | Recipient email address(es), comma-separated |
+| `--subject <subject>` | Email subject |
+| `--text <body>` | Plain text body |
+| `--html <body>` | HTML body |
+| `--cc <emails>` | CC recipients, comma-separated |
+| `--bcc <emails>` | BCC recipients, comma-separated |
+| `--json` | Output as JSON |
+
+### List messages
+
+```bash
+agentmail message list <inbox-id>
+```
+
+| Option | Description |
+| --- | --- |
+| `--limit <n>` | Maximum number of messages to return |
+| `--json` | Output as JSON |
+
+### Get a message
+
+```bash
+agentmail message get <inbox-id> <message-id>
+```
+
+### Delete a message
+
+```bash
+agentmail message delete <inbox-id> <message-id>
+```
+
+<Note>
+Deleting a message deletes the entire thread containing that message.
+</Note>
+
+## JSON output
+
+All commands support a `--json` flag for machine-readable output. This is recommended for scripting and automation.
+
+```bash
+agentmail inbox list --json
+```
+
+Parse results with tools like `jq`:
+
+```bash
+agentmail inbox create --json | jq -r '.inboxId'
+```
+
+## Example workflow
+
+Create an inbox, send an email, and check for replies:
+
+```bash
+# create an inbox and capture the ID
+INBOX_ID=$(agentmail inbox create --json | jq -r '.inboxId')
+
+# send an email
+agentmail message send \
+  --from "$INBOX_ID" \
+  --to user@example.com \
+  --subject "Hello" \
+  --text "Hello from AgentMail CLI"
+
+# check for replies
+agentmail message list "$INBOX_ID" --json
+```
