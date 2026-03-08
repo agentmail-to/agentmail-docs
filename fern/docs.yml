@@ -268,6 +268,9 @@ navigation:
           #   path: pages/integrations/crewai.mdx
       - section: Guides
         contents:
+          - page: CLI
+            icon: fa-solid fa-terminal
+            path: pages/guides/cli.mdx
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx
