@@ -1,0 +1,64 @@
+---
+title: Organizations
+subtitle: The top-level container for all your AgentMail resources.
+slug: organizations
+description: Learn how Organizations serve as the root entity that contains all your Inboxes, Domains, and API keys.
+---
+
+## What is an Organization?
+
+An `Organization` is the top-level entity in AgentMail that acts as a container for all your resources. When you sign up for AgentMail, an organization is automatically created for you.
+
+Your organization holds:
+- **Inboxes**: All the email accounts your agents use
+- **Domains**: Custom domains you've configured for sending emails
+- **API Keys**: Credentials for programmatic access
+- **Pods**: Groups of inboxes for organization
+
+## Retrieving Your Organization
+
+You can retrieve your organization details programmatically:
+
+<CodeBlocks>
+
+```python
+from agentmail import AgentMail
+
+# Initialize the client
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# Get your organization details
+org = client.organizations.get()
+
+print(f"Organization ID: {org.organization_id}")
+print(f"Created at: {org.created_at}")
+```
+
+```typescript
+import { AgentMailClient } from "agentmail";
+
+// Initialize the client
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// Get your organization details
+const org = await client.organizations.get();
+
+console.log(`Organization ID: ${org.organizationId}`);
+console.log(`Created at: ${org.createdAt}`);
+```
+
+</CodeBlocks>
+
+## Organization Response
+
+The `get` endpoint returns the following fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `organization_id` | string | Unique identifier for your organization |
+| `created_at` | datetime | When the organization was created |
+| `updated_at` | datetime | When the organization was last updated |
+
+<Tip>
+  We're actively building more organization-level features. Stay tuned for upcoming updates!
+</Tip>
