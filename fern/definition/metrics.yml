@@ -27,11 +27,11 @@ types:
     type: list<MetricEventType>
     docs: List of metric event types to query.
 
-  StartTimestamp:
+  Start:
     type: datetime
     docs: Start timestamp for the query.
 
-  EndTimestamp:
+  End:
     type: datetime
     docs: End timestamp for the query.
 
@@ -39,7 +39,7 @@ types:
     type: string
     docs: Period in number of seconds for the query.
 
-  Limit:
+  MetricLimit:
     type: integer
     docs: Limit on number of buckets to return.
 
@@ -74,10 +74,10 @@ service:
         name: QueryMetricsRequest
         query-parameters:
           event_types: optional<MetricEventTypes>
-          start: optional<StartTimestamp>
-          end: optional<EndTimestamp>
+          start: optional<Start>
+          end: optional<End>
           period: optional<Period>
-          limit: optional<Limit>
+          limit: optional<MetricLimit>
           descending: optional<Descending>
       response: QueryMetricsResponse
       errors:

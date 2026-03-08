@@ -21,10 +21,10 @@ service:
         name: QueryMetricsRequest
         query-parameters:
           event_types: optional<metrics.MetricEventTypes>
-          start: optional<metrics.StartTimestamp>
-          end: optional<metrics.EndTimestamp>
+          start: optional<metrics.Start>
+          end: optional<metrics.End>
           period: optional<metrics.Period>
-          limit: optional<metrics.Limit>
+          limit: optional<metrics.MetricLimit>
           descending: optional<metrics.Descending>
       response: metrics.QueryMetricsResponse
       errors:
