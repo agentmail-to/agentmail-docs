@@ -239,7 +239,7 @@ navigation:
             path: pages/core-concepts/pods.mdx
       - section: Integrations
         contents:
-          - page: AI Onboarding
+          - page: Agent Onboarding
             icon: fa-solid fa-user-plus
             path: pages/integrations/ai-onboarding.mdx
           # - page: Overview
