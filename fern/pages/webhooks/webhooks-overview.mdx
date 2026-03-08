@@ -75,7 +75,7 @@ Omitted content is always available through the API. After receiving a webhook, 
 <CodeBlocks>
 ```python
 # fetch the full message after receiving a webhook
-message = client.messages.get(
+message = client.inboxes.messages.get(
     inbox_id=payload["message"]["inbox_id"],
     message_id=payload["message"]["message_id"],
 )
@@ -84,7 +84,7 @@ html_body = message.html
 ```
 ```typescript
 // fetch the full message after receiving a webhook
-const message = await client.messages.get(
+const message = await client.inboxes.messages.get(
   payload.message.inbox_id,
   payload.message.message_id,
 );
