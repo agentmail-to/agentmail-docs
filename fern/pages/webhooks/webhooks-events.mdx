@@ -175,6 +175,13 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   metadata on other event types by emailing `support@agentmail.cc`
 </Callout>
 
+<Warning>
+  The `text` and `preview` fields may be absent when the original email only
+  contains HTML with no plain-text part. This is common with forwarded emails
+  from clients like Gmail and Outlook. When handling incoming messages, always
+  check for `html` as the primary content source and treat `text` as optional.
+</Warning>
+
 <CodeGroup>
 ```json
 {
