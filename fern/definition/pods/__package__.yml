@@ -7,6 +7,7 @@ navigation:
   - domains.yml
   - lists.yml
   - api-keys.yml
+  - metrics.yml
 
 imports:
   global: ../__package__.yml

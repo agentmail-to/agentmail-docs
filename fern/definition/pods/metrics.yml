@@ -2,14 +2,14 @@
 
 imports:
   global: ../__package__.yml
-  inboxes: __package__.yml
+  pods: __package__.yml
   metrics: ../metrics.yml
 
 service:
   url: Http
-  base-path: /inboxes/{inbox_id}/metrics
+  base-path: /pods/{pod_id}/metrics
   path-parameters:
-    inbox_id: inboxes.InboxId
+    pod_id: pods.PodId
   auth: true
 
   endpoints:
