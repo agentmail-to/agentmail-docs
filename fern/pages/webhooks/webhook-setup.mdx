@@ -288,7 +288,7 @@ For production deployments:
 - **Implement webhook verification**: [Validate incoming requests](/webhook-verification) are authentically from AgentMail
 - **Add error handling**: Implement retry logic and error reporting
 - **Use async processing**: Return 200 immediately and process webhooks in background jobs
-- **Hydrate messages via the API**: Webhook payloads are capped at 1 MB. When this limit is exceeded, the `html` body is omitted from the payload. Use the [Get Message](/api-reference/messages/get) endpoint to fetch the complete message content, including the full HTML body and attachments. See [Payload size limit](/overview#payload-size-limit) for details
+- **Hydrate messages via the API**: Webhook payloads are capped at 1 MB. When this limit is exceeded, the `text` and `html` body fields are omitted from the payload. Use the [Get Message](/api-reference/messages/get) endpoint to fetch the complete message content, including the full body and attachments. See [Payload size limit](/overview#payload-size-limit) for details
 - **Monitor webhook health**: Set up logging and alerting for failed webhook deliveries
 
 <CardGroup>

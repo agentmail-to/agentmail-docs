@@ -68,9 +68,9 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
 
 ### Payload size limit
 
-Webhook payloads are capped at **1 MB**. When a message exceeds this limit, AgentMail omits the `html` field from the webhook payload to reduce size. The `text` field and all metadata are still included. Inline images embedded in the HTML (such as base64-encoded data URIs) count toward the payload size and are a common reason for the limit being reached.
+Webhook payloads are capped at **1 MB**. When a message exceeds this limit, AgentMail omits the `text` and `html` fields from the webhook payload to reduce size. All other metadata is still included. Inline images embedded in the HTML (such as base64-encoded data URIs) count toward the payload size and are a common reason for the limit being reached.
 
-Omitted content is always available through the API. After receiving a webhook, fetch the full message to access the complete `html` body and attachment data:
+Omitted content is always available through the API. After receiving a webhook, fetch the full message to access the complete body and attachment data:
 
 <CodeBlocks>
 ```python
@@ -79,6 +79,7 @@ message = client.messages.get(
     inbox_id=payload["message"]["inbox_id"],
     message_id=payload["message"]["message_id"],
 )
+text_body = message.text
 html_body = message.html
 ```
 ```typescript
@@ -87,6 +88,7 @@ const message = await client.messages.get(
   payload.message.inbox_id,
   payload.message.message_id,
 );
+const textBody = message.text;
 const htmlBody = message.html;
 ```
 </CodeBlocks>
@@ -142,7 +144,7 @@ const htmlBody = message.html;
   - **`labels`** (`array<string>`): Labels associated with the message (e.g., `received`, `sent`).
   - **`subject`** (`string`): The subject line of the email.
   - **`preview`** (`string`): A short plain-text preview of the email body.
-  - **`text`** (`string`): The full plain-text body of the email.
+  - **`text`** (`string`): The plain-text body of the email. May be omitted when the webhook payload exceeds the 1 MB size limit. Fetch the full message via the API if this field is missing.
   - **`html`** (`string`): The HTML body of the email, if present. May be omitted when the webhook payload exceeds the 1 MB size limit. Fetch the full message via the API if this field is missing.
   - **`attachments`** (`array<object>`): A list of attachment metadata, each with its own `attachment_id`, `filename`, `content_type`, `size`, and `inline` status. Attachment content is not included in the webhook payload; download attachments through the API.
   - **`in_reply_to`** (`string`): The `message_id` of the email this message is a reply to, if applicable.
