@@ -134,3 +134,49 @@ For production applications, polling is inefficient. The best way to handle inco
 [**Learn how to set up `Webhooks` →**](/overview)
 
 </Callout>
+
+## Scheduling Emails
+
+Instead of sending immediately, you can schedule emails for a future time—perfect for delivering messages during business hours or spacing out outreach.
+
+Create a `Draft` with the `send_at` field and AgentMail handles the rest. The email is automatically sent at the specified time.
+
+<CodeBlocks>
+```python title="Python"
+from datetime import datetime, timedelta
+
+# Schedule for tomorrow at 9 AM UTC
+send_time = (datetime.utcnow() + timedelta(days=1)).replace(hour=9, minute=0, second=0)
+
+client.inboxes.drafts.create(
+    inbox_id="outreach@agentmail.to",
+    to=["prospect@example.com"],
+    subject="Quick question about your workflow",
+    text="Hi, I noticed you're using...",
+    html="<p>Hi, I noticed you're using...</p>",
+    send_at=send_time.isoformat() + "Z"
+)
+```
+
+```typescript title="TypeScript"
+// Schedule for tomorrow at 9 AM UTC
+const sendTime = new Date();
+sendTime.setUTCDate(sendTime.getUTCDate() + 1);
+sendTime.setUTCHours(9, 0, 0, 0);
+
+await client.inboxes.drafts.create(
+    "outreach@agentmail.to",
+    {
+        to: ["prospect@example.com"],
+        subject: "Quick question about your workflow",
+        text: "Hi, I noticed you're using...",
+        html: "<p>Hi, I noticed you're using...</p>",
+        sendAt: sendTime.toISOString()
+    }
+);
+```
+</CodeBlocks>
+
+<Callout intent="info">
+For more details on scheduled sending—including how to cancel, reschedule, list scheduled drafts, and build conditional follow-up workflows—see the [**Drafts**](/drafts) page.
+</Callout>
