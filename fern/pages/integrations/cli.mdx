@@ -1,0 +1,114 @@
+---
+title: CLI
+subtitle: Manage AgentMail resources from the command line
+slug: integrations/cli
+description: AgentMail's official command-line interface
+---
+
+## Getting started
+
+The AgentMail CLI lets you interact with the AgentMail API directly from your terminal. Create inboxes, send messages, manage threads, and more — all without writing code.
+
+### Installation
+
+Install with npm:
+
+```bash
+npm install -g agentmail-cli
+```
+
+### Authentication
+
+Set your API key as an environment variable:
+
+```bash
+export AGENTMAIL_API_KEY=am_us_xxx
+```
+
+Or pass it directly with the `--api-key` flag. Get your key from the [AgentMail Console](https://console.agentmail.to).
+
+## Usage
+
+Commands follow the pattern:
+
+```bash
+agentmail [resource] <command> [flags...]
+```
+
+Resources can also use colon syntax for subresources:
+
+```bash
+agentmail inboxes:messages send --inbox-id inb_xxx --to user@example.com --subject "Hello" --text "Hi there"
+```
+
+Use `--help` on any command for details.
+
+### Examples
+
+```bash
+# List inboxes
+agentmail inboxes list
+
+# Create an inbox
+agentmail inboxes create --display-name "My Inbox"
+
+# Send a message
+agentmail inboxes:messages send \
+  --inbox-id inb_xxx \
+  --to user@example.com \
+  --subject "Hello" \
+  --text "Hi there"
+
+# List threads
+agentmail inboxes:threads list --inbox-id inb_xxx
+
+# Create a webhook
+agentmail webhooks create \
+  --event-type message.received \
+  --url https://example.com/webhook
+```
+
+## Features
+
+The CLI provides commands for:
+
+- **Inbox management:** Create, list, update, and delete inboxes
+- **Message operations:** Send, reply, forward, and retrieve emails
+- **Thread management:** List and manage email threads
+- **Drafts:** Create, update, send, and delete drafts
+- **Webhooks:** Create and manage webhook endpoints
+- **Domains:** Add and verify custom domains
+- **Pods:** Manage pod resources and their inboxes
+- **API keys:** Create and manage API keys
+
+## Global flags
+
+| Flag | Description |
+| --- | --- |
+| `--api-key` | API key (or set `AGENTMAIL_API_KEY`) |
+| `--format` | Output format: `json`, `yaml`, `pretty`, `raw`, `explore` |
+| `--debug` | Enable debug logging |
+| `--help` | Show help |
+| `--version` | Show version |
+
+## Output formats
+
+Control how results are displayed with the `--format` flag:
+
+- **`json`** — JSON output (default)
+- **`yaml`** — YAML output
+- **`pretty`** — Human-readable formatted output
+- **`raw`** — Raw API response
+- **`explore`** — Interactive explorer
+
+You can also use `--transform` with [GJSON](https://github.com/tidwall/gjson) syntax to query and filter output data.
+
+## AI skill
+
+The CLI is also available as an [AgentSkills](https://skills.sh) skill, allowing AI coding assistants to use it on your behalf. Install it with:
+
+```bash
+openclaw skills install agentmail-to/agentmail-skills/agentmail-cli
+```
+
+This works with any compatible tool, including OpenClaw, Claude Code, Cursor, and Codex. See the [Skills](/integrations/skills) page for more details.

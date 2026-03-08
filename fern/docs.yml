@@ -251,6 +251,9 @@ navigation:
           - page: MCP
             icon: fa-solid fa-plug
             path: pages/integrations/mcp.mdx
+          - page: CLI
+            icon: fa-solid fa-terminal
+            path: pages/integrations/cli.mdx
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
