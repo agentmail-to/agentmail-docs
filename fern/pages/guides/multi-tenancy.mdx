@@ -1,0 +1,292 @@
+---
+title: "Guide: Multi-Tenancy"
+subtitle: "Isolate resources and scope access for each of your customers."
+slug: multi-tenancy
+description: "Learn how to use pods, scoped API keys, and webhook filtering to build a multi-tenant email platform on AgentMail."
+---
+
+This guide walks you through setting up a fully isolated multi-tenant architecture on AgentMail. You'll learn how to create pods for each customer, provision scoped API keys, and route webhook events to the right tenant.
+
+## Prerequisites
+
+- An [AgentMail API Key](https://docs.agentmail.to/quickstart#step-3-create-an-api-key)
+- Familiarity with [Pods](/pods) and [Webhooks](/overview)
+
+## Step 1: Create a Pod for Each Tenant
+
+Every tenant in your system should have its own [Pod](/pods). Pods provide complete resource isolation — inboxes, threads, drafts, and domains are all scoped to the pod they belong to.
+
+<CodeBlocks>
+```python
+from agentmail import AgentMail
+
+client = AgentMail()
+
+# Use client_id to map to your internal tenant ID
+pod = client.pods.create(client_id="tenant-acme-123")
+print(f"Pod created: {pod.pod_id}")
+```
+
+```typescript
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+const pod = await client.pods.create({ clientId: "tenant-acme-123" });
+console.log(`Pod created: ${pod.podId}`);
+```
+</CodeBlocks>
+
+<Tip>
+  Set `client_id` to your internal customer/organization ID. This way you can look up the pod using your own identifier without maintaining a separate mapping table.
+</Tip>
+
+## Step 2: Provision Resources Within the Pod
+
+Create inboxes and domains scoped to the pod.
+
+<CodeBlocks>
+```python
+# Create inboxes for the tenant
+inbox = client.pods.inboxes.create(
+    pod.pod_id,
+    username="support",
+    display_name="Acme Support"
+)
+
+# Create a custom domain for the tenant
+domain = client.pods.domains.create(
+    pod.pod_id,
+    domain="acme.com"
+)
+```
+
+```typescript
+const inbox = await client.pods.inboxes.create(pod.podId, {
+  username: "support",
+  displayName: "Acme Support",
+});
+
+const domain = await client.pods.domains.create(pod.podId, {
+  domain: "acme.com",
+});
+```
+</CodeBlocks>
+
+All resources created under a pod are automatically isolated. Listing inboxes or threads for a pod will only return resources within that pod.
+
+## Step 3: Create Scoped API Keys
+
+Scoped API keys restrict access to a single pod. A scoped key can only read and write resources within the pod it was created for — it cannot access resources in other pods or perform organization-level operations.
+
+This is useful when you want to give a tenant's agent or service direct API access without exposing your entire organization.
+
+<CodeBlocks>
+```python
+# Create an API key scoped to Acme's pod
+scoped_key = client.pods.api_keys.create(
+    pod.pod_id,
+    name="acme-service-key"
+)
+
+print(f"Scoped API key: {scoped_key.api_key}")
+# Store this key securely — it won't be shown again
+```
+
+```typescript
+const scopedKey = await client.pods.apiKeys.create(pod.podId, {
+  name: "acme-service-key",
+});
+
+console.log(`Scoped API key: ${scopedKey.apiKey}`);
+// Store this key securely — it won't be shown again
+```
+</CodeBlocks>
+
+<Warning>
+  Scoped API keys are shown **once** at creation time. Store them securely. If lost, delete and create a new one.
+</Warning>
+
+### What Scoped Keys Can Do
+
+| Action | Scoped Key | Organization Key |
+|--------|-----------|-----------------|
+| Access resources in the scoped pod | Yes | Yes |
+| Access resources in other pods | No | Yes |
+| Create/delete inboxes in the scoped pod | Yes | Yes |
+| Create/delete pods | No | Yes |
+| Manage organization settings | No | Yes |
+
+### Managing Scoped Keys
+
+You can list and delete scoped API keys for a pod:
+
+<CodeBlocks>
+```python
+# List all scoped keys for a pod
+keys = client.pods.api_keys.list(pod.pod_id)
+
+# Delete a scoped key
+client.pods.api_keys.delete(pod.pod_id, scoped_key.api_key_id)
+```
+
+```typescript
+const keys = await client.pods.apiKeys.list(pod.podId);
+
+await client.pods.apiKeys.delete(pod.podId, scopedKey.apiKeyId);
+```
+</CodeBlocks>
+
+## Step 4: Route Webhook Events by Pod or Inbox
+
+When you create a webhook, you can filter events to specific pods or inboxes. This lets you route events to the correct tenant's handler.
+
+<CodeBlocks>
+```python
+# Webhook that only fires for events in Acme's pod
+webhook = client.webhooks.create(
+    url="https://your-server.com/webhooks/acme",
+    event_types=["message.received", "message.sent"],
+    pod_ids=[pod.pod_id]
+)
+
+# Or scope to specific inboxes
+webhook = client.webhooks.create(
+    url="https://your-server.com/webhooks/acme-support",
+    event_types=["message.received"],
+    inbox_ids=[inbox.inbox_id]
+)
+```
+
+```typescript
+const webhook = await client.webhooks.create({
+  url: "https://your-server.com/webhooks/acme",
+  eventTypes: ["message.received", "message.sent"],
+  podIds: [pod.podId],
+});
+
+// Or scope to specific inboxes
+const inboxWebhook = await client.webhooks.create({
+  url: "https://your-server.com/webhooks/acme-support",
+  eventTypes: ["message.received"],
+  inboxIds: [inbox.inboxId],
+});
+```
+</CodeBlocks>
+
+You can also update an existing webhook to add or remove pod/inbox filters:
+
+<CodeBlocks>
+```python
+client.webhooks.update(
+    webhook.webhook_id,
+    add_pod_ids=["new-pod-id"],
+    remove_pod_ids=["old-pod-id"]
+)
+```
+
+```typescript
+await client.webhooks.update(webhook.webhookId, {
+  addPodIds: ["new-pod-id"],
+  removePodIds: ["old-pod-id"],
+});
+```
+</CodeBlocks>
+
+## Putting It All Together
+
+Here's the full onboarding flow for a new tenant:
+
+<CodeBlocks>
+```python
+from agentmail import AgentMail
+
+client = AgentMail()
+
+def onboard_tenant(tenant_id: str, domain_name: str):
+    # 1. Create isolated pod
+    pod = client.pods.create(client_id=tenant_id)
+
+    # 2. Provision inbox
+    inbox = client.pods.inboxes.create(
+        pod.pod_id,
+        username="support",
+        display_name=f"{tenant_id} Support"
+    )
+
+    # 3. Add custom domain
+    domain = client.pods.domains.create(pod.pod_id, domain=domain_name)
+
+    # 4. Create scoped API key for tenant
+    key = client.pods.api_keys.create(pod.pod_id, name=f"{tenant_id}-key")
+
+    # 5. Set up webhook for tenant events
+    webhook = client.webhooks.create(
+        url=f"https://your-server.com/webhooks/{tenant_id}",
+        event_types=["message.received"],
+        pod_ids=[pod.pod_id]
+    )
+
+    return {
+        "pod_id": pod.pod_id,
+        "inbox_id": inbox.inbox_id,
+        "api_key": key.api_key,  # deliver securely to tenant
+        "webhook_id": webhook.webhook_id,
+    }
+```
+
+```typescript
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+async function onboardTenant(tenantId: string, domainName: string) {
+  // 1. Create isolated pod
+  const pod = await client.pods.create({ clientId: tenantId });
+
+  // 2. Provision inbox
+  const inbox = await client.pods.inboxes.create(pod.podId, {
+    username: "support",
+    displayName: `${tenantId} Support`,
+  });
+
+  // 3. Add custom domain
+  const domain = await client.pods.domains.create(pod.podId, {
+    domain: domainName,
+  });
+
+  // 4. Create scoped API key for tenant
+  const key = await client.pods.apiKeys.create(pod.podId, {
+    name: `${tenantId}-key`,
+  });
+
+  // 5. Set up webhook for tenant events
+  const webhook = await client.webhooks.create({
+    url: `https://your-server.com/webhooks/${tenantId}`,
+    eventTypes: ["message.received"],
+    podIds: [pod.podId],
+  });
+
+  return {
+    podId: pod.podId,
+    inboxId: inbox.inboxId,
+    apiKey: key.apiKey, // deliver securely to tenant
+    webhookId: webhook.webhookId,
+  };
+}
+```
+</CodeBlocks>
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Pods" href="/pods">
+    Deep dive into pod lifecycle, deletion, and common patterns.
+  </Card>
+  <Card title="Webhooks" href="/overview">
+    Learn about all available webhook events and payload structures.
+  </Card>
+  <Card title="Custom Domains" href="/custom-domains">
+    Set up branded email domains for your tenants.
+  </Card>
+</CardGroup>

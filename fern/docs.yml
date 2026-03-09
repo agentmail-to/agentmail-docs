@@ -260,6 +260,9 @@ navigation:
           - page: x402
             icon: fa-solid fa-credit-card
             path: pages/integrations/x402.mdx
+          - page: LiveKit
+            icon: fa-solid fa-phone
+            path: pages/integrations/integrate-livekit-agents.mdx
           # - page: Smithery
           #   path: pages/integrations/smithery.mdx
           # - page: Mastra
@@ -274,6 +277,9 @@ navigation:
           - page: IMAP & SMTP
             icon: fa-solid fa-envelope-open-text
             path: pages/guides/imap-smtp.mdx
+          - page: Multi-Tenancy
+            icon: fa-solid fa-building
+            path: pages/guides/multi-tenancy.mdx
           # - page: Semantic Search
           #   path: pages/guides/semantic-search.mdx
           # - page: Automatic Labeling
@@ -289,9 +295,6 @@ navigation:
               - page: Managing Existing Domains
                 icon: fa-solid fa-gear
                 path: pages/guides/domains/managing-domains.mdx
-          - page: Integrate LiveKit Agents
-            icon: fa-solid fa-phone
-            path: pages/guides/integrate-livekit-agents.mdx
       - section: Webhooks
         contents:
           - page: Overview
