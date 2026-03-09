@@ -157,9 +157,6 @@ types:
       download_url:
         type: string
         docs: Pre-signed CloudFront URL to download the raw message. Expires at expires_at.
-      url:
-        type: string
-        docs: Alias for download_url. Kept for backward compatibility.
       expires_at:
         type: datetime
         docs: Time at which the download URL expires.
