@@ -192,8 +192,6 @@ redirects:
     destination: /custom-domains
   - source: /best-practices/email-deliverability
     destination: /email-deliverability
-  - source: /api-reference/inboxes/messages/get-raw-message
-    destination: /api-reference/inboxes/messages/get-raw
   - source: /webhook/agentmail
     destination: /webhook-verification
   - source: /get-started/quickstart

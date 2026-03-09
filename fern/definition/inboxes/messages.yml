@@ -61,7 +61,7 @@ service:
       display-name: Get Raw Message
       path-parameters:
         message_id: messages.MessageId
-      response: file
+      response: messages.RawMessageResponse
       errors:
         - global.NotFoundError
 

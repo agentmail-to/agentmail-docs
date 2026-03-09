@@ -235,6 +235,7 @@ Copy one of the blocks below into Cursor or Claude for complete Messages API kno
    * - messages.forward(inboxId, messageId, { to, subject?, text?, html? })
    * - messages.update(inboxId, messageId, { addLabels?, removeLabels? })
    * - messages.getAttachment(inboxId, messageId, attachmentId)
+   * - messages.getRaw(inboxId, messageId) -> { message_id, size, download_url, expires_at } (CloudFront signed URL for .eml)
    * - messages.getRaw(inboxId, messageId)
    *
    * Reply content: use extractedText/extractedHtml for new content without quoted history.

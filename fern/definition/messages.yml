@@ -145,6 +145,22 @@ types:
         type: list<MessageItem>
         docs: Ordered by `timestamp` descending.
 
+  RawMessageResponse:
+    docs: Signed URL to download the raw .eml file. Uses CloudFront signing, same as attachments.
+    properties:
+      message_id:
+        type: MessageId
+        docs: ID of the message.
+      size:
+        type: MessageSize
+        docs: Size of the raw message in bytes.
+      download_url:
+        type: string
+        docs: Pre-signed CloudFront URL to download the raw message. Expires at expires_at.
+      expires_at:
+        type: datetime
+        docs: Time at which the download URL expires.
+
   Addresses:
     discriminated: false
     union:
