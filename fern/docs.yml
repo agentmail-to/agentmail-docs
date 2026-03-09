@@ -137,7 +137,7 @@ redirects:
   - source: /v0/inboxes/:inbox_id/drafts/:draft_id/send
     destination: /api-reference/inboxes/drafts/send
   - source: /v0/inboxes/:inbox_id/messages/:message_id/raw
-    destination: /api-reference/inboxes/messages/get
+    destination: /api-reference/inboxes/messages/get-raw-raw
   - source: /v0/inboxes/:inbox_id/drafts/:draft_id
     destination: /api-reference/inboxes/drafts/get
   - source: /v0/threads/:thread_id

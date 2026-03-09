@@ -145,6 +145,13 @@ types:
         type: list<MessageItem>
         docs: Ordered by `timestamp` descending.
 
+  RawMessageResponse:
+    docs: Signed URL to download the raw .eml file.
+    properties:
+      url:
+        type: string
+        docs: Pre-signed URL to download the raw message. Expires in 1 hour.
+
   Addresses:
     discriminated: false
     union:
