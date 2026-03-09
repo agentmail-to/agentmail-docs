@@ -394,16 +394,16 @@ navigation:
           python: agentmail
           typescript: agentmail
         layout:
+          - organizations
+          - pods
+          - api-keys
+          - domains
           - inboxes
           - threads
           - messages
           - drafts
-          - domains
-          - lists
           - webhooks
           - websockets
+          - lists
           - metrics
-          - api-keys
-          - pods
-          - organizations
   - tab: changelog

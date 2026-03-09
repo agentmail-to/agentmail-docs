@@ -46,6 +46,17 @@ service:
       errors:
         - global.ValidationError
 
+    update:
+      method: PATCH
+      path: /{inbox_id}
+      display-name: Update Inbox
+      path-parameters:
+        inbox_id: inboxes.InboxId
+      request: inboxes.UpdateInboxRequest
+      response: inboxes.Inbox
+      errors:
+        - global.NotFoundError
+
     delete:
       method: DELETE
       path: /{inbox_id}

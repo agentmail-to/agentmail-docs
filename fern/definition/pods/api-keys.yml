@@ -13,16 +13,6 @@ service:
   auth: true
 
   endpoints:
-    create:
-      method: POST
-      path: ""
-      display-name: Create API Key
-      request: api-keys.CreateApiKeyRequest
-      response: api-keys.CreateApiKeyResponse
-      errors:
-        - global.NotFoundError
-        - global.ValidationError
-
     list:
       method: GET
       path: ""
@@ -35,6 +25,16 @@ service:
       response: api-keys.ListApiKeysResponse
       errors:
         - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create API Key
+      request: api-keys.CreateApiKeyRequest
+      response: api-keys.CreateApiKeyResponse
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
 
     delete:
       method: DELETE
