@@ -194,7 +194,7 @@ async function offboardCustomer(podId: string) {
 
 **What's NOT Isolated to a Pod:**
 
-- API keys (these are organization-level and can access any resources in any pod)
+- Organization-level API keys (these can access any resources in any pod). Use [scoped API keys](/multi-tenancy#step-3-create-scoped-api-keys) to restrict access to a single pod.
 
 ## Common Patterns and Use Cases
 
@@ -281,8 +281,9 @@ Pod: "Marketing-Agent"
 </Accordion>
 
 <Accordion title="Can I set custom permissions per pod?">
-  Pod isolation is upon the caller (you). As of now we don't support pod-scoped
-  API keys so it will be on you to make the calls to AgentMail.
+  Yes! You can create scoped API keys that are restricted to a single pod. A
+  scoped key can only access resources within its pod. See the
+  [Multi-Tenancy guide](/multi-tenancy) for details on provisioning scoped keys.
 </Accordion>
 
 ## Next Steps
