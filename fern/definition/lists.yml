@@ -87,15 +87,6 @@ service:
   auth: true
 
   endpoints:
-    create:
-      method: POST
-      path: ""
-      display-name: Create List Entry
-      request: CreateListEntryRequest
-      response: ListEntry
-      errors:
-        - global.ValidationError
-
     list:
       method: GET
       path: ""
@@ -118,6 +109,15 @@ service:
       response: ListEntry
       errors:
         - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create List Entry
+      request: CreateListEntryRequest
+      response: ListEntry
+      errors:
+        - global.ValidationError
 
     delete:
       method: DELETE

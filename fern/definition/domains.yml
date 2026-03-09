@@ -106,6 +106,10 @@ types:
       domain: DomainName
       feedback_enabled: FeedbackEnabled
 
+  UpdateDomainRequest:
+    properties:
+      feedback_enabled: optional<FeedbackEnabled>
+
 service:
   url: Http
   base-path: /domains
@@ -152,6 +156,17 @@ service:
       response: Domain
       errors:
         - global.ValidationError
+
+    update:
+      method: PATCH
+      path: /{domain_id}
+      display-name: Update Domain
+      path-parameters:
+        domain_id: DomainId
+      request: UpdateDomainRequest
+      response: Domain
+      errors:
+        - global.NotFoundError
 
     delete:
       method: DELETE

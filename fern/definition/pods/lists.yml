@@ -15,15 +15,6 @@ service:
   auth: true
 
   endpoints:
-    create:
-      method: POST
-      path: ""
-      display-name: Create List Entry
-      request: lists.CreateListEntryRequest
-      response: lists.PodListEntry
-      errors:
-        - global.ValidationError
-
     list:
       method: GET
       path: ""
@@ -46,6 +37,15 @@ service:
       response: lists.PodListEntry
       errors:
         - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create List Entry
+      request: lists.CreateListEntryRequest
+      response: lists.PodListEntry
+      errors:
+        - global.ValidationError
 
     delete:
       method: DELETE
