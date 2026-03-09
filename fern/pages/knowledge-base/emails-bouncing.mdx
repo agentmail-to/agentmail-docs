@@ -1,0 +1,88 @@
+---
+title: "Why are my emails bouncing?"
+subtitle: Diagnose and resolve email bounce issues.
+slug: knowledge-base/emails-bouncing
+---
+
+A bounced email means the recipient's mail server rejected your message. Understanding the bounce type helps you take the right action.
+
+## Bounce types
+
+### Permanent bounces
+
+The address is permanently unreachable. Common causes:
+
+- The email address does not exist
+- The domain does not exist
+- The recipient's mailbox has been deleted
+
+**Action:** Remove permanently bounced addresses from your sending lists immediately. Continuing to send to them will damage your sender reputation.
+
+### Transient bounces
+
+Temporary delivery failure. Common causes:
+
+- Recipient's mailbox is full
+- Recipient's mail server is temporarily unavailable
+- Message is too large
+- Greylisting (server temporarily rejects first-time senders)
+
+**Action:** AgentMail automatically retries transient bounces. If delivery fails after multiple attempts, the bounce is treated as permanent.
+
+## Monitoring bounces with webhooks
+
+Subscribe to the `message.bounced` webhook event to track bounces in real time:
+
+```typescript title="TypeScript"
+import { serialization } from "agentmail";
+
+async function handleWebhook(payload: Record<string, unknown>) {
+  if (payload.event_type === "message.bounced") {
+    const event = await serialization.events.MessageBouncedEvent.parse(payload);
+
+    console.log(`Bounce type: ${event.bounce.type}`);       // "Permanent" or "Transient"
+    console.log(`Sub type: ${event.bounce.subType}`);        // e.g., "General"
+    console.log(`Message: ${event.bounce.messageId}`);
+
+    for (const recipient of event.bounce.recipients) {
+      console.log(`Bounced address: ${recipient.address}`);
+
+      if (event.bounce.type === "Permanent") {
+        // Remove from your sending lists
+        await removeFromList(recipient.address);
+      }
+    }
+  }
+}
+```
+
+Register a webhook to receive bounce events:
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+await client.webhooks.create({
+  url: "https://your-domain.ngrok-free.app/webhooks",
+  events: ["message.bounced"],
+});
+```
+
+## Automatic suppression
+
+<Warning>
+AgentMail automatically prevents you from sending to addresses that have previously bounced, been rejected, or filed a spam complaint. This protects your sender reputation. Keep your account bounce rate under 4%, otherwise your account may be placed under review.
+</Warning>
+
+## Keeping bounce rates low
+
+| Practice | Why it matters |
+| --- | --- |
+| Validate addresses before sending | Catches typos and nonexistent addresses before they bounce |
+| Remove permanent bounces immediately | Repeated sends to invalid addresses damage reputation fast |
+| Avoid purchased or scraped lists | These lists have high rates of invalid addresses |
+| Warm up new domains gradually | Sudden high volume from a new domain triggers suspicion |
+| Monitor bounce rate | Keep it under 2% for healthy reputation; under 4% to avoid account review |
+
+For more on maintaining healthy sending metrics, see the [Email Deliverability](/email-deliverability) best practices.

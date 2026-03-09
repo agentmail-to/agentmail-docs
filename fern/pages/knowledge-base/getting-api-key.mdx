@@ -1,0 +1,58 @@
+---
+title: "How do I get my API key?"
+subtitle: Create and manage your AgentMail API keys.
+slug: knowledge-base/getting-api-key
+---
+
+You need an API key to authenticate requests to the AgentMail API. API keys start with `am_` and are created in the AgentMail Console.
+
+## Steps
+
+1. Go to the [AgentMail Console](https://console.agentmail.to)
+2. Sign up or log in
+3. Navigate to the **API Keys** section in the left side of the dashboard
+4. Click **Create New API Key**
+5. Give it a descriptive name (e.g., "my-support-agent")
+6. Copy the key immediately and store it securely
+
+<Warning>
+Your API key is only shown once when it is created. If you lose it, you will need to create a new one. Never commit API keys to version control or share them publicly.
+</Warning>
+
+## Using your API key
+
+Store your API key in an environment variable to keep it out of your source code:
+
+```bash title="Bash"
+# .env file
+AGENTMAIL_API_KEY=am_your_key_here
+```
+
+Then initialize the SDK using the environment variable:
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+import "dotenv/config";
+
+const client = new AgentMailClient({
+  apiKey: process.env.AGENTMAIL_API_KEY,
+});
+
+// Test the connection by creating an inbox
+const inbox = await client.inboxes.create();
+console.log(`Connected! Created inbox: ${inbox.inboxId}`);
+```
+
+## Free tier
+
+No credit card required to get started. The free tier includes:
+
+| Feature | Limit |
+| --- | --- |
+| Inboxes | 3 |
+| Emails per month | 3,000 |
+| Storage | 3 GB |
+| API access | Full (REST, WebSockets, webhooks) |
+| SDKs | Python and TypeScript |
+
+To create more inboxes or send higher volumes, see the [pricing page](https://agentmail.to/pricing).

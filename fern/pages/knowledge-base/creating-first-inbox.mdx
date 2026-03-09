@@ -1,0 +1,96 @@
+---
+title: "How do I create my first inbox?"
+subtitle: Get up and running with your first AgentMail inbox.
+slug: knowledge-base/creating-first-inbox
+---
+
+Creating an inbox gives your AI agent its own email address. You can create inboxes on the default `@agentmail.to` domain or on your own custom domain.
+
+## Install the SDK
+
+```bash title="TypeScript"
+npm install agentmail
+```
+
+## Create an inbox
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+// Create an inbox with a random address on agentmail.to
+const inbox = await client.inboxes.create();
+console.log(`Inbox created: ${inbox.inboxId}`);
+```
+
+The inbox now has a unique email address (e.g., `randomname@agentmail.to`) and can send and receive emails immediately.
+
+## Customize your inbox
+
+You can specify a username, domain, and display name:
+
+```typescript title="TypeScript"
+const inbox = await client.inboxes.create({
+  username: "support",
+  domain: "yourcompany.com",
+  displayName: "Support Agent",
+});
+
+// inbox.inboxId will be support@yourcompany.com
+console.log(`Inbox created: ${inbox.inboxId}`);
+```
+
+<Note>
+Using a custom domain requires a verified domain. See the [Creating Custom Domains](/custom-domains) guide to set one up. If you don't specify a domain, AgentMail uses the default `@agentmail.to` domain.
+</Note>
+
+## Use client_id for idempotency
+
+If your agent creates inboxes programmatically (e.g., on startup), use `clientId` to prevent duplicates. If an inbox with the same `clientId` already exists, AgentMail returns the existing inbox instead of creating a new one:
+
+```typescript title="TypeScript"
+const inbox = await client.inboxes.create({
+  username: "my-agent",
+  clientId: "my-agent-inbox-v1",
+  displayName: "My Agent",
+});
+
+// Safe to call multiple times: same inbox returned every time
+```
+
+## Send your first email
+
+Once the inbox is created, you can send an email:
+
+```typescript title="TypeScript"
+await client.inboxes.messages.send(inbox.inboxId, {
+  to: "recipient@example.com",
+  subject: "Hello from my agent!",
+  text: "This is a plain text version.",
+  html: "<p>This is an <strong>HTML</strong> version.</p>",
+});
+```
+
+<Note>
+Always provide both `text` and `html` when sending emails. This ensures readability across all email clients and improves deliverability.
+</Note>
+
+## List your inboxes
+
+```typescript title="TypeScript"
+const inboxes = await client.inboxes.list();
+console.log(`You have ${inboxes.count} inboxes.`);
+
+for (const inbox of inboxes.inboxes) {
+  console.log(`  ${inbox.inboxId}`);
+}
+```
+
+## Next steps
+
+Now that you have an inbox, explore what you can do with it:
+
+- [Send and receive emails](/sending-receiving-email) in a conversational loop
+- [Set up webhooks](/webhook-setup) to get notified when emails arrive
+- [Use labels](/labels) to track message state in your agent workflows

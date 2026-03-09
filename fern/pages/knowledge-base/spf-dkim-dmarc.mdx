@@ -1,0 +1,94 @@
+---
+title: "How do I set up SPF, DKIM, and DMARC?"
+subtitle: Authenticate your domain for reliable email deliverability.
+slug: knowledge-base/spf-dkim-dmarc
+---
+
+SPF, DKIM, and DMARC are three email authentication protocols that prove your emails are legitimate. They are essential for deliverability: Gmail, Outlook, and other major providers now require all three for reliable inbox placement.
+
+AgentMail provides all three records automatically when you add a custom domain. You just need to add them to your DNS provider.
+
+## SPF (Sender Policy Framework)
+
+SPF tells receiving servers which mail servers are authorized to send email for your domain. It is a TXT record that lists approved senders.
+
+**What AgentMail provides:**
+
+```text
+TXT | @ | v=spf1 include:agentmail.to ~all
+```
+
+This tells receiving servers that AgentMail is an authorized sender for your domain. The `~all` means emails from servers not on the list should be treated as suspicious.
+
+<Warning>
+You can only have **one** SPF record per domain. If you already have an SPF record (e.g., for Google Workspace or another email service), merge AgentMail's `include:` into the existing record rather than creating a second one.
+</Warning>
+
+**Example of merging SPF records:**
+
+```text
+# Before (existing SPF for Google Workspace)
+v=spf1 include:_spf.google.com ~all
+
+# After (with AgentMail added)
+v=spf1 include:_spf.google.com include:agentmail.to ~all
+```
+
+## DKIM (DomainKeys Identified Mail)
+
+DKIM adds a cryptographic signature to every email, proving it was sent by an authorized server and was not tampered with in transit. It uses CNAME records that point to signing keys managed by AgentMail.
+
+**What AgentMail provides:**
+
+```text
+CNAME | agentmail._domainkey | (target provided by AgentMail)
+```
+
+AgentMail manages the signing keys automatically. Once you add the CNAME records, every email from your domain is signed with no ongoing maintenance required.
+
+<Note>
+If you use Cloudflare, make sure the CNAME proxy status is set to **DNS only** (grey cloud). Proxied CNAME records will break DKIM verification.
+</Note>
+
+## DMARC (Domain-based Message Authentication, Reporting, and Conformance)
+
+DMARC ties SPF and DKIM together. It tells receiving servers what to do when an email fails authentication: reject it, quarantine it (send to spam), or do nothing.
+
+**What AgentMail provides:**
+
+```text
+TXT | _dmarc | v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to
+```
+
+AgentMail sets the policy to `reject` by default, which means any email that fails DMARC authentication (typically when both SPF and DKIM fail to align with the sender domain) will be rejected outright. The `rua` tag sends aggregate reports to AgentMail so we can monitor your domain's deliverability health.
+
+**If you are setting up DMARC for the first time,** consider starting with a less strict policy and graduating to `reject`:
+
+| Policy | Behavior | When to use |
+| --- | --- | --- |
+| `p=none` | Monitor only, no action taken | Initial setup, while confirming everything works |
+| `p=quarantine` | Failed emails go to spam | After confirming SPF and DKIM pass consistently |
+| `p=reject` | Failed emails are rejected entirely | Production, once you trust your configuration |
+
+## Do I need all three?
+
+Yes. Each protocol serves a different purpose:
+
+| Protocol | What it proves |
+| --- | --- |
+| SPF | The sending server is authorized to send for your domain |
+| DKIM | The email content has not been modified in transit |
+| DMARC | What to do when SPF or DKIM fails, plus reporting |
+
+Without all three, your agent's emails are more likely to land in spam or be rejected. Major providers like Gmail and Yahoo enforce these requirements.
+
+## How to set them up
+
+1. Add your domain in the [AgentMail Console](https://console.agentmail.to) or via the API
+2. AgentMail provides the exact SPF, DKIM, and DMARC records you need
+3. Add those records at your DNS provider
+4. Verify your domain in the console
+
+For step-by-step DNS instructions, see our provider guides: [Cloudflare](/knowledge-base/dns-cloudflare), [GoDaddy](/knowledge-base/dns-godaddy), [Route 53](/knowledge-base/dns-route53), [Namecheap](/knowledge-base/dns-namecheap).
+
+For a deeper explanation of how these protocols work, see the [SPF, DKIM, DMARC](/email-protocols) documentation.

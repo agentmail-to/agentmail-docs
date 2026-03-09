@@ -1,0 +1,71 @@
+---
+title: "DNS Guide: Cloudflare"
+subtitle: Step-by-step instructions for adding AgentMail DNS records in Cloudflare.
+slug: knowledge-base/dns-cloudflare
+---
+
+## Steps
+
+1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com)
+2. Select your domain
+3. Go to **DNS**, then click **Records**
+4. Click **Add Record** for each record AgentMail requires
+
+## Adding a TXT Record (SPF)
+
+| Field | Value |
+| --- | --- |
+| Type | `TXT` |
+| Name | `@` (or your subdomain) |
+| Content | The SPF value from AgentMail (e.g., `v=spf1 include:agentmail.to ~all`) |
+| TTL | `Auto` |
+
+<Warning>
+If you already have an SPF record for your domain, do **not** create a second one. Instead, add `include:agentmail.to` to your existing SPF record. Having multiple SPF records on the same domain will cause authentication failures.
+</Warning>
+
+## Adding a CNAME Record (DKIM)
+
+| Field | Value |
+| --- | --- |
+| Type | `CNAME` |
+| Name | The DKIM selector from AgentMail (e.g., `agentmail._domainkey`) |
+| Target | The DKIM target from AgentMail |
+| Proxy status | **DNS only** (grey cloud) |
+| TTL | `Auto` |
+
+<Warning>
+DKIM CNAME records **must** have Cloudflare proxy disabled (grey cloud icon). If the orange cloud proxy is enabled, Cloudflare replaces the CNAME with its own proxy addresses, which prevents email servers from looking up your DKIM public key. This will cause DKIM verification to fail. If you see Error 1004 when saving, confirm that proxy is set to DNS only.
+</Warning>
+
+Cloudflare automatically strips your domain from the Name field. Enter only the subdomain portion (e.g., `agentmail._domainkey`), not the full `agentmail._domainkey.yourdomain.com`.
+
+## Adding an MX Record (Receiving)
+
+| Field | Value |
+| --- | --- |
+| Type | `MX` |
+| Name | `@` (or your subdomain) |
+| Mail server | The MX target from AgentMail |
+| Priority | `10` |
+| TTL | `Auto` |
+
+If you want to receive emails on a subdomain to avoid conflicts with your existing email provider, enter the subdomain instead of `@` in the Name field.
+
+## Verification
+
+After adding all records, go back to the [AgentMail Console](https://console.agentmail.to) and click **Verify Domain**.
+
+Cloudflare DNS typically propagates within **1 to 5 minutes**, making it one of the fastest providers for DNS updates.
+
+## Common Cloudflare Issues
+
+- **Proxy must be off for CNAME records:** The orange cloud (Proxied) means traffic goes through Cloudflare's reverse proxy, which only handles HTTP/HTTPS. Email-related CNAME records like DKIM need direct DNS resolution and must be set to DNS only (grey cloud). If you forget, DKIM verification will silently fail.
+
+- **CNAME flattening at root:** Cloudflare automatically flattens CNAME records at the zone apex (root domain), returning A/AAAA records instead of the CNAME. This generally does not affect DKIM setup since the selector (e.g., `agentmail._domainkey`) is a subdomain. However, if you encounter unexpected behavior, consider using a subdomain for sending.
+
+- **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
+
+- **Error 1004 when adding CNAME:** This error typically means the record cannot be proxied. Switch the proxy status to DNS only (grey cloud) and try saving again.
+
+- **Name field auto-strips domain:** Cloudflare removes the domain portion from the Name field automatically. If your DKIM selector is `agentmail._domainkey`, enter just that. Do not enter `agentmail._domainkey.yourdomain.com`, or the record will be created incorrectly.

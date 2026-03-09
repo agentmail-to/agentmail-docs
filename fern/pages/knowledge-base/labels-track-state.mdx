@@ -1,0 +1,131 @@
+---
+title: "How do I use labels to track email state?"
+subtitle: Use labels to manage agent workflow state on emails and threads.
+slug: knowledge-base/labels-track-state
+---
+
+Labels are string-based tags you attach to messages and threads. They are the primary way agents track state, classify emails, and filter conversations in AgentMail.
+
+## Adding labels when sending
+
+You can attach labels directly when sending a message:
+
+```python title="Python"
+client.inboxes.messages.send(
+    inbox_id="agent@yourdomain.com",
+    to=["prospect@example.com"],
+    subject="Quick question",
+    text="Hi, I wanted to ask about...",
+    html="<p>Hi, I wanted to ask about...</p>",
+    labels=["outreach", "first-touch", "tech-vertical"]
+)
+```
+
+## Updating labels on existing messages
+
+Add or remove labels on messages that have already been sent or received. This is how agents change the state of a conversation as they process it:
+
+```python title="Python"
+# Mark a message as processed
+client.inboxes.messages.update(
+    inbox_id="agent@yourdomain.com",
+    message_id=msg.message_id,
+    add_labels=["processed", "positive-sentiment"],
+    remove_labels=["unread"]
+)
+```
+
+## Filtering by label
+
+List messages or threads that match specific labels. This is where labels become powerful for building agent workflows:
+
+```python title="Python"
+# Get all unread messages in an inbox
+unread = client.inboxes.messages.list(
+    inbox_id="agent@yourdomain.com",
+    labels=["unread"]
+)
+
+# Get threads that need a follow-up from a specific campaign
+follow_ups = client.inboxes.threads.list(
+    inbox_id="agent@yourdomain.com",
+    labels=["q4-campaign", "needs-response"]
+)
+
+# Get escalations that need human review
+escalations = client.inboxes.messages.list(
+    inbox_id="agent@yourdomain.com",
+    labels=["escalation", "needs-human-review"]
+)
+```
+
+## Common label patterns for agents
+
+| Label | Purpose |
+| --- | --- |
+| `unread` / `read` | Track which messages the agent has seen |
+| `unreplied` / `replied` | Track which threads need a response |
+| `outreach` / `inbound` | Classify message direction |
+| `needs-human-review` | Route to a human for oversight |
+| `escalation` | Flag high-priority issues |
+| `processed` | Agent has finished handling this message |
+| `positive` / `negative` | Sentiment classification |
+| `campaign-{name}` | Track which campaign generated the email |
+
+Labels are free-form strings. Use whatever naming convention makes sense for your agent's workflow.
+
+## Example: agent workflow with labels
+
+Here is a complete pattern for an agent that processes inbound emails, classifies them, and tracks state:
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+# Find threads that need a reply
+unreplied = client.inboxes.threads.list(
+    inbox_id="support@yourdomain.com",
+    labels=["unreplied"]
+)
+
+for thread_item in unreplied.threads:
+    # Get the full thread
+    thread = client.threads.get(thread_id=thread_item.thread_id)
+    last_message = thread.messages[-1]
+    
+    # Classify the message (your agent logic here)
+    category = classify(last_message.extracted_text or last_message.text)
+    
+    if category == "needs-human":
+        # Escalate: add label, skip auto-reply
+        client.inboxes.messages.update(
+            inbox_id="support@yourdomain.com",
+            message_id=last_message.message_id,
+            add_labels=["needs-human-review", "escalation"],
+            remove_labels=["unreplied"]
+        )
+    else:
+        # Auto-reply and mark as handled
+        reply_text = generate_reply(last_message, category)
+        client.inboxes.messages.reply(
+            inbox_id="support@yourdomain.com",
+            message_id=last_message.message_id,
+            text=reply_text
+        )
+        client.inboxes.messages.update(
+            inbox_id="support@yourdomain.com",
+            message_id=last_message.message_id,
+            add_labels=["replied", "processed", category],
+            remove_labels=["unreplied"]
+        )
+```
+
+## Best practices
+
+- **Be consistent:** Pick a naming convention (e.g., `kebab-case`) and stick with it across all your agents
+- **Use prefixes for grouping:** Labels like `status-pending`, `priority-high`, `campaign-q4` are easier to manage at scale
+- **Keep it concise:** A message with too many labels becomes hard to query. Aim for a meaningful, focused set
+- **Combine with threads:** Filter threads by label to find conversations in a specific state, then get the thread details to process them
+
+For more details, see the [Labels core concept](/labels) documentation.

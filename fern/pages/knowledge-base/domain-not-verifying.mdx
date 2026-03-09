@@ -1,0 +1,75 @@
+---
+title: "Why is my domain not verifying?"
+subtitle: What to do when your domain verification is stuck.
+slug: knowledge-base/domain-not-verifying
+---
+
+If your domain is stuck in a pending or failed verification state, work through these common causes.
+
+## 1. DNS propagation delay
+
+DNS changes can take anywhere from a few minutes to 48 hours to propagate, depending on your provider. Most providers propagate within 30 minutes, but some take longer.
+
+**What to do:** Wait 30 minutes, then click **Verify Domain** in the [AgentMail Console](https://console.agentmail.to) to trigger a recheck. You can also use [dnschecker.org](https://dnschecker.org) to confirm your records are visible globally before retrying.
+
+| DNS provider | Typical propagation time |
+| --- | --- |
+| Cloudflare | 1 to 5 minutes |
+| Route 53 | 1 to 5 minutes |
+| GoDaddy | 15 to 30 minutes |
+| Namecheap | 15 to 30 minutes |
+
+## 2. Wrong record type
+
+Make sure you are adding the correct record type as specified by AgentMail. A common mistake is adding a TXT record where a CNAME is needed, or vice versa.
+
+| Record | Correct type |
+| --- | --- |
+| SPF | TXT |
+| DKIM | CNAME |
+| MX | MX |
+
+Double check the records in the AgentMail Console under **Domains** to see the exact type and value required.
+
+## 3. Extra quotes or spaces
+
+Some DNS providers (like GoDaddy) automatically wrap TXT values in quotes. If you paste a value that already includes quotes, you end up with double-quoted values that fail verification.
+
+**What to do:** Paste the value exactly as provided by AgentMail. If your DNS provider adds quotes automatically, do not add your own.
+
+Route 53 is the opposite: it **requires** quotes around TXT values. If you omit them, the record will not validate.
+
+## 4. Domain name auto-appended
+
+Many DNS providers (Namecheap, GoDaddy, Cloudflare) automatically append your domain to the record name. If you enter `agentmail._domainkey.yourcompany.com` instead of just `agentmail._domainkey`, the actual record becomes `agentmail._domainkey.yourcompany.com.yourcompany.com`, which will fail.
+
+**What to do:** Enter only the subdomain portion. For example, enter `agentmail._domainkey`, not the full hostname.
+
+## 5. Conflicting records
+
+CNAME records cannot coexist with other record types on the same name. If you have an existing TXT or A record on the same subdomain as your DKIM CNAME, verification may fail.
+
+**What to do:** Check your DNS dashboard for conflicts on the DKIM selector subdomain and remove any conflicting records.
+
+## 6. Nameservers pointing elsewhere
+
+If your domain's nameservers are pointed to a different provider than where you are adding records, the records will have no effect. For example, if your domain uses Cloudflare nameservers but you add records in the Namecheap panel, those records are ignored.
+
+**What to do:** Add your DNS records at the provider that actually controls your nameservers.
+
+## Verification statuses
+
+You can check your domain's status in the [AgentMail Console](https://console.agentmail.to):
+
+| Status | Meaning |
+| --- | --- |
+| `NOT_STARTED` | Click Verify Domain to begin |
+| `PENDING` | DNS records need to be added or corrected |
+| `INVALID` | Records are misconfigured; review the values |
+| `FAILED` | Records look correct but need a manual recheck; click Verify Domain again |
+| `VERIFYING` | Records are correct, authorization in progress |
+| `VERIFIED` | Domain is ready |
+
+## Still not working?
+
+If you have checked all of the above and your domain is still not verifying, email [support@agentmail.cc](mailto:support@agentmail.cc) with your domain name and a screenshot of your DNS records. We can help diagnose the issue.

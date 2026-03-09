@@ -1,0 +1,78 @@
+---
+title: "Warming Up"
+subtitle: Gradually build sending reputation on a new domain or inbox. 
+slug: knowledge-base/domain-warming
+---
+
+Warming up is the process of gradually increasing your email volume on a new domain to build sender reputation with mailbox providers like Gmail, Outlook, and Yahoo.
+You can connect AgentMail inboxes to Instantly and Smartlead for programmatic warm up using [SMTP credentials](https://docs.agentmail.to/imap-smtp#finding-your-credentials).
+
+## Why warming matters
+
+Mailbox providers track sender reputation per domain. A brand new domain has zero reputation. If you send thousands of emails on day one, providers will flag your domain as suspicious and route your emails to spam.
+
+By starting slow and increasing volume gradually, you signal that you are a legitimate sender with engaged recipients.
+
+## Warmup schedule
+
+| Day | Daily volume | What to send |
+| --- | --- | --- |
+| 1 to 3 | 10 to 20 | Send to your most engaged recipients (people likely to open and reply) |
+| 4 to 7 | 50 to 100 | Expand to known, verified addresses |
+| 8 to 14 | 200 to 500 | Broader audience; monitor bounce rates closely |
+| 15 to 21 | 500 to 1,000 | Continue scaling; watch for spam complaints |
+| 22 to 30 | 1,000 to 5,000 | Approaching full volume |
+| 30+ | Full volume | Maintain healthy engagement metrics |
+
+<Warning>
+If your bounce rate exceeds 5% or you see a spike in spam complaints at any stage, slow down immediately. Continuing to send at high volume with poor metrics will damage your domain reputation.
+</Warning>
+
+## Tips for warming with agents
+
+**Spread sends across multiple inboxes.** Instead of sending 100 emails from 1 inbox, send 10 emails each from 10 inboxes on the same domain. AgentMail makes it easy to create many inboxes, and this approach distributes volume naturally while warming the domain faster.
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+// Create multiple inboxes on your domain
+const inboxes = [];
+for (let i = 0; i < 10; i++) {
+  const inbox = await client.inboxes.create({
+    username: `agent-${i}`,
+    domain: "yourcompany.com",
+    clientId: `warmup-agent-${i}`,
+  });
+  inboxes.push(inbox);
+}
+
+// Distribute sends across inboxes
+for (const [index, recipient] of recipients.entries()) {
+  const inbox = inboxes[index % inboxes.length];
+  await client.inboxes.messages.send(inbox.inboxId, {
+    to: recipient,
+    subject: "Hello",
+    text: "Plain text version",
+    html: "<p>HTML version</p>",
+  });
+}
+```
+
+**Start with replies, not cold outreach.** If possible, have your agent respond to inbound emails first. Replies build reputation much faster than cold sends because they demonstrate two-way engagement.
+
+**Use multiple domains and subdomains for high volume.** Register multiple domains or use subdomains (e.g., `mail.yourcompany.com`, `outreach.yourcompany.com`) and warm each one separately. This protects your primary domain's reputation if one sending domain gets flagged.
+
+**Only send to verified addresses.** During warmup, never send to purchased lists or unverified addresses. High bounce rates during the warmup period will severely damage your new domain's reputation.
+
+## Key metrics to monitor
+
+| Metric | Healthy range | Action if outside range |
+| --- | --- | --- |
+| Bounce rate | Under 2% | Pause and clean your recipient list |
+| Spam complaint rate | Under 0.1% | Reduce volume and review content |
+
+You can track bounces and complaints by using [Query Metrics](https://docs.agentmail.to/api-reference/metrics/query) in AgentMail's API or by viewing the Metrics Page on the console.
+
+For more deliverability best practices, see the [Email Deliverability](/email-deliverability) guide.
