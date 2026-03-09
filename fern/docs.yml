@@ -137,7 +137,7 @@ redirects:
   - source: /v0/inboxes/:inbox_id/drafts/:draft_id/send
     destination: /api-reference/inboxes/drafts/send
   - source: /v0/inboxes/:inbox_id/messages/:message_id/raw
-    destination: /api-reference/inboxes/messages/get-raw
+    destination: /api-reference/inboxes/messages/get
   - source: /v0/inboxes/:inbox_id/drafts/:draft_id
     destination: /api-reference/inboxes/drafts/get
   - source: /v0/threads/:thread_id
@@ -186,8 +186,6 @@ redirects:
     destination: /custom-domains
   - source: /best-practices/email-deliverability
     destination: /email-deliverability
-  - source: /api-reference/inboxes/messages/get-raw-message
-    destination: /api-reference/inboxes/messages/get-raw
   - source: /webhook/agentmail
     destination: /webhook-verification
   - source: /get-started/quickstart

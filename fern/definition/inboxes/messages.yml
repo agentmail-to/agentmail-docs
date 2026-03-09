@@ -55,16 +55,6 @@ service:
       errors:
         - global.NotFoundError
 
-    getRaw:
-      method: GET
-      path: /{message_id}/raw
-      display-name: Get Raw Message
-      path-parameters:
-        message_id: messages.MessageId
-      response: file
-      errors:
-        - global.NotFoundError
-
     send:
       method: POST
       path: /send
