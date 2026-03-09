@@ -4,7 +4,7 @@ subtitle: Understand how AgentMail compares to traditional email providers.
 slug: knowledge-base/what-is-agentmail
 ---
 
-AgentMail is email infrastructure built specifically for AI agents. We get a lot of comparsions to other transactional email API's. Here is how we are differences. AgentMail is built for two-way agent communication. SMTP-based, no dedicated infra, you can get rid of shared sending domains. 
+AgentMail is email infrastructure built specifically for AI agents. Unlike transactional email APIs that focus on one-way sending, AgentMail is built for two-way agent communication: dedicated inboxes, native threading, and full receiving support with no shared sending domains.
 
 ## Key differences
 
@@ -25,12 +25,12 @@ AgentMail is email infrastructure built specifically for AI agents. We get a lot
 
 AgentMail is the right choice when:
 
-- Agents are a first class user. They needs threading, identity and storage. 
+- Your agents are first-class users that need threading, identity, and storage
 - Your agent needs its **own email identity** rather than a shared noreply@ address
 - You are building **conversational email workflows** like outreach, support, or scheduling
 - You need **per-agent or per-customer inbox isolation** (Pods)
 - Your agent needs to **sign up for services**, receive verification codes, or act as a user on the internet
 
-## Can I migrate from other platfroms?
+## Can I migrate from other platforms?
 
 Yes. AgentMail's send API works similarly. Replace your existing send call with `client.inboxes.messages.send()` and you get the same sending capability plus full receiving, threading, and agent identity features on top. See the [Quickstart](/quickstart) to get started in minutes.

@@ -56,7 +56,7 @@ If you want to receive emails on a subdomain to avoid conflicts with your existi
 
 After adding all records, go back to the [AgentMail Console](https://console.agentmail.to) and click **Verify Domain**.
 
-Route 53 DNS changes typically propagate within **1 to 5 minutes**, making it one of the faster providers for DNS updates.
+Route 53 name servers typically pick up changes within **60 seconds**, but full propagation to all DNS resolvers may take longer depending on TTL and resolver caching. In practice, most changes are visible within a few minutes.
 
 ## Common Route 53 Issues
 

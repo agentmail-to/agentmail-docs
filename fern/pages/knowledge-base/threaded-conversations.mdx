@@ -106,7 +106,8 @@ for thread in unreplied.threads:
     client.inboxes.messages.reply(
         inbox_id="agent@agentmail.to",
         message_id=last_message.message_id,
-        text=reply_text
+        text=reply_text,
+        html=f"<p>{reply_text}</p>"
     )
     
     # Update labels
