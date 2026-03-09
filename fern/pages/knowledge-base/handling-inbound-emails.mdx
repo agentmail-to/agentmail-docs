@@ -10,7 +10,7 @@ AgentMail offers two ways to process incoming emails, each suited to different u
 
 Configure a webhook URL and AgentMail will send a POST request to your endpoint whenever an email arrives. This is the most reliable approach for production applications.
 
-```python
+```python title="Python"
 from flask import Flask, request
 from agentmail import AgentMail
 
@@ -39,7 +39,7 @@ def handle_webhook():
 
 Register your webhook via the API:
 
-```python
+```python title="Python"
 client.webhooks.create(
     url="https://your-domain.ngrok-free.app/webhooks",
     events=["message.received"],
@@ -56,7 +56,7 @@ For local development, use [ngrok](https://ngrok.com) to expose your local serve
 
 Stream email events over a persistent connection. No public URL or ngrok needed, which makes this ideal for local development and desktop agents.
 
-```python
+```python title="Python"
 import asyncio
 from agentmail import AsyncAgentMail, Subscribe, Subscribed, MessageReceivedEvent
 
@@ -80,7 +80,7 @@ asyncio.run(main())
 
 The SDK also provides a synchronous client if you prefer:
 
-```python
+```python title="Python"
 from agentmail import AgentMail, Subscribe, MessageReceivedEvent
 
 client = AgentMail()

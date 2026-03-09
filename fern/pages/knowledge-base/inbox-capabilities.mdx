@@ -1,0 +1,91 @@
+---
+title: "What can I do with an AgentMail inbox?"
+subtitle: A complete overview of inbox capabilities for AI agents.
+slug: knowledge-base/inbox-capabilities
+---
+
+An AgentMail inbox is a full email account for your AI agent. Each inbox gets a unique email address and can send, receive, reply, forward, and manage emails entirely through the API.
+
+## Sending
+
+- **Send emails** to any email address on the internet
+- **CC and BCC** to include humans in the loop or copy other agents
+- **HTML and plain text** for rich formatted emails
+- **Attachments** with Base64 encoding (PDFs, images, documents)
+- **Custom display names** like "Support Agent" instead of a raw email address
+- **Labels on send** to tag outgoing messages for campaign tracking or workflow state
+- **Drafts** to compose emails for human review before sending
+
+## Receiving
+
+- **Receive emails** from anyone: your inbox has a real email address
+- **Webhooks** for real-time notifications when an email arrives
+- **WebSockets** for persistent event streaming without needing a public URL
+- **Spam and virus detection** on all incoming emails
+- **Attachment downloads** to programmatically access files from received emails
+- **Reply extraction** with built-in `extracted_text` and `extracted_html` fields that strip quoted text
+
+## Threading and conversations
+
+- **Automatic threading:** replies are grouped into conversation threads using standard email headers
+- **Reply to messages** to maintain context in multi-turn conversations
+- **Reply all** to respond to all recipients on a thread
+- **Forward messages** to other addresses or agents
+- **Org-wide thread listing** to query conversations across all inboxes in your organization
+
+## Organization and filtering
+
+- **Labels:** add custom string tags to messages (e.g., `urgent`, `sales`, `needs-response`)
+- **Filter by label:** list only messages or threads matching specific labels
+- **Allowlists and blocklists:** control who an inbox can send to and receive from
+- **Pods:** isolate groups of inboxes per customer for multi-tenant applications
+
+## Identity and deliverability
+
+- **Custom domains:** send from your own domain (e.g., `agent@yourcompany.com`) instead of `@agentmail.to`
+- **SPF, DKIM, and DMARC:** full email authentication for production deliverability
+- **Idempotent inbox creation:** use the `client_id` parameter to safely create inboxes without duplicates
+
+## Access methods
+
+- **REST API:** full CRUD on inboxes, messages, threads, drafts, and attachments
+- **Python SDK:** `pip install agentmail`
+- **TypeScript SDK:** `npm install agentmail`
+- **SMTP:** connect email clients or existing systems for sending
+- **MCP Server:** use with Claude Code, Cursor, and other AI coding tools
+
+## Quick example
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+# Create an inbox with a display name
+inbox = client.inboxes.create(display_name="Support Agent")
+
+# Send an email with a human CC'd
+client.inboxes.messages.send(
+    inbox_id=inbox.inbox_id,
+    to=["customer@example.com"],
+    cc=["manager@yourcompany.com"],
+    subject="Your support request #1234",
+    text="Hi! I've reviewed your request and here is what I found...",
+    html="<p>Hi! I've reviewed your request and here is what I found...</p>",
+    labels=["support", "tier-1"]
+)
+
+# Check for replies
+threads = client.inboxes.threads.list(inbox_id=inbox.inbox_id)
+
+# Get the full conversation
+thread = client.threads.get(thread_id=threads.threads[0].thread_id)
+
+# Reply to the latest message
+client.inboxes.messages.reply(
+    inbox_id=inbox.inbox_id,
+    message_id=thread.messages[-1].message_id,
+    text="Following up: have you had a chance to try the fix?",
+    html="<p>Following up: have you had a chance to try the fix?</p>"
+)
+```

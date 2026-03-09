@@ -1,0 +1,36 @@
+---
+title: "What is AgentMail and how is it different from Resend or SendGrid?"
+subtitle: Understand how AgentMail compares to traditional email providers.
+slug: knowledge-base/what-is-agentmail
+---
+
+AgentMail is email infrastructure built specifically for AI agents. While services like Resend, SendGrid, and Mailgun are designed for one-way transactional email (password resets, receipts, marketing campaigns), AgentMail is built for two-way agent communication.
+
+## Key differences
+
+| Capability | AgentMail | Resend / SendGrid / Mailgun |
+| --- | --- | --- |
+| **Inboxes** | Create thousands of unique inboxes via API, each with its own email address | Shared sending domains, no per-agent inboxes |
+| **Receiving email** | First-class support: agents read, parse, and reply to incoming emails | Resend added inbound recently; SendGrid/Mailgun support via webhook parsing |
+| **Threaded conversations** | Native thread API for agents to maintain context across multi-message conversations | No thread abstraction; you manage conversation state yourself |
+| **Agent identity** | Each agent gets its own email identity (address, display name) | Emails sent from shared sending domains, no per-agent inboxes |
+| **Allowlists / Blocklists** | Control who each agent can send to and receive from | Not available as a built-in feature |
+| **Multi-tenant (Pods)** | Built-in tenant isolation for SaaS applications | Build it yourself |
+| **Real-time events** | Webhooks and WebSockets for instant email event streaming | Webhooks only (no WebSocket option) |
+| **IMAP / SMTP** | Full protocol access for connecting to email clients | API only (no IMAP/SMTP access) |
+| **Reply extraction** | Built-in `extracted_text` and `extracted_html` to strip quoted text from replies | Not available; handle it in your application layer |
+| **Semantic search** | Search across inboxes by meaning, not just keywords | Not available |
+
+## When to use AgentMail
+
+AgentMail is the right choice when:
+
+- Your AI agent needs to **send and receive** emails, not just send
+- Your agent needs its **own email identity** rather than a shared noreply@ address
+- You are building **conversational email workflows** like outreach, support, or scheduling
+- You need **per-agent or per-customer inbox isolation** (Pods)
+- Your agent needs to **sign up for services**, receive verification codes, or act as a user on the internet
+
+## Can I migrate from Resend or SendGrid?
+
+Yes. AgentMail's send API works similarly. Replace your existing send call with `client.inboxes.messages.send()` and you get the same sending capability plus full receiving, threading, and agent identity features on top. See the [Quickstart](/quickstart) to get started in minutes.

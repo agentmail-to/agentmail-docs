@@ -23,7 +23,7 @@ Each entry can be either a full email address (e.g., `partner@example.com`) or a
 
 ### Add an entry
 
-```python
+```python title="Python"
 from agentmail import AgentMail
 
 client = AgentMail()
@@ -43,14 +43,14 @@ client.lists.create("send", "block", entry="competitor.com")
 
 ### List entries
 
-```python
+```python title="Python"
 # View all entries in a list
 entries = client.lists.list("receive", "allow")
 ```
 
 ### Remove an entry
 
-```python
+```python title="Python"
 client.lists.delete("receive", "block", entry="spam@example.com")
 ```
 
@@ -58,7 +58,7 @@ client.lists.delete("receive", "block", entry="spam@example.com")
 
 **Outreach agent:** Use a send allowlist to restrict your agent to only email verified prospects. This prevents the agent from accidentally emailing the wrong people.
 
-```python
+```python title="Python"
 # Only allow sending to verified prospects
 for prospect in verified_prospects:
     client.lists.create("send", "allow", entry=prospect.email)
@@ -66,7 +66,7 @@ for prospect in verified_prospects:
 
 **Support agent:** Use a receive allowlist to restrict your agent to only respond to emails from customer domains.
 
-```python
+```python title="Python"
 # Only accept emails from customer domains
 client.lists.create("receive", "allow", entry="customer-a.com")
 client.lists.create("receive", "allow", entry="customer-b.com")
@@ -74,7 +74,7 @@ client.lists.create("receive", "allow", entry="customer-b.com")
 
 **Anti-spam:** Use a receive blocklist to filter out known spam senders or unwanted automated emails.
 
-```python
+```python title="Python"
 # Block known spam domains
 client.lists.create("receive", "block", entry="spam-domain.com", reason="spam")
 ```

@@ -1,0 +1,116 @@
+---
+title: "How do I use Pods for multi-tenant email?"
+subtitle: Isolate inboxes, domains, and data across tenants with Pods.
+slug: knowledge-base/pods-multi-tenant
+---
+
+Pods provide tenant isolation for multi-tenant applications. Each Pod is an isolated workspace containing its own inboxes, domains, threads, and drafts, completely separated from other Pods.
+
+## When to use Pods
+
+Pods are designed for scenarios where you need to keep different customers' or agents' email data separate:
+
+- **SaaS platforms** where each customer's agents need their own email inboxes
+- **Agency setups** where each client gets isolated email infrastructure
+- **AI agent platforms** where different agents need dedicated, isolated workspaces
+- **White-label products** where end users get email under their own brand
+
+If you are only managing email for your own organization, Pods are optional. You can work directly with inboxes without creating them.
+
+## The hierarchy
+
+```
+Organization (your business)
+    └── Pod (Customer A)
+        ├── Inbox: support@customera.com
+        ├── Inbox: sales@customera.com
+        └── Domain: customera.com
+    └── Pod (Customer B)
+        ├── Inbox: hello@customerb.com
+        └── Domain: customerb.com
+```
+
+Everything inside a Pod is isolated. Customer A cannot see Customer B's emails, threads, or drafts.
+
+## Creating a Pod and its resources
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+# Create a Pod for a customer
+pod = client.pods.create(name="Acme Corp")
+
+# Create inboxes within that Pod
+support_inbox = client.pods.inboxes.create(
+    pod_id=pod.pod_id,
+    username="support",
+    domain="acme.com",
+    display_name="Acme Support"
+)
+
+sales_inbox = client.pods.inboxes.create(
+    pod_id=pod.pod_id,
+    username="sales",
+    domain="acme.com",
+    display_name="Acme Sales"
+)
+```
+
+<Note>
+Use the `client_id` parameter when creating a Pod to set your own unique identifier. This way you can map Pods to your internal customer IDs without maintaining a separate mapping table.
+</Note>
+
+```python title="Python"
+# Use your internal customer ID as the client_id
+pod = client.pods.create(
+    name="Acme Corp",
+    client_id="customer_12345"
+)
+```
+
+## Listing resources within a Pod
+
+You can list inboxes, threads, drafts, and domains scoped to a specific Pod:
+
+```python title="Python"
+# List all inboxes in a Pod
+inboxes = client.pods.inboxes.list(pod_id=pod.pod_id)
+
+# List all threads across all inboxes in a Pod
+threads = client.pods.threads.list(pod_id=pod.pod_id)
+
+# List all pending drafts in a Pod
+drafts = client.pods.drafts.list(pod_id=pod.pod_id)
+```
+
+This makes it easy to build features like "show all unread emails for Customer X" or "list all pending drafts for Customer Y."
+
+## Deleting a Pod
+
+You cannot delete a Pod that still has inboxes or domains attached to it. Clean up child resources first:
+
+```python title="Python"
+# Delete all inboxes in the Pod first
+inboxes = client.pods.inboxes.list(pod_id=pod.pod_id)
+for inbox in inboxes.inboxes:
+    client.inboxes.delete(inbox.inbox_id)
+
+# Then delete the Pod
+client.pods.delete(pod_id=pod.pod_id)
+```
+
+<Warning>
+When you delete an inbox, all associated messages, threads, and drafts are automatically cleaned up. You do not need to delete them individually.
+</Warning>
+
+## Things to know
+
+- **Cross-pod email works normally.** Inboxes in different Pods can send and receive emails from each other, just like any other email addresses. Pods isolate data access, not email delivery.
+- **Inboxes cannot move between Pods.** If you need to reassign an inbox, create a new one in the target Pod.
+- **Pod-scoped API keys.** You can create API keys scoped to a specific Pod, so each tenant only has access to their own resources. Create them via `POST /pods/{pod_id}/api-keys`.
+- **No limit on Pods.** You can create as many Pods as you need for your customers.
+- **Domains can be scoped to one Pod or all Pods.** A domain cannot be shared across a subset of Pods.
+
+For more details, see the [Pods core concept](/pods) documentation.

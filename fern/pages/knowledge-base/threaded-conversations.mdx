@@ -19,7 +19,7 @@ You never need to create threads manually. AgentMail handles threading automatic
 
 ### Per inbox
 
-```python
+```python title="Python"
 threads = client.inboxes.threads.list(
     inbox_id="agent@agentmail.to"
 )
@@ -30,7 +30,7 @@ for t in threads.threads:
 
 ### Across your entire organization
 
-```python
+```python title="Python"
 # Get all threads from every inbox in your organization
 all_threads = client.threads.list()
 ```
@@ -41,7 +41,7 @@ This org-wide query is useful for building supervisor agents that monitor conver
 
 Retrieve a thread by its ID to access all messages in the conversation:
 
-```python
+```python title="Python"
 thread = client.threads.get(thread_id="thread_abc123")
 
 for message in thread.messages:
@@ -54,7 +54,7 @@ for message in thread.messages:
 
 To continue a conversation, reply to the most recent message in the thread:
 
-```python
+```python title="Python"
 # Get the thread and find the latest message
 thread = client.threads.get(thread_id="thread_abc123")
 last_message = thread.messages[-1]
@@ -76,7 +76,7 @@ Always provide both `text` and `html` when sending replies. This ensures readabi
 
 When people reply to emails, their email client often includes the entire previous conversation as quoted text. AgentMail provides `extracted_text` and `extracted_html` fields on received messages, which contain only the new reply content without the quoted history.
 
-```python
+```python title="Python"
 # Use extracted_text to get only the new content
 new_content = message.extracted_text
 
@@ -90,7 +90,7 @@ This prevents your agent from re-processing the entire conversation history on e
 
 Combine threads with labels to manage your agent's workflow. For example, you can track which threads need a reply:
 
-```python
+```python title="Python"
 # Find threads that need a reply
 unreplied = client.inboxes.threads.list(
     inbox_id="agent@agentmail.to",

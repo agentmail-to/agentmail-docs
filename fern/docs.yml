@@ -361,20 +361,20 @@ navigation:
           - page: Introduction
             icon: fa-solid fa-book-open
             path: pages/knowledge-base/introduction.mdx
-          # - section: Getting Started
-          #   contents:
-          #     - page: What is AgentMail?
-          #       icon: fa-regular fa-circle-question
-          #       path: pages/knowledge-base/what-is-agentmail.mdx
-          #     - page: What can I do with an inbox?
-          #       icon: fa-solid fa-inbox
-          #       path: pages/knowledge-base/inbox-capabilities.mdx
-          #     - page: Creating your first inbox
-          #       icon: fa-solid fa-plus
-          #       path: pages/knowledge-base/creating-first-inbox.mdx
-          #     - page: Getting your API key
-          #       icon: fa-solid fa-key
-          #       path: pages/knowledge-base/getting-api-key.mdx
+          - section: Getting Started
+            contents:
+              - page: What is AgentMail?
+                icon: fa-regular fa-circle-question
+                path: pages/knowledge-base/what-is-agentmail.mdx
+              - page: What can I do with an inbox?
+                icon: fa-solid fa-inbox
+                path: pages/knowledge-base/inbox-capabilities.mdx
+              - page: Creating your first inbox
+                icon: fa-solid fa-plus
+                path: pages/knowledge-base/creating-first-inbox.mdx
+              # - page: Getting your API key
+              #   icon: fa-solid fa-key
+              #   path: pages/knowledge-base/getting-api-key.mdx
           - section: Agent Patterns
             contents:
               - page: Handling inbound emails
@@ -389,12 +389,12 @@ navigation:
               - page: Human-in-the-loop workflows
                 icon: fa-solid fa-user-check
                 path: pages/knowledge-base/human-in-the-loop.mdx
-              # - page: Pods for multi-tenant email
-              #   icon: fa-solid fa-users
-              #   path: pages/knowledge-base/pods-multi-tenant.mdx
-              # - page: Using labels to track state
-              #   icon: fa-solid fa-tags
-              #   path: pages/knowledge-base/labels-track-state.mdx
+              - page: Pods for multi-tenant email
+                icon: fa-solid fa-users
+                path: pages/knowledge-base/pods-multi-tenant.mdx
+              - page: Using labels to track state
+                icon: fa-solid fa-tags
+                path: pages/knowledge-base/labels-track-state.mdx
           # - section: Domains & Deliverability
           #   contents:
           #     - page: Custom domain setup
