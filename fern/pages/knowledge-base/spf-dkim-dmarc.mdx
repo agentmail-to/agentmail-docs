@@ -60,7 +60,7 @@ DMARC ties SPF and DKIM together. It tells receiving servers what to do when an 
 TXT | _dmarc | v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to
 ```
 
-AgentMail sets the policy to `reject` by default, which means any email that fails SPF or DKIM checks will be rejected outright. The `rua` tag sends aggregate reports to AgentMail so we can monitor your domain's deliverability health.
+AgentMail sets the policy to `reject` by default, which means any email that fails DMARC authentication (typically when both SPF and DKIM fail to align with the sender domain) will be rejected outright. The `rua` tag sends aggregate reports to AgentMail so we can monitor your domain's deliverability health.
 
 **If you are setting up DMARC for the first time,** consider starting with a less strict policy and graduating to `reject`:
 

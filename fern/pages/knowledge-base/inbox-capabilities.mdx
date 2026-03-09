@@ -81,14 +81,15 @@ client.inboxes.messages.send(
 # Check for replies
 threads = client.inboxes.threads.list(inbox_id=inbox.inbox_id)
 
-# Get the full conversation
-thread = client.threads.get(thread_id=threads.threads[0].thread_id)
+if threads.threads:
+    # Get the full conversation
+    thread = client.threads.get(thread_id=threads.threads[0].thread_id)
 
-# Reply to the latest message
-client.inboxes.messages.reply(
-    inbox_id=inbox.inbox_id,
-    message_id=thread.messages[-1].message_id,
-    text="Following up: have you had a chance to try the fix?",
-    html="<p>Following up: have you had a chance to try the fix?</p>"
-)
+    # Reply to the latest message
+    client.inboxes.messages.reply(
+        inbox_id=inbox.inbox_id,
+        message_id=thread.messages[-1].message_id,
+        text="Following up: have you had a chance to try the fix?",
+        html="<p>Following up: have you had a chance to try the fix?</p>"
+    )
 ```

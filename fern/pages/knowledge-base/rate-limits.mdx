@@ -46,7 +46,7 @@ async function sendWithRetry(inboxId: string, params: any, maxRetries = 3) {
 
 **Distribute sends across inboxes.** Sending from multiple inboxes improves deliverability and avoids per-address throttling by mailbox providers. Instead of 1,000 emails from 1 inbox, send 10 emails each from 100 inboxes.
 
-**Use idempotency keys.** Prevent duplicate sends on retries by using the `clientId` parameter when creating inboxes, or by tracking sent message IDs in your application.
+**Use idempotency keys for resource creation.** The `clientId` parameter on create operations (inboxes, pods, webhooks, drafts) prevents duplicate resources on retries. For preventing duplicate email sends, track sent message IDs in your application or use the [draft workflow](/knowledge-base/preventing-duplicate-sends).
 
 **Implement exponential backoff.** When you receive a `429` response, wait for the duration specified in the `Retry-After` header before retrying. Increase the wait time with each consecutive retry.
 
