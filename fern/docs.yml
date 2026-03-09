@@ -412,9 +412,6 @@ navigation:
           - websockets
           - lists
           - metrics
-          - api-keys
-          - pods
-          - organizations
   - tab: kb
     layout:
       - page: Introduction
