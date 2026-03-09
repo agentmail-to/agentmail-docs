@@ -1,0 +1,68 @@
+---
+title: "Why are my emails going to spam?"
+subtitle: Troubleshoot and fix spam folder placement issues.
+slug: knowledge-base/emails-going-to-spam
+---
+
+If your agent's emails are landing in spam instead of the inbox, work through these common causes in order. The most frequent issues are at the top.
+
+## 1. Missing or incorrect DNS records
+
+This is the most common cause. SPF, DKIM, and DMARC must all be configured correctly for receiving servers to trust your emails.
+
+**How to check:** Go to the [AgentMail Console](https://console.agentmail.to), navigate to **Domains**, and verify that all records show as verified.
+
+If any records are missing or misconfigured, see the [SPF, DKIM, and DMARC setup](/knowledge-base/spf-dkim-dmarc) guide.
+
+## 2. New domain without warmup
+
+New domains have zero sender reputation. If you start sending hundreds of emails immediately, providers will flag your domain as suspicious.
+
+**Fix:** Warm up gradually:
+
+| Timeframe | Volume |
+| --- | --- |
+| Week 1 | 10 to 20 emails per day |
+| Week 2 | 50 to 100 emails per day |
+| Week 3 | Scale up based on engagement |
+
+Maintain low bounce rates and low spam complaint rates throughout. See the [domain warming schedule](/knowledge-base/domain-warming) for a detailed plan.
+
+## 3. Sending HTML without a text version
+
+Always include both `html` and `text` versions of your email. Spam filters flag emails that contain only HTML with no plain text fallback.
+
+```typescript title="TypeScript"
+await client.inboxes.messages.send(inbox.inboxId, {
+  to: "user@example.com",
+  subject: "Hello",
+  text: "Plain text version of your email",
+  html: "<p>HTML version of your email</p>",
+});
+```
+
+## 4. Spammy content
+
+Email providers use content analysis to flag spam. Avoid these patterns in your subject lines and body:
+
+- ALL CAPS subjects
+- Excessive exclamation marks
+- Trigger words like "FREE", "BUY NOW", "ACT NOW", "URGENT"
+- Too many links in a single email
+- Large images with very little text
+
+## 5. High bounce rate
+
+Sending to invalid email addresses damages your sender reputation quickly. If too many emails bounce, providers start sending your future emails to spam.
+
+**Fix:** Validate email addresses before sending. Remove bounced addresses from your lists immediately. You can track bounces using the `message.bounced` webhook event.
+
+## 6. Using @agentmail.to for production
+
+The shared `@agentmail.to` domain is great for testing, but it has shared reputation across all users. For production sending, consider using a [custom domain](/knowledge-base/custom-domain-setup) with proper DNS authentication.
+
+## Still landing in spam?
+
+If you have checked all of the above and emails are still going to spam, reach out in our [discord](/https://discord.com/invite/hTYatWYWBc) supporting channel. 
+
+For a comprehensive guide to maximizing deliverability, see the [Email Deliverability](/email-deliverability) best practices.Gradually build sending reputation on a new domain.

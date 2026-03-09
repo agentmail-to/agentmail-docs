@@ -64,7 +64,7 @@ for prospect in verified_prospects:
     client.lists.create("send", "allow", entry=prospect.email)
 ```
 
-**Support agent:** Use a receive allowlist to restrict your agent to only respond to emails from customer domains.
+**Personal Agent (Openclaw, Manus, etc.):** Use a receive allowlist to restrict your agent to only respond to emails from you.
 
 ```python title="Python"
 # Only accept emails from customer domains

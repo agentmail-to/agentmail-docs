@@ -8,13 +8,15 @@ An AgentMail inbox is a full email account for your AI agent. Each inbox gets a 
 
 ## Sending
 
-- **Send emails** to any email address on the internet
-- **CC and BCC** to include humans in the loop or copy other agents
-- **HTML and plain text** for rich formatted emails
+- **Send emails** to anyone on the internet
+- **CC and BCC AI agents in email threads**
+- **Forward emails to humans and AI agents** 
+- **Create and send drafts**
+- **HTML and plain text** 
 - **Attachments** with Base64 encoding (PDFs, images, documents)
-- **Custom display names** like "Support Agent" instead of a raw email address
-- **Labels on send** to tag outgoing messages for campaign tracking or workflow state
-- **Drafts** to compose emails for human review before sending
+- **Custom display names** 
+- **Labeling email threads**
+- **Schedule send emails for later**
 
 ## Receiving
 
@@ -28,10 +30,10 @@ An AgentMail inbox is a full email account for your AI agent. Each inbox gets a 
 ## Threading and conversations
 
 - **Automatic threading:** replies are grouped into conversation threads using standard email headers
-- **Reply to messages** to maintain context in multi-turn conversations
+- **Reply-to messages** to maintain context in multi-turn conversations
 - **Reply all** to respond to all recipients on a thread
 - **Forward messages** to other addresses or agents
-- **Org-wide thread listing** to query conversations across all inboxes in your organization
+- **Org-wide thread listing** to query conversations across every inbox in your organization
 
 ## Organization and filtering
 
@@ -40,7 +42,7 @@ An AgentMail inbox is a full email account for your AI agent. Each inbox gets a 
 - **Allowlists and blocklists:** control who an inbox can send to and receive from
 - **Pods:** isolate groups of inboxes per customer for multi-tenant applications
 
-## Identity and deliverability
+## Identity and authentication
 
 - **Custom domains:** send from your own domain (e.g., `agent@yourcompany.com`) instead of `@agentmail.to`
 - **SPF, DKIM, and DMARC:** full email authentication for production deliverability
@@ -53,6 +55,7 @@ An AgentMail inbox is a full email account for your AI agent. Each inbox gets a 
 - **TypeScript SDK:** `npm install agentmail`
 - **SMTP:** connect email clients or existing systems for sending
 - **MCP Server:** use with Claude Code, Cursor, and other AI coding tools
+- **IMAP:** coming soon
 
 ## Quick example
 

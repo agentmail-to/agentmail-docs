@@ -70,6 +70,9 @@ tabs:
   api:
     display-name: API Reference
     icon: terminal
+  kb:
+    display-name: Knowledge Base
+    icon: light book-open
   changelog:
     display-name: Changelog
     icon: light clock
@@ -356,90 +359,6 @@ navigation:
           # - page: Customer Support Agent
           #   icon: fa-regular fa-life-ring
           #   path: pages/examples/support-agent.mdx
-      - section: Knowledge Base
-        contents:
-          - page: Introduction
-            icon: fa-solid fa-book-open
-            path: pages/knowledge-base/introduction.mdx
-          - section: Getting Started
-            contents:
-              - page: What is AgentMail?
-                icon: fa-regular fa-circle-question
-                path: pages/knowledge-base/what-is-agentmail.mdx
-              - page: What can I do with an inbox?
-                icon: fa-solid fa-inbox
-                path: pages/knowledge-base/inbox-capabilities.mdx
-              - page: Creating your first inbox
-                icon: fa-solid fa-plus
-                path: pages/knowledge-base/creating-first-inbox.mdx
-              # - page: Getting your API key
-              #   icon: fa-solid fa-key
-              #   path: pages/knowledge-base/getting-api-key.mdx
-          - section: Agent Patterns
-            contents:
-              - page: Handling inbound emails
-                icon: fa-solid fa-right-left
-                path: pages/knowledge-base/handling-inbound-emails.mdx
-              - page: Allowlists & blocklists
-                icon: fa-solid fa-filter
-                path: pages/knowledge-base/allowlists-blocklists.mdx
-              - page: Managing threaded conversations
-                icon: fa-regular fa-comments
-                path: pages/knowledge-base/threaded-conversations.mdx
-              - page: Human-in-the-loop workflows
-                icon: fa-solid fa-user-check
-                path: pages/knowledge-base/human-in-the-loop.mdx
-              - page: Pods for multi-tenant email
-                icon: fa-solid fa-users
-                path: pages/knowledge-base/pods-multi-tenant.mdx
-              - page: Using labels to track state
-                icon: fa-solid fa-tags
-                path: pages/knowledge-base/labels-track-state.mdx
-          # - section: Domains & Deliverability
-          #   contents:
-          #     - page: Custom domain setup
-          #       icon: fa-solid fa-globe
-          #       path: pages/knowledge-base/custom-domain-setup.mdx
-          #     - page: SPF, DKIM, and DMARC setup
-          #       icon: fa-solid fa-shield-halved
-          #       path: pages/knowledge-base/spf-dkim-dmarc.mdx
-          #     - page: Emails going to spam
-          #       icon: fa-solid fa-triangle-exclamation
-          #       path: pages/knowledge-base/emails-going-to-spam.mdx
-          #     - page: Domain warming schedule
-          #       icon: fa-solid fa-temperature-half
-          #       path: pages/knowledge-base/domain-warming.mdx
-          #     - page: MX record conflicts
-          #       icon: fa-solid fa-code-merge
-          #       path: pages/knowledge-base/mx-record-conflicts.mdx
-          # - section: Troubleshooting
-          #   contents:
-          #     - page: Rate limits
-          #       icon: fa-solid fa-gauge-high
-          #       path: pages/knowledge-base/rate-limits.mdx
-          #     - page: Preventing duplicate sends
-          #       icon: fa-solid fa-clone
-          #       path: pages/knowledge-base/preventing-duplicate-sends.mdx
-          #     - page: Domain not verifying
-          #       icon: fa-solid fa-circle-xmark
-          #       path: pages/knowledge-base/domain-not-verifying.mdx
-          #     - page: Emails bouncing
-          #       icon: fa-solid fa-rotate-left
-          #       path: pages/knowledge-base/emails-bouncing.mdx
-          - section: DNS Guides
-            contents:
-              - page: Cloudflare
-                icon: fa-solid fa-cloud
-                path: pages/knowledge-base/dns-cloudflare.mdx
-              - page: GoDaddy
-                icon: fa-solid fa-globe
-                path: pages/knowledge-base/dns-godaddy.mdx
-              - page: Route 53 (AWS)
-                icon: fa-brands fa-aws
-                path: pages/knowledge-base/dns-route53.mdx
-              - page: Namecheap
-                icon: fa-solid fa-n
-                path: pages/knowledge-base/dns-namecheap.mdx
       - section: Resources
         contents:
           - page: FAQ
@@ -487,4 +406,88 @@ navigation:
           - api-keys
           - pods
           - organizations
+  - tab: kb
+    layout:
+      - page: Introduction
+        icon: fa-solid fa-book-open
+        path: pages/knowledge-base/introduction.mdx
+      - section: Getting Started
+        contents:
+          - page: What is AgentMail?
+            icon: fa-regular fa-circle-question
+            path: pages/knowledge-base/what-is-agentmail.mdx
+          - page: What can I do with an inbox?
+            icon: fa-solid fa-inbox
+            path: pages/knowledge-base/inbox-capabilities.mdx
+          - page: Creating your first inbox
+            icon: fa-solid fa-plus
+            path: pages/knowledge-base/creating-first-inbox.mdx
+          - page: Getting your API key
+            icon: fa-solid fa-key
+            path: pages/knowledge-base/getting-api-key.mdx
+      - section: Agent Patterns
+        contents:
+          - page: Handling inbound emails
+            icon: fa-solid fa-right-left
+            path: pages/knowledge-base/handling-inbound-emails.mdx
+          - page: Allowlists & blocklists
+            icon: fa-solid fa-filter
+            path: pages/knowledge-base/allowlists-blocklists.mdx
+          - page: Managing threaded conversations
+            icon: fa-regular fa-comments
+            path: pages/knowledge-base/threaded-conversations.mdx
+          - page: Human-in-the-loop workflows
+            icon: fa-solid fa-user-check
+            path: pages/knowledge-base/human-in-the-loop.mdx
+          - page: Pods for multi-tenant email
+            icon: fa-solid fa-users
+            path: pages/knowledge-base/pods-multi-tenant.mdx
+          - page: Using labels to track state
+            icon: fa-solid fa-tags
+            path: pages/knowledge-base/labels-track-state.mdx
+      - section: Domains & Deliverability
+        contents:
+          - page: Custom domain setup
+            icon: fa-solid fa-globe
+            path: pages/knowledge-base/custom-domain-setup.mdx
+          - page: SPF, DKIM, and DMARC setup
+            icon: fa-solid fa-shield-halved
+            path: pages/knowledge-base/spf-dkim-dmarc.mdx
+          - page: Emails going to spam
+            icon: fa-solid fa-triangle-exclamation
+            path: pages/knowledge-base/emails-going-to-spam.mdx
+          - page: Warming Up
+            icon: fa-solid fa-temperature-half
+            path: pages/knowledge-base/domain-warming.mdx
+          - page: MX record conflicts
+            icon: fa-solid fa-code-merge
+            path: pages/knowledge-base/mx-record-conflicts.mdx
+      - section: Troubleshooting
+        contents:
+          - page: Rate limits
+            icon: fa-solid fa-gauge-high
+            path: pages/knowledge-base/rate-limits.mdx
+          - page: Preventing duplicate sends
+            icon: fa-solid fa-clone
+            path: pages/knowledge-base/preventing-duplicate-sends.mdx
+          - page: Domain not verifying
+            icon: fa-solid fa-circle-xmark
+            path: pages/knowledge-base/domain-not-verifying.mdx
+          - page: Emails bouncing
+            icon: fa-solid fa-rotate-left
+            path: pages/knowledge-base/emails-bouncing.mdx
+      - section: DNS Guides
+        contents:
+          - page: Cloudflare
+            icon: fa-solid fa-cloud
+            path: pages/knowledge-base/dns-cloudflare.mdx
+          - page: GoDaddy
+            icon: fa-solid fa-globe
+            path: pages/knowledge-base/dns-godaddy.mdx
+          - page: Route 53 (AWS)
+            icon: fa-brands fa-aws
+            path: pages/knowledge-base/dns-route53.mdx
+          - page: Namecheap
+            icon: fa-solid fa-n
+            path: pages/knowledge-base/dns-namecheap.mdx
   - tab: changelog

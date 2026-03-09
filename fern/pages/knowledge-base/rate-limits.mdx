@@ -1,0 +1,57 @@
+---
+title: "What are the rate limits?"
+subtitle: Understand AgentMail's rate limits and how to work within them.
+slug: knowledge-base/rate-limits
+---
+
+AgentMail is built for high-volume agent workflows. Limits vary by plan.
+
+## Sending limits by plan
+
+| Plan | Emails per month | Inboxes | Custom domains |
+| --- | --- | --- | --- |
+| Free | 3,000 | 3 | None |
+| Developer | 10,000 | 10 | 10 |
+| Startup | 150,000 | 150 | 150 |
+| Enterprise | Custom | Custom | Custom |
+
+For full plan details, see the [pricing page](https://agentmail.to/pricing).
+
+## API rate limits
+
+All API endpoints are rate-limited per API key. If you exceed the limit, the API returns a `429 Too Many Requests` response with a `Retry-After` header indicating how long to wait before retrying.
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+async function sendWithRetry(inboxId: string, params: any, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await client.inboxes.messages.send(inboxId, params);
+    } catch (error: any) {
+      if (error.statusCode === 429 && attempt < maxRetries - 1) {
+        const retryAfter = parseInt(error.headers?.["retry-after"] || "5");
+        await new Promise((r) => setTimeout(r, retryAfter * 1000));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+```
+
+## Tips for high-volume agents
+
+**Distribute sends across inboxes.** Sending from multiple inboxes improves deliverability and avoids per-address throttling by mailbox providers. Instead of 1,000 emails from 1 inbox, send 10 emails each from 100 inboxes.
+
+**Use idempotency keys.** Prevent duplicate sends on retries by using the `clientId` parameter when creating inboxes, or by tracking sent message IDs in your application.
+
+**Implement exponential backoff.** When you receive a `429` response, wait for the duration specified in the `Retry-After` header before retrying. Increase the wait time with each consecutive retry.
+
+**Monitor your usage.** Track your sending volume against your plan limits. You can view usage in the [AgentMail Console](https://console.agentmail.to).
+
+## Need higher limits?
+
+If you need higher sending volumes or more inboxes than your current plan allows, contact [support@agentmail.cc](mailto:support@agentmail.cc) or visit the [pricing page](https://agentmail.to/pricing) for enterprise options.

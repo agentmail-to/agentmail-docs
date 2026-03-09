@@ -1,0 +1,80 @@
+---
+title: "How do I avoid MX record conflicts?"
+subtitle: Add AgentMail DNS records without breaking existing email.
+slug: knowledge-base/mx-record-conflicts
+---
+
+If you already use Gmail, Outlook, or another email provider for your domain, adding AgentMail's MX records could conflict with your existing setup. Here is how to avoid that.
+
+## Use a subdomain
+
+The simplest and recommended approach: set up AgentMail on a subdomain instead of your root domain.
+
+| Domain | Used by | No conflict |
+| --- | --- | --- |
+| `yourcompany.com` | Gmail / Outlook (your team) | Unchanged |
+| `agents.yourcompany.com` | AgentMail (your agents) | Separate MX records |
+
+Your agents send and receive from addresses like `support@agents.yourcompany.com`, while your team keeps using `name@yourcompany.com`. Both work independently with no overlap.
+
+## How to set it up
+
+When adding your domain in AgentMail, use the subdomain:
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+// Use a subdomain to avoid MX conflicts
+const domain = await client.domains.create("agents.yourcompany.com");
+
+// Create inboxes on the subdomain
+const inbox = await client.inboxes.create({
+  username: "support",
+  domain: "agents.yourcompany.com",
+  displayName: "Support Agent",
+});
+// inbox address: support@agents.yourcompany.com
+```
+
+Then add the MX, SPF, and DKIM records for `agents.yourcompany.com` at your DNS provider. These records are completely separate from your root domain's records and will not affect your existing email.
+
+## Can I use my root domain?
+
+Yes, but only in these scenarios:
+
+**Sending only (no receiving):** If you only need AgentMail to send emails from your root domain, you only need SPF (TXT) and DKIM (CNAME) records. These do not conflict with existing MX records, so your Gmail or Outlook inbound mail is unaffected.
+
+**Full AgentMail (sending and receiving):** If you want AgentMail to also receive emails on your root domain, you would need to replace your existing MX records with AgentMail's. This means all incoming mail for that domain routes to AgentMail instead of Gmail or Outlook. Only do this if you want AgentMail to handle all inbound email for that domain.
+
+## Example DNS setup
+
+**Before (Gmail only):**
+
+```text
+yourcompany.com    MX    10    aspmx.l.google.com.
+yourcompany.com    MX    20    alt1.aspmx.l.google.com.
+```
+
+**After (Gmail on root + AgentMail on subdomain):**
+
+```text
+yourcompany.com            MX    10    aspmx.l.google.com.
+yourcompany.com            MX    20    alt1.aspmx.l.google.com.
+agents.yourcompany.com     MX    10    inbound.agentmail.to.
+agents.yourcompany.com     TXT         v=spf1 include:agentmail.to ~all
+agents.yourcompany.com     CNAME       (DKIM record from AgentMail)
+```
+
+Your team's email continues to flow through Gmail. Agent emails go through AgentMail. Clean separation with no conflicts.
+
+## Common subdomain choices
+
+| Subdomain | Example address |
+| --- | --- |
+| `agents.yourcompany.com` | `support@agents.yourcompany.com` |
+| `mail.yourcompany.com` | `outreach@mail.yourcompany.com` |
+| `ai.yourcompany.com` | `assistant@ai.yourcompany.com` |
+
+Pick whatever makes sense for your brand. The important thing is that it is a separate subdomain from your root domain's email.
