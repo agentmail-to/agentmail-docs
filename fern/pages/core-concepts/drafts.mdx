@@ -106,6 +106,248 @@ console.log(`Draft sent! New message ID: ${sentMessage.message_id}`);
 
 Note that now we access it by message_id now because now its a message!!
 
+## Scheduled Sending
+
+You can schedule a `Draft` to be sent automatically at a future time by passing the `send_at` field when creating or updating a `Draft`. AgentMail will automatically send it at the specified time—no cron jobs or polling required.
+
+### Schedule a `Draft`
+
+Pass an ISO 8601 datetime string to `send_at`. The `Draft` will be automatically labeled `scheduled` and its `send_status` will be set to `scheduled`.
+
+<CodeBlocks>
+```python title="Python"
+from datetime import datetime, timedelta
+
+# Schedule an email for tomorrow at 9:00 AM UTC
+send_time = (datetime.utcnow() + timedelta(days=1)).replace(
+    hour=9, minute=0, second=0
+)
+
+scheduled_draft = client.inboxes.drafts.create(
+    inbox_id="outreach@domain.com",
+    to=["prospect@example.com"],
+    subject="Following up on our conversation",
+    text="Hi, just wanted to follow up on our chat yesterday...",
+    send_at=send_time.isoformat() + "Z"
+)
+
+print(f"Draft scheduled for {scheduled_draft.send_at}")
+# send_status will be "scheduled"
+```
+
+```typescript title="TypeScript"
+// Schedule an email for tomorrow at 9:00 AM UTC
+const sendTime = new Date();
+sendTime.setUTCDate(sendTime.getUTCDate() + 1);
+sendTime.setUTCHours(9, 0, 0, 0);
+
+const scheduledDraft = await client.inboxes.drafts.create(
+    "outreach@domain.com",
+    {
+        to: ["prospect@example.com"],
+        subject: "Following up on our conversation",
+        text: "Hi, just wanted to follow up on our chat yesterday...",
+        sendAt: sendTime.toISOString()
+    }
+);
+
+console.log(`Draft scheduled for ${scheduledDraft.sendAt}`);
+// sendStatus will be "scheduled"
+```
+</CodeBlocks>
+
+### Cancel or Reschedule
+
+To cancel a scheduled send, delete the `Draft`. To reschedule, update `send_at` with a new time.
+
+<CodeBlocks>
+```python title="Python"
+# Reschedule to a different time
+new_time = (datetime.utcnow() + timedelta(days=3)).replace(hour=14, minute=0, second=0)
+client.inboxes.drafts.update(
+    inbox_id="outreach@domain.com",
+    draft_id=scheduled_draft.draft_id,
+    send_at=new_time.isoformat() + "Z"
+)
+
+# Or cancel by deleting the draft entirely
+client.inboxes.drafts.delete(
+    inbox_id="outreach@domain.com",
+    draft_id=scheduled_draft.draft_id
+)
+```
+
+```typescript title="TypeScript"
+// Reschedule to a different time
+const newTime = new Date();
+newTime.setUTCDate(newTime.getUTCDate() + 3);
+newTime.setUTCHours(14, 0, 0, 0);
+
+await client.inboxes.drafts.update(
+    "outreach@domain.com",
+    scheduledDraft.draftId,
+    { sendAt: newTime.toISOString() }
+);
+
+// Or cancel by deleting the draft entirely
+await client.inboxes.drafts.delete(
+    "outreach@domain.com",
+    scheduledDraft.draftId
+);
+```
+</CodeBlocks>
+
+### List Scheduled `Drafts`
+
+When a `Draft` is created with `send_at`, it is automatically labeled `scheduled`. You can filter for scheduled drafts using the `labels` query parameter.
+
+<CodeBlocks>
+```python title="Python"
+# List all scheduled drafts in an inbox
+scheduled = client.inboxes.drafts.list(
+    inbox_id="outreach@domain.com",
+    labels=["scheduled"]
+)
+
+for draft in scheduled.drafts:
+    print(f"{draft.subject} — scheduled for {draft.send_at} ({draft.send_status})")
+```
+
+```typescript title="TypeScript"
+// List all scheduled drafts in an inbox
+const scheduled = await client.inboxes.drafts.list(
+    "outreach@domain.com",
+    { labels: ["scheduled"] }
+);
+
+for (const draft of scheduled.drafts) {
+    console.log(`${draft.subject} — scheduled for ${draft.sendAt} (${draft.sendStatus})`);
+}
+```
+</CodeBlocks>
+
+<Callout intent="info" title="send_status Values">
+- `scheduled` — The draft is queued and will be sent at the `send_at` time.
+- `sending` — The draft is currently being processed for delivery.
+- `failed` — The send attempt failed. You can retry by updating `send_at` to a new time.
+</Callout>
+
+### Conditional Follow-Ups
+
+A common pattern is "send a follow-up in 3 days, but only if they haven't replied." You can implement this by scheduling a follow-up `Draft`, then cancelling it via `Webhook` if a reply arrives.
+
+**1. Send the initial email and schedule the follow-up:**
+
+<CodeBlocks>
+```python title="Python"
+from datetime import datetime, timedelta
+
+inbox_id = "outreach@domain.com"
+
+# Send initial email
+initial = client.inboxes.messages.send(
+    inbox_id=inbox_id,
+    to=["prospect@example.com"],
+    subject="Quick question about your workflow",
+    text="Hi, I noticed your team is scaling quickly..."
+)
+
+# Schedule follow-up for 3 days later
+follow_up_time = (datetime.utcnow() + timedelta(days=3)).replace(hour=9, minute=0, second=0)
+
+follow_up = client.inboxes.drafts.create(
+    inbox_id=inbox_id,
+    to=["prospect@example.com"],
+    subject="Re: Quick question about your workflow",
+    text="Hi again — just bumping this in case it got buried...",
+    in_reply_to=initial.message_id,
+    send_at=follow_up_time.isoformat() + "Z"
+)
+
+# Tag the thread so your webhook handler can find the draft
+client.inboxes.threads.update(
+    inbox_id=inbox_id,
+    thread_id=initial.thread_id,
+    add_labels=[f"follow-up:{follow_up.draft_id}"]
+)
+```
+
+```typescript title="TypeScript"
+const inboxId = "outreach@domain.com";
+
+// Send initial email
+const initial = await client.inboxes.messages.send(inboxId, {
+    to: ["prospect@example.com"],
+    subject: "Quick question about your workflow",
+    text: "Hi, I noticed your team is scaling quickly..."
+});
+
+// Schedule follow-up for 3 days later
+const followUpTime = new Date();
+followUpTime.setUTCDate(followUpTime.getUTCDate() + 3);
+followUpTime.setUTCHours(9, 0, 0, 0);
+
+const followUp = await client.inboxes.drafts.create(inboxId, {
+    to: ["prospect@example.com"],
+    subject: "Re: Quick question about your workflow",
+    text: "Hi again — just bumping this in case it got buried...",
+    inReplyTo: initial.messageId,
+    sendAt: followUpTime.toISOString()
+});
+
+// Tag the thread so your webhook handler can find the draft
+await client.inboxes.threads.update(inboxId, initial.threadId, {
+    addLabels: [`follow-up:${followUp.draftId}`]
+});
+```
+</CodeBlocks>
+
+**2. Cancel on reply via webhook:**
+
+When a reply comes in, look for the `follow-up:<draft_id>` label on the thread and delete the draft.
+
+<CodeBlocks>
+```python title="Python"
+# In your webhook handler for "message.received":
+thread = client.inboxes.threads.get(inbox_id=inbox_id, thread_id=thread_id)
+
+for label in thread.labels:
+    if label.startswith("follow-up:"):
+        draft_id = label.split("follow-up:")[1]
+        try:
+            client.inboxes.drafts.delete(inbox_id=inbox_id, draft_id=draft_id)
+        except Exception:
+            pass  # Draft may have already been sent
+        client.inboxes.threads.update(
+            inbox_id=inbox_id, thread_id=thread_id,
+            remove_labels=[label]
+        )
+        break
+```
+
+```typescript title="TypeScript"
+// In your webhook handler for "message.received":
+const thread = await client.inboxes.threads.get(inboxId, threadId);
+
+for (const label of thread.labels) {
+    if (label.startsWith("follow-up:")) {
+        const draftId = label.split("follow-up:")[1];
+        try {
+            await client.inboxes.drafts.delete(inboxId, draftId);
+        } catch {
+            // Draft may have already been sent
+        }
+        await client.inboxes.threads.update(inboxId, threadId, {
+            removeLabels: [label]
+        });
+        break;
+    }
+}
+```
+</CodeBlocks>
+
+If the prospect replies, the follow-up is cancelled. If they don't, it sends automatically at the scheduled time.
+
 ## Org-Wide `Draft` Management
 
 Similar to `Threads`, you can list all `Drafts` across your entire `Organization`. This is perfect for building a central dashboard where a human supervisor can view, approve, or delete any `Draft` created by any agent in your fleet.
@@ -126,4 +368,114 @@ const allDrafts = await client.drafts.list();
 console.log(`Found ${allDrafts.count} drafts pending review.`);
 ````
 
+</CodeBlocks>
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Drafts API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Drafts — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+
+  API reference:
+  - inboxes.drafts.create(inbox_id, to, subject?, text?, html?, cc?, bcc?, reply_to?, attachments?, send_at?)
+  - inboxes.drafts.get(inbox_id, draft_id)
+  - inboxes.drafts.update(inbox_id, draft_id, to?, subject?, text?, html?, send_at?, ...)
+  - inboxes.drafts.send(inbox_id, draft_id) — converts to Message, deletes draft
+  - inboxes.drafts.delete(inbox_id, draft_id)
+  - inboxes.drafts.list(inbox_id, limit?, page_token?, labels?)
+  - drafts.list(limit?, page_token?) — org-wide
+
+  Scheduled sending: pass send_at (ISO 8601 datetime) to create() or update().
+  Draft is auto-labeled 'scheduled' and sent at the specified time.
+  send_status: 'scheduled' | 'sending' | 'failed'.
+  Cancel by deleting the draft. Reschedule by updating send_at.
+
+  Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
+  """
+  import os
+  from datetime import datetime, timedelta
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  inbox_id = "agent@agentmail.to"
+
+  # Create and send immediately
+  draft = client.inboxes.drafts.create(inbox_id, to=["review@example.com"], subject="[REVIEW] Proposed reply")
+  sent = client.inboxes.drafts.send(inbox_id, draft.draft_id)
+  print(sent.message_id)
+
+  # Schedule for later
+  send_time = (datetime.utcnow() + timedelta(days=1)).replace(hour=9, minute=0, second=0)
+  scheduled = client.inboxes.drafts.create(
+      inbox_id, to=["prospect@example.com"], subject="Follow up",
+      text="Just following up...", send_at=send_time.isoformat() + "Z"
+  )
+  print(f"Scheduled for {scheduled.send_at}, status: {scheduled.send_status}")
+
+  all_drafts = client.drafts.list()
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Drafts — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   *
+   * API reference:
+   * - inboxes.drafts.create(inboxId, { to, subject?, text?, html?, cc?, bcc?, replyTo?, attachments?, sendAt? })
+   * - inboxes.drafts.get(inboxId, draftId)
+   * - inboxes.drafts.update(inboxId, draftId, { to?, subject?, text?, html?, sendAt?, ... })
+   * - inboxes.drafts.send(inboxId, draftId) — converts to Message, deletes draft
+   * - inboxes.drafts.delete(inboxId, draftId)
+   * - inboxes.drafts.list(inboxId, { limit?, pageToken?, labels? })
+   * - drafts.list({ limit?, pageToken? }) — org-wide
+   *
+   * Scheduled sending: pass sendAt (ISO 8601 datetime) to create() or update().
+   * Draft is auto-labeled 'scheduled' and sent at the specified time.
+   * sendStatus: 'scheduled' | 'sending' | 'failed'.
+   * Cancel by deleting the draft. Reschedule by updating sendAt.
+   *
+   * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const inboxId = "agent@agentmail.to";
+
+    // Create and send immediately
+    const draft = await client.inboxes.drafts.create(inboxId, {
+      to: ["review@example.com"],
+      subject: "[REVIEW] Proposed reply",
+    });
+    const sent = await client.inboxes.drafts.send(inboxId, draft.draftId);
+    console.log(sent.messageId);
+
+    // Schedule for later
+    const sendTime = new Date();
+    sendTime.setUTCDate(sendTime.getUTCDate() + 1);
+    sendTime.setUTCHours(9, 0, 0, 0);
+
+    const scheduled = await client.inboxes.drafts.create(inboxId, {
+      to: ["prospect@example.com"],
+      subject: "Follow up",
+      text: "Just following up...",
+      sendAt: sendTime.toISOString(),
+    });
+    console.log(`Scheduled for ${scheduled.sendAt}, status: ${scheduled.sendStatus}`);
+
+    const allDrafts = await client.drafts.list();
+  }
+  main();
+  ```
 </CodeBlocks>

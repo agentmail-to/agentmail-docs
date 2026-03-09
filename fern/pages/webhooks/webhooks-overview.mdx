@@ -44,17 +44,17 @@ The process is straightforward:
         ```python
         client.webhooks.create(
             url="https://<your-ngrok-url>.ngrok-free.app/webhooks",
-            events=["message.received", "message.sent"],
+            event_types=["message.received", "message.sent"],
         )
         ```
         ```typescript
         await client.webhooks.create({
             url: "https://<your-ngrok-url>.ngrok-free.app/webhooks",
-            events: ["message.received", "message.sent"],
+            eventTypes: ["message.received", "message.sent"],
         });
         ```
         </CodeBlocks>
-        Specify which events to receive; omit `events` to subscribe to all event types.
+        Specify which events to receive; omit `event_types` to subscribe to all event types.
     </Step>
     <Step title="3. AgentMail Sends Events">
         When an event occurs (e.g. a new message is received, a message is delivered, or a domain is verified), AgentMail sends a `POST` request with a JSON payload to your registered URL.
@@ -66,6 +66,33 @@ The process is straightforward:
 
 When AgentMail sends a webhook, the payload includes `event_type` and `event_id`, plus event-specific data. The example below shows a `message.received` payload; other events use different top-level objects (`send`, `delivery`, `bounce`, etc.). See [Webhook Events](/events) for each event's payload shape.
 
+### Payload size limit
+
+Webhook payloads are capped at **1 MB**. When a message exceeds this limit, AgentMail omits the `text` and `html` fields from the webhook payload to reduce size. All other metadata is still included. Inline images embedded in the HTML (such as base64-encoded data URIs) count toward the payload size and are a common reason for the limit being reached.
+
+Omitted content is always available through the API. After receiving a webhook, fetch the full message to access the complete body and attachment data:
+
+<CodeBlocks>
+```python
+# fetch the full message after receiving a webhook
+message = client.inboxes.messages.get(
+    inbox_id=payload["message"]["inbox_id"],
+    message_id=payload["message"]["message_id"],
+)
+text_body = message.text
+html_body = message.html
+```
+```typescript
+// fetch the full message after receiving a webhook
+const message = await client.inboxes.messages.get(
+  payload.message.inbox_id,
+  payload.message.message_id,
+);
+const textBody = message.text;
+const htmlBody = message.html;
+```
+</CodeBlocks>
+
 ```json Webhook Payload
 {
   "event_type": "message.received",
@@ -75,7 +102,7 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
     "organization_id": "org_abc123...",
     "inbox_id": "inbox_def456...",
     "thread_id": "thd_ghi789...",
-    "message_id": "msg_jkl012...",
+    "message_id": "<jkl012@agentmail.to>",
     "labels": ["received"],
     "timestamp": "2023-10-27T10:00:00Z",
     "reply_to": ["reply-to@example.com"],
@@ -95,8 +122,8 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
         "inline": false
       }
     ],
-    "in_reply_to": "msg_parent456...",
-    "references": ["msg_ref1...", "msg_ref2..."],
+    "in_reply_to": "<parent456@agentmail.to>",
+    "references": ["<ref001@agentmail.to>", "<ref002@agentmail.to>"],
     "sort_key": "some-sort-key",
     "updated_at": "2023-10-27T10:00:05Z",
     "created_at": "2023-10-27T10:00:00Z"
@@ -117,10 +144,77 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
   - **`labels`** (`array<string>`): Labels associated with the message (e.g., `received`, `sent`).
   - **`subject`** (`string`): The subject line of the email.
   - **`preview`** (`string`): A short plain-text preview of the email body.
-  - **`text`** (`string`): The full plain-text body of the email.
-  - **`html`** (`string`): The full HTML body of the email, if present.
-  - **`attachments`** (`array<object>`): A list of attachments, each with its own `attachment_id`, `filename`, `content_type`, `size`, and `inline` status.
+  - **`text`** (`string`): The plain-text body of the email. May be omitted when the webhook payload exceeds the 1 MB size limit. Fetch the full message via the API if this field is missing.
+  - **`html`** (`string`): The HTML body of the email, if present. May be omitted when the webhook payload exceeds the 1 MB size limit. Fetch the full message via the API if this field is missing.
+  - **`attachments`** (`array<object>`): A list of attachment metadata, each with its own `attachment_id`, `filename`, `content_type`, `size`, and `inline` status. Attachment content is not included in the webhook payload; download attachments through the API.
   - **`in_reply_to`** (`string`): The `message_id` of the email this message is a reply to, if applicable.
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Webhooks API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Webhooks — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+  Return 200 immediately; process payload in background.
+
+  API reference:
+  - webhooks.create(url, event_types?, inbox_ids?, pod_ids?, client_id?)
+  - webhooks.get(webhook_id), webhooks.list(limit?, page_token?)
+  - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?)
+  - webhooks.delete(webhook_id)
+
+  Events: message.received, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+  Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
+  """
+  import os
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  wh = client.webhooks.create(url="https://your-server.com/webhooks", event_types=["message.received"], client_id="my-webhook-v1")
+  all_wh = client.webhooks.list()
+  secret = client.webhooks.get(wh.webhook_id).secret
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Webhooks — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   * Return 200 immediately; process payload in background.
+   *
+   * API reference:
+   * - webhooks.create({ url, eventTypes?, inboxIds?, podIds?, clientId? })
+   * - webhooks.get(webhookId), webhooks.list({ limit?, pageToken? })
+   * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds? })
+   * - webhooks.delete(webhookId)
+   *
+   * Events: message.received, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+   * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const wh = await client.webhooks.create({
+      url: "https://your-server.com/webhooks",
+      eventTypes: ["message.received"],
+      clientId: "my-webhook-v1",
+    });
+    const allWh = await client.webhooks.list();
+    const secret = (await client.webhooks.get(wh.webhookId)).secret;
+  }
+  main();
+  ```
+</CodeBlocks>
 
 ## Next Steps
 

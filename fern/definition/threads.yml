@@ -138,6 +138,7 @@ service:
           ascending: optional<global.Ascending>
           include_spam: optional<global.IncludeSpam>
           include_blocked: optional<global.IncludeBlocked>
+          include_trash: optional<global.IncludeTrash>
       response: ListThreadsResponse
       errors:
         - global.NotFoundError
@@ -160,5 +161,21 @@ service:
         thread_id: ThreadId
         attachment_id: attachments.AttachmentId
       response: attachments.AttachmentResponse
+      errors:
+        - global.NotFoundError
+
+    delete:
+      method: DELETE
+      path: /{thread_id}
+      display-name: Delete Thread
+      docs: Moves the thread to trash by adding a trash label to all messages. If the thread is already in trash, it will be permanently deleted. Use `permanent=true` to force permanent deletion.
+      path-parameters:
+        thread_id: ThreadId
+      request:
+        name: DeleteThreadRequest
+        query-parameters:
+          permanent:
+            type: optional<boolean>
+            docs: If true, permanently delete the thread instead of moving to trash.
       errors:
         - global.NotFoundError

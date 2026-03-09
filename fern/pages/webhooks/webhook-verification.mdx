@@ -155,6 +155,65 @@ app.listen(port, () => {
 Signature verification requires the exact request body. If you're using body-parsing middleware (like `express.json()`), make sure to capture the raw body before parsing, or use `express.raw()` for your webhook endpoint.
 </Callout>
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for webhook verification in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Webhook Verification — copy into Cursor/Claude.
+
+  Use Svix: pip install svix. Get secret from webhooks.get(webhook_id).secret (starts whsec_).
+  Headers: svix-id, svix-timestamp, svix-signature. Use request.get_data() (raw body), not request.json.
+  """
+  from flask import Flask, request
+  from svix.webhooks import Webhook, WebhookVerificationError
+
+  app = Flask(__name__)
+  secret = "whsec_..."  # from client.webhooks.get(id).secret
+
+  @app.route("/webhooks", methods=["POST"])
+  def handler():
+    try:
+      wh = Webhook(secret)
+      msg = wh.verify(request.get_data(), request.headers)
+      if msg.get("event_type") == "message.received":
+        pass  # process
+      return "", 204
+    except WebhookVerificationError:
+      return "", 400
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Webhook Verification — copy into Cursor/Claude.
+   *
+   * Use Svix: npm install svix. Secret from webhooks.get(id).secret.
+   * Use express.raw({ type: "application/json" }) — NOT express.json(). Verify before parsing.
+   */
+  import express from "express";
+  import { Webhook } from "svix";
+
+  const app = express();
+  const secret = process.env.AGENTMAIL_WEBHOOK_SECRET;
+  if (!secret) {
+    throw new Error("AGENTMAIL_WEBHOOK_SECRET environment variable is required");
+  }
+
+  app.post("/webhooks", express.raw({ type: "application/json" }), (req, res) => {
+    try {
+      const wh = new Webhook(secret);
+      const msg = wh.verify(req.body, req.headers as Record<string, string>);
+      if (msg.event_type === "message.received") { /* process */ }
+      res.status(204).send();
+    } catch {
+      res.status(400).send();
+    }
+  });
+  ```
+</CodeBlocks>
+
 ## Testing Locally with ngrok
 
 During development, you'll need a way for AgentMail to reach your local server. [ngrok](https://ngrok.com/) creates a public URL that tunnels to your local machine.

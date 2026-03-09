@@ -4,6 +4,45 @@ subtitle: "Get started with real-time email event streaming"
 slug: websockets/quickstart
 ---
 
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for instant WebSocket setup.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail WebSockets Quickstart — copy into Cursor/Claude.
+  client.websockets.connect() → socket.send_subscribe(Subscribe(inbox_ids=[...])) → iterate socket for events.
+  """
+  from agentmail import AgentMail, Subscribe, Subscribed, MessageReceivedEvent
+
+  client = AgentMail()
+  with client.websockets.connect() as socket:
+    socket.send_subscribe(Subscribe(inbox_ids=["my-agent@agentmail.to"]))
+    for event in socket:
+      if isinstance(event, Subscribed): print(f"Subscribed to {event.inbox_ids}")
+      elif isinstance(event, MessageReceivedEvent): print(f"Received from: {event.message.from_}")
+  ```
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail WebSockets Quickstart — copy into Cursor/Claude.
+   * client.websockets.connect() → sendSubscribe({ type: "subscribe", inboxIds }) → on("message", ...)
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient();
+  const socket = await client.websockets.connect();
+  socket.on("message", async (e) => {
+    if (e.type === "subscribed") console.log("Subscribed to", e.inboxIds);
+    else if (e.type === "event" && e.eventType === "message.received") console.log("Received from:", e.message?.from);
+  });
+  await socket.waitForOpen();
+  socket.sendSubscribe({ type: "subscribe", inboxIds: ["my-agent@agentmail.to"] });
+  ```
+</CodeBlocks>
+
+## SDK Examples
+
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 

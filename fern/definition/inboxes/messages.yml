@@ -65,6 +65,18 @@ service:
       errors:
         - global.NotFoundError
 
+    update:
+      method: PATCH
+      path: /{message_id}
+      display-name: Update Message
+      path-parameters:
+        message_id: messages.MessageId
+      request: messages.UpdateMessageRequest
+      response: messages.Message
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+
     send:
       method: POST
       path: /send
@@ -114,15 +126,3 @@ service:
         - global.ValidationError
         - global.NotFoundError
         - messages.MessageRejectedError
-
-    update:
-      method: PATCH
-      path: /{message_id}
-      display-name: Update Message
-      path-parameters:
-        message_id: messages.MessageId
-      request: messages.UpdateMessageRequest
-      response: messages.Message
-      errors:
-        - global.ValidationError
-        - global.NotFoundError

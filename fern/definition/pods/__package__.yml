@@ -1,11 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
 
 navigation:
+  - api-keys.yml
+  - domains.yml
   - inboxes.yml
   - threads.yml
   - drafts.yml
-  - domains.yml
   - lists.yml
+  - metrics.yml
 
 imports:
   global: ../__package__.yml

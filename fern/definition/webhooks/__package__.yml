@@ -98,6 +98,15 @@ service:
       errors:
         - global.NotFoundError
 
+    create:
+      method: POST
+      path: ""
+      display-name: Create Webhook
+      request: CreateWebhookRequest
+      response: Webhook
+      errors:
+        - global.ValidationError
+
     update:
       method: PATCH
       path: /{webhook_id}
@@ -108,15 +117,6 @@ service:
       response: Webhook
       errors:
         - global.NotFoundError
-        - global.ValidationError
-
-    create:
-      method: POST
-      path: ""
-      display-name: Create Webhook
-      request: CreateWebhookRequest
-      response: Webhook
-      errors:
         - global.ValidationError
 
     delete:

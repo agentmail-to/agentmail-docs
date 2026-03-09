@@ -86,3 +86,62 @@ client.lists.delete("receive", "allow", entry="partner@example.com")
 await client.lists.delete("receive", "allow", "partner@example.com");
 ```
 </CodeBlocks>
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Lists API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Lists — copy into Cursor/Claude.
+
+  Filter emails by allow/block for send/receive. Types: receive|send × allow|block.
+
+  API reference:
+  - lists.list(direction, type, limit?, page_token?)
+  - lists.create(direction, type, entry, reason?) — reason only for block lists
+  - lists.get(direction, type, entry)
+  - lists.delete(direction, type, entry)
+
+  Entry: full email (user@domain.com) or domain (example.com).
+  """
+  from agentmail import AgentMail
+
+  client = AgentMail(api_key="YOUR_API_KEY")
+
+  entries = client.lists.list("receive", "allow", limit=10)
+  client.lists.create("receive", "allow", entry="partner@example.com")
+  client.lists.create("receive", "block", entry="spam@example.com", reason="spam")
+  e = client.lists.get("receive", "allow", entry="partner@example.com")
+  client.lists.delete("receive", "allow", entry="partner@example.com")
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Lists — copy into Cursor/Claude.
+   *
+   * Filter emails by allow/block for send/receive. Types: receive|send × allow|block.
+   *
+   * API reference:
+   * - lists.list(direction, type, { limit?, pageToken? })
+   * - lists.create(direction, type, { entry, reason? }) — reason only for block
+   * - lists.get(direction, type, entry)
+   * - lists.delete(direction, type, entry)
+   *
+   * Entry: full email or domain.
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+  async function main() {
+    const entries = await client.lists.list("receive", "allow", { limit: 10 });
+    await client.lists.create("receive", "allow", { entry: "partner@example.com" });
+    await client.lists.create("receive", "block", { entry: "spam@example.com", reason: "spam" });
+    const e = await client.lists.get("receive", "allow", "partner@example.com");
+    await client.lists.delete("receive", "allow", "partner@example.com");
+  }
+  main();
+  ```
+</CodeBlocks>

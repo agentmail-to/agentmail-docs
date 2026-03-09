@@ -25,6 +25,9 @@ types:
       api_key_id: ApiKeyId
       prefix: Prefix
       name: Name
+      pod_id:
+        type: optional<string>
+        docs: Pod ID the api key is scoped to. If set, the key can only access resources within this pod.
       used_at:
         type: optional<datetime>
         docs: Time at which api key was last used.
@@ -38,6 +41,9 @@ types:
         docs: API key.
       prefix: Prefix
       name: Name
+      pod_id:
+        type: optional<string>
+        docs: Pod ID the api key is scoped to.
       created_at: CreatedAt
 
   ListApiKeysResponse:

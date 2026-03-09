@@ -23,51 +23,42 @@ types:
         value: message.received
     docs: Type of metric event.
 
-  MetricTimestamp:
-    type: datetime
-    docs: Timestamp when the metric event occurred.
-
   MetricEventTypes:
     type: list<MetricEventType>
-    docs: List of metric event types to filter by.
+    docs: List of metric event types to query.
 
-  MetricStartTimestamp:
+  Start:
     type: datetime
-    docs: Start timestamp for the metrics query range.
+    docs: Start timestamp for the query.
 
-  MetricEndTimestamp:
+  End:
     type: datetime
-    docs: End timestamp for the metrics query range.
+    docs: End timestamp for the query.
 
-  MessageMetrics:
-    properties:
-      sent:
-        type: optional<list<MetricTimestamp>>
-        docs: Timestamps when messages were sent.
-      delivered:
-        type: optional<list<MetricTimestamp>>
-        docs: Timestamps when messages were delivered.
-      bounced:
-        type: optional<list<MetricTimestamp>>
-        docs: Timestamps when messages bounced.
-      delayed:
-        type: optional<list<MetricTimestamp>>
-        docs: Timestamps when messages were delayed.
-      rejected:
-        type: optional<list<MetricTimestamp>>
-        docs: Timestamps when messages were rejected.
-      complained:
-        type: optional<list<MetricTimestamp>>
-        docs: Timestamps when messages received complaints.
-      received:
-        type: optional<list<MetricTimestamp>>
-        docs: Timestamps when messages were received.
+  Period:
+    type: string
+    docs: Period in number of seconds for the query.
 
-  ListMetricsResponse:
+  MetricLimit:
+    type: integer
+    docs: Limit on number of buckets to return.
+
+  Descending:
+    type: boolean
+    docs: Sort in descending order.
+
+  MetricBucket:
     properties:
-      message:
-        type: optional<MessageMetrics>
-        docs: Message metrics grouped by event type.
+      timestamp:
+        type: datetime
+        docs: Timestamp of the bucket.
+      count:
+        type: integer
+        docs: Count of events in the bucket.
+
+  QueryMetricsResponse:
+    type: map<MetricEventType, list<MetricBucket>>
+    docs: Metrics grouped by event type.
 
 service:
   url: Http
@@ -75,16 +66,19 @@ service:
   auth: true
 
   endpoints:
-    list:
+    query:
       method: GET
       path: ""
-      display-name: List Metrics
+      display-name: Query Metrics
       request:
-        name: ListMetricsRequest
+        name: QueryMetricsRequest
         query-parameters:
           event_types: optional<MetricEventTypes>
-          start_timestamp: MetricStartTimestamp
-          end_timestamp: MetricEndTimestamp
-      response: ListMetricsResponse
+          start: optional<Start>
+          end: optional<End>
+          period: optional<Period>
+          limit: optional<MetricLimit>
+          descending: optional<Descending>
+      response: QueryMetricsResponse
       errors:
-        - global.NotFoundError
+        - global.ValidationError

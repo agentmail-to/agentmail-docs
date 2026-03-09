@@ -110,7 +110,7 @@ Replying to an existing `Message` adds your new `Message` to the same `Thread`, 
 # Python example
 reply = client.inboxes.messages.reply(
     inbox_id='my_inbox@domain.com'
-    message_id='msg_id',
+    message_id='<abc123@agentmail.to>',
     text="Thanks for the referral!",
     attachments=[
         SendAttachment(
@@ -127,7 +127,7 @@ print(f"Reply sent successfully with ID: {reply.message_id}")
 
 const reply = await client.inboxes.messages.reply(
 	"my_inbox@domain.com",
-	"msg_id",
+	"<abc123@agentmail.to>",
 	{
 		text: "Thanks for the referral!",
 		attachments: [
@@ -156,7 +156,7 @@ You can retrieve the details of any specific `Message` by providing its ID along
 <CodeBlocks>
 ```python title="Python"
 
-message = client.inboxes.messages.get(inbox_id = 'my_inbox@agentmail.to', message_id = 'msg_id')
+message = client.inboxes.messages.get(inbox_id = 'my_inbox@agentmail.to', message_id = '<abc123@agentmail.to>')
 
 print(f"Retrieved message with subject: {message.subject}")
 
@@ -165,7 +165,7 @@ print(f"Retrieved message with subject: {message.subject}")
 
 await client.inboxes.messages.get(
 	"my_inbox@domain.com",
-	"msg_id"
+	"<abc123@agentmail.to>"
 )
 
 console.log(`Retrieved message with subject: ${message.subject}`);
@@ -173,6 +173,100 @@ console.log(`Retrieved message with subject: ${message.subject}`);
 </CodeBlocks>
 
 When receiving replies or forwards, use `extracted_text` or `extracted_html` for just the new content—quoted history is stripped automatically.
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Messages API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Messages — copy into Cursor/Claude.
+
+  Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+
+  API reference:
+  - messages.send(inbox_id, to, subject, text, html?, cc?, bcc?, reply_to?, labels?, attachments?)
+  - messages.list(inbox_id, limit?, page_token?, labels?)
+  - messages.get(inbox_id, message_id)
+  - messages.reply(inbox_id, message_id, text, html?, attachments?, reply_all?)
+  - messages.forward(inbox_id, message_id, to, subject?, text?, html?)
+  - messages.update(inbox_id, message_id, add_labels?, remove_labels?)
+  - messages.get_attachment(inbox_id, message_id, attachment_id)
+  - messages.get_raw(inbox_id, message_id)
+
+  Reply content: use extracted_text/extracted_html for new content without quoted history.
+  Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
+  """
+  import os
+  from dotenv import load_dotenv
+  from agentmail import AgentMail
+
+  load_dotenv()
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+  inbox_id = "agent@agentmail.to"
+
+  # Send
+  sent = client.inboxes.messages.send(inbox_id, to="user@example.com", subject="Hi", text="Body", labels=["outreach"])
+  print(sent.message_id, sent.thread_id)
+
+  # List, get
+  res = client.inboxes.messages.list(inbox_id, limit=10)
+  for msg in res.messages:
+      content = msg.extracted_text or msg.text
+  msg = client.inboxes.messages.get(inbox_id, res.messages[0].message_id)
+
+  # Reply
+  reply = client.inboxes.messages.reply(inbox_id, msg.message_id, text="Thanks!")
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Messages — copy into Cursor/Claude.
+   *
+   * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+   *
+   * API reference:
+   * - messages.send(inboxId, { to, subject, text, html?, cc?, bcc?, replyTo?, labels?, attachments? })
+   * - messages.list(inboxId, { limit?, pageToken?, labels? })
+   * - messages.get(inboxId, messageId)
+   * - messages.reply(inboxId, messageId, { text, html?, attachments?, replyAll? })
+   * - messages.forward(inboxId, messageId, { to, subject?, text?, html? })
+   * - messages.update(inboxId, messageId, { addLabels?, removeLabels? })
+   * - messages.getAttachment(inboxId, messageId, attachmentId)
+   * - messages.getRaw(inboxId, messageId)
+   *
+   * Reply content: use extractedText/extractedHtml for new content without quoted history.
+   * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
+   */
+  import { AgentMailClient } from "agentmail";
+  import "dotenv/config";
+
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+  async function main() {
+    const inboxId = "agent@agentmail.to";
+
+    const sent = await client.inboxes.messages.send(inboxId, {
+      to: "user@example.com",
+      subject: "Hi",
+      text: "Body",
+      labels: ["outreach"],
+    });
+    console.log(sent.messageId, sent.threadId);
+
+    const res = await client.inboxes.messages.list(inboxId, { limit: 10 });
+    for (const msg of res.messages) {
+      const content = msg.extractedText ?? msg.text;
+    }
+    const msg = await client.inboxes.messages.get(inboxId, res.messages[0].messageId);
+
+    await client.inboxes.messages.reply(inboxId, msg.messageId, { text: "Thanks!" });
+  }
+  main();
+  ```
+</CodeBlocks>
 
 ### Crafting Your Message: HTML, Text, and CSS
 
@@ -323,6 +417,12 @@ Here is an example of a well-structured and styled HTML header:
   <img src="../../assets/css-rendered.png" alt="rendered css" />
 </Frame>
 
+## A Note on `text` Availability
+
+The `text` and `preview` fields on a received `Message` are derived from the email's plain-text (`text/plain`) MIME part. Some email clients — particularly Gmail and Outlook — send forwarded emails as HTML-only, with no plain-text part. In these cases, `text` and `preview` will be absent.
+
+When processing incoming messages, always treat `html` as the primary content source and `text` as optional.
+
 ## Receiving `Messages`
 
 While you can periodically list `Messages` to check for new emails, the most efficient way to handle incoming `Messages` for your agents is with `Webhooks`. By configuring a `Webhook` endpoint, AgentMail can notify your application/agent in real-time as soon as a new `Message` arrives, so you can take action on them.
@@ -336,4 +436,48 @@ While you can periodically list `Messages` to check for new emails, the most eff
     Learn how to set up webhooks for real-time message processing.
   </Card>
 </CardGroup>
+
+### Marking Messages as Read
+
+AgentMail doesn't have a dedicated "mark as read" endpoint — instead, you use [Labels](/labels) to track read/unread state. This is a common pattern to prevent your agent from reprocessing the same emails.
+
+<CodeBlocks>
+```python title="Python"
+# Mark a message as read after processing
+client.inboxes.messages.update(
+    inbox_id="agent@agentmail.to",
+    message_id=msg.message_id,
+    add_labels=["read"],
+    remove_labels=["unread"]
+)
+
+# Only fetch unread messages
+unread = client.inboxes.messages.list(
+    inbox_id="agent@agentmail.to",
+    labels=["unread"]
+)
+```
+
+```typescript title="TypeScript"
+// Mark a message as read after processing
+await client.inboxes.messages.update(
+  "agent@agentmail.to",
+  msg.messageId,
+  {
+    addLabels: ["read"],
+    removeLabels: ["unread"],
+  }
+);
+
+// Only fetch unread messages
+const unread = await client.inboxes.messages.list(
+  "agent@agentmail.to",
+  { labels: ["unread"] }
+);
+```
+</CodeBlocks>
+
+<Callout intent="info" title="Avoiding duplicate processing">
+If your agent uses webhooks, mark each message as `read` (or `processed`) immediately after handling it. Then, if your agent restarts or reprocesses, filter by `labels=["unread"]` to skip messages that have already been handled.
+</Callout>
 ````
