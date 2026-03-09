@@ -9,7 +9,7 @@ If you're building a platform where each of your customers needs their own email
 
 ## Pods = Tenant Isolation
 
-Every tenant gets their own `Pod`. All their resources — `Inboxes`, `Domains`, `Threads`, `Drafts` — live inside it and are completely isolated from other pods. Check out the [Pods](/pods) page for the full breakdown.
+Every tenant gets their own `Pod`. All their resources (`Inboxes`, `Domains`, `Threads`, `Drafts`) live inside it and are completely isolated from other pods. Check out the [Pods](/pods) page for the full breakdown.
 
 <CodeBlocks>
 ```python
@@ -17,8 +17,8 @@ from agentmail import AgentMail
 
 client = AgentMail()
 
-# Use client_id to map to your internal tenant ID —
-# saves you from maintaining a separate mapping table
+# Use client_id to map to your internal tenant ID so
+# you don't need to maintain a separate mapping table
 pod = client.pods.create(client_id="tenant-acme-123")
 ```
 
@@ -58,7 +58,7 @@ const domain = await client.pods.domains.create(pod.podId, {
 
 ## Scoped API Keys
 
-By default, API keys are organization-level — they can access everything across all pods. Scoped API keys are restricted to a single pod. If a key is scoped to Acme's pod, it can only touch Acme's resources. Nothing else.
+By default, API keys are organization-level and can access everything across all pods. Scoped API keys are restricted to a single pod. If a key is scoped to Acme's pod, it can only touch Acme's resources. Nothing else.
 
 This is useful when you want to hand a key to a tenant's service or agent without exposing your whole org.
 
@@ -70,7 +70,7 @@ scoped_key = client.pods.api_keys.create(
     name="acme-service-key"
 )
 
-# This is the only time you'll see the full key — store it
+# This is the only time you'll see the full key, so store it
 print(scoped_key.api_key)
 ```
 
@@ -79,7 +79,7 @@ const scopedKey = await client.pods.apiKeys.create(pod.podId, {
   name: "acme-service-key",
 });
 
-// This is the only time you'll see the full key — store it
+// This is the only time you'll see the full key, so store it
 console.log(scopedKey.apiKey);
 ```
 </CodeBlocks>
