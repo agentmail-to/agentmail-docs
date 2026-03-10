@@ -468,6 +468,9 @@ navigation:
             path: pages/knowledge-base/mx-record-conflicts.mdx
       - section: Troubleshooting
         contents:
+          - page: API 403 error
+            icon: fa-solid fa-ban
+            path: pages/knowledge-base/api-403-error.mdx
           - page: Rate limits
             icon: fa-solid fa-gauge-high
             path: pages/knowledge-base/rate-limits.mdx

@@ -3,7 +3,6 @@
 imports:
   global: __package__.yml
   inboxes: inboxes/__package__.yml
-  threads: threads.yml
   messages: messages.yml
   attachments: attachments.yml
 
@@ -78,7 +77,6 @@ types:
   DraftItem:
     properties:
       inbox_id: inboxes.InboxId
-      thread_id: threads.ThreadId
       draft_id: DraftId
       # client_id: optional<DraftClientId>
       labels: DraftLabels
@@ -95,7 +93,6 @@ types:
   Draft:
     properties:
       inbox_id: inboxes.InboxId
-      thread_id: threads.ThreadId
       draft_id: DraftId
       client_id: optional<DraftClientId>
       labels: DraftLabels
