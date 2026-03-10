@@ -1,0 +1,65 @@
+---
+title: "What does a 403 error mean?"
+subtitle: Common causes of API 403 Forbidden errors and how to fix them.
+slug: knowledge-base/api-403-error
+---
+
+A `403 Forbidden` response from the AgentMail API means your request was rejected. This can happen for several reasons, and the fix depends on the cause.
+
+## 1. Incorrect API key
+
+The most common cause. Your API key may be missing, incomplete, or invalid.
+
+**How to fix:**
+
+- Go to the [AgentMail Console](https://console.agentmail.to) and generate a new API key
+- When you generate a new key, **copy the entire key immediately**. It is only shown once and starts with `am_`
+- Make sure you are passing the key in the `Authorization` header as `Bearer am_...`
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+// Make sure the full key is copied, no trailing spaces or missing characters
+const client = new AgentMailClient({ apiKey: "am_..." });
+```
+
+<Warning>
+A common mistake is copying only part of the key. API keys are long strings. Double check that you copied the complete value from start to finish.
+</Warning>
+
+## 2. Accessing a resource you do not own
+
+You will get a 403 if you try to access an inbox, message, thread, or domain that belongs to a different organization. Each API key is scoped to one organization, and you can only access resources created under that organization.
+
+**How to fix:** Verify that the `inbox_id`, `message_id`, `thread_id`, or `domain_id` in your request actually belongs to your account.
+
+## 3. Missing required parameters
+
+Some endpoints return a 403 when required path parameters are missing or malformed. For example, calling `/v0/inboxes//messages` with an empty `inbox_id` may return 403 instead of 400.
+
+**How to fix:** Double check that all required path parameters are filled in correctly.
+
+## 4. Sending to a suppressed address
+
+AgentMail automatically suppresses addresses that have previously bounced, been rejected, or filed a spam complaint. If you try to send to a suppressed address, the API returns a 403.
+
+**How to fix:** Check if the recipient address has been suppressed. See [Emails bouncing](/knowledge-base/emails-bouncing) for more details on how suppression works.
+
+## We do not restrict your API key
+
+AgentMail does not place any feature restrictions on your API key. Every API key has access to all endpoints. If you are getting a 403, it is not because your key lacks permissions. It is one of the causes listed above.
+
+## Test your API key
+
+The fastest way to verify your API key is working is to use the **Try it** feature in our [API Reference](https://docs.agentmail.to/api-reference/inboxes/list).
+
+1. Go to any endpoint in the [API Reference](https://docs.agentmail.to/api-reference/inboxes/list)
+2. Click **Try it** in the top right of the code panel
+3. Enter your API key in the Authorization field
+4. Click **Send**
+
+If you get a `200` response, your key is valid and working. You can then copy the generated code snippet from the panel to use in your application.
+
+## Still getting 403?
+
+If none of the above resolves your issue, reach out in our [Discord](https://discord.com/invite/hTYatWYWBc) support channel or email [support@agentmail.cc](mailto:support@agentmail.cc) with the full error response and the endpoint you are calling.
