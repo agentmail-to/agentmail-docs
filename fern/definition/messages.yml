@@ -146,7 +146,7 @@ types:
         docs: Ordered by `timestamp` descending.
 
   RawMessageResponse:
-    docs: Signed URL to download the raw .eml file. Uses CloudFront signing, same as attachments.
+    docs: S3 presigned URL to download the raw .eml file.
     properties:
       message_id:
         type: MessageId
@@ -156,7 +156,7 @@ types:
         docs: Size of the raw message in bytes.
       download_url:
         type: string
-        docs: Pre-signed CloudFront URL to download the raw message. Expires at expires_at.
+        docs: S3 presigned URL to download the raw message. Expires at expires_at.
       expires_at:
         type: datetime
         docs: Time at which the download URL expires.
