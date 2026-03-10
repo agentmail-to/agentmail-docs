@@ -398,18 +398,18 @@ navigation:
           python: agentmail
           typescript: agentmail
         layout:
-          - organizations
-          - pods
-          - api-keys
-          - domains
           - inboxes
           - threads
           - messages
           - drafts
           - webhooks
           - websockets
+          - domains
           - lists
           - metrics
+          - api-keys
+          - pods
+          - organizations
   - tab: kb
     layout:
       - page: Introduction
