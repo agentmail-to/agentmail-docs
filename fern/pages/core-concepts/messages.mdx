@@ -81,6 +81,10 @@ console.log(`Message sent successfully with ID: ${sentMessage.id}`);
 
 </CodeBlocks>
 
+<Warning>
+  **Recipient limit:** Each send or reply supports a maximum of **50 recipients** across the combined total of `to`, `cc`, and `bcc`. If you exceed this limit, the API will return an error.
+</Warning>
+
 ### 3. List `Messages` in an `Inbox`
 
 You can retrieve a list of all `Messages` within a specific `Inbox`. This is useful for getting a history of all correspondence.
