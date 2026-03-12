@@ -86,6 +86,7 @@ types:
       subject: optional<DraftSubject>
       preview: optional<DraftPreview>
       attachments: optional<DraftAttachments>
+      in_reply_to: optional<DraftInReplyTo>
       send_status: optional<DraftSendStatus>
       send_at: optional<DraftSendAt>
       updated_at: DraftUpdatedAt
