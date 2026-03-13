@@ -13,34 +13,24 @@ The skill is available at [skills.sh/agentmail-to/agentmail-skills/agentmail](ht
 
 ## Installation
 
-### OpenClaw
-
-Install the skill using the OpenClaw CLI:
+Install the skill using the [skills CLI](https://github.com/vercel-labs/skills). This works with Claude Code, Cursor, OpenClaw, Codex, and other compatible agents:
 
 ```bash
-openclaw skills install agentmail-to/agentmail-skills/agentmail
+npx skills add agentmail-to/agentmail-skills
 ```
 
-Or install via ClawHub:
+To skip interactive prompts, specify the skill and agent directly:
+
+```bash
+npx skills add agentmail-to/agentmail-skills --skill agentmail --agent claude-code
+```
+
+### OpenClaw via ClawHub
+
+OpenClaw users can also install via ClawHub:
 
 ```bash
 npx clawhub@latest install agentmail
-```
-
-### Claude Code
-
-Add the skill to your Claude Code configuration:
-
-```bash
-claude-code skills install agentmail-to/agentmail-skills/agentmail
-```
-
-### Cursor
-
-Install the skill in Cursor:
-
-```bash
-cursor skills install agentmail-to/agentmail-skills/agentmail
 ```
 
 ### Manual installation
