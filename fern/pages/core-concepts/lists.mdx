@@ -7,9 +7,9 @@ description: Learn how to use Lists to control which email addresses and domains
 
 ## What are Lists?
 
-`Lists` allow you to filter emails by allowing or blocking specific email addresses or domains. There are four list types based on two dimensions:
+`Lists` allow you to filter emails by allowing or blocking specific email addresses or domains. There are six list types based on two dimensions:
 
-- **Direction**: `send` or `receive`
+- **Direction**: `send`, `receive`, or `reply`
 - **Type**: `allow` or `block`
 
 | List | Description |
@@ -18,8 +18,29 @@ description: Learn how to use Lists to control which email addresses and domains
 | Receive block | Reject emails from these addresses or domains |
 | Send allow | Only send emails to these addresses or domains |
 | Send block | Prevent sending emails to these addresses or domains |
+| Reply allow | Only accept reply emails from these addresses or domains |
+| Reply block | Reject reply emails from these addresses or domains |
 
 Each entry can be either a full email address (e.g., `partner@example.com`) or an entire domain (e.g., `example.com`).
+
+## Scoping
+
+Lists can be scoped at three levels. A narrower scope overrides a broader one:
+
+- **Organization**: Applies to all pods and inboxes in your org. Manage with `client.lists`.
+- **Pod**: Applies to all inboxes in a pod. Manage with `client.pods.lists`.
+- **Inbox**: Applies to a single inbox. Manage with `client.inboxes.lists`.
+
+When evaluating whether to allow or block a message, AgentMail checks the most specific scope first. If an inbox-level list has a match, pod and org lists are not checked.
+
+## Reply lists
+
+The `reply` direction handles inbound emails that are replies to previous outbound messages. When an inbound email arrives, AgentMail checks the `In-Reply-To` header to determine whether it is a reply:
+
+- **If the email is a reply** to a previous outbound message, only the reply lists are checked. The receive lists are skipped entirely.
+- **If the email is not a reply**, only the receive lists are checked. The reply lists are skipped entirely.
+
+The two branches are completely separate. By default, when reply lists are empty, all replies are allowed. You can restrict replies by populating reply allow or reply block lists.
 
 ## SDK examples
 
@@ -87,6 +108,48 @@ await client.lists.delete("receive", "allow", "partner@example.com");
 ```
 </CodeBlocks>
 
+### Inbox-scoped lists
+
+Manage lists for a specific inbox. The same operations are available at the inbox level.
+
+<CodeBlocks>
+```python title="Python"
+# Add to an inbox-level receive allowlist
+client.inboxes.lists.create(
+    "inbox_id", "receive", "allow", entry="vip@example.com"
+)
+
+# List inbox-level entries
+entries = client.inboxes.lists.list("inbox_id", "receive", "allow")
+```
+
+```typescript title="TypeScript"
+// Add to an inbox-level receive allowlist
+await client.inboxes.lists.create("inbox_id", "receive", "allow", {
+  entry: "vip@example.com",
+});
+
+// List inbox-level entries
+const entries = await client.inboxes.lists.list("inbox_id", "receive", "allow");
+```
+</CodeBlocks>
+
+### Reply lists
+
+Control which addresses can send replies to an inbox's outbound messages.
+
+<CodeBlocks>
+```python title="Python"
+# Only allow replies from a specific domain
+client.lists.create("reply", "allow", entry="nobu.com")
+```
+
+```typescript title="TypeScript"
+// Only allow replies from a specific domain
+await client.lists.create("reply", "allow", { entry: "nobu.com" });
+```
+</CodeBlocks>
+
 ## Copy for Cursor / Claude
 
 Copy one of the blocks below into Cursor or Claude for complete Lists API knowledge in one shot.
@@ -94,53 +157,85 @@ Copy one of the blocks below into Cursor or Claude for complete Lists API knowle
 <CodeBlocks>
   ```python title="Python"
   """
-  AgentMail Lists — copy into Cursor/Claude.
+  AgentMail Lists, copy into Cursor/Claude.
 
-  Filter emails by allow/block for send/receive. Types: receive|send × allow|block.
+  Filter emails by allow/block for send/receive/reply. 6 types: receive|send|reply x allow|block.
+  Lists can be scoped to org, pod, or inbox level.
 
-  API reference:
+  API reference (org-level):
   - lists.list(direction, type, limit?, page_token?)
-  - lists.create(direction, type, entry, reason?) — reason only for block lists
+  - lists.create(direction, type, entry, reason?), reason only for block lists
   - lists.get(direction, type, entry)
   - lists.delete(direction, type, entry)
 
+  Pod-level: pods.lists.list(pod_id, direction, type, ...) and same for create/get/delete.
+  Inbox-level: inboxes.lists.list(inbox_id, direction, type, ...) and same for create/get/delete.
+
   Entry: full email (user@domain.com) or domain (example.com).
+  Cascade: inbox > pod > org (most specific scope wins).
+  Reply lists: inbound replies (detected via In-Reply-To) check reply lists, not receive lists.
   """
   from agentmail import AgentMail
 
   client = AgentMail(api_key="YOUR_API_KEY")
 
+  # Org-level lists
   entries = client.lists.list("receive", "allow", limit=10)
   client.lists.create("receive", "allow", entry="partner@example.com")
   client.lists.create("receive", "block", entry="spam@example.com", reason="spam")
   e = client.lists.get("receive", "allow", entry="partner@example.com")
   client.lists.delete("receive", "allow", entry="partner@example.com")
+
+  # Reply lists
+  client.lists.create("reply", "allow", entry="nobu.com")
+
+  # Inbox-level lists
+  client.inboxes.lists.create("inbox_id", "receive", "allow", entry="vip@example.com")
+  inbox_entries = client.inboxes.lists.list("inbox_id", "receive", "allow")
   ```
 
   ```typescript title="TypeScript"
   /**
-   * AgentMail Lists — copy into Cursor/Claude.
+   * AgentMail Lists, copy into Cursor/Claude.
    *
-   * Filter emails by allow/block for send/receive. Types: receive|send × allow|block.
+   * Filter emails by allow/block for send/receive/reply. 6 types: receive|send|reply x allow|block.
+   * Lists can be scoped to org, pod, or inbox level.
    *
-   * API reference:
+   * API reference (org-level):
    * - lists.list(direction, type, { limit?, pageToken? })
    * - lists.create(direction, type, { entry, reason? }) — reason only for block
    * - lists.get(direction, type, entry)
    * - lists.delete(direction, type, entry)
    *
+   * Pod-level: pods.lists.list(podId, direction, type, ...) and same for create/get/delete.
+   * Inbox-level: inboxes.lists.list(inboxId, direction, type, ...) and same for create/get/delete.
+   *
    * Entry: full email or domain.
+   * Cascade: inbox > pod > org (most specific scope wins).
+   * Reply lists: inbound replies (detected via In-Reply-To) check reply lists, not receive lists.
    */
   import { AgentMailClient } from "agentmail";
 
   const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
 
   async function main() {
+    // Org-level lists
     const entries = await client.lists.list("receive", "allow", { limit: 10 });
     await client.lists.create("receive", "allow", { entry: "partner@example.com" });
     await client.lists.create("receive", "block", { entry: "spam@example.com", reason: "spam" });
     const e = await client.lists.get("receive", "allow", "partner@example.com");
     await client.lists.delete("receive", "allow", "partner@example.com");
+
+    // Reply lists
+    await client.lists.create("reply", "allow", { entry: "nobu.com" });
+
+    // Inbox-level lists
+    await client.inboxes.lists.create("inbox_id", "receive", "allow", {
+      entry: "vip@example.com",
+    });
+    const inboxEntries = await client.inboxes.lists.list(
+      "inbox_id", "receive", "allow"
+    );
   }
   main();
   ```
