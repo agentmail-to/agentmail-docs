@@ -8,6 +8,7 @@ types:
     enum:
       - send
       - receive
+      - reply
     docs: Direction of list entry.
 
   ListType:

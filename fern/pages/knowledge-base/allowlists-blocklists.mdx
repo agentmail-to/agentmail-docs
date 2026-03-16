@@ -8,7 +8,7 @@ Allowlists and blocklists let you control who your AI agent can communicate with
 
 ## How Lists work
 
-AgentMail provides four list types based on two dimensions, **direction** (send or receive) and **type** (allow or block):
+AgentMail provides six list types based on two dimensions, **direction** (send, receive, or reply) and **type** (allow or block):
 
 | List | What it does |
 | --- | --- |
@@ -16,6 +16,8 @@ AgentMail provides four list types based on two dimensions, **direction** (send 
 | Receive block | Reject emails from these addresses or domains |
 | Send allow | Only send emails to these addresses or domains |
 | Send block | Prevent sending emails to these addresses or domains |
+| Reply allow | Only accept reply emails from these addresses or domains |
+| Reply block | Reject reply emails from these addresses or domains |
 
 Each entry can be either a full email address (e.g., `partner@example.com`) or an entire domain (e.g., `example.com`).
 
@@ -54,6 +56,40 @@ entries = client.lists.list("receive", "allow")
 client.lists.delete("receive", "block", entry="spam@example.com")
 ```
 
+### Inbox-scoped lists
+
+Lists can be applied at the inbox level for per-inbox filtering. For example, one inbox might only accept emails from `meta.com`, while another inbox in the same pod accepts from `partner.com`.
+
+```python title="Python"
+# This inbox only accepts emails from meta.com
+client.inboxes.lists.create(
+    "support@yourdomain.com", "receive", "allow", entry="meta.com"
+)
+
+# A different inbox accepts from partner.com
+client.inboxes.lists.create(
+    "sales@yourdomain.com", "receive", "allow", entry="partner.com"
+)
+```
+
+Inbox-level lists override pod-level and org-level lists. If the inbox-level list has a match, pod and org lists are not checked.
+
+### Reply lists
+
+Reply lists control filtering for inbound emails that are replies to previous outbound messages. When an inbound email arrives, AgentMail checks the `In-Reply-To` header:
+
+- If the email **is a reply** to a previous outbound message, only the reply lists are checked. Receive lists are skipped.
+- If the email **is not a reply**, only the receive lists are checked. Reply lists are skipped.
+
+By default, when reply lists are empty, all replies are allowed. This is useful for agents that initiate outbound emails (such as making reservations or sending inquiries) and need to receive the responses.
+
+```python title="Python"
+# Block replies from a specific sender
+client.inboxes.lists.create(
+    "agent@yourdomain.com", "reply", "block", entry="spam-restaurant.com"
+)
+```
+
 ## Common patterns for agents
 
 **Outreach agent:** Use a send allowlist to restrict your agent to only email verified prospects. This prevents the agent from accidentally emailing the wrong people.
@@ -79,6 +115,22 @@ client.lists.create("receive", "allow", entry="trusted-partner.com")
 client.lists.create("receive", "block", entry="spam-domain.com", reason="spam")
 ```
 
+**Task-oriented agent (making reservations, bookings, etc.):** Use a receive allowlist to restrict inbound to your organization's domain, but leave reply lists open (default) so replies to agent-initiated outbound emails come through.
+
+```python title="Python"
+# Only accept unsolicited emails from your org
+client.inboxes.lists.create(
+    "agent@yourdomain.com", "receive", "allow", entry="meta.com"
+)
+
+# Replies to emails the agent sends (e.g., restaurant reservations)
+# are allowed by default, no reply list configuration needed.
+# Optionally block specific reply senders:
+client.inboxes.lists.create(
+    "agent@yourdomain.com", "reply", "block", entry="spam-restaurant.com"
+)
+```
+
 ## Why this matters for agents
 
 Without guardrails, an autonomous agent could email the wrong people, respond to phishing attempts, or get caught in infinite email loops with another bot. Lists are your safety rails. They are especially important for:
@@ -86,6 +138,7 @@ Without guardrails, an autonomous agent could email the wrong people, respond to
 - **Production agents** operating with minimal human oversight
 - **Outreach agents** that should only contact approved recipients
 - **Support agents** that should only respond to known customers
+- **Task-oriented agents** that send outbound emails and need replies to come through
 - **Any agent** that needs protection from spam, phishing, or abuse
 
 For more details on the Lists API, see the [Lists core concept](/lists) documentation.

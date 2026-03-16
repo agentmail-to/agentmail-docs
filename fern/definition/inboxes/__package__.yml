@@ -4,6 +4,7 @@ navigation:
   - threads.yml
   - messages.yml
   - drafts.yml
+  - lists.yml
   - metrics.yml
 
 imports:
