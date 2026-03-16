@@ -120,7 +120,7 @@ client.lists.create("receive", "block", entry="spam-domain.com", reason="spam")
 ```python title="Python"
 # Only accept unsolicited emails from your org
 client.inboxes.lists.create(
-    "agent@yourdomain.com", "receive", "allow", entry="meta.com"
+    "agent@yourdomain.com", "receive", "allow", entry="yourdomain.com"
 )
 
 # Replies to emails the agent sends (e.g., restaurant reservations)
