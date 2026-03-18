@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  inboxes: __package__.yml
+  api-keys: ../api-keys.yml
+
+service:
+  url: Http
+  base-path: /inboxes/{inbox_id}/api-keys
+  path-parameters:
+    inbox_id: inboxes.InboxId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List API Keys
+      request:
+        name: ListApiKeysRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: api-keys.ListApiKeysResponse
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create API Key
+      request: api-keys.CreateApiKeyRequest
+      response: api-keys.CreateApiKeyResponse
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
+    delete:
+      method: DELETE
+      path: /{api_key}
+      display-name: Delete API Key
+      path-parameters:
+        api_key: api-keys.ApiKeyId
+      errors:
+        - global.NotFoundError

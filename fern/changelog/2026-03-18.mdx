@@ -1,0 +1,57 @@
+---
+tags: ["inboxes-api", "new-feature"]
+---
+
+## Summary
+
+Inbox-scoped API keys let you generate credentials that are restricted to a single inbox. This gives agents and integrations the minimum access they need, reducing the blast radius if a key is compromised.
+
+### What's new?
+
+**New endpoints:**
+- `GET /v0/inboxes/:inbox_id/api-keys` - List all API keys scoped to an inbox
+- `POST /v0/inboxes/:inbox_id/api-keys` - Create an API key scoped to an inbox
+- `DELETE /v0/inboxes/:inbox_id/api-keys/:api_key` - Delete an inbox-scoped API key
+
+**Updated types:**
+- `ApiKey` and `CreateApiKeyResponse` now include an optional `inbox_id` field when the key is scoped to an inbox
+
+### Use cases
+
+Build agents that:
+- Operate with least-privilege access to a single inbox rather than an entire pod or organization
+- Issue short-lived, narrowly scoped keys to third-party integrations that only need access to one address
+- Rotate credentials per inbox without affecting other inboxes or pods
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# create an api key scoped to a single inbox
+key = client.inboxes.api_keys.create(
+    inbox_id="user@example.com",
+    name="integration-key"
+)
+
+print(key.api_key)
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// create an api key scoped to a single inbox
+const key = await client.inboxes.apiKeys.create("user@example.com", {
+  name: "integration-key",
+});
+
+console.log(key.apiKey);
+```
+</CodeBlocks>
+
+<Note>
+  Learn more about API key scoping in the [API Keys reference](https://docs.agentmail.to/api-reference/inboxes/api-keys).
+</Note>

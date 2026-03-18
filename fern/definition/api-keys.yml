@@ -28,6 +28,9 @@ types:
       pod_id:
         type: optional<string>
         docs: Pod ID the api key is scoped to. If set, the key can only access resources within this pod.
+      inbox_id:
+        type: optional<string>
+        docs: Inbox ID the api key is scoped to. If set, the key can only access resources within this inbox.
       used_at:
         type: optional<datetime>
         docs: Time at which api key was last used.
@@ -44,6 +47,9 @@ types:
       pod_id:
         type: optional<string>
         docs: Pod ID the api key is scoped to.
+      inbox_id:
+        type: optional<string>
+        docs: Inbox ID the api key is scoped to.
       created_at: CreatedAt
 
   ListApiKeysResponse:
