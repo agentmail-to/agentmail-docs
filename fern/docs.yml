@@ -267,6 +267,9 @@ navigation:
           - page: x402
             icon: fa-solid fa-credit-card
             path: pages/integrations/x402.mdx
+          - page: MPP
+            icon: fa-solid fa-credit-card
+            path: pages/integrations/mpp.mdx
           - page: LiveKit
             icon: fa-solid fa-phone
             path: pages/integrations/integrate-livekit-agents.mdx
