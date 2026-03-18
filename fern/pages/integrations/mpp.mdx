@@ -9,6 +9,15 @@ description: AgentMail's MPP integration for machine-to-machine payments via Str
 
 [MPP (Machine Payments Protocol)](https://mpp.dev) is Stripe's open protocol that enables machine-to-machine payments. By integrating MPP with AgentMail, your agents can pay for API usage directly without managing API keys or subscriptions.
 
+### Base URLs
+
+To authenticate with MPP instead of an API key, you must use the MPP-specific base URLs below. These replace the default AgentMail base URLs and route requests through the MPP payment layer.
+
+| Protocol | URL |
+|---|---|
+| HTTP | `mpp.api.agentmail.to` |
+| WebSocket | `mpp.ws.agentmail.to` |
+
 ### Prerequisites
 
 - A crypto wallet with funds (EVM-compatible wallet)
