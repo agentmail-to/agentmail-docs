@@ -38,9 +38,9 @@ service:
 
     delete:
       method: DELETE
-      path: /{api_key}
+      path: /{api_key_id}
       display-name: Delete API Key
       path-parameters:
-        api_key: api-keys.ApiKeyId
+        api_key_id: api-keys.ApiKeyId
       errors:
         - global.NotFoundError
