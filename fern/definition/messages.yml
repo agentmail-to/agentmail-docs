@@ -235,14 +235,21 @@ types:
       attachments: optional<SendMessageAttachments>
       headers: optional<SendMessageHeaders>
 
+  UpdateMessageLabels:
+    discriminated: false
+    union:
+      - string
+      - list<string>
+    docs: Label or list of labels.
+
   UpdateMessageRequest:
     properties:
       add_labels:
-        type: optional<list<string>>
-        docs: Labels to add to message.
+        type: optional<UpdateMessageLabels>
+        docs: Label or labels to add to message.
       remove_labels:
-        type: optional<list<string>>
-        docs: Labels to remove from message.
+        type: optional<UpdateMessageLabels>
+        docs: Label or labels to remove from message.
 
 errors:
   MessageRejectedError:
