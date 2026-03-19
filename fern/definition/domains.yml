@@ -7,11 +7,11 @@ imports:
 types:
   DomainId:
     type: string
-    docs: The name of the domain. (e.g., " your-domain.com")
+    docs: The ID of the domain.
 
   DomainName:
     type: string
-    docs: The name of the domain. (e.g., "example.com")
+    docs: The name of the domain (e.g., `example.com`).
 
   RecordType:
     enum:
@@ -52,6 +52,10 @@ types:
         type: optional<integer>
         docs: The priority of the MX record.
 
+  Status:
+    type: VerificationStatus
+    docs: The verification status of the domain.
+
   FeedbackEnabled:
     type: boolean
     docs: Bounce and complaint notifications are sent to your inboxes.
@@ -64,9 +68,8 @@ types:
     properties:
       pod_id: optional<pods.PodId>
       domain_id: DomainId
-      status:
-        type: VerificationStatus
-        docs: The verification status of the domain.
+      domain: DomainName
+      status: Status
       feedback_enabled: FeedbackEnabled
       records:
         type: list<VerificationRecord>
@@ -83,6 +86,8 @@ types:
     properties:
       pod_id: optional<pods.PodId>
       domain_id: DomainId
+      domain: DomainName
+      status: Status
       feedback_enabled: FeedbackEnabled
       client_id: optional<ClientId>
       updated_at:

@@ -17,6 +17,10 @@ types:
     type: string
     docs: The ID of the inbox.
 
+  Email:
+    type: string
+    docs: Email address of the inbox.
+
   DisplayName:
     type: string
     docs: "Display name: `Display Name <username@domain.com>`."
@@ -29,6 +33,7 @@ types:
     properties:
       pod_id: pods.PodId
       inbox_id: InboxId
+      email: Email
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
       updated_at:
