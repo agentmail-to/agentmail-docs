@@ -43,6 +43,15 @@ const inbox = await client.inboxes.create();
 console.log(`Connected! Created inbox: ${inbox.inboxId}`);
 ```
 
+## Scoped API keys
+
+In addition to organization-level keys, you can create keys scoped to a single pod or inbox. Scoped keys restrict access so that the key can only operate on resources within that pod or inbox.
+
+- **Pod-scoped keys**: Create via `POST /pods/{pod_id}/api-keys` or `client.pods.api_keys.create()`
+- **Inbox-scoped keys**: Create via `POST /inboxes/{inbox_id}/api-keys` or `client.inboxes.api_keys.create()`
+
+See the [Multi-Tenancy guide](/multi-tenancy#scoped-api-keys) for details.
+
 ## Free tier
 
 No credit card required to get started. The free tier includes:

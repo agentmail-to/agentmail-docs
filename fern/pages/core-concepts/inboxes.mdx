@@ -126,6 +126,34 @@ console.log(`Total Inboxes: ${allInboxes.count}`);
   domains](/guides/domains/managing-domains) to learn more.
 </Tip>
 
+## Inbox-scoped API keys
+
+You can create API keys that are restricted to a single inbox. An inbox-scoped key can only access that inbox's threads, messages, and drafts. This is useful when you want to give an agent or integration the minimum access it needs.
+
+<CodeBlocks>
+```python
+# Create a key scoped to one inbox
+key = client.inboxes.api_keys.create(
+    new_inbox.inbox_id,
+    name="support-agent-key"
+)
+
+# The full key is only returned once
+print(key.api_key)
+```
+
+```typescript title="TypeScript"
+const key = await client.inboxes.apiKeys.create(newInbox.inboxId, {
+  name: "support-agent-key",
+});
+
+// The full key is only returned once
+console.log(key.apiKey);
+```
+</CodeBlocks>
+
+See the [Multi-Tenancy guide](/multi-tenancy#inbox-scoped-keys) for more on scoped keys.
+
 ## Copy for Cursor / Claude
 
 Copy one of the blocks below into Cursor or Claude for complete Inboxes API knowledge in one shot.
@@ -143,6 +171,9 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   - inboxes.list(limit?, page_token?)
   - inboxes.update(inbox_id, display_name)
   - inboxes.delete(inbox_id)
+  - inboxes.api_keys.create(inbox_id, name) — inbox-scoped key
+  - inboxes.api_keys.list(inbox_id)
+  - inboxes.api_keys.delete(inbox_id, api_key_id)
 
   Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
   """
@@ -174,6 +205,9 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
    * - inboxes.list({ limit?, pageToken? })
    * - inboxes.update(inboxId, { displayName })
    * - inboxes.delete(inboxId)
+   * - inboxes.apiKeys.create(inboxId, { name }) — inbox-scoped key
+   * - inboxes.apiKeys.list(inboxId)
+   * - inboxes.apiKeys.delete(inboxId, apiKeyId)
    *
    * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
    */

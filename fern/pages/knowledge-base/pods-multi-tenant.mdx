@@ -110,6 +110,7 @@ When you delete an inbox, all associated messages, threads, and drafts are autom
 - **Cross-pod email works normally.** Inboxes in different Pods can send and receive emails from each other, just like any other email addresses. Pods isolate data access, not email delivery.
 - **Inboxes cannot move between Pods.** If you need to reassign an inbox, create a new one in the target Pod.
 - **Pod-scoped API keys.** You can create API keys scoped to a specific Pod, so each tenant only has access to their own resources. Create them via `POST /pods/{pod_id}/api-keys`.
+- **Inbox-scoped API keys.** For even finer control, you can create keys scoped to a single inbox. These keys can only access that inbox's threads, messages, and drafts. Create them via `POST /inboxes/{inbox_id}/api-keys`.
 - **No limit on Pods.** You can create as many Pods as you need for your customers.
 - **Domains can be scoped to one Pod or all Pods.** A domain cannot be shared across a subset of Pods.
 
