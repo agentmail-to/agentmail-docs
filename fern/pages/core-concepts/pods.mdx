@@ -194,7 +194,7 @@ async function offboardCustomer(podId: string) {
 
 **What's NOT Isolated to a Pod:**
 
-- Organization-level API keys (these can access any resources in any pod). Use [scoped API keys](/multi-tenancy#step-3-create-scoped-api-keys) to restrict access to a single pod.
+- Organization-level API keys (these can access any resources in any pod). Use [pod-scoped API keys](/multi-tenancy#pod-scoped-keys) to restrict access to a single pod, or [inbox-scoped API keys](/multi-tenancy#inbox-scoped-keys) to restrict access to a single inbox.
 
 ## Common Patterns and Use Cases
 
@@ -281,9 +281,9 @@ Pod: "Marketing-Agent"
 </Accordion>
 
 <Accordion title="Can I set custom permissions per pod?">
-  Yes! You can create scoped API keys that are restricted to a single pod. A
-  scoped key can only access resources within its pod. See the
-  [Multi-Tenancy guide](/multi-tenancy) for details on provisioning scoped keys.
+  Yes! You can create pod-scoped API keys that are restricted to a single pod, or
+  inbox-scoped API keys that are restricted to a single inbox within a pod. See the
+  [Multi-Tenancy guide](/multi-tenancy#scoped-api-keys) for details on provisioning scoped keys.
 </Accordion>
 
 ## Next Steps
