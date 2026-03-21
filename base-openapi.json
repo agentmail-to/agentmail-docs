@@ -2095,8 +2095,15 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawMessageResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "",
@@ -6204,6 +6211,36 @@
         "required": [
           "message_id",
           "thread_id"
+        ]
+      },
+      "RawMessageResponse": {
+        "title": "RawMessageResponse",
+        "type": "object",
+        "description": "S3 presigned URL to download the raw .eml file.",
+        "properties": {
+          "message_id": {
+            "$ref": "#/components/schemas/MessageId",
+            "description": "ID of the message."
+          },
+          "size": {
+            "$ref": "#/components/schemas/MessageSize",
+            "description": "Size of the raw message in bytes."
+          },
+          "download_url": {
+            "type": "string",
+            "description": "S3 presigned URL to download the raw message. Expires at expires_at."
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time at which the download URL expires."
+          }
+        },
+        "required": [
+          "message_id",
+          "size",
+          "download_url",
+          "expires_at"
         ]
       },
       "ReplyAll": {
