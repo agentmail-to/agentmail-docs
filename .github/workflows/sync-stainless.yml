@@ -21,6 +21,7 @@ jobs:
         run: npm install -g fern-api
 
       - name: Generate OpenAPI spec
+        working-directory: fern
         run: fern generate --group openapi --local
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
@@ -30,7 +31,7 @@ jobs:
           SPEC_FILE=$(find openapi -name "openapi.*" -type f | head -1)
           jq -Rs '{project: "agentmail", branch: "main", revision: {"openapi.json": {content: .}}}' \
             "$SPEC_FILE" > /tmp/stainless-body.json
-          curl -sf -X POST "https://api.stainless.com/v0/builds" \
+          curl -sS --fail-with-body -X POST "https://api.stainless.com/v0/builds" \
             -H "Authorization: Bearer $STAINLESS_API_KEY" \
             -H "Content-Type: application/json" \
             -d @/tmp/stainless-body.json
