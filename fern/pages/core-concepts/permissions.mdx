@@ -1,0 +1,368 @@
+---
+title: Permissions
+subtitle: Control what your API keys can access with granular permissions.
+slug: permissions
+description: Learn how to configure fine-grained permissions on API keys to restrict access to specific resources and operations.
+---
+
+## What are Permissions?
+
+`Permissions` let you restrict what an API key can do. By default, an API key has full access within its scope (organization, pod, or inbox). When you provide a `permissions` object, it acts as a **whitelist**: only the permissions you explicitly set to `true` are granted. Everything else is denied.
+
+This gives you fine-grained control over which resources and operations each key can access, on top of the existing scope-based isolation provided by [pod-scoped](/pods) and [inbox-scoped](/inboxes#inbox-scoped-api-keys) keys.
+
+## How Permissions Work
+
+### Whitelist model
+
+When you create an API key with a `permissions` object, it switches from "full access" mode to "whitelist" mode:
+
+- **No `permissions` field**: The key has full access within its scope. This is the default and is backward compatible with existing keys.
+- **`permissions` present**: Only permissions set to `true` are allowed. Any permission that is omitted or set to `false` is denied.
+
+<Callout intent="info" title="Backward compatibility">
+  Existing API keys without a `permissions` field continue to work exactly as before with full access. The whitelist only activates when you explicitly provide the `permissions` object.
+</Callout>
+
+### Intersection with scope
+
+Permissions are intersected with the key's scope. A key scoped to a single inbox cannot gain organization-level capabilities (like `create_inbox` or `create_domain`) even if those permissions are set to `true`. The effective permissions are always the intersection of what the scope allows and what the `permissions` object grants.
+
+### Privilege escalation protection
+
+A restricted API key cannot create a child key with more permissions than itself. When creating a new key, the child's permissions are automatically constrained to the parent's effective permissions. This prevents privilege escalation through key creation.
+
+## Permissions Reference
+
+### Inboxes
+
+| Permission | Description |
+| --- | --- |
+| `read_inbox` | Read inbox details |
+| `create_inbox` | Create new inboxes |
+| `update_inbox` | Update inbox settings |
+| `delete_inbox` | Delete inboxes |
+
+### Threads
+
+| Permission | Description |
+| --- | --- |
+| `read_thread` | Read threads |
+| `delete_thread` | Delete threads |
+
+### Messages
+
+| Permission | Description |
+| --- | --- |
+| `read_message` | Read messages |
+| `send_message` | Send messages |
+| `update_message` | Update message labels |
+
+### Content Filtering
+
+| Permission | Description |
+| --- | --- |
+| `read_spam` | Access messages labeled as spam |
+| `read_blocked` | Access messages labeled as blocked |
+| `read_trash` | Access messages labeled as trash |
+
+<Info>
+  When a content filtering permission is denied, items with that label are automatically excluded from list results and return "not found" on direct access. For example, setting `read_spam` to `false` means the key will never see spam messages in any listing or lookup.
+</Info>
+
+### Drafts
+
+| Permission | Description |
+| --- | --- |
+| `read_draft` | Read drafts |
+| `create_draft` | Create drafts |
+| `update_draft` | Update drafts |
+| `delete_draft` | Delete drafts |
+| `send_draft` | Send drafts |
+
+### Webhooks
+
+| Permission | Description |
+| --- | --- |
+| `read_webhook` | Read webhook configurations |
+| `create_webhook` | Create webhooks |
+| `update_webhook` | Update webhooks |
+| `delete_webhook` | Delete webhooks |
+
+### Domains
+
+| Permission | Description |
+| --- | --- |
+| `read_domain` | Read domain details |
+| `create_domain` | Create domains |
+| `update_domain` | Update domains |
+| `delete_domain` | Delete domains |
+
+### Lists
+
+| Permission | Description |
+| --- | --- |
+| `read_list_entry` | Read list entries |
+| `create_list_entry` | Create list entries |
+| `delete_list_entry` | Delete list entries |
+
+### Metrics
+
+| Permission | Description |
+| --- | --- |
+| `read_metrics` | Read metrics |
+
+### API Keys
+
+| Permission | Description |
+| --- | --- |
+| `read_api_key` | Read API keys |
+| `create_api_key` | Create API keys |
+| `delete_api_key` | Delete API keys |
+
+### Pods
+
+| Permission | Description |
+| --- | --- |
+| `read_pod` | Read pods |
+| `create_pod` | Create pods |
+| `delete_pod` | Delete pods |
+
+## Code Examples
+
+### Read-only key
+
+Create an API key that can read all resources but cannot create, update, or delete anything.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+key = client.api_keys.create(
+    name="read-only-agent",
+    permissions={
+        "read_inbox": True,
+        "read_thread": True,
+        "read_message": True,
+        "read_draft": True,
+        "read_webhook": True,
+        "read_domain": True,
+        "read_list_entry": True,
+        "read_metrics": True,
+        "read_api_key": True,
+        "read_pod": True,
+        "read_spam": True,
+        "read_blocked": True,
+        "read_trash": True,
+    }
+)
+
+print(key.api_key)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+const key = await client.apiKeys.create({
+  name: "read-only-agent",
+  permissions: {
+    readInbox: true,
+    readThread: true,
+    readMessage: true,
+    readDraft: true,
+    readWebhook: true,
+    readDomain: true,
+    readListEntry: true,
+    readMetrics: true,
+    readApiKey: true,
+    readPod: true,
+    readSpam: true,
+    readBlocked: true,
+    readTrash: true,
+  },
+});
+
+console.log(key.apiKey);
+```
+</CodeBlocks>
+
+### No-spam key
+
+Create a key with full access but block visibility into spam, blocked, and trash content. This is useful for agent-facing keys where you want to prevent the agent from processing unwanted email.
+
+<CodeBlocks>
+```python title="Python"
+key = client.api_keys.create(
+    name="clean-inbox-agent",
+    permissions={
+        "read_inbox": True,
+        "create_inbox": True,
+        "update_inbox": True,
+        "delete_inbox": True,
+        "read_thread": True,
+        "delete_thread": True,
+        "read_message": True,
+        "send_message": True,
+        "update_message": True,
+        "read_spam": False,
+        "read_blocked": False,
+        "read_trash": False,
+        "read_draft": True,
+        "create_draft": True,
+        "update_draft": True,
+        "delete_draft": True,
+        "send_draft": True,
+        "read_webhook": True,
+        "create_webhook": True,
+        "update_webhook": True,
+        "delete_webhook": True,
+        "read_domain": True,
+        "create_domain": True,
+        "update_domain": True,
+        "delete_domain": True,
+        "read_list_entry": True,
+        "create_list_entry": True,
+        "delete_list_entry": True,
+        "read_metrics": True,
+        "read_api_key": True,
+        "create_api_key": True,
+        "delete_api_key": True,
+        "read_pod": True,
+        "create_pod": True,
+        "delete_pod": True,
+    }
+)
+```
+
+```typescript title="TypeScript"
+const key = await client.apiKeys.create({
+  name: "clean-inbox-agent",
+  permissions: {
+    readInbox: true,
+    createInbox: true,
+    updateInbox: true,
+    deleteInbox: true,
+    readThread: true,
+    deleteThread: true,
+    readMessage: true,
+    sendMessage: true,
+    updateMessage: true,
+    readSpam: false,
+    readBlocked: false,
+    readTrash: false,
+    readDraft: true,
+    createDraft: true,
+    updateDraft: true,
+    deleteDraft: true,
+    sendDraft: true,
+    readWebhook: true,
+    createWebhook: true,
+    updateWebhook: true,
+    deleteWebhook: true,
+    readDomain: true,
+    createDomain: true,
+    updateDomain: true,
+    deleteDomain: true,
+    readListEntry: true,
+    createListEntry: true,
+    deleteListEntry: true,
+    readMetrics: true,
+    readApiKey: true,
+    createApiKey: true,
+    deleteApiKey: true,
+    readPod: true,
+    createPod: true,
+    deletePod: true,
+  },
+});
+```
+</CodeBlocks>
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete Permissions API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail Permissions — copy into Cursor/Claude.
+
+  Permissions are a whitelist on API keys. No `permissions` field = full access.
+  When `permissions` is set, only `True` values are granted; omitted or `False` = denied.
+  Permissions intersect with scope (pod/inbox). A restricted key cannot create a more privileged child key.
+
+  Permission fields (all optional<bool>):
+    Inboxes: read_inbox, create_inbox, update_inbox, delete_inbox
+    Threads: read_thread, delete_thread
+    Messages: read_message, send_message, update_message
+    Content: read_spam, read_blocked, read_trash (controls label visibility)
+    Drafts: read_draft, create_draft, update_draft, delete_draft, send_draft
+    Webhooks: read_webhook, create_webhook, update_webhook, delete_webhook
+    Domains: read_domain, create_domain, update_domain, delete_domain
+    Lists: read_list_entry, create_list_entry, delete_list_entry
+    Metrics: read_metrics
+    API Keys: read_api_key, create_api_key, delete_api_key
+    Pods: read_pod, create_pod, delete_pod
+
+  API: api_keys.create(name, permissions={...})
+  """
+  from agentmail import AgentMail
+
+  client = AgentMail(api_key="YOUR_API_KEY")
+
+  # read-only key
+  key = client.api_keys.create(
+      name="read-only",
+      permissions={"read_inbox": True, "read_message": True, "read_thread": True}
+  )
+  print(key.api_key)
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail Permissions — copy into Cursor/Claude.
+   *
+   * Permissions are a whitelist on API keys. No `permissions` field = full access.
+   * When `permissions` is set, only `true` values are granted; omitted or `false` = denied.
+   * Permissions intersect with scope (pod/inbox). A restricted key cannot create a more privileged child key.
+   *
+   * Permission fields (all optional boolean):
+   *   Inboxes: readInbox, createInbox, updateInbox, deleteInbox
+   *   Threads: readThread, deleteThread
+   *   Messages: readMessage, sendMessage, updateMessage
+   *   Content: readSpam, readBlocked, readTrash (controls label visibility)
+   *   Drafts: readDraft, createDraft, updateDraft, deleteDraft, sendDraft
+   *   Webhooks: readWebhook, createWebhook, updateWebhook, deleteWebhook
+   *   Domains: readDomain, createDomain, updateDomain, deleteDomain
+   *   Lists: readListEntry, createListEntry, deleteListEntry
+   *   Metrics: readMetrics
+   *   API Keys: readApiKey, createApiKey, deleteApiKey
+   *   Pods: readPod, createPod, deletePod
+   *
+   * API: apiKeys.create({ name, permissions: {...} })
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+  async function main() {
+    // read-only key
+    const key = await client.apiKeys.create({
+      name: "read-only",
+      permissions: { readInbox: true, readMessage: true, readThread: true },
+    });
+    console.log(key.apiKey);
+  }
+  main();
+  ```
+</CodeBlocks>
+
+## Best Practices
+
+- **Use the principle of least privilege.** Only grant the permissions your agent actually needs. A support agent that reads and replies to emails does not need `create_domain` or `delete_inbox`.
+- **Combine with scopes for defense in depth.** Pair permissions with [pod-scoped](/multi-tenancy#pod-scoped-keys) or [inbox-scoped](/multi-tenancy#inbox-scoped-keys) keys. Scopes limit *which* resources a key can see, while permissions limit *what* it can do.
+- **Filter unwanted content from agents.** Set `read_spam`, `read_blocked`, and `read_trash` to `false` on agent-facing keys. This prevents agents from seeing or processing unwanted email, keeping their context clean.

@@ -241,6 +241,9 @@ navigation:
           - page: Pods
             icon: fa-solid fa-users
             path: pages/core-concepts/pods.mdx
+          - page: Permissions
+            icon: fa-solid fa-lock
+            path: pages/core-concepts/permissions.mdx
       - section: Integrations
         contents:
           - page: Agent Onboarding

@@ -20,6 +20,115 @@ types:
     type: datetime
     docs: Time at which api key was created.
 
+  ApiKeyPermissions:
+    docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.
+    properties:
+      read_inbox:
+        type: optional<boolean>
+        docs: Read inbox details.
+      create_inbox:
+        type: optional<boolean>
+        docs: Create new inboxes.
+      update_inbox:
+        type: optional<boolean>
+        docs: Update inbox settings.
+      delete_inbox:
+        type: optional<boolean>
+        docs: Delete inboxes.
+      read_thread:
+        type: optional<boolean>
+        docs: Read threads.
+      delete_thread:
+        type: optional<boolean>
+        docs: Delete threads.
+      read_message:
+        type: optional<boolean>
+        docs: Read messages.
+      send_message:
+        type: optional<boolean>
+        docs: Send messages.
+      update_message:
+        type: optional<boolean>
+        docs: Update message labels.
+      read_spam:
+        type: optional<boolean>
+        docs: Access messages labeled spam.
+      read_blocked:
+        type: optional<boolean>
+        docs: Access messages labeled blocked.
+      read_trash:
+        type: optional<boolean>
+        docs: Access messages labeled trash.
+      read_draft:
+        type: optional<boolean>
+        docs: Read drafts.
+      create_draft:
+        type: optional<boolean>
+        docs: Create drafts.
+      update_draft:
+        type: optional<boolean>
+        docs: Update drafts.
+      delete_draft:
+        type: optional<boolean>
+        docs: Delete drafts.
+      send_draft:
+        type: optional<boolean>
+        docs: Send drafts.
+      read_webhook:
+        type: optional<boolean>
+        docs: Read webhook configurations.
+      create_webhook:
+        type: optional<boolean>
+        docs: Create webhooks.
+      update_webhook:
+        type: optional<boolean>
+        docs: Update webhooks.
+      delete_webhook:
+        type: optional<boolean>
+        docs: Delete webhooks.
+      read_domain:
+        type: optional<boolean>
+        docs: Read domain details.
+      create_domain:
+        type: optional<boolean>
+        docs: Create domains.
+      update_domain:
+        type: optional<boolean>
+        docs: Update domains.
+      delete_domain:
+        type: optional<boolean>
+        docs: Delete domains.
+      read_list_entry:
+        type: optional<boolean>
+        docs: Read list entries.
+      create_list_entry:
+        type: optional<boolean>
+        docs: Create list entries.
+      delete_list_entry:
+        type: optional<boolean>
+        docs: Delete list entries.
+      read_metrics:
+        type: optional<boolean>
+        docs: Read metrics.
+      read_api_key:
+        type: optional<boolean>
+        docs: Read API keys.
+      create_api_key:
+        type: optional<boolean>
+        docs: Create API keys.
+      delete_api_key:
+        type: optional<boolean>
+        docs: Delete API keys.
+      read_pod:
+        type: optional<boolean>
+        docs: Read pods.
+      create_pod:
+        type: optional<boolean>
+        docs: Create pods.
+      delete_pod:
+        type: optional<boolean>
+        docs: Delete pods.
+
   ApiKey:
     properties:
       api_key_id: ApiKeyId
@@ -34,6 +143,7 @@ types:
       used_at:
         type: optional<datetime>
         docs: Time at which api key was last used.
+      permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
 
   CreateApiKeyResponse:
@@ -50,6 +160,7 @@ types:
       inbox_id:
         type: optional<string>
         docs: Inbox ID the api key is scoped to.
+      permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
 
   ListApiKeysResponse:
@@ -63,6 +174,7 @@ types:
   CreateApiKeyRequest:
     properties:
       name: Name
+      permissions: optional<ApiKeyPermissions>
 
 service:
   url: Http
