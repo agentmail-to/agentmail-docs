@@ -26,7 +26,7 @@ When you create an API key with a `permissions` object, it switches from "full a
 
 ### Intersection with scope
 
-Permissions are intersected with the key's scope. A key scoped to a single inbox cannot gain organization-level capabilities (like `create_inbox` or `create_domain`) even if those permissions are set to `true`. The effective permissions are always the intersection of what the scope allows and what the `permissions` object grants.
+Permissions are intersected with the key's scope. A key scoped to a single inbox cannot gain organization-level capabilities (like `inbox_create` or `domain_create`) even if those permissions are set to `true`. The effective permissions are always the intersection of what the scope allows and what the `permissions` object grants.
 
 ### Privilege escalation protection
 
@@ -38,95 +38,95 @@ A restricted API key cannot create a child key with more permissions than itself
 
 | Permission | Description |
 | --- | --- |
-| `read_inbox` | Read inbox details |
-| `create_inbox` | Create new inboxes |
-| `update_inbox` | Update inbox settings |
-| `delete_inbox` | Delete inboxes |
+| `inbox_read` | Read inbox details |
+| `inbox_create` | Create new inboxes |
+| `inbox_update` | Update inbox settings |
+| `inbox_delete` | Delete inboxes |
 
 ### Threads
 
 | Permission | Description |
 | --- | --- |
-| `read_thread` | Read threads |
-| `delete_thread` | Delete threads |
+| `thread_read` | Read threads |
+| `thread_delete` | Delete threads |
 
 ### Messages
 
 | Permission | Description |
 | --- | --- |
-| `read_message` | Read messages |
-| `send_message` | Send messages |
-| `update_message` | Update message labels |
+| `message_read` | Read messages |
+| `message_send` | Send messages |
+| `message_update` | Update message labels |
 
-### Content Filtering
+### Label Visibility
 
 | Permission | Description |
 | --- | --- |
-| `read_spam` | Access messages labeled as spam |
-| `read_blocked` | Access messages labeled as blocked |
-| `read_trash` | Access messages labeled as trash |
+| `label_spam_read` | Access messages labeled as spam |
+| `label_blocked_read` | Access messages labeled as blocked |
+| `label_trash_read` | Access messages labeled as trash |
 
 <Info>
-  When a content filtering permission is denied, items with that label are automatically excluded from list results and return "not found" on direct access. For example, setting `read_spam` to `false` means the key will never see spam messages in any listing or lookup.
+  When a label visibility permission is denied, items with that label are automatically excluded from list results and return "not found" on direct access. For example, setting `label_spam_read` to `false` means the key will never see spam messages in any listing or lookup.
 </Info>
 
 ### Drafts
 
 | Permission | Description |
 | --- | --- |
-| `read_draft` | Read drafts |
-| `create_draft` | Create drafts |
-| `update_draft` | Update drafts |
-| `delete_draft` | Delete drafts |
-| `send_draft` | Send drafts |
+| `draft_read` | Read drafts |
+| `draft_create` | Create drafts |
+| `draft_update` | Update drafts |
+| `draft_delete` | Delete drafts |
+| `draft_send` | Send drafts |
 
 ### Webhooks
 
 | Permission | Description |
 | --- | --- |
-| `read_webhook` | Read webhook configurations |
-| `create_webhook` | Create webhooks |
-| `update_webhook` | Update webhooks |
-| `delete_webhook` | Delete webhooks |
+| `webhook_read` | Read webhook configurations |
+| `webhook_create` | Create webhooks |
+| `webhook_update` | Update webhooks |
+| `webhook_delete` | Delete webhooks |
 
 ### Domains
 
 | Permission | Description |
 | --- | --- |
-| `read_domain` | Read domain details |
-| `create_domain` | Create domains |
-| `update_domain` | Update domains |
-| `delete_domain` | Delete domains |
+| `domain_read` | Read domain details |
+| `domain_create` | Create domains |
+| `domain_update` | Update domains |
+| `domain_delete` | Delete domains |
 
 ### Lists
 
 | Permission | Description |
 | --- | --- |
-| `read_list_entry` | Read list entries |
-| `create_list_entry` | Create list entries |
-| `delete_list_entry` | Delete list entries |
+| `list_entry_read` | Read list entries |
+| `list_entry_create` | Create list entries |
+| `list_entry_delete` | Delete list entries |
 
 ### Metrics
 
 | Permission | Description |
 | --- | --- |
-| `read_metrics` | Read metrics |
+| `metrics_read` | Read metrics |
 
 ### API Keys
 
 | Permission | Description |
 | --- | --- |
-| `read_api_key` | Read API keys |
-| `create_api_key` | Create API keys |
-| `delete_api_key` | Delete API keys |
+| `api_key_read` | Read API keys |
+| `api_key_create` | Create API keys |
+| `api_key_delete` | Delete API keys |
 
 ### Pods
 
 | Permission | Description |
 | --- | --- |
-| `read_pod` | Read pods |
-| `create_pod` | Create pods |
-| `delete_pod` | Delete pods |
+| `pod_read` | Read pods |
+| `pod_create` | Create pods |
+| `pod_delete` | Delete pods |
 
 ## Code Examples
 
@@ -143,19 +143,19 @@ client = AgentMail(api_key="YOUR_API_KEY")
 key = client.api_keys.create(
     name="read-only-agent",
     permissions={
-        "read_inbox": True,
-        "read_thread": True,
-        "read_message": True,
-        "read_draft": True,
-        "read_webhook": True,
-        "read_domain": True,
-        "read_list_entry": True,
-        "read_metrics": True,
-        "read_api_key": True,
-        "read_pod": True,
-        "read_spam": True,
-        "read_blocked": True,
-        "read_trash": True,
+        "inbox_read": True,
+        "thread_read": True,
+        "message_read": True,
+        "draft_read": True,
+        "webhook_read": True,
+        "domain_read": True,
+        "list_entry_read": True,
+        "metrics_read": True,
+        "api_key_read": True,
+        "pod_read": True,
+        "label_spam_read": True,
+        "label_blocked_read": True,
+        "label_trash_read": True,
     }
 )
 
@@ -170,19 +170,19 @@ const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
 const key = await client.apiKeys.create({
   name: "read-only-agent",
   permissions: {
-    readInbox: true,
-    readThread: true,
-    readMessage: true,
-    readDraft: true,
-    readWebhook: true,
-    readDomain: true,
-    readListEntry: true,
-    readMetrics: true,
-    readApiKey: true,
-    readPod: true,
-    readSpam: true,
-    readBlocked: true,
-    readTrash: true,
+    inboxRead: true,
+    threadRead: true,
+    messageRead: true,
+    draftRead: true,
+    webhookRead: true,
+    domainRead: true,
+    listEntryRead: true,
+    metricsRead: true,
+    apiKeyRead: true,
+    podRead: true,
+    labelSpamRead: true,
+    labelBlockedRead: true,
+    labelTrashRead: true,
   },
 });
 
@@ -199,41 +199,41 @@ Create a key with full access but block visibility into spam, blocked, and trash
 key = client.api_keys.create(
     name="clean-inbox-agent",
     permissions={
-        "read_inbox": True,
-        "create_inbox": True,
-        "update_inbox": True,
-        "delete_inbox": True,
-        "read_thread": True,
-        "delete_thread": True,
-        "read_message": True,
-        "send_message": True,
-        "update_message": True,
-        "read_spam": False,
-        "read_blocked": False,
-        "read_trash": False,
-        "read_draft": True,
-        "create_draft": True,
-        "update_draft": True,
-        "delete_draft": True,
-        "send_draft": True,
-        "read_webhook": True,
-        "create_webhook": True,
-        "update_webhook": True,
-        "delete_webhook": True,
-        "read_domain": True,
-        "create_domain": True,
-        "update_domain": True,
-        "delete_domain": True,
-        "read_list_entry": True,
-        "create_list_entry": True,
-        "delete_list_entry": True,
-        "read_metrics": True,
-        "read_api_key": True,
-        "create_api_key": True,
-        "delete_api_key": True,
-        "read_pod": True,
-        "create_pod": True,
-        "delete_pod": True,
+        "inbox_read": True,
+        "inbox_create": True,
+        "inbox_update": True,
+        "inbox_delete": True,
+        "thread_read": True,
+        "thread_delete": True,
+        "message_read": True,
+        "message_send": True,
+        "message_update": True,
+        "label_spam_read": False,
+        "label_blocked_read": False,
+        "label_trash_read": False,
+        "draft_read": True,
+        "draft_create": True,
+        "draft_update": True,
+        "draft_delete": True,
+        "draft_send": True,
+        "webhook_read": True,
+        "webhook_create": True,
+        "webhook_update": True,
+        "webhook_delete": True,
+        "domain_read": True,
+        "domain_create": True,
+        "domain_update": True,
+        "domain_delete": True,
+        "list_entry_read": True,
+        "list_entry_create": True,
+        "list_entry_delete": True,
+        "metrics_read": True,
+        "api_key_read": True,
+        "api_key_create": True,
+        "api_key_delete": True,
+        "pod_read": True,
+        "pod_create": True,
+        "pod_delete": True,
     }
 )
 ```
@@ -242,41 +242,41 @@ key = client.api_keys.create(
 const key = await client.apiKeys.create({
   name: "clean-inbox-agent",
   permissions: {
-    readInbox: true,
-    createInbox: true,
-    updateInbox: true,
-    deleteInbox: true,
-    readThread: true,
-    deleteThread: true,
-    readMessage: true,
-    sendMessage: true,
-    updateMessage: true,
-    readSpam: false,
-    readBlocked: false,
-    readTrash: false,
-    readDraft: true,
-    createDraft: true,
-    updateDraft: true,
-    deleteDraft: true,
-    sendDraft: true,
-    readWebhook: true,
-    createWebhook: true,
-    updateWebhook: true,
-    deleteWebhook: true,
-    readDomain: true,
-    createDomain: true,
-    updateDomain: true,
-    deleteDomain: true,
-    readListEntry: true,
-    createListEntry: true,
-    deleteListEntry: true,
-    readMetrics: true,
-    readApiKey: true,
-    createApiKey: true,
-    deleteApiKey: true,
-    readPod: true,
-    createPod: true,
-    deletePod: true,
+    inboxRead: true,
+    inboxCreate: true,
+    inboxUpdate: true,
+    inboxDelete: true,
+    threadRead: true,
+    threadDelete: true,
+    messageRead: true,
+    messageSend: true,
+    messageUpdate: true,
+    labelSpamRead: false,
+    labelBlockedRead: false,
+    labelTrashRead: false,
+    draftRead: true,
+    draftCreate: true,
+    draftUpdate: true,
+    draftDelete: true,
+    draftSend: true,
+    webhookRead: true,
+    webhookCreate: true,
+    webhookUpdate: true,
+    webhookDelete: true,
+    domainRead: true,
+    domainCreate: true,
+    domainUpdate: true,
+    domainDelete: true,
+    listEntryRead: true,
+    listEntryCreate: true,
+    listEntryDelete: true,
+    metricsRead: true,
+    apiKeyRead: true,
+    apiKeyCreate: true,
+    apiKeyDelete: true,
+    podRead: true,
+    podCreate: true,
+    podDelete: true,
   },
 });
 ```
@@ -295,18 +295,18 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
   When `permissions` is set, only `True` values are granted; omitted or `False` = denied.
   Permissions intersect with scope (pod/inbox). A restricted key cannot create a more privileged child key.
 
-  Permission fields (all optional<bool>):
-    Inboxes: read_inbox, create_inbox, update_inbox, delete_inbox
-    Threads: read_thread, delete_thread
-    Messages: read_message, send_message, update_message
-    Content: read_spam, read_blocked, read_trash (controls label visibility)
-    Drafts: read_draft, create_draft, update_draft, delete_draft, send_draft
-    Webhooks: read_webhook, create_webhook, update_webhook, delete_webhook
-    Domains: read_domain, create_domain, update_domain, delete_domain
-    Lists: read_list_entry, create_list_entry, delete_list_entry
-    Metrics: read_metrics
-    API Keys: read_api_key, create_api_key, delete_api_key
-    Pods: read_pod, create_pod, delete_pod
+  Permission fields (all optional<bool>, resource_action format):
+    Inboxes: inbox_read, inbox_create, inbox_update, inbox_delete
+    Threads: thread_read, thread_delete
+    Messages: message_read, message_send, message_update
+    Label visibility: label_spam_read, label_blocked_read, label_trash_read
+    Drafts: draft_read, draft_create, draft_update, draft_delete, draft_send
+    Webhooks: webhook_read, webhook_create, webhook_update, webhook_delete
+    Domains: domain_read, domain_create, domain_update, domain_delete
+    Lists: list_entry_read, list_entry_create, list_entry_delete
+    Metrics: metrics_read
+    API Keys: api_key_read, api_key_create, api_key_delete
+    Pods: pod_read, pod_create, pod_delete
 
   API: api_keys.create(name, permissions={...})
   """
@@ -317,7 +317,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
   # read-only key
   key = client.api_keys.create(
       name="read-only",
-      permissions={"read_inbox": True, "read_message": True, "read_thread": True}
+      permissions={"inbox_read": True, "message_read": True, "thread_read": True}
   )
   print(key.api_key)
   ```
@@ -330,18 +330,18 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    * When `permissions` is set, only `true` values are granted; omitted or `false` = denied.
    * Permissions intersect with scope (pod/inbox). A restricted key cannot create a more privileged child key.
    *
-   * Permission fields (all optional boolean):
-   *   Inboxes: readInbox, createInbox, updateInbox, deleteInbox
-   *   Threads: readThread, deleteThread
-   *   Messages: readMessage, sendMessage, updateMessage
-   *   Content: readSpam, readBlocked, readTrash (controls label visibility)
-   *   Drafts: readDraft, createDraft, updateDraft, deleteDraft, sendDraft
-   *   Webhooks: readWebhook, createWebhook, updateWebhook, deleteWebhook
-   *   Domains: readDomain, createDomain, updateDomain, deleteDomain
-   *   Lists: readListEntry, createListEntry, deleteListEntry
-   *   Metrics: readMetrics
-   *   API Keys: readApiKey, createApiKey, deleteApiKey
-   *   Pods: readPod, createPod, deletePod
+   * Permission fields (all optional boolean, resourceAction format):
+   *   Inboxes: inboxRead, inboxCreate, inboxUpdate, inboxDelete
+   *   Threads: threadRead, threadDelete
+   *   Messages: messageRead, messageSend, messageUpdate
+   *   Label visibility: labelSpamRead, labelBlockedRead, labelTrashRead
+   *   Drafts: draftRead, draftCreate, draftUpdate, draftDelete, draftSend
+   *   Webhooks: webhookRead, webhookCreate, webhookUpdate, webhookDelete
+   *   Domains: domainRead, domainCreate, domainUpdate, domainDelete
+   *   Lists: listEntryRead, listEntryCreate, listEntryDelete
+   *   Metrics: metricsRead
+   *   API Keys: apiKeyRead, apiKeyCreate, apiKeyDelete
+   *   Pods: podRead, podCreate, podDelete
    *
    * API: apiKeys.create({ name, permissions: {...} })
    */
@@ -353,7 +353,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     // read-only key
     const key = await client.apiKeys.create({
       name: "read-only",
-      permissions: { readInbox: true, readMessage: true, readThread: true },
+      permissions: { inboxRead: true, messageRead: true, threadRead: true },
     });
     console.log(key.apiKey);
   }
@@ -363,6 +363,6 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
 
 ## Best Practices
 
-- **Use the principle of least privilege.** Only grant the permissions your agent actually needs. A support agent that reads and replies to emails does not need `create_domain` or `delete_inbox`.
+- **Use the principle of least privilege.** Only grant the permissions your agent actually needs. A support agent that reads and replies to emails does not need `domain_create` or `inbox_delete`.
 - **Combine with scopes for defense in depth.** Pair permissions with [pod-scoped](/multi-tenancy#pod-scoped-keys) or [inbox-scoped](/multi-tenancy#inbox-scoped-keys) keys. Scopes limit *which* resources a key can see, while permissions limit *what* it can do.
-- **Filter unwanted content from agents.** Set `read_spam`, `read_blocked`, and `read_trash` to `false` on agent-facing keys. This prevents agents from seeing or processing unwanted email, keeping their context clean.
+- **Filter unwanted content from agents.** Set `label_spam_read`, `label_blocked_read`, and `label_trash_read` to `false` on agent-facing keys. This prevents agents from seeing or processing unwanted email, keeping their context clean.

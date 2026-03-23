@@ -23,109 +23,109 @@ types:
   ApiKeyPermissions:
     docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.
     properties:
-      read_inbox:
+      inbox_read:
         type: optional<boolean>
         docs: Read inbox details.
-      create_inbox:
+      inbox_create:
         type: optional<boolean>
         docs: Create new inboxes.
-      update_inbox:
+      inbox_update:
         type: optional<boolean>
         docs: Update inbox settings.
-      delete_inbox:
+      inbox_delete:
         type: optional<boolean>
         docs: Delete inboxes.
-      read_thread:
+      thread_read:
         type: optional<boolean>
         docs: Read threads.
-      delete_thread:
+      thread_delete:
         type: optional<boolean>
         docs: Delete threads.
-      read_message:
+      message_read:
         type: optional<boolean>
         docs: Read messages.
-      send_message:
+      message_send:
         type: optional<boolean>
         docs: Send messages.
-      update_message:
+      message_update:
         type: optional<boolean>
         docs: Update message labels.
-      read_spam:
+      label_spam_read:
         type: optional<boolean>
         docs: Access messages labeled spam.
-      read_blocked:
+      label_blocked_read:
         type: optional<boolean>
         docs: Access messages labeled blocked.
-      read_trash:
+      label_trash_read:
         type: optional<boolean>
         docs: Access messages labeled trash.
-      read_draft:
+      draft_read:
         type: optional<boolean>
         docs: Read drafts.
-      create_draft:
+      draft_create:
         type: optional<boolean>
         docs: Create drafts.
-      update_draft:
+      draft_update:
         type: optional<boolean>
         docs: Update drafts.
-      delete_draft:
+      draft_delete:
         type: optional<boolean>
         docs: Delete drafts.
-      send_draft:
+      draft_send:
         type: optional<boolean>
         docs: Send drafts.
-      read_webhook:
+      webhook_read:
         type: optional<boolean>
         docs: Read webhook configurations.
-      create_webhook:
+      webhook_create:
         type: optional<boolean>
         docs: Create webhooks.
-      update_webhook:
+      webhook_update:
         type: optional<boolean>
         docs: Update webhooks.
-      delete_webhook:
+      webhook_delete:
         type: optional<boolean>
         docs: Delete webhooks.
-      read_domain:
+      domain_read:
         type: optional<boolean>
         docs: Read domain details.
-      create_domain:
+      domain_create:
         type: optional<boolean>
         docs: Create domains.
-      update_domain:
+      domain_update:
         type: optional<boolean>
         docs: Update domains.
-      delete_domain:
+      domain_delete:
         type: optional<boolean>
         docs: Delete domains.
-      read_list_entry:
+      list_entry_read:
         type: optional<boolean>
         docs: Read list entries.
-      create_list_entry:
+      list_entry_create:
         type: optional<boolean>
         docs: Create list entries.
-      delete_list_entry:
+      list_entry_delete:
         type: optional<boolean>
         docs: Delete list entries.
-      read_metrics:
+      metrics_read:
         type: optional<boolean>
         docs: Read metrics.
-      read_api_key:
+      api_key_read:
         type: optional<boolean>
         docs: Read API keys.
-      create_api_key:
+      api_key_create:
         type: optional<boolean>
         docs: Create API keys.
-      delete_api_key:
+      api_key_delete:
         type: optional<boolean>
         docs: Delete API keys.
-      read_pod:
+      pod_read:
         type: optional<boolean>
         docs: Read pods.
-      create_pod:
+      pod_create:
         type: optional<boolean>
         docs: Create pods.
-      delete_pod:
+      pod_delete:
         type: optional<boolean>
         docs: Delete pods.
 
