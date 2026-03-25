@@ -261,6 +261,9 @@ navigation:
           - page: CLI
             icon: fa-solid fa-terminal
             path: pages/integrations/cli.mdx
+          - page: Google ADK
+            icon: fa-brands fa-google
+            path: pages/integrations/google-adk.mdx
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx

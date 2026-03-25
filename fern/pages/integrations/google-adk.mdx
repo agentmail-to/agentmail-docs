@@ -1,0 +1,115 @@
+---
+title: Google ADK
+subtitle: Give your Google ADK agent its own email inbox
+slug: integrations/google-adk
+description: AgentMail's Google Agent Development Kit (ADK) integration
+---
+
+## Getting started
+
+[Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/) is an open-source framework for building AI agents. By connecting AgentMail to your ADK agent via the [AgentMail MCP server](https://github.com/agentmail-to/agentmail-smithery-mcp), your agent can create inboxes, send and receive emails, manage threads, and handle attachments using natural language.
+
+## Use cases
+
+- **Give agents their own inboxes:** Create dedicated email addresses for your agents so they can send and receive emails independently, just like a human team member.
+- **Automate email workflows:** Let your agent handle email conversations end to end, including sending initial outreach, reading replies, and following up on threads.
+- **Manage conversations across inboxes:** List and search across threads and messages, forward emails, and retrieve attachments to keep your agent informed and responsive.
+
+## Prerequisites
+
+1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to)
+2. [Google ADK](https://google.github.io/adk-docs/get-started/) installed (`pip install google-adk` or `npm install @google/adk`)
+
+## Setup
+
+ADK supports AgentMail through the MCP tool interface. Connect the AgentMail MCP server as a local stdio transport:
+
+<CodeBlocks>
+  ```python title="Python"
+  from google.adk.agents import Agent
+  from google.adk.tools.mcp_tool import McpToolset
+  from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
+  from mcp import StdioServerParameters
+
+  AGENTMAIL_API_KEY = "YOUR_AGENTMAIL_API_KEY"
+
+  root_agent = Agent(
+      model="gemini-2.5-pro",
+      name="agentmail_agent",
+      instruction="Help users manage email inboxes and send messages",
+      tools=[
+          McpToolset(
+              connection_params=StdioConnectionParams(
+                  server_params=StdioServerParameters(
+                      command="npx",
+                      args=[
+                          "-y",
+                          "agentmail-mcp",
+                      ],
+                      env={
+                          "AGENTMAIL_API_KEY": AGENTMAIL_API_KEY,
+                      }
+                  ),
+                  timeout=30,
+              ),
+          )
+      ],
+  )
+  ```
+
+  ```typescript title="TypeScript"
+  import { LlmAgent, MCPToolset } from "@google/adk";
+
+  const AGENTMAIL_API_KEY = "YOUR_AGENTMAIL_API_KEY";
+
+  const rootAgent = new LlmAgent({
+      model: "gemini-2.5-pro",
+      name: "agentmail_agent",
+      instruction: "Help users manage email inboxes and send messages",
+      tools: [
+          new MCPToolset({
+              type: "StdioConnectionParams",
+              serverParams: {
+                  command: "npx",
+                  args: ["-y", "agentmail-mcp"],
+                  env: {
+                      AGENTMAIL_API_KEY: AGENTMAIL_API_KEY,
+                  },
+              },
+          }),
+      ],
+  });
+
+  export { rootAgent };
+  ```
+</CodeBlocks>
+
+## Available tools
+
+Once connected, your ADK agent has access to the following AgentMail tools:
+
+### Inbox management
+
+| Tool | Description |
+| --- | --- |
+| `list_inboxes` | List all inboxes |
+| `get_inbox` | Get details for a specific inbox |
+| `create_inbox` | Create a new inbox with a username and domain |
+| `delete_inbox` | Delete an inbox |
+
+### Thread management
+
+| Tool | Description |
+| --- | --- |
+| `list_threads` | List threads in an inbox |
+| `get_thread` | Get a specific thread with its messages |
+| `get_attachment` | Download an attachment from a message |
+
+### Message operations
+
+| Tool | Description |
+| --- | --- |
+| `send_message` | Send a new email from an inbox |
+| `reply_to_message` | Reply to an existing message |
+| `forward_message` | Forward a message to another recipient |
+| `update_message` | Update message properties such as read status |
