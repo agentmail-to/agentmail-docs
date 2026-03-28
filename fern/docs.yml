@@ -407,6 +407,7 @@ navigation:
           python: agentmail
           typescript: agentmail
         layout:
+          - agent
           - inboxes
           - threads
           - messages

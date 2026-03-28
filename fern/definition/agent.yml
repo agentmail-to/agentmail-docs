@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  AgentSignupRequest:
+    docs: Request body to sign up an agent.
+    properties:
+      human_email:
+        type: string
+        docs: Email address of the human who owns the agent. A 6-digit OTP will be sent to this address.
+      username:
+        type: string
+        docs: Username for the auto-created inbox (e.g. "my-agent" creates my-agent@agentmail.to).
+
+  AgentSignupResponse:
+    docs: Response after successful agent sign-up.
+    properties:
+      organization_id:
+        type: string
+        docs: ID of the created organization.
+      inbox_id:
+        type: string
+        docs: Email address of the auto-created inbox.
+      api_key:
+        type: string
+        docs: API key for authenticating subsequent requests. Store this securely — it cannot be retrieved again.
+
+  AgentVerifyRequest:
+    docs: Request body to verify an agent with an OTP code.
+    properties:
+      otp_code:
+        type: string
+        docs: 6-digit verification code sent to the human's email address.
+
+  AgentVerifyResponse:
+    docs: Response after successful agent verification.
+    properties:
+      verified:
+        type: boolean
+        docs: Whether the organization was successfully verified.
+
+service:
+  url: Http
+  base-path: /agent
+  auth: false
+
+  endpoints:
+    signUp:
+      method: POST
+      path: /sign-up
+      display-name: Sign Up
+      docs: |
+        Create a new agent organization with an inbox and API key. A 6-digit OTP is sent to the human's email for verification.
+
+        This endpoint is idempotent — calling it again with the same `human_email` will rotate the API key and resend the OTP if expired.
+
+        The returned API key has limited permissions until the organization is verified via the verify endpoint.
+      request: AgentSignupRequest
+      response: AgentSignupResponse
+      errors:
+        - global.ValidationError
+
+    verify:
+      method: POST
+      path: /verify
+      display-name: Verify
+      auth: true
+      docs: |
+        Verify an agent organization using the 6-digit OTP sent to the human's email during sign-up.
+
+        After successful verification, the organization is upgraded from `agent_unverified` to `agent_verified`, the send allowlist restriction is removed, and free plan entitlements are applied.
+
+        The OTP expires after 24 hours and allows a maximum of 10 attempts.
+      request: AgentVerifyRequest
+      response: AgentVerifyResponse
