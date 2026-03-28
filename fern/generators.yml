@@ -41,6 +41,23 @@ groups:
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
           packageJson:
+            description: "The email inbox API for AI agents. Send, receive, reply, and manage threaded email conversations programmatically."
+            keywords:
+              - email
+              - ai
+              - agent
+              - inbox
+              - api
+              - email-api
+              - ai-agent
+              - llm
+              - langchain
+              - crewai
+              - autonomous-agent
+              - agentmail
+            homepage: "https://agentmail.to"
+            license: MIT
+            author: "AgentMail <support@agentmail.cc>"
             scripts:
               build: >-
                 npm run build:cjs && npm run build:esm && node -e "const
@@ -62,6 +79,25 @@ groups:
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
+          pyproject_toml:
+            description: "The email inbox API for AI agents. Send, receive, reply, and manage threaded email conversations programmatically."
+            authors:
+              - "AgentMail <support@agentmail.cc>"
+            keywords:
+              - email
+              - ai
+              - agent
+              - inbox
+              - api
+              - email-api
+              - ai-agent
+              - llm
+              - langchain
+              - crewai
+              - autonomous-agent
+              - agentmail
+            license: MIT
+            homepage: "https://agentmail.to"
         smart-casing: false
   openapi:
     generators:
