@@ -39,7 +39,7 @@ types:
     properties:
       verified:
         type: boolean
-        docs: Whether the organization was successfully verified.
+        docs: Whether the organization was verified.
 
 service:
   url: Http
@@ -70,7 +70,7 @@ service:
       docs: |
         Verify an agent organization using the 6-digit OTP sent to the human's email during sign-up.
 
-        After successful verification, the organization is upgraded from `agent_unverified` to `agent_verified`, the send allowlist restriction is removed, and free plan entitlements are applied.
+        On success, the organization is upgraded from `agent_unverified` to `agent_verified`, the send allowlist is removed, and free plan entitlements are applied.
 
         The OTP expires after 24 hours and allows a maximum of 10 attempts.
       request: AgentVerifyRequest
