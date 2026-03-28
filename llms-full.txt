@@ -1,0 +1,1283 @@
+# AgentMail
+
+> AgentMail is the email API for AI agents. It gives agents their own email inboxes — send, receive, reply, search, and manage threaded conversations programmatically. Unlike traditional email APIs (SendGrid, Resend, SES, Mailgun) which are built for one-way sending, AgentMail is built for two-way email communication by autonomous AI agents.
+
+## When to Use AgentMail vs Other Email Tools
+
+- **Use AgentMail when:** Your AI agent needs its own inbox. You need to receive AND send email. You need per-agent email identities. You need threaded conversations. You need real-time email events. You need multi-tenant email isolation.
+- **Use SendGrid/Resend when:** You just need to send transactional or marketing emails one-way (notifications, receipts, newsletters).
+- **Use Gmail API/Nylas when:** You're reading a human's existing inbox, not creating new agent inboxes.
+- **Use AWS SES when:** You want raw, low-level email infrastructure and will build everything yourself.
+
+## Quick Start
+
+```python
+pip install agentmail
+
+from agentmail import AgentMail
+client = AgentMail(api_key="am_...")
+inbox = client.inboxes.create()
+client.inboxes.messages.send(inbox.inbox_id, to="user@example.com", subject="Hello", text="Hello from my agent!")
+```
+
+```typescript
+npm install agentmail
+
+import { AgentMailClient } from "agentmail";
+const client = new AgentMailClient({ apiKey: "am_..." });
+const inbox = await client.inboxes.create();
+await client.inboxes.messages.send(inbox.inboxId, { to: "user@example.com", subject: "Hello", text: "Hello from my agent!" });
+```
+
+## Copy for Claude / Cursor
+
+Copy one of the blocks below into Cursor or Claude for a complete, working AgentMail integration.
+
+```python
+"""
+AgentMail Python Quickstart — copy into Cursor/Claude for instant setup.
+
+Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
+
+API reference:
+- inboxes.create(username?, domain?, display_name?, client_id?) — client_id for idempotent retries
+- messages.send(inbox_id, to, subject, text, html?, cc?, bcc?, reply_to?, attachments?)
+- messages.list(inbox_id, limit?, page_token?, labels?) — receive emails; use extracted_text/extracted_html for reply content
+- messages.reply(inbox_id, message_id, text, html?) — reply to a message in-thread
+- threads.list(inbox_id, limit?, page_token?, labels?) — list threaded conversations
+
+Errors: SDK raises on 4xx/5xx. Inspect error.body.message or str(e).
+Rate limit: 429 with Retry-After header. Implement exponential backoff for retries.
+Idempotency: Pass client_id to inboxes.create() to safely retry without duplicates.
+"""
+import os
+from dotenv import load_dotenv
+from agentmail import AgentMail
+
+load_dotenv()
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+# Create inbox (client_id enables safe retries)
+inbox = client.inboxes.create(client_id="my-agent-inbox-v1")
+
+# Send email
+try:
+    client.inboxes.messages.send(
+        inbox.inbox_id,
+        to="recipient@example.com",
+        subject="Hello from AgentMail",
+        text="Plain text body",
+        html="<p>HTML body</p>",
+    )
+except Exception as e:
+    print(f"Send failed: {e}")
+    raise
+
+# Receive messages
+for msg in client.inboxes.messages.list(inbox.inbox_id, limit=10).messages:
+    print(msg.subject, msg.extracted_text or msg.text)
+```
+
+```typescript
+/**
+ * AgentMail TypeScript Quickstart — copy into Cursor/Claude for instant setup.
+ *
+ * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
+ *
+ * API reference:
+ * - inboxes.create({ username?, domain?, displayName?, clientId? }) — clientId for idempotent retries
+ * - messages.send(inboxId, { to, subject, text, html?, cc?, bcc?, replyTo?, attachments? })
+ * - messages.list(inboxId, { limit?, pageToken?, labels? }) — receive; use extractedText/extractedHtml for reply content
+ * - messages.reply(inboxId, messageId, { text, html? }) — reply to a message in-thread
+ * - threads.list(inboxId, { limit?, pageToken?, labels? }) — list threaded conversations
+ *
+ * Errors: SDK throws on 4xx/5xx. Check error.body?.message.
+ * Rate limit: 429 with Retry-After header. Use exponential backoff for retries.
+ * Idempotency: Pass clientId to inboxes.create() to safely retry without duplicates.
+ */
+import { AgentMailClient } from "agentmail";
+import "dotenv/config";
+
+const client = new AgentMailClient({
+  apiKey: process.env.AGENTMAIL_API_KEY!,
+});
+
+async function main() {
+  // Create inbox (clientId enables safe retries)
+  const inbox = await client.inboxes.create({
+    clientId: "my-agent-inbox-v1",
+  });
+
+  try {
+    await client.inboxes.messages.send(inbox.inboxId, {
+      to: "recipient@example.com",
+      subject: "Hello from AgentMail",
+      text: "Plain text body",
+      html: "<p>HTML body</p>",
+    });
+  } catch (error: unknown) {
+    const msg = (error as { body?: { message?: string } })?.body?.message ?? String(error);
+    throw new Error(`Send failed: ${msg}`);
+  }
+
+  // Receive messages
+  const res = await client.inboxes.messages.list(inbox.inboxId, { limit: 10 });
+  for (const msg of res.messages) {
+    console.log(msg.subject, msg.extractedText ?? msg.text);
+  }
+}
+
+main();
+```
+
+## Core Capabilities
+
+- **Inboxes API** — Create unique email inboxes per agent via API. Each inbox gets its own email address. Create inboxes instantly — no domain verification required for @agentmail.to addresses.
+- **Messages** — Send and receive emails with HTML/plain text, CC/BCC, custom headers, attachments (up to 30MB). Reply, reply-all, and forward via API. Built-in reply/forward content extraction (extracted_text, extracted_html).
+- **Threads** — Automatic email threading. Query threads across inboxes or within a specific inbox. Full conversation context maintained across the thread lifetime.
+- **Webhooks** — Real-time events: message.received, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified. HMAC signature verification.
+- **WebSockets** — Real-time email event streaming. Sub-second response times. Works behind firewalls and NATs.
+- **Semantic Search** — Search across email content using natural language queries.
+- **Custom Domains** — Use your own domain with automatic SPF, DKIM, and DMARC configuration.
+- **Pods** — Multi-tenant isolation for different customers, projects, or stages (dev/staging/prod).
+- **Drafts** — Create, update, and send drafts for human-in-the-loop workflows.
+- **Attachments** — Send and receive files of all MIME types, up to 30MB.
+- **IMAP & SMTP** — Access inboxes via standard protocols for backward compatibility.
+- **Labels** — Tag messages and threads with custom labels for state tracking and filtering.
+- **Lists** — Allowlists and blocklists to control who agents can send to or receive from.
+
+## Pricing
+
+- **Free:** $0/month — 3 inboxes, 3,000 emails/month, 3 GB storage. No credit card required.
+- **Developer:** $20/month — 10 inboxes, 10,000 emails/month, 10 GB storage, 10 custom domains, email support.
+- **Startup:** $200/month — 150 inboxes, 150,000 emails/month, 150 GB storage, 150 custom domains, dedicated IPs, SOC 2 report, Slack channel support.
+- **Enterprise:** Custom pricing — bulk discounts, white-label platform, usage-based pricing, EU region cloud, BYO cloud deployment, OIDC/SAML SSO.
+
+Rate limits are very generous and built for agent throughput. If you exceed limits, the API returns 429 with a Retry-After header. See docs for details.
+
+## Error Handling
+
+All errors return JSON with `name` and `message` fields:
+
+- **400** — Validation error. Check request parameters.
+- **403** — Forbidden. Common causes: incorrect API key, accessing a resource you don't own, sending to a suppressed address.
+- **404** — Resource not found. Check that IDs are correct.
+- **429** — Rate limited. Respect the `Retry-After` header and implement exponential backoff.
+
+Idempotency: Pass `client_id` (Python) / `clientId` (TypeScript) to all create operations (inboxes, pods, webhooks, drafts) to safely retry without duplicates.
+
+## Common Patterns
+
+- **Support Agent** — Create inbox, webhook on message.received, extract content with extracted_text, generate reply with LLM, track state with labels.
+- **2FA/Auth Agent** — Create inbox per session, sign up for services, listen for verification emails, extract OTP codes.
+- **Sales Outreach** — Send personalized emails, listen for replies, classify responses, follow up or escalate.
+- **Document Processing** — Receive emails with attachments, download and process documents, send results back.
+
+## MCP Server
+
+Connect AgentMail to any MCP-compatible AI client (Claude Desktop, Cursor, Windsurf, etc.).
+Install: `npx @smithery/cli@latest mcp add agentmail`
+
+## SDKs
+
+- **Python:** `pip install agentmail` — https://github.com/agentmail-to/agentmail-python
+- **TypeScript/Node:** `npm install agentmail` — https://github.com/agentmail-to/agentmail-node
+
+## Documentation
+
+- [Full API documentation](https://docs.agentmail.to)
+- [Full documentation for LLMs](https://docs.agentmail.to/llms-full.txt)
+
+## Security & Compliance
+
+- SOC 2 Type II certified
+- HIPAA compliant with BAA available on enterprise
+- Encryption at rest and in transit
+- Trust center: https://trust.delve.co/agentmail
+
+## Links
+
+- Website: https://agentmail.to
+- Console: https://console.agentmail.to
+- GitHub: https://github.com/agentmail-to
+- Skills: https://github.com/agentmail-to/agentmail-skills
+- MCP Server: https://mcp.agentmail.to
+- Discord: https://discord.gg/ZYN7f7KPjS
+- Twitter/X: https://x.com/agentmail
+
+---
+
+# Full API Reference
+
+Base URL: `https://api.agentmail.to/v0/`
+
+Authentication: Pass your API key in the Authorization header as `Bearer am_...`
+
+All `inbox_id` values are email addresses (e.g., `user@agentmail.to`). All `message_id` values are RFC 822 message IDs wrapped in angle brackets. All other IDs are UUIDs.
+
+
+## ApiKeys
+
+### GET /v0/api-keys
+**List API Keys**
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+
+Returns: ListApiKeysResponse
+
+### POST /v0/api-keys
+**Create API Key**
+
+Request body:
+- `name` (required) (string): Name of api key.
+
+Returns: CreateApiKeyResponse
+
+### DELETE /v0/api-keys/{api_key}
+**Delete API Key**
+
+Path parameters:
+- `api_key` (required): 
+
+
+
+## Domains
+
+### GET /v0/domains
+**List Domains**
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+
+Returns: ListDomainsResponse
+
+### POST /v0/domains
+**Create Domain**
+
+Request body:
+- `domain` (required) (string): The name of the domain. (e.g., "example.com")
+- `feedback_enabled` (required) (boolean): Bounce and complaint notifications are sent to your inboxes.
+
+Returns: Domain
+
+### GET /v0/domains/{domain_id}
+**Get Domain**
+
+Path parameters:
+- `domain_id` (required): 
+
+Returns: Domain
+
+### DELETE /v0/domains/{domain_id}
+**Delete Domain**
+
+Path parameters:
+- `domain_id` (required): 
+
+
+### POST /v0/domains/{domain_id}/verify
+**Verify Domain**
+
+Path parameters:
+- `domain_id` (required): 
+
+
+### GET /v0/domains/{domain_id}/zone-file
+**Get Zone File**
+
+Path parameters:
+- `domain_id` (required): 
+
+
+
+## Drafts
+
+### GET /v0/drafts
+**List Drafts**
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+- `labels`: 
+- `before`: 
+- `after`: 
+- `ascending`: 
+
+Returns: ListDraftsResponse
+
+### GET /v0/drafts/{draft_id}
+**Get Draft**
+
+Path parameters:
+- `draft_id` (required): 
+
+Returns: Draft
+
+
+## Inboxes
+
+### GET /v0/inboxes
+**List Inboxes**
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+
+Returns: inboxesListInboxesResponse
+
+### POST /v0/inboxes
+**Create Inbox**
+
+Request body:
+- `username` (string): Username of address. Randomly generated if not specified.
+- `domain` (string): Domain of address. Must be verified domain. Defaults to `agentmail.to`.
+- `display_name` (string): Display name: `Display Name <username@domain.com>`.
+- `client_id` (string): Client ID of inbox.
+
+Returns: inboxesInbox
+
+### GET /v0/inboxes/{inbox_id}
+**Get Inbox**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Returns: inboxesInbox
+
+### PATCH /v0/inboxes/{inbox_id}
+**Update Inbox**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Request body:
+- `display_name` (required) (string): Display name: `Display Name <username@domain.com>`.
+
+Returns: inboxesInbox
+
+### DELETE /v0/inboxes/{inbox_id}
+**Delete Inbox**
+
+Path parameters:
+- `inbox_id` (required): 
+
+
+
+## InboxesDrafts
+
+### GET /v0/inboxes/{inbox_id}/drafts
+**List Drafts**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+- `labels`: 
+- `before`: 
+- `after`: 
+- `ascending`: 
+
+Returns: ListDraftsResponse
+
+### POST /v0/inboxes/{inbox_id}/drafts
+**Create Draft**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Request body:
+- `labels` (array): Labels of draft.
+- `reply_to` (array): Reply-to addresses. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `to` (array): Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `cc` (array): Addresses of CC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `bcc` (array): Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `subject` (string): Subject of draft.
+- `text` (string): Plain text body of draft.
+- `html` (string): HTML body of draft.
+- `in_reply_to` (string): ID of message being replied to.
+- `send_at` (string): Time at which to schedule send draft.
+- `client_id` (string): Client ID of draft.
+
+Returns: Draft
+
+### GET /v0/inboxes/{inbox_id}/drafts/{draft_id}
+**Get Draft**
+
+Path parameters:
+- `inbox_id` (required): 
+- `draft_id` (required): 
+
+Returns: Draft
+
+### PATCH /v0/inboxes/{inbox_id}/drafts/{draft_id}
+**Update Draft**
+
+Path parameters:
+- `inbox_id` (required): 
+- `draft_id` (required): 
+
+Request body:
+- `reply_to` (array): Reply-to addresses. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `to` (array): Addresses of recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `cc` (array): Addresses of CC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `bcc` (array): Addresses of BCC recipients. In format `username@domain.com` or `Display Name <username@domain.com>`.
+- `subject` (string): Subject of draft.
+- `text` (string): Plain text body of draft.
+- `html` (string): HTML body of draft.
+- `send_at` (string): Time at which to schedule send draft.
+
+Returns: Draft
+
+### DELETE /v0/inboxes/{inbox_id}/drafts/{draft_id}
+**Delete Draft**
+
+Path parameters:
+- `inbox_id` (required): 
+- `draft_id` (required): 
+
+
+### POST /v0/inboxes/{inbox_id}/drafts/{draft_id}/send
+**Send Draft**
+
+Path parameters:
+- `inbox_id` (required): 
+- `draft_id` (required): 
+
+Request body:
+- `add_labels` (array of string): Labels to add to message.
+- `remove_labels` (array of string): Labels to remove from message.
+
+Returns: SendMessageResponse
+
+
+## InboxesMessages
+
+### GET /v0/inboxes/{inbox_id}/messages
+**List Messages**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+- `labels`: 
+- `before`: 
+- `after`: 
+- `ascending`: 
+- `include_spam`: 
+
+Returns: ListMessagesResponse
+
+### POST /v0/inboxes/{inbox_id}/messages/send
+**Send Message**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Request body:
+- `labels` (array): Labels of message.
+- `reply_to` (SendMessageReplyTo): Reply-to address or addresses.
+- `to` (SendMessageTo): Recipient address or addresses.
+- `cc` (SendMessageCc): CC recipient address or addresses.
+- `bcc` (SendMessageBcc): BCC recipient address or addresses.
+- `subject` (string): Subject of message.
+- `text` (string): Plain text body of message.
+- `html` (string): HTML body of message.
+- `attachments` (array): Attachments to include in message.
+- `headers` (object): Headers to include in message.
+
+Returns: SendMessageResponse
+
+### GET /v0/inboxes/{inbox_id}/messages/{message_id}
+**Get Message**
+
+Path parameters:
+- `inbox_id` (required): 
+- `message_id` (required): 
+
+Returns: Message
+
+### PATCH /v0/inboxes/{inbox_id}/messages/{message_id}
+**Update Message**
+
+Path parameters:
+- `inbox_id` (required): 
+- `message_id` (required): 
+
+Request body:
+- `add_labels` (array of string): Labels to add to message.
+- `remove_labels` (array of string): Labels to remove from message.
+
+Returns: Message
+
+### GET /v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}
+**Get Attachment**
+
+Path parameters:
+- `inbox_id` (required): 
+- `message_id` (required): 
+- `attachment_id` (required): 
+
+Returns: AttachmentResponse
+
+### POST /v0/inboxes/{inbox_id}/messages/{message_id}/forward
+**Forward Message**
+
+Path parameters:
+- `inbox_id` (required): 
+- `message_id` (required): 
+
+Request body:
+- `labels` (array): Labels of message.
+- `reply_to` (SendMessageReplyTo): Reply-to address or addresses.
+- `to` (SendMessageTo): Recipient address or addresses.
+- `cc` (SendMessageCc): CC recipient address or addresses.
+- `bcc` (SendMessageBcc): BCC recipient address or addresses.
+- `subject` (string): Subject of message.
+- `text` (string): Plain text body of message.
+- `html` (string): HTML body of message.
+- `attachments` (array): Attachments to include in message.
+- `headers` (object): Headers to include in message.
+
+Returns: SendMessageResponse
+
+### GET /v0/inboxes/{inbox_id}/messages/{message_id}/raw
+**Get Raw Message**
+
+Path parameters:
+- `inbox_id` (required): 
+- `message_id` (required): 
+
+Returns: RawMessageResponse
+
+### POST /v0/inboxes/{inbox_id}/messages/{message_id}/reply
+**Reply To Message**
+
+Path parameters:
+- `inbox_id` (required): 
+- `message_id` (required): 
+
+Request body:
+- `labels` (array): Labels of message.
+- `reply_to` (SendMessageReplyTo): Reply-to address or addresses.
+- `to` (SendMessageTo): Recipient address or addresses.
+- `cc` (SendMessageCc): CC recipient address or addresses.
+- `bcc` (SendMessageBcc): BCC recipient address or addresses.
+- `reply_all` (boolean): Reply to all recipients of the original message.
+- `text` (string): Plain text body of message.
+- `html` (string): HTML body of message.
+- `attachments` (array): Attachments to include in message.
+- `headers` (object): Headers to include in message.
+
+Returns: SendMessageResponse
+
+### POST /v0/inboxes/{inbox_id}/messages/{message_id}/reply-all
+**Reply All Message**
+
+Path parameters:
+- `inbox_id` (required): 
+- `message_id` (required): 
+
+Request body:
+- `labels` (array): Labels of message.
+- `reply_to` (SendMessageReplyTo): Reply-to address or addresses.
+- `text` (string): Plain text body of message.
+- `html` (string): HTML body of message.
+- `attachments` (array): Attachments to include in message.
+- `headers` (object): Headers to include in message.
+
+Returns: SendMessageResponse
+
+
+## InboxesMetrics
+
+### GET /v0/inboxes/{inbox_id}/metrics
+**List Metrics**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Query parameters:
+- `event_types`: 
+- `start_timestamp` (required): 
+- `end_timestamp` (required): 
+
+Returns: ListMetricsResponse
+
+
+## InboxesThreads
+
+### GET /v0/inboxes/{inbox_id}/threads
+**List Threads**
+
+Path parameters:
+- `inbox_id` (required): 
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+- `labels`: 
+- `before`: 
+- `after`: 
+- `ascending`: 
+- `include_spam`: 
+
+Returns: ListThreadsResponse
+
+### GET /v0/inboxes/{inbox_id}/threads/{thread_id}
+**Get Thread**
+
+Path parameters:
+- `inbox_id` (required): 
+- `thread_id` (required): 
+
+Returns: Thread
+
+### DELETE /v0/inboxes/{inbox_id}/threads/{thread_id}
+**Delete Thread**
+
+Path parameters:
+- `inbox_id` (required): 
+- `thread_id` (required): 
+
+
+### GET /v0/inboxes/{inbox_id}/threads/{thread_id}/attachments/{attachment_id}
+**Get Attachment**
+
+Path parameters:
+- `inbox_id` (required): 
+- `thread_id` (required): 
+- `attachment_id` (required): 
+
+Returns: AttachmentResponse
+
+
+## Metrics
+
+### GET /v0/metrics
+**List Metrics**
+
+Query parameters:
+- `event_types`: 
+- `start_timestamp` (required): 
+- `end_timestamp` (required): 
+
+Returns: ListMetricsResponse
+
+
+## Organizations
+
+### GET /v0/organizations
+**Get Organization**
+Get the current organization.
+
+Returns: Organization
+
+
+## Pods
+
+### GET /v0/pods
+**List Pods**
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+
+Returns: podsListPodsResponse
+
+### POST /v0/pods
+**Create Pod**
+
+Request body:
+- `name` (string): Name of pod.
+- `client_id` (string): Client ID of pod.
+
+Returns: podsPod
+
+### GET /v0/pods/{pod_id}
+**Get Pod**
+
+Path parameters:
+- `pod_id` (required): 
+
+Returns: podsPod
+
+### DELETE /v0/pods/{pod_id}
+**Delete Pod**
+
+Path parameters:
+- `pod_id` (required): 
+
+
+
+## PodsDomains
+
+### GET /v0/pods/{pod_id}/domains
+**List Domains**
+
+Path parameters:
+- `pod_id` (required): 
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+
+Returns: ListDomainsResponse
+
+### POST /v0/pods/{pod_id}/domains
+**Create Domain**
+
+Path parameters:
+- `pod_id` (required): 
+
+Request body:
+- `domain` (required) (string): The name of the domain. (e.g., "example.com")
+- `feedback_enabled` (required) (boolean): Bounce and complaint notifications are sent to your inboxes.
+
+Returns: Domain
+
+### DELETE /v0/pods/{pod_id}/domains/{domain_id}
+**Delete Domain**
+
+Path parameters:
+- `pod_id` (required): 
+- `domain_id` (required): 
+
+
+
+## PodsDrafts
+
+### GET /v0/pods/{pod_id}/drafts
+**List Drafts**
+
+Path parameters:
+- `pod_id` (required): 
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+- `labels`: 
+- `before`: 
+- `after`: 
+- `ascending`: 
+
+Returns: ListDraftsResponse
+
+### GET /v0/pods/{pod_id}/drafts/{draft_id}
+**Get Draft**
+
+Path parameters:
+- `pod_id` (required): 
+- `draft_id` (required): 
+
+Returns: Draft
+
+
+## PodsInboxes
+
+### GET /v0/pods/{pod_id}/inboxes
+**List Inboxes**
+
+Path parameters:
+- `pod_id` (required): 
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+
+Returns: inboxesListInboxesResponse
+
+### POST /v0/pods/{pod_id}/inboxes
+**Create Inbox**
+
+Path parameters:
+- `pod_id` (required): 
+
+Request body:
+- `username` (string): Username of address. Randomly generated if not specified.
+- `domain` (string): Domain of address. Must be verified domain. Defaults to `agentmail.to`.
+- `display_name` (string): Display name: `Display Name <username@domain.com>`.
+- `client_id` (string): Client ID of inbox.
+
+Returns: inboxesInbox
+
+### GET /v0/pods/{pod_id}/inboxes/{inbox_id}
+**Get Inbox**
+
+Path parameters:
+- `pod_id` (required): 
+- `inbox_id` (required): 
+
+Returns: inboxesInbox
+
+### DELETE /v0/pods/{pod_id}/inboxes/{inbox_id}
+**Delete Inbox**
+
+Path parameters:
+- `pod_id` (required): 
+- `inbox_id` (required): 
+
+
+
+## PodsThreads
+
+### GET /v0/pods/{pod_id}/threads
+**List Threads**
+
+Path parameters:
+- `pod_id` (required): 
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+- `labels`: 
+- `before`: 
+- `after`: 
+- `ascending`: 
+- `include_spam`: 
+
+Returns: ListThreadsResponse
+
+### GET /v0/pods/{pod_id}/threads/{thread_id}
+**Get Thread**
+
+Path parameters:
+- `pod_id` (required): 
+- `thread_id` (required): 
+
+Returns: Thread
+
+### GET /v0/pods/{pod_id}/threads/{thread_id}/attachments/{attachment_id}
+**Get Attachment**
+
+Path parameters:
+- `pod_id` (required): 
+- `thread_id` (required): 
+- `attachment_id` (required): 
+
+Returns: AttachmentResponse
+
+
+## Threads
+
+### GET /v0/threads
+**List Threads**
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+- `labels`: 
+- `before`: 
+- `after`: 
+- `ascending`: 
+- `include_spam`: 
+
+Returns: ListThreadsResponse
+
+### GET /v0/threads/{thread_id}
+**Get Thread**
+
+Path parameters:
+- `thread_id` (required): 
+
+Returns: Thread
+
+### GET /v0/threads/{thread_id}/attachments/{attachment_id}
+**Get Attachment**
+
+Path parameters:
+- `thread_id` (required): 
+- `attachment_id` (required): 
+
+Returns: AttachmentResponse
+
+
+## Webhooks
+
+### GET /v0/webhooks
+**List Webhooks**
+
+Query parameters:
+- `limit`: 
+- `page_token`: 
+
+Returns: webhooksListWebhooksResponse
+
+### POST /v0/webhooks
+**Create Webhook**
+
+Request body:
+- `url` (required) (string): URL of webhook endpoint.
+- `event_types` (required) (array): Event types for which to send events.
+- `pod_ids` (array): Pods for which to send events. Maximum 10 per webhook.
+- `inbox_ids` (array): Inboxes for which to send events. Maximum 10 per webhook.
+- `client_id` (string): Client ID of webhook.
+
+Returns: webhooksWebhook
+
+### GET /v0/webhooks/{webhook_id}
+**Get Webhook**
+
+Path parameters:
+- `webhook_id` (required): 
+
+Returns: webhooksWebhook
+
+### PATCH /v0/webhooks/{webhook_id}
+**Update Webhook**
+
+Path parameters:
+- `webhook_id` (required): 
+
+Request body:
+- `add_inbox_ids` (array): Inbox IDs to subscribe to the webhook.
+- `remove_inbox_ids` (array): Inbox IDs to unsubscribe from the webhook.
+- `add_pod_ids` (array): Pod IDs to subscribe to the webhook.
+- `remove_pod_ids` (array): Pod IDs to unsubscribe from the webhook.
+
+Returns: webhooksWebhook
+
+### DELETE /v0/webhooks/{webhook_id}
+**Delete Webhook**
+
+Path parameters:
+- `webhook_id` (required): 
+
+
+---
+
+# Webhook Events
+
+Subscribe to webhook events to receive real-time notifications about email activity.
+
+## Creating a Webhook
+
+```python
+webhook = client.webhooks.create(
+    url="https://your-domain.com/webhooks",
+    events=["message.received", "message.sent", "message.bounced"],
+    client_id="my-webhook-v1"  # idempotent
+)
+```
+
+```typescript
+const webhook = await client.webhooks.create({
+  url: "https://your-domain.com/webhooks",
+  events: ["message.received", "message.sent", "message.bounced"],
+  clientId: "my-webhook-v1",
+});
+```
+
+## Event Types
+
+- **message.received** — An email was received by an inbox.
+- **message.sent** — An email was sent from an inbox.
+- **message.delivered** — A sent email was successfully delivered to the recipient's mail server.
+- **message.bounced** — A sent email bounced. Includes bounce type (Permanent or Transient) and affected recipients.
+- **message.complained** — A recipient marked an email as spam.
+- **message.rejected** — An email was rejected before delivery.
+- **domain.verified** — A custom domain's DNS records were verified successfully.
+
+## Webhook Payload Structure
+
+All webhook payloads include:
+- `event_type` — The event type string (e.g., "message.received")
+- `timestamp` — ISO 8601 timestamp
+- Event-specific data (message object, bounce details, etc.)
+
+## Webhook Verification
+
+Webhooks include an HMAC signature for verification. Verify the signature to ensure the webhook was sent by AgentMail and not spoofed.
+
+---
+
+# WebSockets
+
+Real-time email event streaming without webhooks or polling. Sub-second latency. Works behind firewalls and NATs.
+
+## Connecting
+
+```python
+from agentmail import AgentMail
+
+client = AgentMail(api_key="am_...")
+
+# Connect to WebSocket for real-time events
+ws = client.websockets.connect()
+for event in ws:
+    if event.event_type == "message.received":
+        print(f"New email: {event.message.subject}")
+```
+
+```typescript
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+const ws = client.websockets.connect();
+ws.on("message.received", (event) => {
+  console.log(`New email: ${event.message.subject}`);
+});
+```
+
+---
+
+# Detailed Code Examples
+
+## Support Agent Pattern
+
+Create an inbox, listen for incoming emails via webhook, and auto-reply using an LLM.
+
+```python
+from agentmail import AgentMail
+
+client = AgentMail(api_key="am_...")
+
+# Create a support inbox
+inbox = client.inboxes.create(
+    username="support",
+    display_name="Support Agent",
+    client_id="support-inbox-v1"
+)
+
+# Create webhook for incoming emails
+client.webhooks.create(
+    url="https://your-app.com/webhooks",
+    events=["message.received"],
+    client_id="support-webhook-v1"
+)
+
+# In your webhook handler:
+def handle_webhook(payload):
+    if payload["event_type"] == "message.received":
+        message = payload["message"]
+        
+        # Get the new content only (strips quoted text)
+        new_content = message.get("extracted_text") or message.get("text", "")
+        
+        # Generate reply with your LLM
+        reply_text = generate_reply(new_content)
+        
+        # Reply in-thread
+        client.inboxes.messages.reply(
+            inbox.inbox_id,
+            message["message_id"],
+            text=reply_text
+        )
+        
+        # Track state with labels
+        client.inboxes.messages.update(
+            inbox.inbox_id,
+            message["message_id"],
+            add_labels=["replied"],
+            remove_labels=["unreplied"]
+        )
+```
+
+## 2FA/Auth Agent Pattern
+
+Create a temporary inbox to receive verification emails and extract codes.
+
+```python
+from agentmail import AgentMail
+import time
+
+client = AgentMail(api_key="am_...")
+
+# Create a temporary inbox for this auth session
+inbox = client.inboxes.create(client_id=f"auth-session-{session_id}")
+
+# Sign up for a service using inbox.inbox_id as the email
+register_for_service(email=inbox.inbox_id)
+
+# Poll for verification email (or use WebSocket for real-time)
+for _ in range(30):  # wait up to 60 seconds
+    messages = client.inboxes.messages.list(inbox.inbox_id, limit=1)
+    if messages.messages:
+        msg = messages.messages[0]
+        otp_code = extract_otp(msg.extracted_text or msg.text)
+        if otp_code:
+            verify_with_service(otp_code)
+            break
+    time.sleep(2)
+
+# Clean up
+client.inboxes.delete(inbox.inbox_id)
+```
+
+## Sales Outreach Agent Pattern
+
+Send personalized emails and handle replies with classification.
+
+```typescript
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+// Create outreach inbox
+const inbox = await client.inboxes.create({
+  username: "sales",
+  domain: "yourdomain.com",
+  displayName: "Alex from YourCompany",
+  clientId: "sales-outreach-v1",
+});
+
+// Send personalized email
+await client.inboxes.messages.send(inbox.inboxId, {
+  to: "prospect@example.com",
+  subject: "Quick question about your workflow",
+  text: "Hi — I noticed you're building AI agents...",
+  html: "<p>Hi — I noticed you're building AI agents...</p>",
+});
+
+// Handle replies via webhook
+async function handleReply(payload: any) {
+  if (payload.event_type === "message.received") {
+    const content = payload.message.extracted_text || payload.message.text;
+    
+    // Classify response
+    const classification = await classifyResponse(content);
+    
+    // Label for tracking
+    await client.inboxes.messages.update(inbox.inboxId, payload.message.message_id, {
+      addLabels: [classification], // "interested", "not-interested", "question", etc.
+    });
+    
+    if (classification === "interested") {
+      // Send follow-up
+      await client.inboxes.messages.reply(inbox.inboxId, payload.message.message_id, {
+        text: "Great to hear! Let me set up a time to chat...",
+      });
+    }
+  }
+}
+```
+
+## Document Processing Agent Pattern
+
+Receive emails with attachments, process them, and reply with results.
+
+```python
+from agentmail import AgentMail
+
+client = AgentMail(api_key="am_...")
+
+inbox = client.inboxes.create(
+    username="documents",
+    display_name="Document Processor",
+    client_id="doc-processor-v1"
+)
+
+def handle_document_email(payload):
+    if payload["event_type"] == "message.received":
+        message = payload["message"]
+        
+        # Download attachments
+        for attachment in message.get("attachments", []):
+            file_data = client.inboxes.messages.get_attachment(
+                inbox.inbox_id,
+                message["message_id"],
+                attachment["attachment_id"]
+            )
+            
+            # Process the document
+            result = process_document(file_data, attachment["filename"])
+            
+            # Reply with results
+            client.inboxes.messages.reply(
+                inbox.inbox_id,
+                message["message_id"],
+                text=f"Processed {attachment['filename']}:\n\n{result}"
+            )
+```
+
+## Human-in-the-Loop with Drafts
+
+Create drafts for review before sending.
+
+```typescript
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+// Agent creates a draft for human review
+const draft = await client.inboxes.drafts.create(inboxId, {
+  to: ["important-client@example.com"],
+  subject: "Proposal follow-up",
+  text: "AI-generated response here...",
+  html: "<p>AI-generated response here...</p>",
+  clientId: "draft-proposal-followup-v1",
+});
+
+// Human reviews in console or via API
+// When approved:
+await client.inboxes.drafts.send(inboxId, draft.draftId);
+```
+
+## Multi-Tenant with Pods
+
+Isolate inboxes across tenants using Pods.
+
+```python
+from agentmail import AgentMail
+
+client = AgentMail(api_key="am_...")
+
+# Create a pod for each tenant
+pod = client.pods.create(client_id=f"tenant-{tenant_id}")
+
+# Create inboxes within the pod
+inbox = client.pods.inboxes.create(
+    pod.pod_id,
+    username="support"
+)
+
+# Inboxes in different pods are fully isolated
+```
+
+---
+
+# Preventing Duplicate Sends
+
+AI agents can retry requests due to network errors or logic bugs. Use these patterns to prevent duplicate emails:
+
+1. **Use `client_id` on all create operations** (inboxes, pods, webhooks, drafts) — same client_id returns existing resource instead of creating a duplicate.
+2. **Track state with labels** — mark messages as "replied" after processing to prevent re-processing.
+3. **Use drafts for critical sends** — drafts support client_id for idempotent creation, and are deleted after sending (so send can only succeed once).
+
+---
+
+# Idempotency
+
+Pass `client_id` (Python) / `clientId` (TypeScript) to any create operation. If a resource with that client_id already exists, the API returns the existing resource with a 200 instead of creating a duplicate. This makes all create operations safe to retry.
+
+Supported on: inboxes.create, pods.create, webhooks.create, drafts.create.
+
+Best practice: generate client_id from your business logic (e.g., `inbox-for-user-{USER_ID}`) so the same logical resource always produces the same client_id.
+
+---
+
+# Integrations
+
+## MCP Server
+Connect AgentMail to Claude Desktop, Cursor, Windsurf, or any MCP-compatible client.
+Install: `npx @smithery/cli@latest mcp add agentmail`
+Source: https://mcp.agentmail.to
+
+## Skills (OpenClaw, Claude Code, Cursor)
+Pre-built AgentMail skill for AI coding assistants.
+Source: https://github.com/agentmail-to/agentmail-skills
+
+## Google ADK
+AgentMail integration for Google Agent Development Kit.
+Docs: https://docs.agentmail.to/integrations/google-adk
+
+## CLI
+Command-line interface for AgentMail.
+Docs: https://docs.agentmail.to/integrations/cli
