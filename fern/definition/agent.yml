@@ -25,7 +25,7 @@ types:
         docs: Email address of the auto-created inbox.
       api_key:
         type: string
-        docs: API key for authenticating subsequent requests. Store this securely — it cannot be retrieved again.
+        docs: API key for authenticating subsequent requests. Store this securely, it cannot be retrieved again.
 
   AgentVerifyRequest:
     docs: Request body to verify an agent with an OTP code.
@@ -54,7 +54,7 @@ service:
       docs: |
         Create a new agent organization with an inbox and API key. A 6-digit OTP is sent to the human's email for verification.
 
-        This endpoint is idempotent — calling it again with the same `human_email` will rotate the API key and resend the OTP if expired.
+        This endpoint is idempotent. Calling it again with the same `human_email` will rotate the API key and resend the OTP if expired.
 
         The returned API key has limited permissions until the organization is verified via the verify endpoint.
       request: AgentSignupRequest
