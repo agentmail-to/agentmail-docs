@@ -209,6 +209,11 @@ types:
       message_id: MessageId
       thread_id: threads.ThreadId
 
+  UpdateMessageResponse:
+    properties:
+      message_id: MessageId
+      labels: MessageLabels
+
   ReplyAll:
     type: boolean
     docs: Reply to all recipients of the original message.

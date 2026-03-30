@@ -72,7 +72,7 @@ service:
       path-parameters:
         message_id: messages.MessageId
       request: messages.UpdateMessageRequest
-      response: messages.Message
+      response: messages.UpdateMessageResponse
       errors:
         - global.ValidationError
         - global.NotFoundError
