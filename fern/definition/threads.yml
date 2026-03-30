@@ -108,6 +108,20 @@ types:
         type: list<messages.Message>
         docs: Messages in thread. Ordered by `timestamp` ascending.
 
+  UpdateThreadRequest:
+    properties:
+      add_labels:
+        type: optional<list<string>>
+        docs: Labels to add to thread. Cannot be system labels.
+      remove_labels:
+        type: optional<list<string>>
+        docs: Labels to remove from thread. Cannot be system labels. Takes priority over `add_labels` (in the event of duplicate labels passed in).
+
+  UpdateThreadResponse:
+    properties:
+      thread_id: ThreadId
+      labels: ThreadLabels
+
   ListThreadsResponse:
     properties:
       count: global.Count
@@ -163,6 +177,20 @@ service:
       response: attachments.AttachmentResponse
       errors:
         - global.NotFoundError
+
+    update:
+      method: PATCH
+      path: /{thread_id}
+      display-name: Update Thread
+      docs: Updates thread labels. Cannot add or remove system labels (sent, received, bounced, etc.). Rejects requests with a `422` for threads with 100 or more messages.
+      path-parameters:
+        thread_id: ThreadId
+      request: UpdateThreadRequest
+      response: UpdateThreadResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.UnprocessableError
 
     delete:
       method: DELETE

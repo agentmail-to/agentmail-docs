@@ -77,3 +77,7 @@ errors:
   NotFoundError:
     status-code: 404
     type: ErrorResponse
+
+  UnprocessableError:
+    status-code: 422
+    type: ErrorResponse

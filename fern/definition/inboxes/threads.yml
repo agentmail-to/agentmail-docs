@@ -55,6 +55,20 @@ service:
       errors:
         - global.NotFoundError
 
+    update:
+      method: PATCH
+      path: /{thread_id}
+      display-name: Update Thread
+      docs: Updates thread labels. Cannot add or remove system labels (sent, received, bounced, etc.). Rejects requests with a `422` for threads with 100 or more messages.
+      path-parameters:
+        thread_id: threads.ThreadId
+      request: threads.UpdateThreadRequest
+      response: threads.UpdateThreadResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.UnprocessableError
+
     delete:
       method: DELETE
       path: /{thread_id}
