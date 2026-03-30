@@ -4,7 +4,7 @@ groups:
   local:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 3.46.2
+        version: 3.60.0
         output:
           location: local-file-system
           path: generated/typescript
@@ -15,7 +15,7 @@ groups:
           shouldGenerateWebsocketClients: true
         smart-casing: false
       - name: fernapi/fern-python-sdk
-        version: 4.59.3
+        version: 4.64.1
         output:
           location: local-file-system
           path: generated/python
@@ -28,7 +28,7 @@ groups:
   node-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 3.46.2
+        version: 3.60.0
         output:
           location: npm
           package-name: agentmail
@@ -41,7 +41,9 @@ groups:
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
           packageJson:
-            description: "The email inbox API for AI agents. Send, receive, reply, and manage threaded email conversations programmatically."
+            description:
+              "The email inbox API for AI agents. Send, receive, reply, and
+              manage threaded email conversations programmatically."
             keywords:
               - email
               - ai
@@ -67,7 +69,7 @@ groups:
   python-sdk:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 4.59.3
+        version: 4.64.1
         output:
           location: pypi
           package-name: agentmail
@@ -79,25 +81,12 @@ groups:
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
-          pyproject_toml:
-            description: "The email inbox API for AI agents. Send, receive, reply, and manage threaded email conversations programmatically."
-            authors:
-              - "AgentMail <support@agentmail.cc>"
-            keywords:
-              - email
-              - ai
-              - agent
-              - inbox
-              - api
-              - email-api
-              - ai-agent
-              - llm
-              - langchain
-              - crewai
-              - autonomous-agent
-              - agentmail
-            license: MIT
-            homepage: "https://agentmail.to"
+          pyproject_toml: |
+            description = "The email inbox API for AI agents. Send, receive, reply, and manage threaded email conversations programmatically."
+            authors = ["AgentMail <support@agentmail.cc>"]
+            keywords = ["email", "ai", "agent", "inbox", "api", "email-api", "ai-agent", "llm", "langchain", "crewai", "autonomous-agent", "agentmail"]
+            license = "MIT"
+            homepage = "https://agentmail.to"
         smart-casing: false
   openapi:
     generators:
@@ -110,7 +99,7 @@ groups:
   postman:
     generators:
       - name: fernapi/fern-postman
-        version: 0.5.0
+        version: 0.6.1
         output:
           location: postman
           api-key: ${POSTMAN_API_KEY}
