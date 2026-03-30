@@ -87,7 +87,6 @@ types:
       pod_id: optional<pods.PodId>
       domain_id: DomainId
       domain: DomainName
-      status: Status
       feedback_enabled: FeedbackEnabled
       client_id: optional<ClientId>
       updated_at:
