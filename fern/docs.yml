@@ -10,6 +10,16 @@ instances:
         owner: agentmail-to
         repo: agentmail-docs
         branch: main
+  - url: https://agentmail-subpath.docs.buildwithfern.com
+    custom-domain: agentmail.to/docs
+    edit-this-page:
+      github:
+        owner: agentmail-to
+        repo: agentmail-docs
+        branch: main
+
+metadata:
+  canonical-host: https://agentmail.to
 
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
