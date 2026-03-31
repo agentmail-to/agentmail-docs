@@ -18,9 +18,6 @@ instances:
         repo: agentmail-docs
         branch: main
 
-metadata:
-  canonical-host: https://agentmail.to
-
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
