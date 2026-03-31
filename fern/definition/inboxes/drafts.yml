@@ -19,6 +19,11 @@ service:
       method: GET
       path: ""
       display-name: List Drafts
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:drafts list --inbox-id <inbox_id>
+        ```
       request:
         name: ListDraftsRequest
         query-parameters:
@@ -36,6 +41,11 @@ service:
       method: GET
       path: /{draft_id}
       display-name: Get Draft
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:drafts retrieve --inbox-id <inbox_id> --draft-id <draft_id>
+        ```
       path-parameters:
         draft_id: drafts.DraftId
       response: drafts.Draft
@@ -46,6 +56,11 @@ service:
       method: GET
       path: /{draft_id}/attachments/{attachment_id}
       display-name: Get Attachment
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:drafts get-attachment --inbox-id <inbox_id> --draft-id <draft_id> --attachment-id <attachment_id>
+        ```
       path-parameters:
         draft_id: drafts.DraftId
         attachment_id: attachments.AttachmentId
@@ -57,6 +72,11 @@ service:
       method: POST
       path: ""
       display-name: Create Draft
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:drafts create --inbox-id <inbox_id> --to recipient@example.com --subject "Draft subject" --text "Draft body"
+        ```
       request: drafts.CreateDraftRequest
       response: drafts.Draft
       errors:
@@ -66,6 +86,11 @@ service:
       method: PATCH
       path: /{draft_id}
       display-name: Update Draft
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:drafts update --inbox-id <inbox_id> --draft-id <draft_id> --subject "Updated subject"
+        ```
       path-parameters:
         draft_id: drafts.DraftId
       request: drafts.UpdateDraftRequest
@@ -77,6 +102,11 @@ service:
       method: DELETE
       path: /{draft_id}
       display-name: Delete Draft
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:drafts delete --inbox-id <inbox_id> --draft-id <draft_id>
+        ```
       path-parameters:
         draft_id: drafts.DraftId
       errors:
@@ -86,6 +116,11 @@ service:
       method: POST
       path: /{draft_id}/send
       display-name: Send Draft
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:drafts send --inbox-id <inbox_id> --draft-id <draft_id>
+        ```
       path-parameters:
         draft_id: drafts.DraftId
       request: messages.UpdateMessageRequest

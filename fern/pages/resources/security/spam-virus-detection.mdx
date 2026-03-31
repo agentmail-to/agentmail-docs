@@ -31,6 +31,12 @@ threads = client.threads.list(
     include_spam=True,
 )
 ```
+```bash title="CLI"
+# list messages labeled as spam
+agentmail inboxes:messages list \
+  --inbox-id <id> \
+  --label spam
+```
 </CodeBlocks>
 
 Each thread object includes a `spam` label indicating whether it was flagged as spam, so you can handle flagged threads differently in your application logic.

@@ -17,6 +17,11 @@ service:
       method: GET
       path: ""
       display-name: List API Keys
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:api-keys list --inbox-id <inbox_id>
+        ```
       request:
         name: ListApiKeysRequest
         query-parameters:
@@ -30,6 +35,11 @@ service:
       method: POST
       path: ""
       display-name: Create API Key
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:api-keys create --inbox-id <inbox_id> --name "My Key"
+        ```
       request: api-keys.CreateApiKeyRequest
       response: api-keys.CreateApiKeyResponse
       errors:
@@ -40,6 +50,11 @@ service:
       method: DELETE
       path: /{api_key_id}
       display-name: Delete API Key
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:api-keys delete --inbox-id <inbox_id> --api-key-id <api_key_id>
+        ```
       path-parameters:
         api_key_id: api-keys.ApiKeyId
       errors:

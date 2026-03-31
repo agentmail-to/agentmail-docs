@@ -56,6 +56,14 @@ entries = client.lists.list("receive", "allow", limit=10)
 ```typescript title="TypeScript"
 const entries = await client.lists.list("receive", "allow", { limit: 10 });
 ```
+
+```bash title="CLI"
+# list entries from the receive allowlist
+agentmail lists list \
+  --direction receive \
+  --type allow \
+  --limit 10
+```
 </CodeBlocks>
 
 ### Create entry
@@ -78,6 +86,21 @@ await client.lists.create("receive", "allow", { entry: "partner@example.com" });
 // block list - reason optional
 await client.lists.create("receive", "block", { entry: "spam@example.com", reason: "spam" });
 ```
+
+```bash title="CLI"
+# allow list - no reason needed
+agentmail lists create \
+  --direction receive \
+  --type allow \
+  --entry partner@example.com
+
+# block list - reason optional
+agentmail lists create \
+  --direction receive \
+  --type block \
+  --entry spam@example.com \
+  --reason spam
+```
 </CodeBlocks>
 
 ### Get entry
@@ -92,6 +115,14 @@ entry = client.lists.get("receive", "allow", entry="partner@example.com")
 ```typescript title="TypeScript"
 const entry = await client.lists.get("receive", "allow", "partner@example.com");
 ```
+
+```bash title="CLI"
+# retrieve a specific entry
+agentmail lists retrieve \
+  --direction receive \
+  --type allow \
+  --entry partner@example.com
+```
 </CodeBlocks>
 
 ### Delete entry
@@ -105,6 +136,14 @@ client.lists.delete("receive", "allow", entry="partner@example.com")
 
 ```typescript title="TypeScript"
 await client.lists.delete("receive", "allow", "partner@example.com");
+```
+
+```bash title="CLI"
+# delete an entry
+agentmail lists delete \
+  --direction receive \
+  --type allow \
+  --entry partner@example.com
 ```
 </CodeBlocks>
 
@@ -132,6 +171,21 @@ await client.inboxes.lists.create("inbox_id", "receive", "allow", {
 // List inbox-level entries
 const entries = await client.inboxes.lists.list("inbox_id", "receive", "allow");
 ```
+
+```bash title="CLI"
+# add to an inbox-level receive allowlist
+agentmail inboxes:lists create \
+  --inbox-id inbox_id \
+  --direction receive \
+  --type allow \
+  --entry vip@example.com
+
+# list inbox-level entries
+agentmail inboxes:lists list \
+  --inbox-id inbox_id \
+  --direction receive \
+  --type allow
+```
 </CodeBlocks>
 
 ### Reply lists
@@ -147,6 +201,14 @@ client.lists.create("reply", "allow", entry="nobu.com")
 ```typescript title="TypeScript"
 // Only allow replies from a specific domain
 await client.lists.create("reply", "allow", { entry: "nobu.com" });
+```
+
+```bash title="CLI"
+# only allow replies from a specific domain
+agentmail lists create \
+  --direction reply \
+  --type allow \
+  --entry nobu.com
 ```
 </CodeBlocks>
 

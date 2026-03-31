@@ -61,6 +61,11 @@ service:
       method: GET
       path: ""
       display-name: List Pods
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods list
+        ```
       request:
         name: ListPodsRequest
         query-parameters:
@@ -73,6 +78,11 @@ service:
       method: GET
       path: /{pod_id}
       display-name: Get Pod
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods retrieve --pod-id <pod_id>
+        ```
       path-parameters:
         pod_id: PodId
       response: Pod
@@ -83,6 +93,11 @@ service:
       method: POST
       path: ""
       display-name: Create Pod
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods create --client-id my-pod
+        ```
       request: CreatePodRequest
       response: Pod
       errors:
@@ -92,6 +107,11 @@ service:
       method: DELETE
       path: /{pod_id}
       display-name: Delete Pod
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods delete --pod-id <pod_id>
+        ```
       path-parameters:
         pod_id: PodId
       errors:

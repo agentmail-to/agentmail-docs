@@ -57,6 +57,11 @@ service:
         This endpoint is idempotent. Calling it again with the same `human_email` will rotate the API key and resend the OTP if expired.
 
         The returned API key has limited permissions until the organization is verified via the verify endpoint.
+
+        **CLI:**
+        ```bash
+        agentmail agent sign-up --human-email user@example.com --username my-agent
+        ```
       request: AgentSignupRequest
       response: AgentSignupResponse
       errors:
@@ -73,5 +78,10 @@ service:
         On success, the organization is upgraded from `agent_unverified` to `agent_verified`, the send allowlist is removed, and free plan entitlements are applied.
 
         The OTP expires after 24 hours and allows a maximum of 10 attempts.
+
+        **CLI:**
+        ```bash
+        agentmail agent verify --otp-code 123456
+        ```
       request: AgentVerifyRequest
       response: AgentVerifyResponse

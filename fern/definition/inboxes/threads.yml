@@ -18,6 +18,11 @@ service:
       method: GET
       path: ""
       display-name: List Threads
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:threads list --inbox-id <inbox_id>
+        ```
       request:
         name: ListThreadsRequest
         query-parameters:
@@ -38,6 +43,11 @@ service:
       method: GET
       path: /{thread_id}
       display-name: Get Thread
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:threads retrieve --inbox-id <inbox_id> --thread-id <thread_id>
+        ```
       path-parameters:
         thread_id: threads.ThreadId
       response: threads.Thread
@@ -48,6 +58,11 @@ service:
       method: GET
       path: /{thread_id}/attachments/{attachment_id}
       display-name: Get Attachment
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:threads get-attachment --inbox-id <inbox_id> --thread-id <thread_id> --attachment-id <attachment_id>
+        ```
       path-parameters:
         thread_id: threads.ThreadId
         attachment_id: attachments.AttachmentId
@@ -59,7 +74,13 @@ service:
       method: DELETE
       path: /{thread_id}
       display-name: Delete Thread
-      docs: Moves the thread to trash by adding a trash label to all messages. If the thread is already in trash, it will be permanently deleted. Use `permanent=true` to force permanent deletion.
+      docs: |
+        Moves the thread to trash by adding a trash label to all messages. If the thread is already in trash, it will be permanently deleted. Use `permanent=true` to force permanent deletion.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:threads delete --inbox-id <inbox_id> --thread-id <thread_id>
+        ```
       path-parameters:
         thread_id: threads.ThreadId
       request:

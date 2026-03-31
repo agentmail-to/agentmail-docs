@@ -80,6 +80,11 @@ service:
       method: GET
       path: ""
       display-name: List Webhooks
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail webhooks list
+        ```
       request:
         name: ListWebhooksRequest
         query-parameters:
@@ -92,6 +97,11 @@ service:
       method: GET
       path: /{webhook_id}
       display-name: Get Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail webhooks retrieve --webhook-id <webhook_id>
+        ```
       path-parameters:
         webhook_id: WebhookId
       response: Webhook
@@ -102,6 +112,11 @@ service:
       method: POST
       path: ""
       display-name: Create Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail webhooks create --url https://example.com/webhook --event-type message.received
+        ```
       request: CreateWebhookRequest
       response: Webhook
       errors:
@@ -111,6 +126,11 @@ service:
       method: PATCH
       path: /{webhook_id}
       display-name: Update Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail webhooks update --webhook-id <webhook_id> --url https://new-url.com/webhook
+        ```
       path-parameters:
         webhook_id: WebhookId
       request: UpdateWebhookRequest
@@ -123,6 +143,11 @@ service:
       method: DELETE
       path: /{webhook_id}
       display-name: Delete Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail webhooks delete --webhook-id <webhook_id>
+        ```
       path-parameters:
         webhook_id: WebhookId
       errors:
