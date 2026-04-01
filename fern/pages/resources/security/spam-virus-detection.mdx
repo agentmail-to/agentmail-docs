@@ -32,10 +32,10 @@ threads = client.threads.list(
 )
 ```
 ```bash title="CLI"
-# list messages labeled as spam
-agentmail inboxes:messages list \
+# list threads including spam
+agentmail inboxes:threads list \
   --inbox-id <id> \
-  --label spam
+  --include-spam
 ```
 </CodeBlocks>
 

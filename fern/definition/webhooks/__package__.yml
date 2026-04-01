@@ -129,7 +129,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail webhooks update --webhook-id <webhook_id> --url https://new-url.com/webhook
+        agentmail webhooks update --webhook-id <webhook_id> --add-inbox-id <inbox_id>
         ```
       path-parameters:
         webhook_id: WebhookId
