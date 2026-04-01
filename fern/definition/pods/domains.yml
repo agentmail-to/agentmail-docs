@@ -17,6 +17,11 @@ service:
       method: GET
       path: ""
       display-name: List Domains
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:domains list --pod-id <pod_id>
+        ```
       request:
         name: ListDomainsRequest
         query-parameters:
@@ -31,6 +36,11 @@ service:
       method: GET
       path: /{domain_id}
       display-name: Get Domain
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:domains retrieve --pod-id <pod_id> --domain-id <domain_id>
+        ```
       path-parameters:
         domain_id: domains.DomainId
       response: domains.Domain
@@ -41,6 +51,11 @@ service:
       method: GET
       path: /{domain_id}/zone-file
       display-name: Get Zone File
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:domains get-zone-file --pod-id <pod_id> --domain-id <domain_id>
+        ```
       path-parameters:
         domain_id: domains.DomainId
       response: file
@@ -51,6 +66,11 @@ service:
       method: POST
       path: ""
       display-name: Create Domain
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:domains create --pod-id <pod_id> --domain example.com
+        ```
       request: domains.CreateDomainRequest
       response: domains.Domain
       errors:
@@ -60,6 +80,11 @@ service:
       method: PATCH
       path: /{domain_id}
       display-name: Update Domain
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:domains update --pod-id <pod_id> --domain-id <domain_id>
+        ```
       path-parameters:
         domain_id: domains.DomainId
       request: domains.UpdateDomainRequest
@@ -71,6 +96,11 @@ service:
       method: DELETE
       path: /{domain_id}
       display-name: Delete Domain
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:domains delete --pod-id <pod_id> --domain-id <domain_id>
+        ```
       path-parameters:
         domain_id: domains.DomainId
       errors:
@@ -80,6 +110,11 @@ service:
       method: POST
       path: /{domain_id}/verify
       display-name: Verify Domain
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:domains verify --pod-id <pod_id> --domain-id <domain_id>
+        ```
       path-parameters:
         domain_id: domains.DomainId
       errors:

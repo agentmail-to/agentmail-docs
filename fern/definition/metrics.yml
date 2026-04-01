@@ -70,6 +70,11 @@ service:
       method: GET
       path: ""
       display-name: Query Metrics
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail metrics list
+        ```
       request:
         name: QueryMetricsRequest
         query-parameters:

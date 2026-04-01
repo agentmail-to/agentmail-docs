@@ -92,6 +92,11 @@ service:
       method: GET
       path: ""
       display-name: List Entries
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail lists list --direction <direction> --type <type>
+        ```
       request:
         name: ListListEntriesRequest
         query-parameters:
@@ -103,6 +108,11 @@ service:
       method: GET
       path: /{entry}
       display-name: Get List Entry
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail lists retrieve --direction <direction> --type <type> --entry <entry>
+        ```
       path-parameters:
         entry:
           type: string
@@ -115,6 +125,11 @@ service:
       method: POST
       path: ""
       display-name: Create List Entry
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail lists create --direction <direction> --type <type> --entry user@example.com
+        ```
       request: CreateListEntryRequest
       response: ListEntry
       errors:
@@ -124,6 +139,11 @@ service:
       method: DELETE
       path: /{entry}
       display-name: Delete List Entry
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail lists delete --direction <direction> --type <type> --entry <entry>
+        ```
       path-parameters:
         entry:
           type: string

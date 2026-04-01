@@ -123,6 +123,20 @@ Here's the step-by-step logic for a polling-based conversational agent.
             removeLabels: ["unreplied"],
         });
         ```
+        ```bash title="CLI"
+        # send the reply
+        agentmail inboxes:messages reply \
+          --inbox-id support@agentmail.to \
+          --message-id <message_id> \
+          --text "This is our agent's helpful reply!"
+
+        # update the labels on the original message
+        agentmail inboxes:messages update \
+          --inbox-id support@agentmail.to \
+          --message-id <message_id> \
+          --add-label replied \
+          --remove-label unreplied
+        ```
         </CodeBlocks>
     </Step>
 

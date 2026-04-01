@@ -186,6 +186,11 @@ service:
       method: GET
       path: ""
       display-name: List API Keys
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail api-keys list
+        ```
       request:
         name: ListApiKeysRequest
         query-parameters:
@@ -198,6 +203,11 @@ service:
       method: POST
       path: ""
       display-name: Create API Key
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail api-keys create --name "My Key"
+        ```
       request: CreateApiKeyRequest
       response: CreateApiKeyResponse
       errors:
@@ -207,6 +217,11 @@ service:
       method: DELETE
       path: /{api_key_id}
       display-name: Delete API Key
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail api-keys delete --api-key-id <api_key_id>
+        ```
       path-parameters:
         api_key_id: ApiKeyId
       errors:

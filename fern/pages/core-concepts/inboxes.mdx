@@ -117,6 +117,20 @@ console.log(`Total Inboxes: ${allInboxes.count}`);
 
 ```
 
+```bash title="CLI"
+# create an inbox
+agentmail inboxes create \
+  --username docs-testing \
+  --domain domain.com \
+  --display-name "Docs Tester"
+
+# retrieve an inbox
+agentmail inboxes retrieve --inbox-id my_name@domain.com
+
+# list all inboxes
+agentmail inboxes list
+```
+
 </CodeBlocks>
 
 <Tip>

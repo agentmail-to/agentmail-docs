@@ -46,6 +46,10 @@ const webhook = await client.webhooks.get("ep_xxx");
 const signingSecret = webhook.secret;
 console.log(`Signing secret: ${signingSecret}`);
 ```
+```bash title="CLI"
+# get webhook details including the signing secret
+agentmail webhooks retrieve --webhook-id ep_xxx
+```
 </CodeBlocks>
 
 <Callout intent="warning" title="Keep your secret safe">

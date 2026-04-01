@@ -15,6 +15,10 @@ description: Follow this guide to make your first AgentMail API request and crea
   ```bash title="TypeScript"
   npm install agentmail
   ```
+
+  ```bash title="CLI"
+  npm install -g agentmail-cli
+  ```
 </CodeBlocks>
 
 Get your API key from the [Console](https://console.agentmail.to) and replace `am_...` in the code below.
@@ -36,6 +40,18 @@ Get your API key from the [Console](https://console.agentmail.to) and replace `a
     const inbox = await client.inboxes.create();
     await client.inboxes.messages.send(inbox.inboxId, { to: "user@example.com", subject: "Hello", text: "Hello from my agent!" });
   })();
+  ```
+
+  ```bash title="CLI"
+  # create an inbox
+  agentmail inboxes create
+
+  # send an email (replace <inbox_id> with the id from above)
+  agentmail inboxes:messages send \
+    --inbox-id <inbox_id> \
+    --to user@example.com \
+    --subject "Hello" \
+    --text "Hello from my agent!"
   ```
 </CodeBlocks>
 
@@ -180,6 +196,10 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
       ```bash title="Node"
       npm install agentmail dotenv
       ```
+
+      ```bash title="CLI"
+      npm install -g agentmail-cli
+      ```
     </CodeBlocks>
 
   </Step>
@@ -249,6 +269,18 @@ This guide will walk you through installing the AgentMail SDK, authenticating wi
         console.error(error);
         process.exit(1);
       });
+      ```
+
+      ```bash title="CLI"
+      # create an inbox
+      agentmail inboxes create
+
+      # send an email (replace <inbox_id> with the id from above)
+      agentmail inboxes:messages send \
+        --inbox-id <inbox_id> \
+        --to your-email@example.com \
+        --subject "Hello from AgentMail!" \
+        --text "This is my first email sent with the AgentMail API."
       ```
     </CodeBlocks>
     <Note>

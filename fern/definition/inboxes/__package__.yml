@@ -77,6 +77,11 @@ service:
       method: GET
       path: ""
       display-name: List Inboxes
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes list
+        ```
       request:
         name: ListInboxesRequest
         query-parameters:
@@ -89,6 +94,11 @@ service:
       method: GET
       path: /{inbox_id}
       display-name: Get Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes retrieve --inbox-id <inbox_id>
+        ```
       path-parameters:
         inbox_id: InboxId
       response: Inbox
@@ -99,6 +109,11 @@ service:
       method: POST
       path: ""
       display-name: Create Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes create --display-name "My Agent" --username myagent --domain agentmail.to
+        ```
       request: optional<CreateInboxRequest>
       response: Inbox
       errors:
@@ -108,6 +123,11 @@ service:
       method: PATCH
       path: /{inbox_id}
       display-name: Update Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes update --inbox-id <inbox_id> --display-name "Updated Name"
+        ```
       path-parameters:
         inbox_id: InboxId
       request: UpdateInboxRequest
@@ -119,6 +139,11 @@ service:
       method: DELETE
       path: /{inbox_id}
       display-name: Delete Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes delete --inbox-id <inbox_id>
+        ```
       path-parameters:
         inbox_id: InboxId
       errors:

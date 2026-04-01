@@ -53,6 +53,13 @@ The process is straightforward:
             eventTypes: ["message.received", "message.sent"],
         });
         ```
+        ```bash title="CLI"
+        # register a webhook endpoint
+        agentmail webhooks create \
+          --url https://<your-ngrok-url>.ngrok-free.app/webhooks \
+          --event-type message.received \
+          --event-type message.sent
+        ```
         </CodeBlocks>
         Specify which events to receive; omit `event_types` to subscribe to all event types.
     </Step>
@@ -90,6 +97,12 @@ const message = await client.inboxes.messages.get(
 );
 const textBody = message.text;
 const htmlBody = message.html;
+```
+```bash title="CLI"
+# fetch the full message after receiving a webhook
+agentmail inboxes:messages retrieve \
+  --inbox-id <inbox_id> \
+  --message-id <message_id>
 ```
 </CodeBlocks>
 

@@ -54,6 +54,19 @@ const domain = await client.pods.domains.create(pod.podId, {
   domain: "acme.com",
 });
 ```
+
+```bash title="CLI"
+# create an inbox in the pod
+agentmail pods:inboxes create \
+  --pod-id <pod-id> \
+  --username support \
+  --display-name "Acme Support"
+
+# add a custom domain to the pod
+agentmail pods:domains create \
+  --pod-id <pod-id> \
+  --domain acme.com
+```
 </CodeBlocks>
 
 ## Scoped API Keys
@@ -85,6 +98,13 @@ const scopedKey = await client.pods.apiKeys.create(pod.podId, {
 
 // This is the only time you'll see the full key, so store it
 console.log(scopedKey.apiKey);
+```
+
+```bash title="CLI"
+# create a key scoped to acme's pod
+agentmail api-keys create \
+  --name "acme-service-key" \
+  --pod-id <pod-id>
 ```
 </CodeBlocks>
 

@@ -79,6 +79,18 @@ const sentMessage = await client.inboxes.messages.send(
 console.log(`Message sent successfully with ID: ${sentMessage.id}`);
 ````
 
+```bash title="CLI"
+# send a new message with labels
+agentmail inboxes:messages send \
+  --inbox-id outreach@agentmail.to \
+  --to recipient@domain.com \
+  --subject "[YC S25] Founder Reachout " \
+  --text "Hello, I'm Michael, and I'm a founder at AgentMail..." \
+  --html "<div dir=\"ltr\">Hello,<br><br>I'm Michael, and I'm a founder at AgentMail..." \
+  --label outreach \
+  --label startup
+```
+
 </CodeBlocks>
 
 <Warning>
@@ -102,6 +114,11 @@ const allMessages = await client.inboxes.messages.list("outreach@agentmail.to")
 
 console.log(`Found ${allMessages.count} messages in the inbox.`);
 ````
+
+```bash title="CLI"
+# list all messages in an inbox
+agentmail inboxes:messages list --inbox-id outreach@agentmail.to
+```
 
 </CodeBlocks>
 
@@ -145,6 +162,16 @@ const reply = await client.inboxes.messages.reply(
 console.log(`Reply sent successfully with ID: ${reply.id}`);
 ````
 
+```bash title="CLI"
+# reply to a message with an attachment
+agentmail inboxes:messages reply \
+  --inbox-id my_inbox@domain.com \
+  --message-id "<abc123@agentmail.to>" \
+  --text "Thanks for the referral!" \
+  --attachment.content "resume" \
+  --attachment.filename "resume.pdf"
+```
+
 </CodeBlocks>
 
 <Callout>
@@ -173,6 +200,13 @@ await client.inboxes.messages.get(
 )
 
 console.log(`Retrieved message with subject: ${message.subject}`);
+```
+
+```bash title="CLI"
+# retrieve a specific message
+agentmail inboxes:messages retrieve \
+  --inbox-id my_inbox@agentmail.to \
+  --message-id "<abc123@agentmail.to>"
 ```
 </CodeBlocks>
 
@@ -479,6 +513,20 @@ const unread = await client.inboxes.messages.list(
   "agent@agentmail.to",
   { labels: ["unread"] }
 );
+```
+
+```bash title="CLI"
+# mark a message as read after processing
+agentmail inboxes:messages update \
+  --inbox-id agent@agentmail.to \
+  --message-id "<message_id>" \
+  --add-label read \
+  --remove-label unread
+
+# only fetch unread messages
+agentmail inboxes:messages list \
+  --inbox-id agent@agentmail.to \
+  --label unread
 ```
 </CodeBlocks>
 

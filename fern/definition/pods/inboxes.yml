@@ -17,6 +17,11 @@ service:
       method: GET
       path: ""
       display-name: List Inboxes
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:inboxes list --pod-id <pod_id>
+        ```
       request:
         name: ListInboxesRequest
         query-parameters:
@@ -31,6 +36,11 @@ service:
       method: GET
       path: /{inbox_id}
       display-name: Get Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:inboxes retrieve --pod-id <pod_id> --inbox-id <inbox_id>
+        ```
       path-parameters:
         inbox_id: inboxes.InboxId
       response: inboxes.Inbox
@@ -41,6 +51,11 @@ service:
       method: POST
       path: ""
       display-name: Create Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:inboxes create --pod-id <pod_id> --username myagent --domain example.com
+        ```
       request: inboxes.CreateInboxRequest
       response: inboxes.Inbox
       errors:
@@ -50,6 +65,11 @@ service:
       method: PATCH
       path: /{inbox_id}
       display-name: Update Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:inboxes update --pod-id <pod_id> --inbox-id <inbox_id>
+        ```
       path-parameters:
         inbox_id: inboxes.InboxId
       request: inboxes.UpdateInboxRequest
@@ -61,6 +81,11 @@ service:
       method: DELETE
       path: /{inbox_id}
       display-name: Delete Inbox
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:inboxes delete --pod-id <pod_id> --inbox-id <inbox_id>
+        ```
       path-parameters:
         inbox_id: inboxes.InboxId
       errors:

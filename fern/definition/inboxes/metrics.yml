@@ -17,6 +17,11 @@ service:
       method: GET
       path: ""
       display-name: Query Metrics
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes:metrics query --inbox-id <inbox_id>
+        ```
       request:
         name: QueryMetricsRequest
         query-parameters:

@@ -55,6 +55,14 @@ const newDraft = await client.inboxes.drafts.create(
 console.log(`Draft created successfully with ID: ${newDraft.id}`);
 ````
 
+```bash title="CLI"
+# create a draft in an inbox
+agentmail inboxes:drafts create \
+  --inbox-id outbound@domain.com \
+  --to review-team@example.com \
+  --subject "[NEEDS REVIEW] Agent's proposed response"
+```
+
 </CodeBlocks>
 
 ### 2. Get `Draft`
@@ -77,6 +85,13 @@ const draft = await client.inboxes.drafts.get(
 )
 
 ````
+
+```bash title="CLI"
+# retrieve a draft by id
+agentmail inboxes:drafts retrieve \
+  --inbox-id my_inbox@domain.com \
+  --draft-id draft_id_123
+```
 
 </CodeBlocks>
 
@@ -101,6 +116,13 @@ const sentMessage = await client.inboxes.drafts.send('my_inbox@domain.com', 'dra
 
 console.log(`Draft sent! New message ID: ${sentMessage.message_id}`);
 ````
+
+```bash title="CLI"
+# send a draft
+agentmail inboxes:drafts send \
+  --inbox-id my_inbox@domain.com \
+  --draft-id draft_id_123
+```
 
 </CodeBlocks>
 
@@ -154,6 +176,16 @@ const scheduledDraft = await client.inboxes.drafts.create(
 console.log(`Draft scheduled for ${scheduledDraft.sendAt}`);
 // sendStatus will be "scheduled"
 ```
+
+```bash title="CLI"
+# schedule a draft for tomorrow at 9:00 am utc
+agentmail inboxes:drafts create \
+  --inbox-id outreach@domain.com \
+  --to prospect@example.com \
+  --subject "Following up on our conversation" \
+  --text "Hi, just wanted to follow up on our chat yesterday..." \
+  --send-at 2026-04-01T09:00:00Z
+```
 </CodeBlocks>
 
 ### Cancel or Reschedule
@@ -195,6 +227,19 @@ await client.inboxes.drafts.delete(
     scheduledDraft.draftId
 );
 ```
+
+```bash title="CLI"
+# reschedule to a different time
+agentmail inboxes:drafts update \
+  --inbox-id outreach@domain.com \
+  --draft-id scheduled_draft_id \
+  --send-at 2026-04-02T14:00:00Z
+
+# or cancel by deleting the draft entirely
+agentmail inboxes:drafts delete \
+  --inbox-id outreach@domain.com \
+  --draft-id scheduled_draft_id
+```
 </CodeBlocks>
 
 ### List Scheduled `Drafts`
@@ -223,6 +268,13 @@ const scheduled = await client.inboxes.drafts.list(
 for (const draft of scheduled.drafts) {
     console.log(`${draft.subject} — scheduled for ${draft.sendAt} (${draft.sendStatus})`);
 }
+```
+
+```bash title="CLI"
+# list all scheduled drafts in an inbox
+agentmail inboxes:drafts list \
+  --inbox-id outreach@domain.com \
+  --label scheduled
 ```
 </CodeBlocks>
 
@@ -300,6 +352,24 @@ await client.inboxes.threads.update(inboxId, initial.threadId, {
     addLabels: [`follow-up:${followUp.draftId}`]
 });
 ```
+
+```bash title="CLI"
+# send the initial email
+agentmail inboxes:messages send \
+  --inbox-id outreach@domain.com \
+  --to prospect@example.com \
+  --subject "Quick question about your workflow" \
+  --text "Hi, I noticed your team is scaling quickly..."
+
+# schedule follow-up for 3 days later
+agentmail inboxes:drafts create \
+  --inbox-id outreach@domain.com \
+  --to prospect@example.com \
+  --subject "Re: Quick question about your workflow" \
+  --text "Hi again — just bumping this in case it got buried..." \
+  --in-reply-to initial_message_id \
+  --send-at 2026-04-03T09:00:00Z
+```
 </CodeBlocks>
 
 **2. Cancel on reply via webhook:**
@@ -367,6 +437,11 @@ const allDrafts = await client.drafts.list();
 
 console.log(`Found ${allDrafts.count} drafts pending review.`);
 ````
+
+```bash title="CLI"
+# list all drafts across the entire organization
+agentmail drafts list
+```
 
 </CodeBlocks>
 

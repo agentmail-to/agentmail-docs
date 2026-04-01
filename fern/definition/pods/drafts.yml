@@ -18,6 +18,11 @@ service:
       method: GET
       path: ""
       display-name: List Drafts
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:drafts list --pod-id <pod_id>
+        ```
       request:
         name: ListDraftsRequest
         query-parameters:
@@ -35,6 +40,11 @@ service:
       method: GET
       path: /{draft_id}
       display-name: Get Draft
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:drafts retrieve --pod-id <pod_id> --draft-id <draft_id>
+        ```
       path-parameters:
         draft_id: drafts.DraftId
       response: drafts.Draft
@@ -45,6 +55,11 @@ service:
       method: GET
       path: /{draft_id}/attachments/{attachment_id}
       display-name: Get Attachment
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:drafts get-attachment --pod-id <pod_id> --draft-id <draft_id> --attachment-id <attachment_id>
+        ```
       path-parameters:
         draft_id: drafts.DraftId
         attachment_id: attachments.AttachmentId

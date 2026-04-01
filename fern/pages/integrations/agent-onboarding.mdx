@@ -179,6 +179,18 @@ await client.inboxes.messages.send(inbox.inboxId, {
 });
 ```
 
+```bash title="CLI"
+# create an inbox
+agentmail inboxes create --display-name "My AI Agent"
+
+# send an email (replace <inbox_id> with the id from above)
+agentmail inboxes:messages send \
+  --inbox-id <inbox_id> \
+  --to user@example.com \
+  --subject "Hello from my AI agent" \
+  --text "Hi! I'm an AI agent with my own email address."
+```
+
 </CodeBlocks>
 
 ### Receive and reply to emails
