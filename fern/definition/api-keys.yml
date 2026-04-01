@@ -116,6 +116,9 @@ types:
       api_key_create:
         type: optional<boolean>
         docs: Create API keys.
+      api_key_update:
+        type: optional<boolean>
+        docs: Update API keys.
       api_key_delete:
         type: optional<boolean>
         docs: Delete API keys.
@@ -176,6 +179,11 @@ types:
       name: Name
       permissions: optional<ApiKeyPermissions>
 
+  UpdateApiKeyRequest:
+    properties:
+      name: optional<Name>
+      permissions: optional<ApiKeyPermissions>
+
 service:
   url: Http
   base-path: /api-keys
@@ -201,6 +209,18 @@ service:
       request: CreateApiKeyRequest
       response: CreateApiKeyResponse
       errors:
+        - global.ValidationError
+
+    update:
+      method: PATCH
+      path: /{api_key_id}
+      display-name: Update API Key
+      path-parameters:
+        api_key_id: ApiKeyId
+      request: UpdateApiKeyRequest
+      response: ApiKey
+      errors:
+        - global.NotFoundError
         - global.ValidationError
 
     delete:
