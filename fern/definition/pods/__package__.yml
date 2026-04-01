@@ -15,7 +15,7 @@ imports:
 types:
   PodId:
     type: string
-    docs: ID of pod.
+    docs: ID of pod. A `client_id` can also be used in place of a `pod_id`.
 
   Name:
     type: string
@@ -79,12 +79,16 @@ service:
       path: /{pod_id}
       display-name: Get Pod
       docs: |
+        Retrieve a pod by its `pod_id` or `client_id`.
+
         **CLI:**
         ```bash
         agentmail pods retrieve --pod-id <pod_id>
         ```
       path-parameters:
-        pod_id: PodId
+        pod_id:
+          type: PodId
+          docs: The ID of the pod. A `client_id` can also be used.
       response: Pod
       errors:
         - global.NotFoundError
@@ -108,11 +112,15 @@ service:
       path: /{pod_id}
       display-name: Delete Pod
       docs: |
+        Delete a pod by its `pod_id` or `client_id`.
+
         **CLI:**
         ```bash
         agentmail pods delete --pod-id <pod_id>
         ```
       path-parameters:
-        pod_id: PodId
+        pod_id:
+          type: PodId
+          docs: The ID of the pod. A `client_id` can also be used.
       errors:
         - global.NotFoundError
