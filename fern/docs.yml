@@ -176,14 +176,10 @@ redirects:
     destination: /api-reference/api-keys/list
   - source: /verify
     destination: /api-reference/domains/verify
-  - source: /api-reference/threads/delete
-    destination: /api-reference/inboxes/threads/delete
   - source: /deliverability
     destination: /email-deliverability
   - source: /reply-all
     destination: /api-reference/inboxes/messages/reply-all
-  - source: /api-reference/threads/delete?explorer=true
-    destination: /api-reference/inboxes/threads/delete
   - source: /integrations/overview
     destination: /integrations/skills
   - source: /pods
