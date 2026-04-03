@@ -173,7 +173,7 @@ types:
 
   CreateApiKeyRequest:
     properties:
-      name: Name
+      name: optional<Name>
       permissions: optional<ApiKeyPermissions>
 
 service:
