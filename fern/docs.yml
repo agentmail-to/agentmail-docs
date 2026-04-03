@@ -16,9 +16,6 @@ instances:
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
-metadata:
-  canonical-host: agentmail.to/docs
-
 ai-search:
   location:
     - docs
