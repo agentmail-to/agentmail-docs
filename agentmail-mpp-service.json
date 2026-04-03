@@ -1,0 +1,592 @@
+{
+  "id": "agentmail",
+  "name": "AgentMail",
+  "url": "https://mpp.api.agentmail.to",
+  "serviceUrl": "https://mpp.api.agentmail.to",
+  "description": "Email inboxes for AI agents",
+  "categories": [
+    "email",
+    "identity",
+    "communication"
+  ],
+  "integration": "first-party",
+  "tags": [
+    "email",
+    "inboxes",
+    "domains",
+    "drafts",
+    "threads",
+    "webhooks",
+    "messaging"
+  ],
+  "docs": {
+    "homepage": "https://docs.agentmail.to"
+  },
+  "provider": {
+    "name": "AgentMail",
+    "url": "https://agentmail.to"
+  },
+  "realm": "mpp.api.agentmail.to",
+  "intent": "charge",
+  "payment": "TEMPO_PAYMENT",
+  "endpoints": [
+    {
+      "route": "GET /v0/inboxes",
+      "desc": "List Inboxes",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id",
+      "desc": "Get Inbox",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes",
+      "desc": "Create Inbox",
+      "amount": "2000000",
+      "unitType": "request"
+    },
+    {
+      "route": "PATCH /v0/inboxes/:inbox_id",
+      "desc": "Update Inbox",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/inboxes/:inbox_id",
+      "desc": "Delete Inbox",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/threads",
+      "desc": "List Threads",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/threads/:thread_id",
+      "desc": "Get Thread",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/threads/:thread_id/attachments/:attachment_id",
+      "desc": "Get Attachment",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/inboxes/:inbox_id/threads/:thread_id",
+      "desc": "Delete Thread",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/messages",
+      "desc": "List Messages",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/messages/:message_id",
+      "desc": "Get Message",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/messages/:message_id/attachments/:attachment_id",
+      "desc": "Get Attachment",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/messages/:message_id/raw",
+      "desc": "Get Raw Message",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "PATCH /v0/inboxes/:inbox_id/messages/:message_id",
+      "desc": "Update Message",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/messages/send",
+      "desc": "Send Message",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/messages/:message_id/reply",
+      "desc": "Reply To Message",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/messages/:message_id/reply-all",
+      "desc": "Reply All Message",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/messages/:message_id/forward",
+      "desc": "Forward Message",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/drafts",
+      "desc": "List Drafts",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/drafts/:draft_id",
+      "desc": "Get Draft",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/drafts/:draft_id/attachments/:attachment_id",
+      "desc": "Get Attachment",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/drafts",
+      "desc": "Create Draft",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "PATCH /v0/inboxes/:inbox_id/drafts/:draft_id",
+      "desc": "Update Draft",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/inboxes/:inbox_id/drafts/:draft_id",
+      "desc": "Delete Draft",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/drafts/:draft_id/send",
+      "desc": "Send Draft",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/lists/:direction/:type",
+      "desc": "List Entries",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/lists/:direction/:type/:entry",
+      "desc": "Get List Entry",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/lists/:direction/:type",
+      "desc": "Create List Entry",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/inboxes/:inbox_id/lists/:direction/:type/:entry",
+      "desc": "Delete List Entry",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/metrics",
+      "desc": "Query Metrics",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/inboxes/:inbox_id/api-keys",
+      "desc": "List API Keys",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/inboxes/:inbox_id/api-keys",
+      "desc": "Create API Key",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/inboxes/:inbox_id/api-keys/:api_key",
+      "desc": "Delete API Key",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/threads",
+      "desc": "List Threads",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/threads/:thread_id",
+      "desc": "Get Thread",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/threads/:thread_id/attachments/:attachment_id",
+      "desc": "Get Attachment",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/threads/:thread_id",
+      "desc": "Delete Thread",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/drafts",
+      "desc": "List Drafts",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/drafts/:draft_id",
+      "desc": "Get Draft",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/drafts/:draft_id/attachments/:attachment_id",
+      "desc": "Get Attachment",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/webhooks",
+      "desc": "List Webhooks",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/webhooks/:webhook_id",
+      "desc": "Get Webhook",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/webhooks",
+      "desc": "Create Webhook",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "PATCH /v0/webhooks/:webhook_id",
+      "desc": "Update Webhook",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/webhooks/:webhook_id",
+      "desc": "Delete Webhook",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "WEBSOCKET /v0",
+      "desc": null,
+      "amount": "0",
+      "unitType": "connection"
+    },
+    {
+      "route": "GET /v0/domains",
+      "desc": "List Domains",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/domains/:domain_id",
+      "desc": "Get Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/domains/:domain_id/zone-file",
+      "desc": "Get Zone File",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/domains",
+      "desc": "Create Domain",
+      "amount": "10000000",
+      "unitType": "request"
+    },
+    {
+      "route": "PATCH /v0/domains/:domain_id",
+      "desc": "Update Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/domains/:domain_id",
+      "desc": "Delete Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/domains/:domain_id/verify",
+      "desc": "Verify Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/lists/:direction/:type",
+      "desc": "List Entries",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/lists/:direction/:type/:entry",
+      "desc": "Get List Entry",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/lists/:direction/:type",
+      "desc": "Create List Entry",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/lists/:direction/:type/:entry",
+      "desc": "Delete List Entry",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/metrics",
+      "desc": "Query Metrics",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/api-keys",
+      "desc": "List API Keys",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/api-keys",
+      "desc": "Create API Key",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/api-keys/:api_key",
+      "desc": "Delete API Key",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods",
+      "desc": "List Pods",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id",
+      "desc": "Get Pod",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/pods",
+      "desc": "Create Pod",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/pods/:pod_id",
+      "desc": "Delete Pod",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/inboxes",
+      "desc": "List Inboxes",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/inboxes/:inbox_id",
+      "desc": "Get Inbox",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/pods/:pod_id/inboxes",
+      "desc": "Create Inbox",
+      "amount": "2000000",
+      "unitType": "request"
+    },
+    {
+      "route": "PATCH /v0/pods/:pod_id/inboxes/:inbox_id",
+      "desc": "Update Inbox",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/pods/:pod_id/inboxes/:inbox_id",
+      "desc": "Delete Inbox",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/threads",
+      "desc": "List Threads",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/threads/:thread_id",
+      "desc": "Get Thread",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/threads/:thread_id/attachments/:attachment_id",
+      "desc": "Get Attachment",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/pods/:pod_id/threads/:thread_id",
+      "desc": "Delete Thread",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/drafts",
+      "desc": "List Drafts",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/drafts/:draft_id",
+      "desc": "Get Draft",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/drafts/:draft_id/attachments/:attachment_id",
+      "desc": "Get Attachment",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/domains",
+      "desc": "List Domains",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/domains/:domain_id",
+      "desc": "Get Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/domains/:domain_id/zone-file",
+      "desc": "Get Zone File",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/pods/:pod_id/domains",
+      "desc": "Create Domain",
+      "amount": "10000000",
+      "unitType": "request"
+    },
+    {
+      "route": "PATCH /v0/pods/:pod_id/domains/:domain_id",
+      "desc": "Update Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/pods/:pod_id/domains/:domain_id",
+      "desc": "Delete Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/pods/:pod_id/domains/:domain_id/verify",
+      "desc": "Verify Domain",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/lists/:direction/:type",
+      "desc": "List Entries",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/lists/:direction/:type/:entry",
+      "desc": "Get List Entry",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/pods/:pod_id/lists/:direction/:type",
+      "desc": "Create List Entry",
+      "amount": "10000",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/pods/:pod_id/lists/:direction/:type/:entry",
+      "desc": "Delete List Entry",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/metrics",
+      "desc": "Query Metrics",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/pods/:pod_id/api-keys",
+      "desc": "List API Keys",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "POST /v0/pods/:pod_id/api-keys",
+      "desc": "Create API Key",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "DELETE /v0/pods/:pod_id/api-keys/:api_key",
+      "desc": "Delete API Key",
+      "amount": "0",
+      "unitType": "request"
+    },
+    {
+      "route": "GET /v0/organizations",
+      "desc": "Get Organization",
+      "amount": "0",
+      "unitType": "request"
+    }
+  ]
+}

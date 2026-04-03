@@ -4,7 +4,9 @@ js: ./custom.js
 
 instances:
   - url: https://agentmail-production.docs.buildwithfern.com
-    custom-domain: docs.agentmail.to
+    custom-domain:
+      - docs.agentmail.to
+      - agentmail.to/docs
     edit-this-page:
       github:
         owner: agentmail-to
@@ -13,6 +15,9 @@ instances:
 
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
+
+metadata:
+  canonical-host: agentmail.to/docs
 
 ai-search:
   location:
