@@ -281,6 +281,9 @@ navigation:
           - page: LiveKit
             icon: fa-solid fa-phone
             path: pages/integrations/integrate-livekit-agents.mdx
+          - page: Sim.ai
+            icon: fa-solid fa-diagram-project
+            path: pages/integrations/sim.mdx
           # - page: Smithery
           #   path: pages/integrations/smithery.mdx
           # - page: Mastra
