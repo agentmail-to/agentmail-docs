@@ -102,6 +102,22 @@ service:
         - global.ValidationError
         - global.NotFoundError
 
+    delete:
+      method: DELETE
+      path: /{message_id}
+      display-name: Delete Message
+      docs: |
+        Permanently deletes a message.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:messages delete --inbox-id <inbox_id> --message-id <message_id>
+        ```
+      path-parameters:
+        message_id: messages.MessageId
+      errors:
+        - global.NotFoundError
+
     send:
       method: POST
       path: /send
