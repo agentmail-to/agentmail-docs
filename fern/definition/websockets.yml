@@ -44,6 +44,12 @@ channel:
     message_received:
       origin: server
       body: events.MessageReceivedEvent
+    message_received_spam:
+      origin: server
+      body: events.MessageReceivedSpamEvent
+    message_received_blocked:
+      origin: server
+      body: events.MessageReceivedBlockedEvent
     message_sent:
       origin: server
       body: events.MessageSentEvent

@@ -49,6 +49,12 @@ async function handleWebhook(payload: Record<string, unknown>) {
   } else if (eventType === "message.rejected") {
     const event = await serialization.events.MessageRejectedEvent.parse(payload);
     console.log(event.reject.reason);
+  } else if (eventType === "message.received.spam") {
+    const event = await serialization.events.MessageReceivedEvent.parse(payload);
+    console.log(event.message.subject);
+  } else if (eventType === "message.received.blocked") {
+    const event = await serialization.events.MessageReceivedEvent.parse(payload);
+    console.log(event.message.subject);
   } else if (eventType === "domain.verified") {
     const event = await serialization.events.DomainVerifiedEvent.parse(payload);
     console.log(event.domain.status);
@@ -89,6 +95,12 @@ def handle_webhook(payload: dict):
     elif event_type == "message.rejected":
         event = MessageRejectedEvent(**payload)
         print(event.reject.reason)
+    elif event_type == "message.received.spam":
+        event = MessageReceivedEvent(**payload)
+        print(event.message.subject)
+    elif event_type == "message.received.blocked":
+        event = MessageReceivedEvent(**payload)
+        print(event.message.subject)
     elif event_type == "domain.verified":
         event = DomainVerifiedEvent(**payload)
         print(event.domain.status)
@@ -104,9 +116,11 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   """
   AgentMail Webhook Events — copy into Cursor/Claude.
 
-  Parse typed events: MessageReceivedEvent (has message+thread), MessageSentEvent (send), MessageBouncedEvent (bounce),
-  MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint), MessageRejectedEvent (reject), DomainVerifiedEvent (domain).
-  Only message.received includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
+  Parse typed events: MessageReceivedEvent (has message+thread, used for message.received, message.received.spam, message.received.blocked),
+  MessageSentEvent (send), MessageBouncedEvent (bounce), MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint),
+  MessageRejectedEvent (reject), DomainVerifiedEvent (domain).
+  Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
+  Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
   """
   from agentmail import (
     MessageReceivedEvent, MessageSentEvent, MessageBouncedEvent,
@@ -121,6 +135,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     elif t == "message.delivered": e = MessageDeliveredEvent(**payload)
     elif t == "message.complained": e = MessageComplainedEvent(**payload)
     elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
+    elif t == "message.received.spam": e = MessageReceivedEvent(**payload); print(e.message.subject)
+    elif t == "message.received.blocked": e = MessageReceivedEvent(**payload); print(e.message.subject)
     elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
   ```
 
@@ -129,7 +145,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
    * AgentMail Webhook Events — copy into Cursor/Claude.
    *
    * Parse with serialization.events.MessageReceivedEvent.parse(payload), etc.
-   * Only message.received has message+thread; others have send/delivery/bounce/complaint/reject/domain.
+   * Only message.received* has message+thread; others have send/delivery/bounce/complaint/reject/domain.
+   * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
    */
   import { serialization } from "agentmail";
 
@@ -153,6 +170,12 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     } else if (t === "message.rejected") {
       const e = await serialization.events.MessageRejectedEvent.parse(payload);
       console.log(e.reject);
+    } else if (t === "message.received.spam") {
+      const e = await serialization.events.MessageReceivedEvent.parse(payload);
+      console.log(e.message.subject);
+    } else if (t === "message.received.blocked") {
+      const e = await serialization.events.MessageReceivedEvent.parse(payload);
+      console.log(e.message.subject);
     } else if (t === "domain.verified") {
       const e = await serialization.events.DomainVerifiedEvent.parse(payload);
       console.log(e.domain);
@@ -216,6 +239,106 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     "last_message_id": "<abc123@agentmail.to>",
     "message_count": 1,
     "size": 2048,
+    "updated_at": "2023-10-27T10:00:00Z",
+    "created_at": "2023-10-27T10:00:00Z"
+  }
+}
+```
+</CodeGroup>
+
+### `message.received.spam`
+
+- **Description:** Triggered when a new email is received and classified as spam. The payload structure is the same as `message.received`. Messages classified as spam are not delivered as `message.received` events.
+- **Example use-case:** Route spam to a review queue or log spam patterns for analysis.
+
+<Callout intent="warn">
+  This event is only delivered if the API key used to create the webhook has the `label_spam_read` permission. Without this permission, the webhook creation will be rejected with a `403 Forbidden` error.
+</Callout>
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.received.spam",
+  "event_id": "evt_spam123",
+  "message": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "<spam123@example.com>",
+    "labels": ["spam"],
+    "timestamp": "2023-10-27T10:00:00Z",
+    "from": "spammer@example.com",
+    "to": ["agent@agentmail.to"],
+    "subject": "Suspicious offer",
+    "preview": "You've been selected...",
+    "text": "Full spam message body.",
+    "html": "<html>...</html>",
+    "size": 1024,
+    "updated_at": "2023-10-27T10:00:00Z",
+    "created_at": "2023-10-27T10:00:00Z"
+  },
+  "thread": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "labels": ["spam"],
+    "timestamp": "2023-10-27T10:00:00Z",
+    "senders": ["spammer@example.com"],
+    "recipients": ["agent@agentmail.to"],
+    "subject": "Suspicious offer",
+    "preview": "You've been selected...",
+    "last_message_id": "<spam123@example.com>",
+    "message_count": 1,
+    "size": 1024,
+    "updated_at": "2023-10-27T10:00:00Z",
+    "created_at": "2023-10-27T10:00:00Z"
+  }
+}
+```
+</CodeGroup>
+
+### `message.received.blocked`
+
+- **Description:** Triggered when a new email is received and matched a block list entry. The payload structure is the same as `message.received`. Messages that match a block list are not delivered as `message.received` events.
+- **Example use-case:** Audit blocked senders or maintain a log of blocked messages.
+
+<Callout intent="warn">
+  This event is only delivered if the API key used to create the webhook has the `label_blocked_read` permission. Without this permission, the webhook creation will be rejected with a `403 Forbidden` error.
+</Callout>
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.received.blocked",
+  "event_id": "evt_blocked456",
+  "message": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "<blocked456@example.com>",
+    "labels": ["blocked"],
+    "timestamp": "2023-10-27T10:00:00Z",
+    "from": "blocked-sender@example.com",
+    "to": ["agent@agentmail.to"],
+    "subject": "Blocked message",
+    "preview": "This message was blocked...",
+    "text": "Full blocked message body.",
+    "html": "<html>...</html>",
+    "size": 512,
+    "updated_at": "2023-10-27T10:00:00Z",
+    "created_at": "2023-10-27T10:00:00Z"
+  },
+  "thread": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "labels": ["blocked"],
+    "timestamp": "2023-10-27T10:00:00Z",
+    "senders": ["blocked-sender@example.com"],
+    "recipients": ["agent@agentmail.to"],
+    "subject": "Blocked message",
+    "preview": "This message was blocked...",
+    "last_message_id": "<blocked456@example.com>",
+    "message_count": 1,
+    "size": 512,
     "updated_at": "2023-10-27T10:00:00Z",
     "created_at": "2023-10-27T10:00:00Z"
   }
@@ -411,5 +534,9 @@ When creating a webhook, you can specify which events to subscribe to. This allo
 - Create specialized webhooks for specific workflows
 
 For example, if you only need to trigger workflows on incoming messages, you can subscribe to just `message.received`. If you're building a delivery tracking system, you might subscribe to `message.sent`, `message.delivered`, and `message.bounced`.
+
+<Callout intent="info">
+  By default, spam and blocked events are **not** delivered. To receive them, you must explicitly include `message.received.spam` or `message.received.blocked` in the `event_types` list when creating your webhook. The API key must also have the corresponding `label_spam_read` or `label_blocked_read` permission.
+</Callout>
 
 If you have any specific webhook notifications you would like, please ping us in the `#feature-requests` channel in the [Discord](https://discord.gg/hTYatWYWBc)

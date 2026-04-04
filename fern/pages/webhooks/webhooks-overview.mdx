@@ -16,10 +16,12 @@ This event-driven approach is more efficient and allows you to build fast, respo
 
 ## Available Events
 
-AgentMail supports seven webhook event types. When creating a webhook, you can subscribe to specific events or receive all of them. See [Webhook Events](/events) for full payload details.
+AgentMail supports nine webhook event types. When creating a webhook, you can subscribe to specific events or receive all of them. See [Webhook Events](/events) for full payload details.
 
 **Message events:**
 - **`message.received`** — New email received and processed in one of your inboxes
+- **`message.received.spam`** — A message was received and classified as spam (requires `label_spam_read` permission)
+- **`message.received.blocked`** — A message was received and matched a block list entry (requires `label_blocked_read` permission)
 - **`message.sent`** — Message successfully sent from your inbox
 - **`message.delivered`** — Delivery confirmed by the recipient's mail server
 - **`message.bounced`** — Message failed to deliver and bounced back
@@ -28,6 +30,10 @@ AgentMail supports seven webhook event types. When creating a webhook, you can s
 
 **Domain events:**
 - **`domain.verified`** — Custom domain successfully verified
+
+<Callout intent="info">
+  Spam and blocked events are excluded by default. To receive them, explicitly include `message.received.spam` or `message.received.blocked` in the `event_types` list when creating a webhook. Messages with these labels are no longer sent as `message.received`.
+</Callout>
 
 ## The Webhook Workflow
 
@@ -180,7 +186,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?)
   - webhooks.delete(webhook_id)
 
-  Events: message.received, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+  Events: message.received, message.received.spam, message.received.blocked, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
   """
   import os
@@ -208,7 +214,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds? })
    * - webhooks.delete(webhookId)
    *
-   * Events: message.received, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+   * Events: message.received, message.received.spam, message.received.blocked, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
    * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
    */
   import { AgentMailClient } from "agentmail";

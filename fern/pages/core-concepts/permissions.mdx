@@ -70,6 +70,10 @@ A restricted API key cannot create a child key with more permissions than itself
   When a label visibility permission is denied, items with that label are automatically excluded from list results and return "not found" on direct access. For example, setting `label_spam_read` to `false` means the key will never see spam messages in any listing or lookup.
 </Info>
 
+<Callout intent="info" title="Event subscriptions">
+  Label visibility permissions also control whether an API key can subscribe to the corresponding event types on [webhooks](/events) and [WebSockets](/websockets). An API key without `label_spam_read` cannot create a webhook or WebSocket subscription for `message.received.spam` events, and an API key without `label_blocked_read` cannot subscribe to `message.received.blocked` events.
+</Callout>
+
 ### Drafts
 
 | Permission | Description |
