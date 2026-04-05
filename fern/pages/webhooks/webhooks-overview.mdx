@@ -67,7 +67,7 @@ The process is straightforward:
           --event-type message.sent
         ```
         </CodeBlocks>
-        Specify which events to receive; omit `event_types` to subscribe to all event types.
+        Specify which events to receive; omit `event_types` to subscribe to all standard event types. Spam and blocked events must always be explicitly included.
     </Step>
     <Step title="3. AgentMail Sends Events">
         When an event occurs (e.g. a new message is received, a message is delivered, or a domain is verified), AgentMail sends a `POST` request with a JSON payload to your registered URL.

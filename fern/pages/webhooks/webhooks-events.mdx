@@ -50,10 +50,10 @@ async function handleWebhook(payload: Record<string, unknown>) {
     const event = await serialization.events.MessageRejectedEvent.parse(payload);
     console.log(event.reject.reason);
   } else if (eventType === "message.received.spam") {
-    const event = await serialization.events.MessageReceivedEvent.parse(payload);
+    const event = await serialization.events.MessageReceivedSpamEvent.parse(payload);
     console.log(event.message.subject);
   } else if (eventType === "message.received.blocked") {
-    const event = await serialization.events.MessageReceivedEvent.parse(payload);
+    const event = await serialization.events.MessageReceivedBlockedEvent.parse(payload);
     console.log(event.message.subject);
   } else if (eventType === "domain.verified") {
     const event = await serialization.events.DomainVerifiedEvent.parse(payload);
@@ -64,6 +64,8 @@ async function handleWebhook(payload: Record<string, unknown>) {
 ```python title="Python"
 from agentmail import (
     MessageReceivedEvent,
+    MessageReceivedSpamEvent,
+    MessageReceivedBlockedEvent,
     MessageSentEvent,
     MessageBouncedEvent,
     MessageDeliveredEvent,
@@ -96,10 +98,10 @@ def handle_webhook(payload: dict):
         event = MessageRejectedEvent(**payload)
         print(event.reject.reason)
     elif event_type == "message.received.spam":
-        event = MessageReceivedEvent(**payload)
+        event = MessageReceivedSpamEvent(**payload)
         print(event.message.subject)
     elif event_type == "message.received.blocked":
-        event = MessageReceivedEvent(**payload)
+        event = MessageReceivedBlockedEvent(**payload)
         print(event.message.subject)
     elif event_type == "domain.verified":
         event = DomainVerifiedEvent(**payload)
@@ -116,14 +118,15 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   """
   AgentMail Webhook Events — copy into Cursor/Claude.
 
-  Parse typed events: MessageReceivedEvent (has message+thread, used for message.received, message.received.spam, message.received.blocked),
+  Parse typed events: MessageReceivedEvent (message.received), MessageReceivedSpamEvent (message.received.spam), MessageReceivedBlockedEvent (message.received.blocked),
   MessageSentEvent (send), MessageBouncedEvent (bounce), MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint),
   MessageRejectedEvent (reject), DomainVerifiedEvent (domain).
   Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
   Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
   """
   from agentmail import (
-    MessageReceivedEvent, MessageSentEvent, MessageBouncedEvent,
+    MessageReceivedEvent, MessageReceivedSpamEvent, MessageReceivedBlockedEvent,
+    MessageSentEvent, MessageBouncedEvent,
     MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent,
   )
 
@@ -135,8 +138,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     elif t == "message.delivered": e = MessageDeliveredEvent(**payload)
     elif t == "message.complained": e = MessageComplainedEvent(**payload)
     elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
-    elif t == "message.received.spam": e = MessageReceivedEvent(**payload); print(e.message.subject)
-    elif t == "message.received.blocked": e = MessageReceivedEvent(**payload); print(e.message.subject)
+    elif t == "message.received.spam": e = MessageReceivedSpamEvent(**payload); print(e.message.subject)
+    elif t == "message.received.blocked": e = MessageReceivedBlockedEvent(**payload); print(e.message.subject)
     elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
   ```
 
@@ -144,7 +147,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   /**
    * AgentMail Webhook Events — copy into Cursor/Claude.
    *
-   * Parse with serialization.events.MessageReceivedEvent.parse(payload), etc.
+   * Parse with serialization.events.<EventType>.parse(payload).
+   * message.received → MessageReceivedEvent, message.received.spam → MessageReceivedSpamEvent, message.received.blocked → MessageReceivedBlockedEvent.
    * Only message.received* has message+thread; others have send/delivery/bounce/complaint/reject/domain.
    * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
    */
@@ -171,10 +175,10 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
       const e = await serialization.events.MessageRejectedEvent.parse(payload);
       console.log(e.reject);
     } else if (t === "message.received.spam") {
-      const e = await serialization.events.MessageReceivedEvent.parse(payload);
+      const e = await serialization.events.MessageReceivedSpamEvent.parse(payload);
       console.log(e.message.subject);
     } else if (t === "message.received.blocked") {
-      const e = await serialization.events.MessageReceivedEvent.parse(payload);
+      const e = await serialization.events.MessageReceivedBlockedEvent.parse(payload);
       console.log(e.message.subject);
     } else if (t === "domain.verified") {
       const e = await serialization.events.DomainVerifiedEvent.parse(payload);

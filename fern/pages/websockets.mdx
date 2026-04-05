@@ -286,8 +286,8 @@ socket.sendSubscribe({
 | Event | Python | TypeScript | Description |
 |-------|--------|------------|-------------|
 | `message_received` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | New email received |
-| `message_received_spam` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | Email received, classified as spam |
-| `message_received_blocked` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | Email received, matched a block list entry |
+| `message_received_spam` | `MessageReceivedSpamEvent` | `AgentMail.MessageReceivedSpamEvent` | Email received, classified as spam |
+| `message_received_blocked` | `MessageReceivedBlockedEvent` | `AgentMail.MessageReceivedBlockedEvent` | Email received, matched a block list entry |
 | `message_sent` | `MessageSentEvent` | `AgentMail.MessageSentEvent` | Email was sent |
 | `message_delivered` | `MessageDeliveredEvent` | `AgentMail.MessageDeliveredEvent` | Email was delivered |
 | `message_bounced` | `MessageBouncedEvent` | `AgentMail.MessageBouncedEvent` | Email bounced |
@@ -402,7 +402,7 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
   Sync: with client.websockets.connect() as socket: socket.send_subscribe(Subscribe(inbox_ids=[...])); for event in socket: ...
   Async: async with client.websockets.connect() as socket: await socket.send_subscribe(...); async for event in socket: ...
   Subscribe(inbox_ids=[...], pod_ids=[...], event_types=[...])
-  Event types: Subscribed, MessageReceivedEvent (also for message.received.spam/blocked), MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent
+  Event types: Subscribed, MessageReceivedEvent, MessageReceivedSpamEvent, MessageReceivedBlockedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent
   Spam/blocked events require explicit opt-in via event_types and label_spam_read / label_blocked_read permissions.
   """
   from agentmail import AgentMail, Subscribe, Subscribed, MessageReceivedEvent
