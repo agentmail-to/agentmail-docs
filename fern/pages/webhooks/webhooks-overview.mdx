@@ -188,6 +188,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
 
   Events: message.received, message.received.spam, message.received.blocked, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
+  Note: message.received.spam and message.received.blocked are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions.
   """
   import os
   from dotenv import load_dotenv
@@ -215,6 +216,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * - webhooks.delete(webhookId)
    *
    * Events: message.received, message.received.spam, message.received.blocked, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+   * Note: message.received.spam and message.received.blocked are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions.
    * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
    */
   import { AgentMailClient } from "agentmail";
