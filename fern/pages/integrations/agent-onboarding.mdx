@@ -293,17 +293,17 @@ client.inboxes.messages.reply(
 
 ```typescript title="TypeScript"
 // List threads in the inbox
-const threads = await client.inboxes.threads.list(inbox.inboxId);
+const threads = await authedClient.inboxes.threads.list(inbox.inboxId);
 
 // Get the latest thread
-const thread = await client.inboxes.threads.get(
+const thread = await authedClient.inboxes.threads.get(
     inbox.inboxId,
     threads.threads[0].threadId
 );
 
 // Reply to the latest message
 const latestMessage = thread.messages[thread.messages.length - 1];
-await client.inboxes.messages.reply(
+await authedClient.inboxes.messages.reply(
     inbox.inboxId,
     latestMessage.messageId,
     { to: [latestMessage.from], text: "Thanks for your email! I'll look into this." }
