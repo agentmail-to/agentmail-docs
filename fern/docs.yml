@@ -16,6 +16,12 @@ instances:
 title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
+metadata:
+  og:description: "AgentMail is an email API built for AI agents. Create inboxes, send and receive messages, manage threads, and handle webhooks programmatically."
+
+agents:
+  page-directive: "For clean Markdown content of this page, append .md to this URL. For the complete documentation index, see https://docs.agentmail.to/llms.txt. For full content including API reference and SDK examples, see https://docs.agentmail.to/llms-full.txt."
+
 ai-search:
   location:
     - docs
