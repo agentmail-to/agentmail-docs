@@ -12,9 +12,61 @@ description: >-
 
 If you're developing with AI, AgentMail offers several resources to improve your experience.
 
-## Prerequisite: Create an API Key
+## Get an API key
 
-You'll need a human to create an AgentMail account at [console.agentmail.to](https://console.agentmail.to). Once you have an account, create an API key from the dashboard. With an API key, your agent can create inboxes, send and receive emails, manage threads, and more.
+Your agent can sign up programmatically using the Agent API. No console access needed.
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+response = client.agent.sign_up(human_email="you@example.com", username="my-agent")
+# response.api_key  -> store this securely
+# response.inbox_id -> my-agent@agentmail.to
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+const response = await client.agent.signUp({ humanEmail: "you@example.com", username: "my-agent" });
+// response.apiKey  -> store this securely
+// response.inboxId -> my-agent@agentmail.to
+```
+
+```bash title="CLI"
+agentmail agent sign-up --human-email you@example.com --username my-agent
+```
+
+</CodeBlocks>
+
+A 6-digit OTP is sent to the provided email. Verify to unlock full permissions:
+
+<CodeBlocks>
+
+```python title="Python"
+client = AgentMail(api_key=response.api_key)
+client.agent.verify(otp_code="123456")
+```
+
+```typescript title="TypeScript"
+const authedClient = new AgentMailClient({ apiKey: response.apiKey });
+await authedClient.agent.verify({ otpCode: "123456" });
+```
+
+```bash title="CLI"
+agentmail agent verify --otp-code 123456
+```
+
+</CodeBlocks>
+
+<Info>
+  The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
+</Info>
+
+Alternatively, a human can create an account at [console.agentmail.to](https://console.agentmail.to) and generate an API key from the dashboard.
 
 <Info>
   AgentMail's free tier includes 3 inboxes and 3,000 emails/month. Your agent can start building immediately.
@@ -142,20 +194,27 @@ export AGENTMAIL_API_KEY="your-api-key-here"
   View the skill source and full documentation.
 </Card>
 
-## Quick Start for Agents
+## Quick start for agents
 
-Create an inbox and send your first email in a few lines:
+Sign up, create an inbox, and send your first email:
 
 <CodeBlocks>
 
 ```python title="Python"
 from agentmail import AgentMail
 
-client = AgentMail(api_key="am_...")
+# sign up (no API key needed)
+client = AgentMail()
+response = client.agent.sign_up(human_email="you@example.com", username="my-agent")
+
+# after verifying with the OTP sent to your email:
+client = AgentMail(api_key=response.api_key)
+client.agent.verify(otp_code="123456")
+
+# create an inbox and send an email
 inbox = client.inboxes.create(display_name="My AI Agent")
 print(f"Agent email: {inbox.inbox_id}")
 
-# Send an email
 client.inboxes.messages.send(
     inbox.inbox_id,
     to="user@example.com",
@@ -167,12 +226,19 @@ client.inboxes.messages.send(
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
-const client = new AgentMailClient({ apiKey: "am_..." });
-const inbox = await client.inboxes.create({ displayName: "My AI Agent" });
+// sign up (no API key needed)
+const client = new AgentMailClient();
+const response = await client.agent.signUp({ humanEmail: "you@example.com", username: "my-agent" });
+
+// after verifying with the OTP sent to your email:
+const authedClient = new AgentMailClient({ apiKey: response.apiKey });
+await authedClient.agent.verify({ otpCode: "123456" });
+
+// create an inbox and send an email
+const inbox = await authedClient.inboxes.create({ displayName: "My AI Agent" });
 console.log(`Agent email: ${inbox.inboxId}`);
 
-// Send an email
-await client.inboxes.messages.send(inbox.inboxId, {
+await authedClient.inboxes.messages.send(inbox.inboxId, {
     to: "user@example.com",
     subject: "Hello from my AI agent",
     text: "Hi! I'm an AI agent with my own email address."
@@ -180,6 +246,10 @@ await client.inboxes.messages.send(inbox.inboxId, {
 ```
 
 ```bash title="CLI"
+# sign up and verify
+agentmail agent sign-up --human-email you@example.com --username my-agent
+agentmail agent verify --otp-code 123456
+
 # create an inbox
 agentmail inboxes create --display-name "My AI Agent"
 
@@ -192,6 +262,10 @@ agentmail inboxes:messages send \
 ```
 
 </CodeBlocks>
+
+<Note>
+  Already have an API key? Skip the sign-up step and initialize the client directly with your key.
+</Note>
 
 ### Receive and reply to emails
 
@@ -219,17 +293,17 @@ client.inboxes.messages.reply(
 
 ```typescript title="TypeScript"
 // List threads in the inbox
-const threads = await client.inboxes.threads.list(inbox.inboxId);
+const threads = await authedClient.inboxes.threads.list(inbox.inboxId);
 
 // Get the latest thread
-const thread = await client.inboxes.threads.get(
+const thread = await authedClient.inboxes.threads.get(
     inbox.inboxId,
     threads.threads[0].threadId
 );
 
 // Reply to the latest message
 const latestMessage = thread.messages[thread.messages.length - 1];
-await client.inboxes.messages.reply(
+await authedClient.inboxes.messages.reply(
     inbox.inboxId,
     latestMessage.messageId,
     { to: [latestMessage.from], text: "Thanks for your email! I'll look into this." }
