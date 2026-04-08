@@ -90,7 +90,9 @@ types:
       message_id: MessageId
       labels: MessageLabels
       timestamp: MessageTimestamp
-      from: MessageFrom
+      from:
+        type: MessageFrom
+        docs: Address of sender. Note - since `from` is a reserved keyword in Python, access this field as `from_` when using the Python SDK (e.g. `message.from_`).
       to: MessageTo
       cc: optional<MessageCc>
       bcc: optional<MessageBcc>
@@ -111,8 +113,10 @@ types:
       message_id: MessageId
       labels: MessageLabels
       timestamp: MessageTimestamp
-      from: MessageFrom
-      reply_to:
+      from:
+              type: MessageFrom
+        docs: Address of sender. Note - since `from` is a reserved keyword in Python, access this field as `from_` when using the Python SDK (e.g. `message.from_`).
+reply_to:
         type: optional<list<string>>
         docs: Reply-to addresses. In format `username@domain.com` or `Display Name <username@domain.com>`.
       to: MessageTo
