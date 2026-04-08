@@ -46,6 +46,18 @@ service:
         - global.NotFoundError
         - global.ValidationError
 
+    update:
+      method: PATCH
+      path: /{api_key_id}
+      display-name: Update API Key
+      path-parameters:
+        api_key_id: api-keys.ApiKeyId
+      request: api-keys.UpdateApiKeyRequest
+      response: api-keys.ApiKey
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
     delete:
       method: DELETE
       path: /{api_key_id}
