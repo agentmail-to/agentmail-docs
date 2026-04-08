@@ -3,7 +3,7 @@
 types:
   Limit:
     type: integer
-    docs: Limit of number of items returned.
+    docs: Maximum number of items to return in a single page.
 
   Count:
     type: integer
