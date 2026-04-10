@@ -69,3 +69,21 @@ Route 53 name servers typically pick up changes within **60 seconds**, but full 
 - **Routing policy:** When creating records, use **Simple routing** unless you have a specific reason to use weighted, latency, or other routing policies. Other policies can cause unexpected DNS behavior for email records.
 
 - **Multiple values in one record:** Route 53 lets you add multiple values to a single record. If you need to add a second MX entry, add it as a new line in the same MX record rather than creating a separate record.
+
+- **DKIM TXT record too long (CharacterStringTooLong error):** If your DKIM record is provided as a TXT value (rather than a CNAME), the DKIM public key is often longer than the 255-character limit that Route 53 enforces per string segment. You will see an error like `CharacterStringTooLong (Value is too long)`. To fix this, split the value into two quoted strings within a single record. The split point should be near the middle of the `p=` value. The two quoted strings must have **no space and no line break** between the closing and opening quotes. For example:
+
+  ```
+  "v=DKIM1; k=rsa; p=MIIBIjANBgkqhki...firsthalf""secondhalf...wIDAQAB"
+  ```
+
+  In Route 53, paste the entire value (both quoted strings) into the **Value** field as a single entry. If Route 53 shows two separate copy-pastable values instead of one, there is likely a space or line break between the two strings. Remove it so the closing `"` and opening `"` are directly adjacent (`""`).
+
+  **Incorrect:** A space or line break between the two quoted strings causes Route 53 to treat them as separate values.
+
+  <img src="../../assets/route53-dkim-incorrect.png" alt="Incorrect Route 53 DKIM configuration with space between quoted strings" />
+
+  **Correct:** The two quoted strings are directly adjacent with no space, producing a single value in Route 53.
+
+  <img src="../../assets/route53-dkim-correct.png" alt="Correct Route 53 DKIM configuration with no space between quoted strings" />
+
+  You can also use the AWS CLI to add the record, which handles multi-string TXT values more reliably.
