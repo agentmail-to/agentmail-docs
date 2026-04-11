@@ -1,0 +1,72 @@
+---
+title: "Google Workspace"
+subtitle: "Route unrecognized addresses from Google Workspace to AgentMail"
+slug: google-workspace
+description: "Configure your Google Workspace domain to route emails for unrecognized addresses to AgentMail."
+---
+
+## Shared domains
+
+Custom domains help establish trust with your recipients. We recommend configuring a dedicated domain or subdomain with AgentMail. However, sometimes you need to use your primary domain, which may already be managed by another email provider.
+
+It is possible to use the same domain with both Google Workspace and AgentMail. This guide walks you through that configuration.
+
+## DNS records
+
+The initial setup is the same as any domain: add the AgentMail DNS records. These records will not interfere with your existing Google Workspace setup.
+
+Even after adding these records, AgentMail will not receive email sent to your domain by default. This is because the AgentMail MX record has a priority of `10`, while Google's MX record is typically set to `1` (lower numbers take higher priority).
+
+Your MX records should look like this:
+
+| Priority | Host                                    |
+| -------- | --------------------------------------- |
+| `1`      | `smtp.google.com`                       |
+| `10`     | `feedback-smtp.us-east-1.amazonses.com` |
+
+## Google Workspace configuration
+
+Next, navigate to the [Google Workspace admin console](https://admin.google.com). You will configure Gmail to route emails for unrecognized addresses to AgentMail.
+
+In the left menu, navigate to **Apps → Google Workspace → Gmail**.
+
+<img src="../../assets/google-workspace/menu.png" alt="Google Workspace admin menu" />
+
+<img src="../../assets/google-workspace/gmail.png" alt="Gmail settings page" />
+
+### Configure host
+
+First, add AgentMail as a mail host. This tells Gmail which server to route emails to.
+
+In the **Hosts** section, click **Add Route**.
+
+<img src="../../assets/google-workspace/hosts.png" alt="Hosts settings" />
+
+Configure the route with the following settings:
+
+1. Set the name to **AgentMail**
+2. Select **Single host**
+3. Enter `inbound-smtp.us-east-1.amazonaws.com` for the host name
+4. Enter `25` for the port
+5. Check the recommended options
+6. Click **Save**
+
+<img src="../../assets/google-workspace/route.png" alt="Route configuration" />
+
+### Configure routing rule
+
+Navigate back to the **Gmail** settings page and scroll to the **Routing** section at the bottom.
+
+<img src="../../assets/google-workspace/gmail2.png" alt="Gmail settings routing section" />
+
+In the routing settings, click **Add another rule**.
+
+Check **Inbound** and **Internal - Receiving**, then set the action to **Modify message**.
+
+<img src="../../assets/google-workspace/rule.png" alt="Routing rule scope" />
+
+Scroll down and check **All inactive and unrecognized accounts**. Check **Change route** and select the **AgentMail** route from the dropdown.
+
+<img src="../../assets/google-workspace/rule2.png" alt="Routing rule configuration" />
+
+Click **Save** to apply the rule. Emails sent to addresses that don't belong to existing Gmail accounts will now be routed to AgentMail.
