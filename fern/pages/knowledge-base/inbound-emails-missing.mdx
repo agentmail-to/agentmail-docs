@@ -1,0 +1,85 @@
+---
+title: "How does AgentMail protect against email spoofing?"
+subtitle: How inbound email authentication keeps your inboxes safe from unauthenticated senders.
+slug: knowledge-base/inbound-emails-missing
+---
+
+AgentMail verifies every inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails that fail any of these checks are dropped to prevent spoofing, phishing, and spam from reaching your agents.
+
+This is the same standard enforced by Gmail, Outlook, Yahoo, and other major email providers.
+
+## How inbound authentication works
+
+When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts provided by the receiving mail server. To be delivered, an email must meet **all** of the following conditions:
+
+- Neither SPF nor DKIM returns a `FAIL` verdict
+- At least one of SPF or DKIM is configured (not both `GRAY`)
+- DMARC does not return `FAIL` (unless the sender's DMARC policy is `none`)
+- The message passes virus scanning
+
+If any check fails, the email is dropped.
+
+| Scenario | SPF | DKIM | Result |
+| --- | --- | --- | --- |
+| Both pass | PASS | PASS | Delivered |
+| One passes, other unconfigured | PASS | GRAY | Delivered |
+| One passes, other unconfigured | GRAY | PASS | Delivered |
+| Neither configured | GRAY | GRAY | Dropped |
+| Either explicitly fails | FAIL | any | Dropped |
+| Either explicitly fails | any | FAIL | Dropped |
+
+<Warning>
+Emails dropped due to failed authentication are **silently rejected**. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. The sender gets no bounce-back or error notification.
+</Warning>
+
+## Why this matters
+
+Without these checks, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address, while DMARC ties those results to the domain's published policy. Dropping unauthenticated emails protects your agents from:
+
+- **Spoofing:** forged sender addresses impersonating trusted contacts
+- **Phishing:** malicious emails designed to trick your agent into taking harmful actions
+- **Spam:** bulk unsolicited email from unverified sources
+
+## Diagnosing missing emails
+
+If a sender reports that their email never arrived, check whether their domain has SPF and DKIM records configured:
+
+```bash
+# check for SPF record
+dig TXT example.com +short
+# look for a record starting with "v=spf1"
+```
+
+For DKIM, use [MXToolbox DKIM Lookup](https://mxtoolbox.com/dkim.aspx) or a similar tool. DKIM records are stored under a selector-specific subdomain (e.g., `google._domainkey.example.com`), and the selector name varies by email provider, so there is no single DNS query that covers all cases.
+
+You can also use [MXToolbox SPF Lookup](https://mxtoolbox.com/spf.aspx) to verify SPF records online.
+
+If the domain has neither an SPF record nor a DKIM record, that is the cause. Emails from that domain will be dropped by AgentMail and likely by other providers as well.
+
+## What to tell the sender
+
+The sender needs to configure SPF and/or DKIM on their domain's DNS. This is not something you can fix on the AgentMail side, as the records must be set up by the domain owner.
+
+- Add an SPF record to authorize their mail server (e.g., `v=spf1 include:_spf.google.com ~all` for Google Workspace)
+- Enable DKIM signing through their email provider's admin console
+- Consider adding a DMARC record for full authentication coverage
+
+Most email providers have setup guides: [Google Workspace](https://support.google.com/a/answer/33786), [Microsoft 365](https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/email-authentication-spf-configure), [Amazon SES](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-spf.html).
+
+## Google Workspace and internal routing
+
+If the sender uses Google Workspace and the AgentMail inbox is on a subdomain of a Google Workspace domain, Google may route the email internally instead of sending it through external MX records. In this case, the email never reaches AgentMail's servers at all.
+
+For example, if the Google Workspace domain is `yourcompany.com` and the AgentMail inbox is on `agents.yourcompany.com`, Google Workspace may intercept emails to `agents.yourcompany.com` and deliver them internally.
+
+**How to fix:** In Google Admin Console, go to **Apps > Google Workspace > Gmail > Routing** and add a routing rule that sends mail for the AgentMail subdomain to the external MX records instead of handling it internally.
+
+## Still not receiving emails?
+
+If the sender's domain does have SPF/DKIM configured and emails are still not arriving:
+
+- Verify your domain's MX records are correctly pointing to AgentMail (see [MX record conflicts](/knowledge-base/mx-record-conflicts))
+- Check that your domain is fully verified in the [AgentMail Console](https://console.agentmail.to)
+- Make sure you are listening for incoming emails via [webhooks or WebSockets](/knowledge-base/handling-inbound-emails)
+
+If none of the above resolves the issue, reach out in our [Discord](https://discord.com/invite/hTYatWYWBc) support channel or email [support@agentmail.cc](mailto:support@agentmail.cc).
