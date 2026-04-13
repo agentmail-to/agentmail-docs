@@ -1,67 +1,71 @@
 ---
-title: "Why are inbound emails missing?"
-subtitle: Diagnose why some emails sent to your AgentMail inbox never arrive.
+title: "How does AgentMail protect against email spoofing?"
+subtitle: How inbound email authentication keeps your inboxes safe from unauthenticated senders.
 slug: knowledge-base/inbound-emails-missing
 ---
 
-If someone sends an email to your AgentMail inbox and it never appears, the most likely cause is that the sender's domain is missing email authentication records. AgentMail requires inbound emails to pass SPF or DKIM verification before delivering them to your inbox.
+AgentMail verifies every inbound email using SPF and DKIM authentication before delivering it to your inbox. Emails that fail both checks are dropped to prevent spoofing, phishing, and spam from reaching your agents.
 
-## How it works
+This is the same standard enforced by Gmail, Outlook, Yahoo, and other major email providers.
 
-When an email arrives, AgentMail checks the SPF and DKIM status provided by AWS SES. If both checks return a "gray" verdict, meaning the sender's domain has no SPF or DKIM records at all, AgentMail drops the email as unauthenticated.
+## How inbound authentication works
 
-This is standard behavior across email providers. Gmail, Outlook, and Yahoo all enforce similar authentication requirements to protect against spoofing and spam.
+When an email arrives, AgentMail inspects the SPF and DKIM verdicts returned by the receiving mail server. An email must pass **at least one** of these checks to be delivered. If both return a "gray" verdict (the sender's domain has no SPF or DKIM records configured), the email is dropped as unauthenticated.
 
-| Verdict | Meaning | Result |
-| --- | --- | --- |
-| PASS | SPF or DKIM verified successfully | Email delivered |
-| FAIL | Authentication explicitly failed | Email dropped |
-| GRAY | No SPF/DKIM records found, cannot verify | Email dropped |
+| Scenario | SPF | DKIM | Result |
+| --- | --- | --- | --- |
+| Both pass | PASS | PASS | Delivered |
+| One passes | PASS | GRAY | Delivered |
+| One passes | GRAY | PASS | Delivered |
+| Neither configured | GRAY | GRAY | Dropped |
+| Explicit failure | FAIL | FAIL | Dropped |
 
-An email only needs to pass **one** of SPF or DKIM to be delivered. Both checks returning gray (no records configured) is what triggers the drop.
+<Warning>
+Emails dropped due to failed authentication are **silently rejected**. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. The sender gets no bounce-back or error notification.
+</Warning>
 
-## Why the sender might not notice
+## Why this matters
 
-This is what makes the issue hard to diagnose. From the sender's perspective, everything looks normal:
+Without this check, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address. Dropping unauthenticated emails protects your agents from:
 
-- Their email client shows the message as sent
-- Their mail server (e.g., Google Workspace, Outlook) reports successful delivery
-- No bounce-back or error message is returned
+- **Spoofing:** forged sender addresses impersonating trusted contacts
+- **Phishing:** malicious emails designed to trick your agent into taking harmful actions
+- **Spam:** bulk unsolicited email from unverified sources
 
-The email was delivered successfully to AgentMail's mail servers, but it was then dropped during authentication verification. The sender has no indication that the recipient never saw it.
+## Diagnosing missing emails
 
-## How to diagnose
-
-Check whether the sender's domain has SPF and DKIM records configured. You can do this from the command line:
+If a sender reports that their email never arrived, check whether their domain has SPF and DKIM records configured:
 
 ```bash
 # check for SPF record
 dig TXT example.com +short
-
 # look for a record starting with "v=spf1"
+
+# check for DKIM record (common selectors)
+dig TXT google._domainkey.example.com +short
+dig TXT default._domainkey.example.com +short
+# look for a record starting with "v=DKIM1"
 ```
 
-You can also use [MXToolbox](https://mxtoolbox.com/spf.aspx) or [dmarcian](https://dmarcian.com/spf-survey/) to check a domain's authentication records online.
+You can also use [MXToolbox SPF Lookup](https://mxtoolbox.com/spf.aspx) or [MXToolbox DKIM Lookup](https://mxtoolbox.com/dkim.aspx) to check a domain's authentication records online.
 
-If the domain has no SPF record and no DKIM record, that is the cause. Emails from that domain will be dropped by AgentMail (and likely by other providers as well).
+If the domain has neither an SPF record nor a DKIM record, that is the cause. Emails from that domain will be dropped by AgentMail and likely by other providers as well.
 
-## How to fix
+## What to tell the sender
 
-The sender needs to add SPF and/or DKIM records to their domain's DNS. This is not something you can fix on the AgentMail side, as the records must be configured by the domain owner.
-
-**What to tell the sender:**
+The sender needs to configure SPF and/or DKIM on their domain's DNS. This is not something you can fix on the AgentMail side, as the records must be set up by the domain owner.
 
 - Add an SPF record to authorize their mail server (e.g., `v=spf1 include:_spf.google.com ~all` for Google Workspace)
-- Set up DKIM signing through their email provider's admin console
-- Consider adding a DMARC record as well for full authentication
+- Enable DKIM signing through their email provider's admin console
+- Consider adding a DMARC record for full authentication coverage
 
-Most email providers have guides for this: [Google Workspace](https://support.google.com/a/answer/33786), [Microsoft 365](https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/email-authentication-spf-configure), [Amazon SES](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-spf.html).
+Most email providers have setup guides: [Google Workspace](https://support.google.com/a/answer/33786), [Microsoft 365](https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/email-authentication-spf-configure), [Amazon SES](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-spf.html).
 
 ## Google Workspace and internal routing
 
 If the sender uses Google Workspace and the AgentMail inbox is on a subdomain of a Google Workspace domain, Google may route the email internally instead of sending it through external MX records. In this case, the email never reaches AgentMail's servers at all.
 
-For example, if your Google Workspace domain is `yourcompany.com` and your AgentMail inbox is on `agents.yourcompany.com`, Google Workspace may intercept emails to `agents.yourcompany.com` and try to deliver them internally.
+For example, if the Google Workspace domain is `yourcompany.com` and the AgentMail inbox is on `agents.yourcompany.com`, Google Workspace may intercept emails to `agents.yourcompany.com` and deliver them internally.
 
 **How to fix:** In Google Admin Console, go to **Apps > Google Workspace > Gmail > Routing** and add a routing rule that sends mail for the AgentMail subdomain to the external MX records instead of handling it internally.
 
