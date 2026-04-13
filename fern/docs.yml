@@ -504,6 +504,9 @@ navigation:
           - page: Emails bouncing
             icon: fa-solid fa-rotate-left
             path: pages/knowledge-base/emails-bouncing.mdx
+          - page: Inbound emails missing
+            icon: fa-solid fa-envelope-circle-xmark
+            path: pages/knowledge-base/inbound-emails-missing.mdx
       - section: DNS Guides
         contents:
           - page: Cloudflare

@@ -1,0 +1,76 @@
+---
+title: "Why are inbound emails missing?"
+subtitle: Diagnose why some emails sent to your AgentMail inbox never arrive.
+slug: knowledge-base/inbound-emails-missing
+---
+
+If someone sends an email to your AgentMail inbox and it never appears, the most likely cause is that the sender's domain is missing email authentication records. AgentMail requires inbound emails to pass SPF or DKIM verification before delivering them to your inbox.
+
+## How it works
+
+When an email arrives, AgentMail checks the SPF and DKIM status provided by AWS SES. If both checks return a "gray" verdict, meaning the sender's domain has no SPF or DKIM records at all, AgentMail drops the email as unauthenticated.
+
+This is standard behavior across email providers. Gmail, Outlook, and Yahoo all enforce similar authentication requirements to protect against spoofing and spam.
+
+| Verdict | Meaning | Result |
+| --- | --- | --- |
+| PASS | SPF or DKIM verified successfully | Email delivered |
+| FAIL | Authentication explicitly failed | Email dropped |
+| GRAY | No SPF/DKIM records found, cannot verify | Email dropped |
+
+An email only needs to pass **one** of SPF or DKIM to be delivered. Both checks returning gray (no records configured) is what triggers the drop.
+
+## Why the sender might not notice
+
+This is what makes the issue hard to diagnose. From the sender's perspective, everything looks normal:
+
+- Their email client shows the message as sent
+- Their mail server (e.g., Google Workspace, Outlook) reports successful delivery
+- No bounce-back or error message is returned
+
+The email was delivered successfully to AgentMail's mail servers, but it was then dropped during authentication verification. The sender has no indication that the recipient never saw it.
+
+## How to diagnose
+
+Check whether the sender's domain has SPF and DKIM records configured. You can do this from the command line:
+
+```bash
+# check for SPF record
+dig TXT example.com +short
+
+# look for a record starting with "v=spf1"
+```
+
+You can also use [MXToolbox](https://mxtoolbox.com/spf.aspx) or [dmarcian](https://dmarcian.com/spf-survey/) to check a domain's authentication records online.
+
+If the domain has no SPF record and no DKIM record, that is the cause. Emails from that domain will be dropped by AgentMail (and likely by other providers as well).
+
+## How to fix
+
+The sender needs to add SPF and/or DKIM records to their domain's DNS. This is not something you can fix on the AgentMail side, as the records must be configured by the domain owner.
+
+**What to tell the sender:**
+
+- Add an SPF record to authorize their mail server (e.g., `v=spf1 include:_spf.google.com ~all` for Google Workspace)
+- Set up DKIM signing through their email provider's admin console
+- Consider adding a DMARC record as well for full authentication
+
+Most email providers have guides for this: [Google Workspace](https://support.google.com/a/answer/33786), [Microsoft 365](https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/email-authentication-spf-configure), [Amazon SES](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-spf.html).
+
+## Google Workspace and internal routing
+
+If the sender uses Google Workspace and the AgentMail inbox is on a subdomain of a Google Workspace domain, Google may route the email internally instead of sending it through external MX records. In this case, the email never reaches AgentMail's servers at all.
+
+For example, if your Google Workspace domain is `yourcompany.com` and your AgentMail inbox is on `agents.yourcompany.com`, Google Workspace may intercept emails to `agents.yourcompany.com` and try to deliver them internally.
+
+**How to fix:** In Google Admin Console, go to **Apps > Google Workspace > Gmail > Routing** and add a routing rule that sends mail for the AgentMail subdomain to the external MX records instead of handling it internally.
+
+## Still not receiving emails?
+
+If the sender's domain does have SPF/DKIM configured and emails are still not arriving:
+
+- Verify your domain's MX records are correctly pointing to AgentMail (see [MX record conflicts](/knowledge-base/mx-record-conflicts))
+- Check that your domain is fully verified in the [AgentMail Console](https://console.agentmail.to)
+- Make sure you are listening for incoming emails via [webhooks or WebSockets](/knowledge-base/handling-inbound-emails)
+
+If none of the above resolves the issue, reach out in our [Discord](https://discord.com/invite/hTYatWYWBc) support channel or email [support@agentmail.cc](mailto:support@agentmail.cc).
