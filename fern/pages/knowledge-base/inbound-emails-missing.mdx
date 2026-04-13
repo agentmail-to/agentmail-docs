@@ -40,14 +40,11 @@ If a sender reports that their email never arrived, check whether their domain h
 # check for SPF record
 dig TXT example.com +short
 # look for a record starting with "v=spf1"
-
-# check for DKIM record (common selectors)
-dig TXT google._domainkey.example.com +short
-dig TXT default._domainkey.example.com +short
-# look for a record starting with "v=DKIM1"
 ```
 
-You can also use [MXToolbox SPF Lookup](https://mxtoolbox.com/spf.aspx) or [MXToolbox DKIM Lookup](https://mxtoolbox.com/dkim.aspx) to check a domain's authentication records online.
+For DKIM, use [MXToolbox DKIM Lookup](https://mxtoolbox.com/dkim.aspx) or a similar tool. DKIM records are stored under a selector-specific subdomain (e.g., `google._domainkey.example.com`), and the selector name varies by email provider, so there is no single DNS query that covers all cases.
+
+You can also use [MXToolbox SPF Lookup](https://mxtoolbox.com/spf.aspx) to verify SPF records online.
 
 If the domain has neither an SPF record nor a DKIM record, that is the cause. Emails from that domain will be dropped by AgentMail and likely by other providers as well.
 
