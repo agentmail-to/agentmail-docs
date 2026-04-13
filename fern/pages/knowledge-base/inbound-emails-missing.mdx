@@ -4,21 +4,29 @@ subtitle: How inbound email authentication keeps your inboxes safe from unauthen
 slug: knowledge-base/inbound-emails-missing
 ---
 
-AgentMail verifies every inbound email using SPF and DKIM authentication before delivering it to your inbox. Emails that fail both checks are dropped to prevent spoofing, phishing, and spam from reaching your agents.
+AgentMail verifies every inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails that fail any of these checks are dropped to prevent spoofing, phishing, and spam from reaching your agents.
 
 This is the same standard enforced by Gmail, Outlook, Yahoo, and other major email providers.
 
 ## How inbound authentication works
 
-When an email arrives, AgentMail inspects the SPF and DKIM verdicts returned by the receiving mail server. An email must pass **at least one** of these checks to be delivered. If both return a "gray" verdict (the sender's domain has no SPF or DKIM records configured), the email is dropped as unauthenticated.
+When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts provided by the receiving mail server. To be delivered, an email must meet **all** of the following conditions:
+
+- Neither SPF nor DKIM returns a `FAIL` verdict
+- At least one of SPF or DKIM is configured (not both `GRAY`)
+- DMARC does not return `FAIL` (unless the sender's DMARC policy is `none`)
+- The message passes virus scanning
+
+If any check fails, the email is dropped.
 
 | Scenario | SPF | DKIM | Result |
 | --- | --- | --- | --- |
 | Both pass | PASS | PASS | Delivered |
-| One passes | PASS | GRAY | Delivered |
-| One passes | GRAY | PASS | Delivered |
+| One passes, other unconfigured | PASS | GRAY | Delivered |
+| One passes, other unconfigured | GRAY | PASS | Delivered |
 | Neither configured | GRAY | GRAY | Dropped |
-| Explicit failure | FAIL | FAIL | Dropped |
+| Either explicitly fails | FAIL | any | Dropped |
+| Either explicitly fails | any | FAIL | Dropped |
 
 <Warning>
 Emails dropped due to failed authentication are **silently rejected**. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. The sender gets no bounce-back or error notification.
@@ -26,7 +34,7 @@ Emails dropped due to failed authentication are **silently rejected**. The sende
 
 ## Why this matters
 
-Without this check, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address. Dropping unauthenticated emails protects your agents from:
+Without these checks, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address, while DMARC ties those results to the domain's published policy. Dropping unauthenticated emails protects your agents from:
 
 - **Spoofing:** forged sender addresses impersonating trusted contacts
 - **Phishing:** malicious emails designed to trick your agent into taking harmful actions
