@@ -4,33 +4,38 @@ subtitle: How inbound email authentication keeps your inboxes safe from unauthen
 slug: knowledge-base/inbound-emails-missing
 ---
 
-AgentMail verifies every inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails that fail any of these checks are dropped to prevent spoofing, phishing, and spam from reaching your agents.
+AgentMail verifies every inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails that explicitly fail these checks are dropped. Emails from unauthenticated senders (no SPF or DKIM configured) are still delivered but automatically labeled as `spam`.
 
 This is the same standard enforced by Gmail, Outlook, Yahoo, and other major email providers.
 
 ## How inbound authentication works
 
-When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts provided by the receiving mail server. To be delivered, an email must meet **all** of the following conditions:
+When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts provided by the receiving mail server. The outcome depends on the results:
 
-- Neither SPF nor DKIM returns a `FAIL` verdict
-- At least one of SPF or DKIM is configured (not both `GRAY`)
-- DMARC does not return `FAIL` (unless the sender's DMARC policy is `none`)
-- The message passes virus scanning
+**Dropped (never delivered):**
+- SPF or DKIM returns an explicit `FAIL` verdict
+- DMARC returns `FAIL` (unless the sender's DMARC policy is `none`)
+- The message fails virus scanning
 
-If any check fails, the email is dropped.
+**Delivered with `spam` label:**
+- Neither SPF nor DKIM is configured (both `GRAY`)
+- The message is flagged as spam by the receiving mail server
+
+**Delivered normally:**
+- At least one of SPF or DKIM passes, no explicit failures
 
 | Scenario | SPF | DKIM | Result |
 | --- | --- | --- | --- |
 | Both pass | PASS | PASS | Delivered |
 | One passes, other unconfigured | PASS | GRAY | Delivered |
 | One passes, other unconfigured | GRAY | PASS | Delivered |
-| Neither configured | GRAY | GRAY | Dropped |
+| Neither configured | GRAY | GRAY | Delivered (labeled `spam`) |
 | Either explicitly fails | FAIL | any | Dropped |
 | Either explicitly fails | any | FAIL | Dropped |
 
-<Warning>
-Emails dropped due to failed authentication are **silently rejected**. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. The sender gets no bounce-back or error notification.
-</Warning>
+<Note>
+Emails from unauthenticated domains are delivered with the `spam` label so your agent can decide how to handle them. You can filter on this label using webhooks, WebSockets, or the API to ignore, quarantine, or process these messages as needed.
+</Note>
 
 ## Why this matters
 
@@ -54,11 +59,11 @@ For DKIM, use [MXToolbox DKIM Lookup](https://mxtoolbox.com/dkim.aspx) or a simi
 
 You can also use [MXToolbox SPF Lookup](https://mxtoolbox.com/spf.aspx) to verify SPF records online.
 
-If the domain has neither an SPF record nor a DKIM record, that is the cause. Emails from that domain will be dropped by AgentMail and likely by other providers as well.
+If the domain has neither an SPF record nor a DKIM record, the email will still be delivered but labeled as `spam`. If the domain has SPF or DKIM configured but either returns an explicit `FAIL`, the email will be dropped.
 
 ## What to tell the sender
 
-The sender needs to configure SPF and/or DKIM on their domain's DNS. This is not something you can fix on the AgentMail side, as the records must be set up by the domain owner.
+If a sender's emails are being labeled as spam or dropped, they need to configure SPF and/or DKIM on their domain's DNS. This is not something you can fix on the AgentMail side, as the records must be set up by the domain owner.
 
 - Add an SPF record to authorize their mail server (e.g., `v=spf1 include:_spf.google.com ~all` for Google Workspace)
 - Enable DKIM signing through their email provider's admin console
