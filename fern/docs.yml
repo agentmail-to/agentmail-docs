@@ -103,9 +103,9 @@ redirects:
 
   # Old v0 API paths
   - source: /v0/webhooks/webhook_id
-    destination: /overview
+    destination: /webhooks-overview
   - source: /v0/webhooks
-    destination: /overview
+    destination: /webhooks-overview
   - source: /v0/inboxes/:inbox_id/messages/:message_id/forward
     destination: /api-reference/inboxes/messages/forward
   - source: /v0/pods/pod_id/drafts
@@ -177,7 +177,7 @@ redirects:
   - source: /core-concepts/drafts
     destination: /drafts
   - source: /webhooks
-    destination: /overview
+    destination: /webhooks-overview
   - source: /integrations/crewai
     destination: /integrations/skills
   - source: /api-keys
@@ -196,6 +196,8 @@ redirects:
     destination: /custom-domains
   - source: /best-practices/email-deliverability
     destination: /email-deliverability
+  - source: /overview
+    destination: /webhooks-overview
   - source: /webhook/agentmail
     destination: /webhook-verification
   - source: /get-started/quickstart
