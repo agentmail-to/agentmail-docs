@@ -97,7 +97,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes retrieve --inbox-id <inbox_id>
+        agentmail inboxes get --inbox-id <inbox_id>
         ```
       path-parameters:
         inbox_id: InboxId

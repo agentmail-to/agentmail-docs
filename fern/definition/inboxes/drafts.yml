@@ -44,7 +44,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:drafts retrieve --inbox-id <inbox_id> --draft-id <draft_id>
+        agentmail inboxes:drafts get --inbox-id <inbox_id> --draft-id <draft_id>
         ```
       path-parameters:
         draft_id: drafts.DraftId

@@ -39,7 +39,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:domains retrieve --pod-id <pod_id> --domain-id <domain_id>
+        agentmail pods:domains get --pod-id <pod_id> --domain-id <domain_id>
         ```
       path-parameters:
         domain_id: domains.DomainId

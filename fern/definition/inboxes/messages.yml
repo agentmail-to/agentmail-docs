@@ -46,7 +46,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages retrieve --inbox-id <inbox_id> --message-id <message_id>
+        agentmail inboxes:messages get --inbox-id <inbox_id> --message-id <message_id>
         ```
       path-parameters:
         message_id: messages.MessageId

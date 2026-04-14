@@ -169,7 +169,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail threads retrieve --thread-id <thread_id>
+        agentmail threads get --thread-id <thread_id>
         ```
       path-parameters:
         thread_id: ThreadId
@@ -184,7 +184,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail threads retrieve-attachment --thread-id <thread_id> --attachment-id <attachment_id>
+        agentmail threads get-attachment --thread-id <thread_id> --attachment-id <attachment_id>
         ```
       path-parameters:
         thread_id: ThreadId

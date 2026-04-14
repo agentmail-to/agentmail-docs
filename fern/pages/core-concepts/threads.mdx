@@ -24,7 +24,7 @@ This is the standard way to retrieve all the conversations associated with a sin
 # You'll need an inbox ID to list threads from.
 inbox_id = "inbound-agent@agentmail.to"
 
-# This retrieves all threads within the specified Inbox
+# This loads all threads within the specified Inbox
 
 inbox_threads = client.inboxes.threads.list(inbox_id=inbox_id)
 
@@ -34,7 +34,7 @@ inbox_threads = client.inboxes.threads.list(inbox_id=inbox_id)
 // You'll need an inbox ID to list threads from.
 const inboxId = "inbound-agent@agentmail.to";
 
-// This retrieves all threads within the specified Inbox
+// This loads all threads within the specified Inbox
 const inboxThreads = await client.inboxes.threads.list("inbound-agent@agentmail.to");
 
 console.log(`Found ${inboxThreads.count} threads in Inbox ${inboxId}.`);
@@ -93,7 +93,7 @@ You can also retrieve a single `Thread` by its ID. This will return the `Thread`
 ```python
 thread_id = "thread_456def"
 
-# This retrieves a single thread and its messages
+# This loads a single thread and its messages
 
 thread = client.threads.get(
 thread_id="thread_id"
@@ -106,7 +106,7 @@ print(f"Retrieved thread {thread.thread_id} with {len(thread.messages)} messages
 ```typescript title="TypeScript"
 const threadId = "thread_456def";
 
-// This retrieves a single thread and its messages
+// This loads a single thread and its messages
 const thread = await client.threads.get(
 	"thread_id"
 )
@@ -115,8 +115,8 @@ console.log(`Retrieved thread ${thread.thread_id} with ${thread.messages.length}
 ````
 
 ```bash title="CLI"
-# retrieve a single thread by id
-agentmail threads retrieve \
+# get a single thread by id
+agentmail threads get \
   --thread-id thread_456def
 ```
 

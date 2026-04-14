@@ -144,7 +144,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail domains retrieve --domain-id <domain_id>
+        agentmail domains get --domain-id <domain_id>
         ```
       path-parameters:
         domain_id: DomainId
