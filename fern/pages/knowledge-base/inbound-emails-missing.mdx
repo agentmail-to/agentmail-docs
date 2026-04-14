@@ -1,8 +1,12 @@
 ---
-title: "How does AgentMail protect against email spoofing?"
-subtitle: How inbound email authentication keeps your inboxes safe from unauthenticated senders.
+title: "Why are my emails not showing up?"
+subtitle: The most common reason inbound emails go missing is that the sender's domain isn't authenticated.
 slug: knowledge-base/inbound-emails-missing
 ---
+
+<Warning>
+**The sender's domain must have SPF or DKIM configured.** To reduce spoofing and phishing, AgentMail now drops inbound emails when the sender's domain has neither SPF nor DKIM set up. If a sender reports that their email never arrived, this is the most likely cause — once they configure SPF/DKIM on their domain, their emails will start landing in your inbox again.
+</Warning>
 
 AgentMail verifies every inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails that fail any of these checks are dropped to prevent spoofing, phishing, and spam from reaching your agents.
 

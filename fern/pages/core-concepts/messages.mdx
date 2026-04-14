@@ -464,6 +464,10 @@ When processing incoming messages, always treat `html` as the primary content so
 
 ## Receiving `Messages`
 
+<Warning>
+**Inbound emails require the sender's domain to have SPF or DKIM configured.** To reduce spoofing and phishing, AgentMail drops inbound emails when the sender's domain has neither SPF nor DKIM set up. If a sender reports that their email never arrived, this is the most likely cause. Once they configure SPF/DKIM on their domain, their emails will start landing in your inbox again. See [Why are my emails not showing up?](/knowledge-base/inbound-emails-missing) for details.
+</Warning>
+
 While you can periodically list `Messages` to check for new emails, the most efficient way to handle incoming `Messages` for your agents is with `Webhooks`. By configuring a `Webhook` endpoint, AgentMail can notify your application/agent in real-time as soon as a new `Message` arrives, so you can take action on them.
 
 <CardGroup>

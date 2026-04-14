@@ -512,8 +512,8 @@ navigation:
           - page: Emails bouncing
             icon: fa-solid fa-rotate-left
             path: pages/knowledge-base/emails-bouncing.mdx
-          - page: Email spoofing protection
-            icon: fa-solid fa-shield-halved
+          - page: Why are my emails not showing up?
+            icon: fa-solid fa-envelope-circle-check
             path: pages/knowledge-base/inbound-emails-missing.mdx
       - section: DNS Guides
         contents:
