@@ -1,0 +1,19 @@
+{
+  "name": "agentmail-docs",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Fern docs (npm install; fern on PATH). Run: npm run docs:publish",
+  "scripts": {
+    "docs:preview": "tsx bin/agentmail-docs.ts preview",
+    "docs:publish": "tsx bin/agentmail-docs.ts publish",
+    "lint": "tsc --noEmit",
+    "format": "prettier --write \"bin/**/*.ts\" package.json tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prettier": "^3.5.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
