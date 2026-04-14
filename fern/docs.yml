@@ -4,9 +4,14 @@ js: ./custom.js
 
 instances:
   - url: https://agentmail-production.docs.buildwithfern.com
-    custom-domain:
-      - docs.agentmail.to
-      - agentmail.to/docs
+    custom-domain: docs.agentmail.to
+    edit-this-page:
+      github:
+        owner: agentmail-to
+        repo: agentmail-docs
+        branch: main
+  - url: https://agentmail-production.docs.buildwithfern.com/docs
+    custom-domain: agentmail.to/docs
     edit-this-page:
       github:
         owner: agentmail-to
@@ -18,6 +23,7 @@ favicon: assets/agentmail-favicon.ico
 
 metadata:
   og:description: "AgentMail is an email API built for AI agents. Create inboxes, send and receive messages, manage threads, and handle webhooks programmatically."
+  canonical-host: agentmail.to/docs
 
 agents:
   page-directive: "For clean Markdown content of this page, append .md to this URL. For the complete documentation index, see https://docs.agentmail.to/llms.txt. For full content including API reference and SDK examples, see https://docs.agentmail.to/llms-full.txt."
