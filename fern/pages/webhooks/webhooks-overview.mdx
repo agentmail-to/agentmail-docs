@@ -1,7 +1,7 @@
 ---
 title: "Webhooks Overview"
 subtitle: "Get real-time notifications for email events."
-slug: overview
+slug: webhooks-overview
 description: "Learn how to use Webhooks to build responsive, event-driven email agents with AgentMail."
 ---
 
@@ -13,6 +13,10 @@ This event-driven approach is more efficient and allows you to build fast, respo
 
 - **Real-Time Speed:** Build conversational agents that can reply to incoming emails in seconds.
 - **Efficiency:** Eliminates the need for constant polling, which saves you computational resources and simplifies your application logic.
+
+<Callout intent="info" title="Prefer a simpler setup?">
+If you don't want to expose a public URL or set up ngrok, [WebSockets](/websockets) let you receive the same events over a persistent connection with no external tooling required.
+</Callout>
 
 ## Available Events
 
@@ -245,6 +249,9 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   </Card>
   <Card title="Verifying Webhooks" href="/webhook-verification">
     Learn how to verify webhook signatures to secure your endpoints.
+  </Card>
+  <Card title="WebSockets" href="/websockets">
+    Receive events over a persistent connection with no public URL required.
   </Card>
   <Card title="Example: Event-Driven Agent" href="/github-star-agent">
     Build a fully deployable, event-driven agent that can respond to emails in
