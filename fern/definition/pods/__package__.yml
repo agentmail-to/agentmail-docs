@@ -81,7 +81,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods retrieve --pod-id <pod_id>
+        agentmail pods get --pod-id <pod_id>
         ```
       path-parameters:
         pod_id: PodId

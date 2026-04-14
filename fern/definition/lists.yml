@@ -111,7 +111,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail lists retrieve --direction <direction> --type <type> --entry <entry>
+        agentmail lists get --direction <direction> --type <type> --entry <entry>
         ```
       path-parameters:
         entry:

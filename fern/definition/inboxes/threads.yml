@@ -46,7 +46,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:threads retrieve --inbox-id <inbox_id> --thread-id <thread_id>
+        agentmail inboxes:threads get --inbox-id <inbox_id> --thread-id <thread_id>
         ```
       path-parameters:
         thread_id: threads.ThreadId

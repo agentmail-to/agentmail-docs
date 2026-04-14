@@ -52,5 +52,11 @@ service:
       method: GET
       path: ""
       display-name: Get Organization
-      docs: Get the current organization.
+      docs: |
+        Returns the organization for the authenticated API key (usage limits, counts, and billing metadata).
+
+        **CLI:**
+        ```bash
+        agentmail organizations get
+        ```
       response: Organization

@@ -101,7 +101,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail webhooks retrieve --webhook-id <webhook_id>
+        agentmail webhooks get --webhook-id <webhook_id>
         ```
       path-parameters:
         webhook_id: WebhookId
