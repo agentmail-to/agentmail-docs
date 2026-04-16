@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  inboxes: __package__.yml
+  inbox-events: ../inbox-events.yml
+
+service:
+  url: Http
+  base-path: /inboxes/{inbox_id}/events
+  path-parameters:
+    inbox_id: inboxes.InboxId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Inbox Events
+      docs: |
+        List label change events for an inbox. Returns events in reverse chronological order by default. Use for IMAP UID projection or audit logging.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:events list --inbox-id <inbox_id>
+        ```
+      request:
+        name: ListInboxEventsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: inbox-events.ListInboxEventsResponse
+      errors:
+        - global.NotFoundError
