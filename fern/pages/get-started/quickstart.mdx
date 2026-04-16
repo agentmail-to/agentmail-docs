@@ -7,30 +7,40 @@ description: Follow this guide to make your first AgentMail API request and crea
 
 ## Quickest start
 
-```bash
-npm install -g agentmail-cli
-```
-
 Sign up your agent and get an API key in one call (no console needed):
 
 ```bash
-agentmail agent sign-up --human-email you@example.com --username my-agent
+curl -X POST https://api.agentmail.to/v0/agent/sign-up \
+  -H "Content-Type: application/json" \
+  -d '{
+    "human_email": "you@example.com",
+    "username": "my-agent"
+  }'
+# returns api_key, inbox_id, organization_id
 ```
 
 Verify with the OTP sent to your email, then send a message:
 
 ```bash
-agentmail agent verify --otp-code 123456
+curl -X POST https://api.agentmail.to/v0/agent/verify \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "otp_code": "123456" }'
 
 # create an inbox
-agentmail inboxes create
+curl -X POST https://api.agentmail.to/v0/inboxes \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json"
 
 # send an email (replace <inbox_id> with the id from above)
-agentmail inboxes:messages send \
-  --inbox-id <inbox_id> \
-  --to user@example.com \
-  --subject "Hello" \
-  --text "Hello from my agent!"
+curl -X POST https://api.agentmail.to/v0/inboxes/<inbox_id>/messages \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "user@example.com",
+    "subject": "Hello",
+    "text": "Hello from my agent!"
+  }'
 ```
 
 <Note>
