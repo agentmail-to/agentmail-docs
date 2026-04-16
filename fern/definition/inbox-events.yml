@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  inboxes: inboxes/__package__.yml
+
+types:
+  InboxEventId:
+    type: string
+    docs: ID of event.
+
+  InboxEventType:
+    enum:
+      - name: LABEL_ADDED
+        value: label_added
+      - name: LABEL_REMOVED
+        value: label_removed
+    docs: Type of inbox event.
+
+  InboxEvent:
+    properties:
+      organization_id: global.OrganizationId
+      pod_id:
+        type: string
+        docs: ID of pod.
+      inbox_id: inboxes.InboxId
+      event_id: InboxEventId
+      event_type: InboxEventType
+      message_id:
+        type: string
+        docs: ID of message.
+      label:
+        type: string
+        docs: Label added or removed.
+      event_at:
+        type: datetime
+        docs: Time at which the event occurred.
+      created_at:
+        type: datetime
+        docs: Time at which the event was recorded.
+
+  ListInboxEventsResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      events:
+        type: list<InboxEvent>
+        docs: Ordered by `event_id` descending.
