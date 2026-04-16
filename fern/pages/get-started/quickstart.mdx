@@ -7,9 +7,9 @@ description: Follow this guide to make your first AgentMail API request and crea
 
 ## Quickest start
 
-Your agent can sign up for its own inbox directly — no dashboard or console needed. Just provide a human email (one that isn't already registered with AgentMail). We'll send an OTP to that email, and once verified, the agent is mapped to that human and ready to send and receive.
+Your agent can sign up for its own inbox directly, no dashboard or console needed. Just provide a human email (one that isn't already registered with AgentMail). We'll send an OTP to that email, and once verified, the agent is mapped to that human and ready to send and receive.
 
-**1. Sign up** — the agent registers itself and gets an API key back:
+**1. Sign up:** the agent registers itself and gets an API key back.
 
 ```bash
 curl -X POST https://api.agentmail.to/v0/agent/sign-up \
@@ -21,7 +21,7 @@ curl -X POST https://api.agentmail.to/v0/agent/sign-up \
 # returns api_key, inbox_id, organization_id
 ```
 
-**2. Verify** — check the human's email for the OTP code, then paste the API key from step 1 and verify:
+**2. Verify:** check the human's email for the OTP code, then paste the API key from step 1 and verify.
 
 ```bash
 export AGENTMAIL_API_KEY="am_..."  # from the sign-up response
