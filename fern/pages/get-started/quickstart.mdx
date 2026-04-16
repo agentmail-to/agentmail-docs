@@ -14,12 +14,9 @@ Your agent can sign up for its own inbox directly, no dashboard or console neede
 Just provide your email address (or another one that is owned by you, the human). This flow is for first-time users only. Human email addresses already signed up with AgentMail will not work here. We'll send an OTP to that email, and once verified, the agent is mapped to that human and ready to send and receive.
 
 ```bash
-curl -X POST https://api.agentmail.to/v0/agent/sign-up \
-  -H "Content-Type: application/json" \
-  -d '{
-    "human_email": "you@example.com",
-    "username": "my-agent"
-  }'
+npm install -g agentmail-cli
+
+agentmail agent sign-up --human-email you@example.com --username my-agent
 # returns api_key, inbox_id, organization_id
 ```
 
@@ -28,29 +25,21 @@ curl -X POST https://api.agentmail.to/v0/agent/sign-up \
 ```bash
 export AGENTMAIL_API_KEY="am_..."  # from the sign-up response
 
-curl -X POST https://api.agentmail.to/v0/agent/verify \
-  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{ "otp_code": "123456" }'
+agentmail agent verify --otp-code 123456
 ```
 
 **3. Create an inbox and send an email:**
 
 ```bash
 # create an inbox
-curl -X POST https://api.agentmail.to/v0/inboxes \
-  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
-  -H "Content-Type: application/json"
+agentmail inboxes create
 
 # send an email (replace <inbox_id> with the id from above)
-curl -X POST https://api.agentmail.to/v0/inboxes/<inbox_id>/messages \
-  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "to": "user@example.com",
-    "subject": "Hello",
-    "text": "Hello from my agent!"
-  }'
+agentmail inboxes:messages send \
+  --inbox-id <inbox_id> \
+  --to user@example.com \
+  --subject "Hello" \
+  --text "Hello from my agent!"
 ```
 
 <Note>
