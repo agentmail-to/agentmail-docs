@@ -7,81 +7,40 @@ description: Follow this guide to make your first AgentMail API request and crea
 
 ## Quickest start
 
-<CodeBlocks>
-  ```bash title="Python"
-  pip install agentmail
-  ```
+Your agent can sign up for its own inbox directly, no dashboard or console needed.
 
-  ```bash title="TypeScript"
-  npm install agentmail
-  ```
+**1. Sign up:** the agent registers itself using the email you provide and gets an API key back.
 
-  ```bash title="CLI"
-  npm install -g agentmail-cli
-  ```
-</CodeBlocks>
+Just provide your email address (or another one that is owned by you, the human). This flow is for first-time users only. Human email addresses already signed up with AgentMail will not work here. We'll send an OTP to that email, and once verified, the agent is mapped to that human and ready to send and receive.
 
-Sign up your agent and get an API key in one call (no console needed):
+```bash
+npm install -g agentmail-cli
 
-<CodeBlocks>
-  ```python title="Python"
-  from agentmail import AgentMail
+agentmail agent sign-up --human-email you@example.com --username my-agent
+# returns api_key, inbox_id, organization_id
+```
 
-  client = AgentMail()
-  response = client.agent.sign_up(human_email="you@example.com", username="my-agent")
-  # response.api_key  -> store this securely
-  # response.inbox_id -> my-agent@agentmail.to
-  ```
+**2. Verify:** check the human's email for the OTP code, then paste the API key from step 1 and verify.
 
-  ```typescript title="TypeScript"
-  import { AgentMailClient } from "agentmail";
+```bash
+export AGENTMAIL_API_KEY="am_..."  # from the sign-up response
 
-  const client = new AgentMailClient();
-  const response = await client.agent.signUp({ humanEmail: "you@example.com", username: "my-agent" });
-  // response.apiKey  -> store this securely
-  // response.inboxId -> my-agent@agentmail.to
-  ```
+agentmail agent verify --otp-code 123456
+```
 
-  ```bash title="CLI"
-  agentmail agent sign-up --human-email you@example.com --username my-agent
-  ```
-</CodeBlocks>
+**3. Create an inbox and send an email:**
 
-Verify with the OTP sent to your email, then send a message:
+```bash
+# create an inbox
+agentmail inboxes create
 
-<CodeBlocks>
-  ```python title="Python"
-  client = AgentMail(api_key="am_...")
-  client.agent.verify(otp_code="123456")
-
-  inbox = client.inboxes.create()
-  client.inboxes.messages.send(inbox.inbox_id, to="user@example.com", subject="Hello", text="Hello from my agent!")
-  ```
-
-  ```typescript title="TypeScript"
-  import { AgentMailClient } from "agentmail";
-
-  const client = new AgentMailClient({ apiKey: "am_..." });
-  await client.agent.verify({ otpCode: "123456" });
-
-  const inbox = await client.inboxes.create();
-  await client.inboxes.messages.send(inbox.inboxId, { to: "user@example.com", subject: "Hello", text: "Hello from my agent!" });
-  ```
-
-  ```bash title="CLI"
-  agentmail agent verify --otp-code 123456
-
-  # create an inbox
-  agentmail inboxes create
-
-  # send an email (replace <inbox_id> with the id from above)
-  agentmail inboxes:messages send \
-    --inbox-id <inbox_id> \
-    --to user@example.com \
-    --subject "Hello" \
-    --text "Hello from my agent!"
-  ```
-</CodeBlocks>
+# send an email (replace <inbox_id> with the id from above)
+agentmail inboxes:messages send \
+  --inbox-id <inbox_id> \
+  --to user@example.com \
+  --subject "Hello" \
+  --text "Hello from my agent!"
+```
 
 <Note>
   Already have an account? Get your API key from the [Console](https://console.agentmail.to) and skip straight to sending emails.
