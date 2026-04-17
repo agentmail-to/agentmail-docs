@@ -122,6 +122,12 @@ You can selectively enable specific tools using the `--tools` argument:
 | `reply_to_message` | Reply to an email in a thread |
 | `forward_message` | Forward an email |
 | `update_message` | Update message labels or status |
+| `create_draft` | Create a draft email (optionally scheduled via `send_at`) |
+| `list_drafts` | List drafts in an inbox (filter by labels like `scheduled`) |
+| `get_draft` | Get a draft by ID with content and scheduled send time |
+| `update_draft` | Update a draft; use `send_at` to reschedule |
+| `send_draft` | Send a draft immediately (draft is converted to a sent message) |
+| `delete_draft` | Delete a draft; also cancels a scheduled send |
 | `list_threads` | List email threads in an inbox |
 | `get_thread` | Get a full email thread with messages |
 | `get_attachment` | Download an email attachment |
