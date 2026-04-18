@@ -7,10 +7,121 @@ description: Follow this guide to make your first AgentMail API request and crea
 
 Pick the path that matches how you're getting started:
 
-- [**Human start**](#human-start): you're a developer setting up AgentMail from the Console.
 - [**Agent start**](#agent-start): your agent signs itself up programmatically, no Console needed.
+- [**Human start**](#human-start): you're a developer setting up AgentMail from the Console.
 
 Both paths end with a working inbox that can send and receive email.
+
+## Agent start
+
+For agents that sign themselves up programmatically, no Console or dashboard needed. The agent registers itself using an email you provide and receives an API key in response. This flow is for first-time users only: human email addresses already signed up with AgentMail will not work here.
+
+<Steps>
+  <Step title="Sign up">
+    The agent registers itself using the human email you provide and gets back an API key, inbox ID, and organization ID. An OTP is sent to that email.
+    <CodeBlocks>
+      ```python title="Python"
+      from agentmail import AgentMail
+
+      client = AgentMail()
+      response = client.agent.sign_up(
+          human_email="you@example.com",
+          username="my-agent",
+      )
+      print(response.api_key)   # store this securely
+      print(response.inbox_id)  # my-agent@agentmail.to
+      ```
+
+      ```typescript title="TypeScript"
+      import { AgentMailClient } from "agentmail";
+
+      const client = new AgentMailClient();
+      const response = await client.agent.signUp({
+          humanEmail: "you@example.com",
+          username: "my-agent",
+      });
+      console.log(response.apiKey);   // store this securely
+      console.log(response.inboxId);  // my-agent@agentmail.to
+      ```
+
+      ```bash title="CLI"
+      npm install -g agentmail-cli
+
+      agentmail agent sign-up \
+        --human-email you@example.com \
+        --username my-agent
+      ```
+    </CodeBlocks>
+    <Info>
+      The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
+    </Info>
+  </Step>
+
+  <Step title="Verify with the OTP">
+    Check the human's email for a 6-digit OTP code and verify to unlock full permissions.
+    <CodeBlocks>
+      ```python title="Python"
+      client = AgentMail(api_key=response.api_key)
+      client.agent.verify(otp_code="123456")
+      ```
+
+      ```typescript title="TypeScript"
+      const authedClient = new AgentMailClient({ apiKey: response.apiKey });
+      await authedClient.agent.verify({ otpCode: "123456" });
+      ```
+
+      ```bash title="CLI"
+      export AGENTMAIL_API_KEY="am_..."  # from the sign-up response
+
+      agentmail agent verify --otp-code 123456
+      ```
+    </CodeBlocks>
+  </Step>
+
+  <Step title="Create an inbox and send an email">
+    With the API key from sign-up, the agent can create inboxes and send mail on its own.
+    <CodeBlocks>
+      ```python title="Python"
+      # create an inbox (client_id enables safe retries)
+      inbox = client.inboxes.create(client_id="my-agent-inbox-v1")
+
+      # send an email
+      client.inboxes.messages.send(
+          inbox.inbox_id,
+          to="recipient@example.com",
+          subject="Hello from AgentMail",
+          text="Plain text body",
+      )
+      ```
+
+      ```typescript title="TypeScript"
+      // create an inbox (clientId enables safe retries)
+      const inbox = await authedClient.inboxes.create({
+        clientId: "my-agent-inbox-v1",
+      });
+
+      // send an email
+      await authedClient.inboxes.messages.send(inbox.inboxId, {
+        to: "recipient@example.com",
+        subject: "Hello from AgentMail",
+        text: "Plain text body",
+      });
+      ```
+
+      ```bash title="CLI"
+      # create an inbox
+      agentmail inboxes create
+
+      # send an email (replace <inbox_id> with the id from above)
+      agentmail inboxes:messages send \
+        --inbox-id <inbox_id> \
+        --to recipient@example.com \
+        --subject "Hello" \
+        --text "Hello from my agent!"
+      ```
+    </CodeBlocks>
+  </Step>
+</Steps>
 
 ## Human start
 
@@ -144,117 +255,6 @@ For developers who want to try AgentMail from the Console.
     You should see the details of your newly created inbox printed to the
     console. Congratulations, you've successfully created your first AgentMail
     inbox!
-  </Step>
-</Steps>
-
-## Agent start
-
-For agents that sign themselves up programmatically, no Console or dashboard needed. The agent registers itself using an email you provide and receives an API key in response. This flow is for first-time users only: human email addresses already signed up with AgentMail will not work here.
-
-<Steps>
-  <Step title="Sign up">
-    The agent registers itself using the human email you provide and gets back an API key, inbox ID, and organization ID. An OTP is sent to that email.
-    <CodeBlocks>
-      ```python title="Python"
-      from agentmail import AgentMail
-
-      client = AgentMail()
-      response = client.agent.sign_up(
-          human_email="you@example.com",
-          username="my-agent",
-      )
-      print(response.api_key)   # store this securely
-      print(response.inbox_id)  # my-agent@agentmail.to
-      ```
-
-      ```typescript title="TypeScript"
-      import { AgentMailClient } from "agentmail";
-
-      const client = new AgentMailClient();
-      const response = await client.agent.signUp({
-          humanEmail: "you@example.com",
-          username: "my-agent",
-      });
-      console.log(response.apiKey);   // store this securely
-      console.log(response.inboxId);  // my-agent@agentmail.to
-      ```
-
-      ```bash title="CLI"
-      npm install -g agentmail-cli
-
-      agentmail agent sign-up \
-        --human-email you@example.com \
-        --username my-agent
-      ```
-    </CodeBlocks>
-    <Info>
-      The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
-    </Info>
-  </Step>
-
-  <Step title="Verify with the OTP">
-    Check the human's email for a 6-digit OTP code and verify to unlock full permissions.
-    <CodeBlocks>
-      ```python title="Python"
-      client = AgentMail(api_key=response.api_key)
-      client.agent.verify(otp_code="123456")
-      ```
-
-      ```typescript title="TypeScript"
-      const authedClient = new AgentMailClient({ apiKey: response.apiKey });
-      await authedClient.agent.verify({ otpCode: "123456" });
-      ```
-
-      ```bash title="CLI"
-      export AGENTMAIL_API_KEY="am_..."  # from the sign-up response
-
-      agentmail agent verify --otp-code 123456
-      ```
-    </CodeBlocks>
-  </Step>
-
-  <Step title="Create an inbox and send an email">
-    With the API key from sign-up, the agent can create inboxes and send mail on its own.
-    <CodeBlocks>
-      ```python title="Python"
-      # create an inbox (client_id enables safe retries)
-      inbox = client.inboxes.create(client_id="my-agent-inbox-v1")
-
-      # send an email
-      client.inboxes.messages.send(
-          inbox.inbox_id,
-          to="recipient@example.com",
-          subject="Hello from AgentMail",
-          text="Plain text body",
-      )
-      ```
-
-      ```typescript title="TypeScript"
-      // create an inbox (clientId enables safe retries)
-      const inbox = await authedClient.inboxes.create({
-        clientId: "my-agent-inbox-v1",
-      });
-
-      // send an email
-      await authedClient.inboxes.messages.send(inbox.inboxId, {
-        to: "recipient@example.com",
-        subject: "Hello from AgentMail",
-        text: "Plain text body",
-      });
-      ```
-
-      ```bash title="CLI"
-      # create an inbox
-      agentmail inboxes create
-
-      # send an email (replace <inbox_id> with the id from above)
-      agentmail inboxes:messages send \
-        --inbox-id <inbox_id> \
-        --to recipient@example.com \
-        --subject "Hello" \
-        --text "Hello from my agent!"
-      ```
-    </CodeBlocks>
   </Step>
 </Steps>
 
