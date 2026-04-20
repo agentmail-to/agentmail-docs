@@ -5,46 +5,226 @@ slug: quickstart
 description: Follow this guide to make your first AgentMail API request and create a new email inbox.
 ---
 
-## Quickest start
+## For Agents
 
-Your agent can sign up for its own inbox directly, no dashboard or console needed.
+For agents that sign themselves up programmatically, no Console or dashboard needed. The agent registers itself using an email you provide and receives an API key in response. This flow is for first-time users only: human email addresses already signed up with AgentMail will not work here.
 
-**1. Sign up:** the agent registers itself using the email you provide and gets an API key back.
+<Steps>
+  <Step title="Sign up">
+    The agent registers itself using the human email you provide and gets back an API key, inbox ID, and organization ID. An OTP is sent to that email.
+    <CodeBlocks>
+      ```bash title="CLI"
+      npm install -g agentmail-cli
 
-Just provide your email address (or another one that is owned by you, the human). This flow is for first-time users only. Human email addresses already signed up with AgentMail will not work here. We'll send an OTP to that email, and once verified, the agent is mapped to that human and ready to send and receive.
+      agentmail agent sign-up \
+        --human-email you@example.com \
+        --username my-agent
+      ```
 
-```bash
-npm install -g agentmail-cli
+      ```bash title="cURL"
+      curl -X POST https://api.agentmail.to/agent/sign-up \
+        -H "Content-Type: application/json" \
+        -d '{
+          "human_email": "you@example.com",
+          "username": "my-agent"
+        }'
+      # returns { api_key, inbox_id, organization_id }
+      ```
+    </CodeBlocks>
+    <Info>
+      The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
+    </Info>
+  </Step>
 
-agentmail agent sign-up --human-email you@example.com --username my-agent
-# returns api_key, inbox_id, organization_id
-```
+  <Step title="Verify with the OTP">
+    Check the human's email for a 6-digit OTP code and verify to unlock full permissions.
+    <CodeBlocks>
+      ```bash title="CLI"
+      export AGENTMAIL_API_KEY="am_..."  # from the sign-up response
 
-**2. Verify:** check the human's email for the OTP code, then paste the API key from step 1 and verify.
+      agentmail agent verify --otp-code 123456
+      ```
 
-```bash
-export AGENTMAIL_API_KEY="am_..."  # from the sign-up response
+      ```bash title="cURL"
+      curl -X POST https://api.agentmail.to/agent/verify \
+        -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{ "otp_code": "123456" }'
+      ```
+    </CodeBlocks>
+  </Step>
 
-agentmail agent verify --otp-code 123456
-```
+  <Step title="Create an inbox and send an email">
+    With the API key from sign-up, the agent can create inboxes and send mail on its own.
+    <CodeBlocks>
+      ```bash title="CLI"
+      # create an inbox
+      agentmail inboxes create
 
-**3. Create an inbox and send an email:**
+      # send an email (replace <inbox_id> with the id from above)
+      agentmail inboxes:messages send \
+        --inbox-id <inbox_id> \
+        --to recipient@example.com \
+        --subject "Hello" \
+        --text "Hello from my agent!"
+      ```
 
-```bash
-# create an inbox
-agentmail inboxes create
+      ```bash title="cURL"
+      # create an inbox (client_id enables safe retries)
+      curl -X POST https://api.agentmail.to/inboxes \
+        -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{ "client_id": "my-agent-inbox-v1" }'
+      # returns { inbox_id, ... }
 
-# send an email (replace <inbox_id> with the id from above)
-agentmail inboxes:messages send \
-  --inbox-id <inbox_id> \
-  --to user@example.com \
-  --subject "Hello" \
-  --text "Hello from my agent!"
-```
+      # send an email (replace <inbox_id> with the id from above)
+      curl -X POST https://api.agentmail.to/inboxes/<inbox_id>/messages/send \
+        -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "to": "recipient@example.com",
+          "subject": "Hello from AgentMail",
+          "text": "Plain text body"
+        }'
+      ```
+    </CodeBlocks>
+  </Step>
+</Steps>
 
-<Note>
-  Already have an account? Get your API key from the [Console](https://console.agentmail.to) and skip straight to sending emails.
-</Note>
+## For Humans
+
+For developers who want to try AgentMail from the Console.
+
+<Steps>
+  <Step title="Sign up and get an API key">
+    Go to the [AgentMail Console](https://console.agentmail.to), create an account, and generate an API key from the dashboard.
+    ![API Key Creation Screenshot](/assets/api-key-creation.png)
+  </Step>
+
+  <Step title="Store your API key">
+    Create a `.env` file in your project root and add your key:
+    ```bash
+    AGENTMAIL_API_KEY=am_...
+    ```
+    We recommend using environment variables to keep your keys secure.
+  </Step>
+
+  <Step title="Install the SDK">
+    Install the AgentMail SDK using your preferred package manager. We'll also
+    use a library to load the environment variable from the `.env` file.
+    <CodeBlocks>
+      ```bash title="Python"
+      pip install agentmail python-dotenv
+      ```
+
+      ```bash title="Node"
+      npm install agentmail dotenv
+      ```
+
+      ```bash title="CLI"
+      npm install -g agentmail-cli
+      ```
+    </CodeBlocks>
+  </Step>
+
+  <Step title="Create an inbox and send an email">
+    Create a new file (e.g., `quickstart.py` or `quickstart.ts`) and add the
+    following code. This script initializes the AgentMail client, creates a new
+    inbox, and sends a test email.
+    <CodeBlocks>
+      ```python title="Python"
+      import os
+      from dotenv import load_dotenv
+      from agentmail import AgentMail
+
+      # load the API key from the .env file
+      load_dotenv()
+      api_key = os.getenv("AGENTMAIL_API_KEY")
+
+      # initialize the client
+      client = AgentMail(api_key=api_key)
+
+      # create an inbox
+      print("Creating inbox...")
+      inbox = client.inboxes.create() # domain is optional
+      print("Inbox created successfully!")
+      print(inbox)
+
+      # send an email from the new inbox
+      client.inboxes.messages.send(
+        inbox.inbox_id,
+        to="your-email@example.com",
+        subject="Hello from AgentMail!",
+        text="This is my first email sent with the AgentMail API.",
+      )
+      ```
+
+      ```typescript title="TypeScript"
+      import { AgentMailClient } from "agentmail";
+      import "dotenv/config"; // loads .env file
+
+      async function main() {
+        // initialize the client
+        const client = new AgentMailClient({
+          apiKey: process.env.AGENTMAIL_API_KEY,
+        });
+
+        // create an inbox
+        console.log("Creating inbox...");
+        const inbox = await client.inboxes.create(); // domain is optional
+        console.log("Inbox created successfully!");
+        console.log(inbox);
+
+        // send an email from the new inbox
+        console.log("Sending email...");
+        await client.inboxes.messages.send(inbox.inboxId, {
+          to: "your-email@example.com",
+          subject: "Hello from AgentMail!",
+          text: "This is my first email sent with the AgentMail API.",
+        });
+        console.log("Email sent successfully!");
+      }
+
+      main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
+      ```
+
+      ```bash title="CLI"
+      # create an inbox
+      agentmail inboxes create
+
+      # send an email (replace <inbox_id> with the id from above)
+      agentmail inboxes:messages send \
+        --inbox-id <inbox_id> \
+        --to your-email@example.com \
+        --subject "Hello from AgentMail!" \
+        --text "This is my first email sent with the AgentMail API."
+      ```
+    </CodeBlocks>
+    <Note>
+      The `domain` parameter is optional. If not provided, AgentMail will
+      use the default `@agentmail.to` domain. If you would like a custom domain, please <a href="https://agentmail.to/pricing" target="_blank" rel="noopener noreferrer">upgrade to a paid plan</a>.
+    </Note>
+  </Step>
+
+  <Step title="Run the code">
+    Execute the script from your terminal.
+    <CodeBlocks>
+      ```bash title="Python"
+      python quickstart.py
+      ```
+
+      ```bash title="TypeScript"
+      npx ts-node quickstart.ts
+      ```
+    </CodeBlocks>
+    You should see the details of your newly created inbox printed to the
+    console. Congratulations, you've successfully created your first AgentMail
+    inbox!
+  </Step>
+</Steps>
 
 ## Copy for Cursor / Claude
 
@@ -77,10 +257,10 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
   load_dotenv()
   client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
-  # Create inbox (client_id enables safe retries)
+  # create inbox (client_id enables safe retries)
   inbox = client.inboxes.create(client_id="my-agent-inbox-v1")
 
-  # Send email
+  # send email
   try:
       client.inboxes.messages.send(
           inbox.inbox_id,
@@ -90,11 +270,11 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
           html="<p>HTML body</p>",
       )
   except Exception as e:
-      # Handle validation, not found, rate limit (429), etc.
+      # handle validation, not found, rate limit (429), etc.
       print(f"Send failed: {e}")
       raise
 
-  # Receive messages
+  # receive messages
   for msg in client.inboxes.messages.list(inbox.inbox_id, limit=10).messages:
       print(msg.subject, msg.extracted_text or msg.text)
   ```
@@ -126,7 +306,7 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
   });
 
   async function main() {
-    // Create inbox (clientId enables safe retries)
+    // create inbox (clientId enables safe retries)
     const inbox = await client.inboxes.create({
       clientId: "my-agent-inbox-v1",
     });
@@ -139,12 +319,12 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
         html: "<p>HTML body</p>",
       });
     } catch (error: unknown) {
-      // Handle validation, not found, rate limit (429), etc.
+      // handle validation, not found, rate limit (429), etc.
       const msg = (error as { body?: { message?: string } })?.body?.message ?? String(error);
       throw new Error(`Send failed: ${msg}`);
     }
 
-    // Receive messages
+    // receive messages
     const res = await client.inboxes.messages.list(inbox.inboxId, { limit: 10 });
     for (const msg of res.messages) {
       console.log(msg.subject, msg.extractedText ?? msg.text);
@@ -159,205 +339,6 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
   When receiving emails, messages include `extracted_text` and `extracted_html`
   for reply content without quoted history.
 </Tip>
-
-This guide walks you through signing up, authenticating, and creating your first email inbox.
-
-<Steps>
-  <Step title="Sign up and get an API key">
-    You have two options to get an API key:
-
-    **Option A: Agent sign-up (programmatic)**
-
-    Use the Agent API to create an account and get an API key without leaving your terminal. No console access needed.
-    <CodeBlocks>
-      ```python title="Python"
-      from agentmail import AgentMail
-
-      client = AgentMail()
-      response = client.agent.sign_up(
-          human_email="you@example.com",
-          username="my-agent"
-      )
-      print(response.api_key)   # store this securely
-      print(response.inbox_id)  # my-agent@agentmail.to
-      ```
-
-      ```typescript title="TypeScript"
-      import { AgentMailClient } from "agentmail";
-
-      const client = new AgentMailClient();
-      const response = await client.agent.signUp({
-          humanEmail: "you@example.com",
-          username: "my-agent",
-      });
-      console.log(response.apiKey);   // store this securely
-      console.log(response.inboxId);  // my-agent@agentmail.to
-      ```
-
-      ```bash title="CLI"
-      agentmail agent sign-up \
-        --human-email you@example.com \
-        --username my-agent
-      ```
-    </CodeBlocks>
-
-    A 6-digit OTP is sent to the provided email. Verify to unlock full permissions:
-    <CodeBlocks>
-      ```python title="Python"
-      client = AgentMail(api_key=response.api_key)
-      client.agent.verify(otp_code="123456")
-      ```
-
-      ```typescript title="TypeScript"
-      const authedClient = new AgentMailClient({ apiKey: response.apiKey });
-      await authedClient.agent.verify({ otpCode: "123456" });
-      ```
-
-      ```bash title="CLI"
-      agentmail agent verify --otp-code 123456
-      ```
-    </CodeBlocks>
-
-    <Info>
-      The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
-    </Info>
-
-    **Option B: Console (manual)**
-
-    Go to the [AgentMail Console](https://console.agentmail.to), create an account, and generate an API key from the dashboard.
-    ![API Key Creation Screenshot](/assets/api-key-creation.png)
-  </Step>
-
-  <Step title="Store your API key">
-    Create a `.env` file in your project root and add your key:
-    ```bash
-    AGENTMAIL_API_KEY=am_...
-    ```
-    We recommend using environment variables to keep your keys secure.
-  </Step>
-
-  <Step title="Install the SDK">
-    Install the AgentMail SDK using your preferred package manager. We'll also
-    use a library to load the environment variable from the `.env` file.
-    <CodeBlocks>
-      ```bash title="Python"
-      pip install agentmail python-dotenv
-      ```
-
-      ```bash title="Node"
-      npm install agentmail dotenv
-      ```
-
-      ```bash title="CLI"
-      npm install -g agentmail-cli
-      ```
-    </CodeBlocks>
-
-  </Step>
-
-  <Step title="Create an inbox and send an email">
-    Now you're ready to make your first API call. Create a new file (e.g.,
-    `quickstart.py` or `quickstart.ts`) and add the following code. This script
-    will initialize the AgentMail client, create a new inbox, and then send a
-    test email.
-    <CodeBlocks>
-      ```python title="Python"
-      import os
-      from dotenv import load_dotenv
-      from agentmail import AgentMail
-
-      # Load the API key from the .env file
-      load_dotenv()
-      api_key = os.getenv("AGENTMAIL_API_KEY")
-
-      # Initialize the client
-      client = AgentMail(api_key=api_key)
-
-      # Create an inbox
-      print("Creating inbox...")
-      inbox = client.inboxes.create() # domain is optional
-      print("Inbox created successfully!")
-      print(inbox)
-
-      # Send Email
-
-      client.inboxes.messages.send(
-        inbox.inbox_id,
-        to="your-email@example.com",
-        subject="Hello from AgentMail!",
-        text="This is my first email sent with the AgentMail API.",
-      )
-
-      ```
-
-      ```typescript title="TypeScript"
-      import { AgentMailClient } from "agentmail";
-      import "dotenv/config"; // loads .env file
-
-      async function main() {
-        // Initialize the client
-        const client = new AgentMailClient({
-          apiKey: process.env.AGENTMAIL_API_KEY,
-        });
-
-        // Create an inbox
-        console.log("Creating inbox...");
-        const inbox = await client.inboxes.create(); // domain is optional
-        console.log("Inbox created successfully!");
-        console.log(inbox);
-
-        // Send an email from the new inbox
-        console.log("Sending email...");
-        await client.inboxes.messages.send(inbox.inboxId, {
-          to: "your-email@example.com",
-          subject: "Hello from AgentMail!",
-          text: "This is my first email sent with the AgentMail API.",
-        });
-        console.log("Email sent successfully!");
-      }
-
-      main().catch((error) => {
-        console.error(error);
-        process.exit(1);
-      });
-      ```
-
-      ```bash title="CLI"
-      # create an inbox
-      agentmail inboxes create
-
-      # send an email (replace <inbox_id> with the id from above)
-      agentmail inboxes:messages send \
-        --inbox-id <inbox_id> \
-        --to your-email@example.com \
-        --subject "Hello from AgentMail!" \
-        --text "This is my first email sent with the AgentMail API."
-      ```
-    </CodeBlocks>
-    <Note>
-      The `domain` parameter is optional. If not provided, AgentMail will
-      use the default `@agentmail.to` domain. If you would like a custom domain, please <a href="https://agentmail.to/pricing" target="_blank" rel="noopener noreferrer">upgrade to a paid plan</a>.
-    </Note>
-
-  </Step>
-
-  <Step title="Run the code">
-    Execute the script from your terminal.
-    <CodeBlocks>
-      ```bash title="Python"
-      python quickstart.py
-      ```
-
-      ```bash title="TypeScript"
-      npx ts-node quickstart.ts
-      ```
-    </CodeBlocks>
-    You should see the details of your newly created inbox printed to the
-    console. Congratulations, you've successfully created your first AgentMail
-    inbox!
-
-  </Step>
-</Steps>
 
 ## Next Steps
 
