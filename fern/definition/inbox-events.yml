@@ -12,10 +12,16 @@ types:
   InboxEventType:
     enum:
       - name: LABEL_ADDED
-        value: label_added
+        value: label.added
       - name: LABEL_REMOVED
-        value: label_removed
-    docs: Type of inbox event.
+        value: label.removed
+    docs: |
+      Type of inbox event. Wire format is dot.case to match the
+      convention used by webhook events (`message.received`,
+      `domain.verified`, etc. in events.yml). Pre-2026-04 these were
+      `label_added`/`label_removed` (snake_case). The Fern enum's `name`
+      field stays uppercase-snake (Fern convention); only the wire
+      `value` changed.
 
   InboxEvent:
     properties:
