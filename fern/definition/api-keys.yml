@@ -21,7 +21,13 @@ types:
     docs: Time at which api key was created.
 
   ApiKeyPermissions:
-    docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.
+    docs: |
+      Granular permissions for an API key. Each field is an independent
+      boolean grant — only fields set to `true` are granted. A caller cannot
+      grant a permission they do not themselves hold; per-field escalation is
+      rejected with 403. See the `permissions` field on `Create API Key` and
+      `Update API Key` for how `null`, omitted, and populated values are
+      interpreted on each endpoint.
     properties:
       inbox_read:
         type: optional<boolean>
@@ -35,12 +41,6 @@ types:
       inbox_delete:
         type: optional<boolean>
         docs: Delete inboxes.
-      thread_read:
-        type: optional<boolean>
-        docs: Read threads.
-      thread_delete:
-        type: optional<boolean>
-        docs: Delete threads.
       message_read:
         type: optional<boolean>
         docs: Read messages.
@@ -50,6 +50,9 @@ types:
       message_update:
         type: optional<boolean>
         docs: Update message labels.
+      message_delete:
+        type: optional<boolean>
+        docs: Delete messages.
       label_spam_read:
         type: optional<boolean>
         docs: Access messages labeled spam.
@@ -177,12 +180,40 @@ types:
   CreateApiKeyRequest:
     properties:
       name: Name
-      permissions: optional<ApiKeyPermissions>
+      permissions:
+        type: optional<ApiKeyPermissions>
+        docs: |
+          Permissions for the new key. Behavior depends on the value:
+          - Omitted: the new key inherits the creator's permissions
+            (unrestricted creators get an unrestricted child; restricted
+            creators get a child with their own granular permissions).
+          - `null`: makes the new key unrestricted. Only allowed when the
+            creator is themselves unrestricted; restricted creators sending
+            `null` get a 403.
+          - Populated object: grants the listed `true` fields, intersected
+            with the creator's own permissions. Per-field escalation
+            (granting a permission the creator doesn't hold) is rejected
+            with 403.
 
   UpdateApiKeyRequest:
+    docs: At least one of `name` or `permissions` must be provided.
     properties:
       name: optional<Name>
-      permissions: optional<ApiKeyPermissions>
+      permissions:
+        type: optional<ApiKeyPermissions>
+        docs: |
+          Permissions to apply. Behavior depends on the value:
+          - Omitted: the key's permissions are unchanged.
+          - `null`: clears all restrictions and makes the key unrestricted.
+            Only allowed when the caller is themselves unrestricted;
+            restricted callers sending `null` get a 403. The same gate
+            applies when the target key is currently unrestricted and the
+            caller tries to make it restricted — only unrestricted callers
+            can flip a key between restricted and unrestricted.
+          - Populated object: merged with the stored permissions — fields
+            not mentioned are preserved, mentioned fields overwrite.
+            Per-field escalation (granting a permission the caller doesn't
+            hold) is rejected with 403.
 
 service:
   url: Http
@@ -210,6 +241,7 @@ service:
       response: CreateApiKeyResponse
       errors:
         - global.ValidationError
+        - ForbiddenError
 
     update:
       method: PATCH
@@ -222,6 +254,7 @@ service:
       errors:
         - global.NotFoundError
         - global.ValidationError
+        - ForbiddenError
 
     delete:
       method: DELETE
@@ -231,3 +264,8 @@ service:
         api_key_id: ApiKeyId
       errors:
         - global.NotFoundError
+
+errors:
+  ForbiddenError:
+    status-code: 403
+    type: global.ErrorResponse
