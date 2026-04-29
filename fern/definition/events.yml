@@ -15,6 +15,8 @@ types:
         value: message.received.spam
       - name: MESSAGE_RECEIVED_BLOCKED
         value: message.received.blocked
+      - name: MESSAGE_RECEIVED_UNAUTHENTICATED
+        value: message.received.unauthenticated
       - name: MESSAGE_SENT
         value: message.sent
       - name: MESSAGE_DELIVERED
@@ -31,6 +33,17 @@ types:
   EventTypes:
     type: list<EventType>
     docs: Event types for which to send events.
+
+  MessageReceivedEventType:
+    enum:
+      - name: MESSAGE_RECEIVED
+        value: message.received
+      - name: MESSAGE_RECEIVED_SPAM
+        value: message.received.spam
+      - name: MESSAGE_RECEIVED_BLOCKED
+        value: message.received.blocked
+      - name: MESSAGE_RECEIVED_UNAUTHENTICATED
+        value: message.received.unauthenticated
 
   PodIds:
     type: list<string>
@@ -120,27 +133,10 @@ types:
         docs: Reject reason.
 
   MessageReceivedEvent:
+    docs: A message was received. Spam, blocked, and unauthenticated received-message events use the same payload shape with different `event_type` values.
     properties:
       type: literal<"event">
-      event_type: literal<"message.received">
-      event_id: EventId
-      message: messages.Message
-      thread: threads.ThreadItem
-
-  MessageReceivedSpamEvent:
-    docs: A message was received and classified as spam. Requires `label_spam_read` permission.
-    properties:
-      type: literal<"event">
-      event_type: literal<"message.received.spam">
-      event_id: EventId
-      message: messages.Message
-      thread: threads.ThreadItem
-
-  MessageReceivedBlockedEvent:
-    docs: A message was received and matched a block list entry. Requires `label_blocked_read` permission.
-    properties:
-      type: literal<"event">
-      event_type: literal<"message.received.blocked">
+      event_type: MessageReceivedEventType
       event_id: EventId
       message: messages.Message
       thread: threads.ThreadItem

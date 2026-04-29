@@ -1,44 +1,43 @@
 ---
 title: "Why are my emails not showing up?"
-subtitle: The most common reason inbound emails go missing is that the sender's domain isn't authenticated.
+subtitle: The most common reason inbound emails go missing is that the sender's domain failed authentication.
 slug: knowledge-base/inbound-emails-missing
 ---
 
 <Warning>
-**The sender's domain must have SPF or DKIM configured.** To reduce spoofing and phishing, AgentMail now drops inbound emails when the sender's domain has neither SPF nor DKIM set up. If a sender reports that their email never arrived, this is the most likely cause — once they configure SPF/DKIM on their domain, their emails will start landing in your inbox again.
+**Inbound emails are checked for SPF, DKIM, and DMARC authentication.** AgentMail drops emails when authentication headers are present and explicitly fail. If authentication headers are missing, AgentMail still processes the email and labels it `unauthenticated`.
 </Warning>
 
-AgentMail verifies every inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails that fail any of these checks are dropped to prevent spoofing, phishing, and spam from reaching your agents.
+AgentMail verifies inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails with authentication headers that explicitly fail are dropped to prevent spoofing, phishing, and spam from reaching your agents.
 
 This is the same standard enforced by Gmail, Outlook, Yahoo, and other major email providers.
 
 ## How inbound authentication works
 
-When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts provided by the receiving mail server. To be delivered, an email must meet **all** of the following conditions:
+When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts provided by the receiving mail server. To be delivered as authenticated, an email must meet **all** of the following conditions:
 
 - Neither SPF nor DKIM returns a `FAIL` verdict
-- At least one of SPF or DKIM is configured (not both `GRAY`)
 - DMARC does not return `FAIL` (unless the sender's DMARC policy is `none`)
 - The message passes virus scanning
 
-If any check fails, the email is dropped.
+If authentication headers are present and any check fails, the email is dropped. If authentication headers are missing, the email is delivered with the `unauthenticated` label because some legitimate senders do not include those headers.
 
 | Scenario | SPF | DKIM | Result |
 | --- | --- | --- | --- |
 | Both pass | PASS | PASS | Delivered |
 | One passes, other unconfigured | PASS | GRAY | Delivered |
 | One passes, other unconfigured | GRAY | PASS | Delivered |
-| Neither configured | GRAY | GRAY | Dropped |
+| Authentication headers missing | GRAY | GRAY | Delivered as `unauthenticated` |
 | Either explicitly fails | FAIL | any | Dropped |
 | Either explicitly fails | any | FAIL | Dropped |
 
 <Warning>
-Emails dropped due to failed authentication are **silently rejected**. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. The sender gets no bounce-back or error notification.
+Emails dropped due to failed authentication are rejected without a bounce-back to the sender. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. To monitor emails with missing authentication headers, subscribe to the `message.received.unauthenticated` webhook or WebSocket event.
 </Warning>
 
 ## Why this matters
 
-Without these checks, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address, while DMARC ties those results to the domain's published policy. Dropping unauthenticated emails protects your agents from:
+Without these checks, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address, while DMARC ties those results to the domain's published policy. Dropping emails that explicitly fail authentication protects your agents from:
 
 - **Spoofing:** forged sender addresses impersonating trusted contacts
 - **Phishing:** malicious emails designed to trick your agent into taking harmful actions
@@ -46,7 +45,7 @@ Without these checks, anyone could send emails claiming to be from any domain. S
 
 ## Diagnosing missing emails
 
-If a sender reports that their email never arrived, check whether their domain has SPF and DKIM records configured:
+If a sender reports that their email never arrived, check whether their domain's authentication records are configured correctly:
 
 ```bash
 # check for SPF record
@@ -58,11 +57,11 @@ For DKIM, use [MXToolbox DKIM Lookup](https://mxtoolbox.com/dkim.aspx) or a simi
 
 You can also use [MXToolbox SPF Lookup](https://mxtoolbox.com/spf.aspx) to verify SPF records online.
 
-If the domain has neither an SPF record nor a DKIM record, that is the cause. Emails from that domain will be dropped by AgentMail and likely by other providers as well.
+If the sender's authentication headers are missing, AgentMail will still process the email and mark it `unauthenticated`. If those headers are present but fail, the email is dropped by AgentMail and may be rejected by other providers as well.
 
 ## What to tell the sender
 
-The sender needs to configure SPF and/or DKIM on their domain's DNS. This is not something you can fix on the AgentMail side, as the records must be set up by the domain owner.
+The sender should configure SPF and/or DKIM on their domain's DNS and make sure their mail provider includes authentication headers. This is not something you can fix on the AgentMail side, as the records and headers must be set up by the domain owner or their email provider.
 
 - Add an SPF record to authorize their mail server (e.g., `v=spf1 include:_spf.google.com ~all` for Google Workspace)
 - Enable DKIM signing through their email provider's admin console

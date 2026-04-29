@@ -20,12 +20,13 @@ If you don't want to expose a public URL or set up ngrok, [WebSockets](/websocke
 
 ## Available Events
 
-AgentMail supports nine webhook event types. When creating a webhook, you can subscribe to specific events or receive all of them. See [Webhook Events](/events) for full payload details.
+AgentMail supports ten webhook event types. When creating a webhook, you can subscribe to specific events or receive all standard events. See [Webhook Events](/events) for full payload details.
 
 **Message events:**
 - **`message.received`** — New email received and processed in one of your inboxes
 - **`message.received.spam`** — A message was received and classified as spam (requires `label_spam_read` permission)
 - **`message.received.blocked`** — A message was received and matched a block list entry (requires `label_blocked_read` permission)
+- **`message.received.unauthenticated`** — A message was received without authentication headers, so AgentMail could not verify whether it was authenticated
 - **`message.sent`** — Message successfully sent from your inbox
 - **`message.delivered`** — Delivery confirmed by the recipient's mail server
 - **`message.bounced`** — Message failed to deliver and bounced back
@@ -36,7 +37,7 @@ AgentMail supports nine webhook event types. When creating a webhook, you can su
 - **`domain.verified`** — Custom domain successfully verified
 
 <Callout intent="info">
-  Spam and blocked events are excluded by default. To receive them, explicitly include `message.received.spam` or `message.received.blocked` in the `event_types` list when creating a webhook. Messages with these labels are no longer sent as `message.received`.
+  Spam, blocked, and unauthenticated events are excluded by default. To receive them, explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in the `event_types` list when creating a webhook. These messages are no longer sent as `message.received`.
 </Callout>
 
 ## The Webhook Workflow
@@ -71,7 +72,7 @@ The process is straightforward:
           --event-type message.sent
         ```
         </CodeBlocks>
-        Specify which events to receive; omit `event_types` to subscribe to all standard event types. Spam and blocked events must always be explicitly included.
+        Specify which events to receive; omit `event_types` to subscribe to all standard event types. Spam, blocked, and unauthenticated events must always be explicitly included.
     </Step>
     <Step title="3. AgentMail Sends Events">
         When an event occurs (e.g. a new message is received, a message is delivered, or a domain is verified), AgentMail sends a `POST` request with a JSON payload to your registered URL.
@@ -190,9 +191,9 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?)
   - webhooks.delete(webhook_id)
 
-  Events: message.received, message.received.spam, message.received.blocked, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+  Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
-  Note: message.received.spam and message.received.blocked are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions.
+  Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
   """
   import os
   from dotenv import load_dotenv
@@ -219,8 +220,8 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds? })
    * - webhooks.delete(webhookId)
    *
-   * Events: message.received, message.received.spam, message.received.blocked, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
-   * Note: message.received.spam and message.received.blocked are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions.
+   * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+   * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
    * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
    */
   import { AgentMailClient } from "agentmail";

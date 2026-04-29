@@ -231,10 +231,15 @@ Subscribe(
     event_types=["message.received", "message.sent"]
 )
 
-# Subscribe to spam and blocked events (requires label_spam_read / label_blocked_read permissions)
+# Subscribe to filtered inbound events
 Subscribe(
     inbox_ids=["agent@agentmail.to"],
-    event_types=["message.received", "message.received.spam", "message.received.blocked"]
+    event_types=[
+        "message.received",
+        "message.received.spam",
+        "message.received.blocked",
+        "message.received.unauthenticated",
+    ]
 )
 ```
 
@@ -259,16 +264,21 @@ socket.sendSubscribe({
   eventTypes: ["message.received", "message.sent"],
 });
 
-// Subscribe to spam and blocked events (requires label_spam_read / label_blocked_read permissions)
+// Subscribe to filtered inbound events
 socket.sendSubscribe({
   type: "subscribe",
   inboxIds: ["agent@agentmail.to"],
-  eventTypes: ["message.received", "message.received.spam", "message.received.blocked"],
+  eventTypes: [
+    "message.received",
+    "message.received.spam",
+    "message.received.blocked",
+    "message.received.unauthenticated",
+  ],
 });
 ```
 
 <Callout intent="info">
-  By default (when no `event_types` are specified), spam and blocked events are excluded from the subscription. To receive spam events, explicitly include `message.received.spam` in `event_types` and ensure the API key has the `label_spam_read` permission. The same applies to `message.received.blocked` with the `label_blocked_read` permission.
+  By default (when no `event_types` are specified), spam, blocked, and unauthenticated events are excluded from the subscription. To receive them, explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in `event_types`. Spam and blocked events also require the `label_spam_read` or `label_blocked_read` permission.
 </Callout>
 
 ---
@@ -285,9 +295,7 @@ socket.sendSubscribe({
 
 | Event | Python | TypeScript | Description |
 |-------|--------|------------|-------------|
-| `message_received` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | New email received |
-| `message_received_spam` | `MessageReceivedSpamEvent` | `AgentMail.MessageReceivedSpamEvent` | Email received, classified as spam |
-| `message_received_blocked` | `MessageReceivedBlockedEvent` | `AgentMail.MessageReceivedBlockedEvent` | Email received, matched a block list entry |
+| `message_received` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | Email received. Check `event_type` for `message.received`, `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` |
 | `message_sent` | `MessageSentEvent` | `AgentMail.MessageSentEvent` | Email was sent |
 | `message_delivered` | `MessageDeliveredEvent` | `AgentMail.MessageDeliveredEvent` | Email was delivered |
 | `message_bounced` | `MessageBouncedEvent` | `AgentMail.MessageBouncedEvent` | Email bounced |
@@ -402,8 +410,8 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
   Sync: with client.websockets.connect() as socket: socket.send_subscribe(Subscribe(inbox_ids=[...])); for event in socket: ...
   Async: async with client.websockets.connect() as socket: await socket.send_subscribe(...); async for event in socket: ...
   Subscribe(inbox_ids=[...], pod_ids=[...], event_types=[...])
-  Event types: Subscribed, MessageReceivedEvent, MessageReceivedSpamEvent, MessageReceivedBlockedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent
-  Spam/blocked events require explicit opt-in via event_types and label_spam_read / label_blocked_read permissions.
+  Event types: Subscribed, MessageReceivedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent
+  Spam, blocked, and unauthenticated events require explicit opt-in via event_types. Spam and blocked events require label_spam_read / label_blocked_read permissions.
   """
   from agentmail import AgentMail, Subscribe, Subscribed, MessageReceivedEvent
 

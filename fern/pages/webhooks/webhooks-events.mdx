@@ -20,7 +20,7 @@ All webhook payloads follow the same basic structure:
 
 ## Parsing events with SDKs
 
-The AgentMail SDKs export typed classes for each webhook event, so you can parse raw payloads into fully typed objects.
+The AgentMail SDKs export typed classes for each webhook payload shape, so you can parse raw payloads into fully typed objects.
 
 <CodeBlocks>
 ```typescript title="TypeScript"
@@ -28,8 +28,14 @@ import { serialization } from "agentmail";
 
 async function handleWebhook(payload: Record<string, unknown>) {
   const eventType = payload.event_type;
+  const receivedEventTypes = [
+    "message.received",
+    "message.received.spam",
+    "message.received.blocked",
+    "message.received.unauthenticated",
+  ];
 
-  if (eventType === "message.received") {
+  if (receivedEventTypes.includes(String(eventType))) {
     const event = await serialization.events.MessageReceivedEvent.parse(payload);
     // access typed fields
     console.log(event.message.subject);
@@ -49,12 +55,6 @@ async function handleWebhook(payload: Record<string, unknown>) {
   } else if (eventType === "message.rejected") {
     const event = await serialization.events.MessageRejectedEvent.parse(payload);
     console.log(event.reject.reason);
-  } else if (eventType === "message.received.spam") {
-    const event = await serialization.events.MessageReceivedSpamEvent.parse(payload);
-    console.log(event.message.subject);
-  } else if (eventType === "message.received.blocked") {
-    const event = await serialization.events.MessageReceivedBlockedEvent.parse(payload);
-    console.log(event.message.subject);
   } else if (eventType === "domain.verified") {
     const event = await serialization.events.DomainVerifiedEvent.parse(payload);
     console.log(event.domain.status);
@@ -64,8 +64,6 @@ async function handleWebhook(payload: Record<string, unknown>) {
 ```python title="Python"
 from agentmail import (
     MessageReceivedEvent,
-    MessageReceivedSpamEvent,
-    MessageReceivedBlockedEvent,
     MessageSentEvent,
     MessageBouncedEvent,
     MessageDeliveredEvent,
@@ -76,8 +74,14 @@ from agentmail import (
 
 def handle_webhook(payload: dict):
     event_type = payload.get("event_type")
+    received_event_types = {
+        "message.received",
+        "message.received.spam",
+        "message.received.blocked",
+        "message.received.unauthenticated",
+    }
 
-    if event_type == "message.received":
+    if event_type in received_event_types:
         event = MessageReceivedEvent(**payload)
         # access typed fields
         print(event.message.subject)
@@ -97,12 +101,6 @@ def handle_webhook(payload: dict):
     elif event_type == "message.rejected":
         event = MessageRejectedEvent(**payload)
         print(event.reject.reason)
-    elif event_type == "message.received.spam":
-        event = MessageReceivedSpamEvent(**payload)
-        print(event.message.subject)
-    elif event_type == "message.received.blocked":
-        event = MessageReceivedBlockedEvent(**payload)
-        print(event.message.subject)
     elif event_type == "domain.verified":
         event = DomainVerifiedEvent(**payload)
         print(event.domain.status)
@@ -118,28 +116,27 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   """
   AgentMail Webhook Events — copy into Cursor/Claude.
 
-  Parse typed events: MessageReceivedEvent (message.received), MessageReceivedSpamEvent (message.received.spam), MessageReceivedBlockedEvent (message.received.blocked),
+  Parse typed events: MessageReceivedEvent (message.received, message.received.spam, message.received.blocked, message.received.unauthenticated),
   MessageSentEvent (send), MessageBouncedEvent (bounce), MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint),
   MessageRejectedEvent (reject), DomainVerifiedEvent (domain).
   Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
   Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
+  message.received.unauthenticated must be explicitly included in event_types.
   """
   from agentmail import (
-    MessageReceivedEvent, MessageReceivedSpamEvent, MessageReceivedBlockedEvent,
+    MessageReceivedEvent,
     MessageSentEvent, MessageBouncedEvent,
     MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent,
   )
 
   def handle(payload: dict):
     t = payload.get("event_type")
-    if t == "message.received": e = MessageReceivedEvent(**payload); print(e.message.subject, e.thread.message_count)
+    if t in {"message.received", "message.received.spam", "message.received.blocked", "message.received.unauthenticated"}: e = MessageReceivedEvent(**payload); print(e.message.subject, e.thread.message_count)
     elif t == "message.sent": e = MessageSentEvent(**payload); print(e.send.recipients)
     elif t == "message.bounced": e = MessageBouncedEvent(**payload); print(e.bounce.type)
     elif t == "message.delivered": e = MessageDeliveredEvent(**payload)
     elif t == "message.complained": e = MessageComplainedEvent(**payload)
     elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
-    elif t == "message.received.spam": e = MessageReceivedSpamEvent(**payload); print(e.message.subject)
-    elif t == "message.received.blocked": e = MessageReceivedBlockedEvent(**payload); print(e.message.subject)
     elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
   ```
 
@@ -148,15 +145,22 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
    * AgentMail Webhook Events — copy into Cursor/Claude.
    *
    * Parse with serialization.events.<EventType>.parse(payload).
-   * message.received → MessageReceivedEvent, message.received.spam → MessageReceivedSpamEvent, message.received.blocked → MessageReceivedBlockedEvent.
+   * message.received, message.received.spam, message.received.blocked, message.received.unauthenticated → MessageReceivedEvent.
    * Only message.received* has message+thread; others have send/delivery/bounce/complaint/reject/domain.
    * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
+   * message.received.unauthenticated must be explicitly included in eventTypes.
    */
   import { serialization } from "agentmail";
 
   async function handle(payload: Record<string, unknown>) {
     const t = payload.event_type;
-    if (t === "message.received") {
+    const receivedEventTypes = [
+      "message.received",
+      "message.received.spam",
+      "message.received.blocked",
+      "message.received.unauthenticated",
+    ];
+    if (receivedEventTypes.includes(String(t))) {
       const e = await serialization.events.MessageReceivedEvent.parse(payload);
       console.log(e.message.subject, e.thread.messageCount);
     } else if (t === "message.sent") {
@@ -174,12 +178,6 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     } else if (t === "message.rejected") {
       const e = await serialization.events.MessageRejectedEvent.parse(payload);
       console.log(e.reject);
-    } else if (t === "message.received.spam") {
-      const e = await serialization.events.MessageReceivedSpamEvent.parse(payload);
-      console.log(e.message.subject);
-    } else if (t === "message.received.blocked") {
-      const e = await serialization.events.MessageReceivedBlockedEvent.parse(payload);
-      console.log(e.message.subject);
     } else if (t === "domain.verified") {
       const e = await serialization.events.DomainVerifiedEvent.parse(payload);
       console.log(e.domain);
@@ -196,9 +194,10 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 - **Example use-case:** Kick off a internal workflow when a customer complaint email hits the support inbox
 
 <Callout>
-  Something here to notice is message.received is the only webhook event that
-  includes both the metadata on the `Thread` and the `Message` in the payload.
-  Other event types send only metadata on the event. Let us know if you need
+  Something here to notice is `message.received` and its filtered variants are
+  the only webhook events that include both the metadata on the `Thread` and the
+  `Message` in the payload. Other event types send only metadata on the event.
+  Let us know if you need
   metadata on other event types by emailing `support@agentmail.cc`
 </Callout>
 
@@ -341,6 +340,52 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     "subject": "Blocked message",
     "preview": "This message was blocked...",
     "last_message_id": "<blocked456@example.com>",
+    "message_count": 1,
+    "size": 512,
+    "updated_at": "2023-10-27T10:00:00Z",
+    "created_at": "2023-10-27T10:00:00Z"
+  }
+}
+```
+</CodeGroup>
+
+### `message.received.unauthenticated`
+
+- **Description:** Triggered when a new email is received without authentication headers, so AgentMail cannot verify whether it is authenticated. These messages are processed and labeled `unauthenticated` because legitimate senders may omit the headers; messages with authentication headers that explicitly fail are dropped.
+- **Example use-case:** Monitor senders whose messages are missing authentication headers so you can decide whether to trust them or ask them to improve their email setup.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.received.unauthenticated",
+  "event_id": "evt_unauth789",
+  "message": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "<unauth789@example.com>",
+    "labels": ["unauthenticated"],
+    "timestamp": "2023-10-27T10:00:00Z",
+    "from": "sender@example.com",
+    "to": ["agent@agentmail.to"],
+    "subject": "Unauthenticated message",
+    "preview": "This message is missing authentication headers...",
+    "text": "Full unauthenticated message body.",
+    "html": "<html>...</html>",
+    "size": 512,
+    "updated_at": "2023-10-27T10:00:00Z",
+    "created_at": "2023-10-27T10:00:00Z"
+  },
+  "thread": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "labels": ["unauthenticated"],
+    "timestamp": "2023-10-27T10:00:00Z",
+    "senders": ["sender@example.com"],
+    "recipients": ["agent@agentmail.to"],
+    "subject": "Unauthenticated message",
+    "preview": "This message is missing authentication headers...",
+    "last_message_id": "<unauth789@example.com>",
     "message_count": 1,
     "size": 512,
     "updated_at": "2023-10-27T10:00:00Z",
@@ -540,7 +585,7 @@ When creating a webhook, you can specify which events to subscribe to. This allo
 For example, if you only need to trigger workflows on incoming messages, you can subscribe to just `message.received`. If you're building a delivery tracking system, you might subscribe to `message.sent`, `message.delivered`, and `message.bounced`.
 
 <Callout intent="info">
-  By default, spam and blocked events are **not** delivered. To receive them, you must explicitly include `message.received.spam` or `message.received.blocked` in the `event_types` list when creating your webhook. The API key must also have the corresponding `label_spam_read` or `label_blocked_read` permission.
+  By default, spam, blocked, and unauthenticated events are **not** delivered. To receive them, you must explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in the `event_types` list when creating your webhook. The API key must also have the corresponding `label_spam_read` or `label_blocked_read` permission for spam and blocked events.
 </Callout>
 
 If you have any specific webhook notifications you would like, please ping us in the `#feature-requests` channel in the [Discord](https://discord.gg/hTYatWYWBc)
