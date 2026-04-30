@@ -41,7 +41,7 @@ ai-examples:
 
 logo:
   dark: assets/logos/agentmail-logo-landscape.png
-  light: assets/logos/agentmail-logo-landscape-light.png
+  light: assets/logos/agentmail-logo-landscape-light.svg
   height: 30
 
 colors:
