@@ -40,6 +40,7 @@ ai-examples:
   style: "inbox_ids are email addresses and message_ids are RFC 822 IDs wrapped in angle brackets. All other IDs are UUIDs."
 
 logo:
+  light: assets/logos/agentmail-logo-landscape-light.png
   dark: assets/logos/agentmail-logo-landscape.png
   height: 30
 
