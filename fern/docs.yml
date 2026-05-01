@@ -496,6 +496,9 @@ navigation:
           - page: MX record conflicts
             icon: fa-solid fa-code-merge
             path: pages/knowledge-base/mx-record-conflicts.mdx
+          # - page: Warming up your inbox
+          #   icon: fa-solid fa-fire
+          #   path: pages/knowledge-base/warming-up-your-inbox.mdx
       - section: Troubleshooting
         contents:
           - page: API 403 error

@@ -1,0 +1,143 @@
+---
+title: "Warming up your inbox"
+subtitle: Connect AgentMail inboxes to third-party warm-up tools before running cold outbound.
+slug: knowledge-base/warming-up-your-inbox
+---
+
+Inbox warm-up is the process of gradually sending and receiving emails on a new inbox to build sender reputation with mailbox providers like Gmail, Outlook, and Yahoo. Warm-up tools simulate real engagement (opens, replies, moves out of spam) across a network of real inboxes, training providers to treat your messages as legitimate.
+
+Without warm-up, a brand new inbox that immediately sends cold outbound will almost certainly land in spam. Providers track engagement signals per sender, and an inbox with zero history sending to strangers is a red flag.
+
+## Does AgentMail warm up inboxes automatically?
+
+No. AgentMail does not provide native inbox warm-up.
+
+Warm-up is a network effect product: it requires coordinated engagement signals across thousands of real inboxes to be effective. Dedicated warm-up tools like Smartlead, Instantly, Mailreach, and Warmup Inbox maintain these networks and are purpose-built for the job.
+
+Instead of duplicating that infrastructure, AgentMail exposes standard IMAP and SMTP access so you can connect your inboxes directly to whichever warm-up tool you prefer.
+
+## When you need warm-up
+
+Not every use case requires warm-up. Here is a quick guide:
+
+| Scenario | Warm-up needed? |
+| --- | --- |
+| Cold outbound to strangers (sales, recruiting, partnerships) | Yes, always |
+| Marketing campaigns to purchased or scraped lists | Yes, always |
+| Transactional emails to users who signed up for your product | Usually no |
+| Agent replies to inbound emails from known recipients | Usually no |
+| Internal notifications between your own systems | No |
+
+<Note>
+If your agent only replies to inbound emails, the two-way engagement naturally builds reputation over time. Warm-up is primarily important when you are initiating contact with people who have never emailed you before.
+</Note>
+
+## How to connect an AgentMail inbox to a warm-up tool
+
+Warm-up tools like Smartlead and Instantly connect to your inbox using IMAP and SMTP credentials; check the [IMAP & SMTP setup guide](https://docs.agentmail.to/imap-smtp) for current IMAP availability and supported behavior before setup.
+
+### Step 1: Gather your credentials
+
+You need three things from the [AgentMail Console](https://console.agentmail.to):
+
+1. **Inbox email address**: Navigate to **Dashboard > Inboxes** and copy the inbox email (e.g., `outreach@yourdomain.com`). This is your IMAP username.
+2. **API key**: Navigate to **Dashboard > API Keys** and create or copy an API key. This is your password for both IMAP and SMTP.
+3. **Server settings**: Use the values from the table below.
+
+For full details on finding your credentials, see the [IMAP & SMTP setup guide](https://docs.agentmail.to/imap-smtp#finding-your-credentials).
+
+### Step 2: Enter IMAP settings in your warm-up tool
+
+| Setting | Value |
+| --- | --- |
+| IMAP Host | `imap.agentmail.to` |
+| IMAP Port | `993` |
+| Username | Your inbox email (e.g., `outreach@yourdomain.com`) |
+| Password | Your API key |
+| Encryption | SSL/TLS (required) |
+
+### Step 3: Enter SMTP settings in your warm-up tool
+
+| Setting | Value |
+| --- | --- |
+| SMTP Host | `smtp.agentmail.to` |
+| SMTP Port | `465` |
+| Username | Your inbox email |
+| Password | Your API key |
+| Encryption | SSL/TLS (required) |
+
+### Step 4: Verify the connection
+
+Most warm-up tools run a connection test after you enter credentials. If the test passes, your inbox is connected and ready to begin warm-up.
+
+<Warning>
+Do not start warm-up on an inbox that is actively running outbound campaigns. Warm-up and live outreach should use separate inboxes. Running both simultaneously on the same inbox can confuse engagement signals and hurt your sender reputation.
+</Warning>
+
+### Tool-specific notes
+
+**Smartlead**: When adding an email account, select "Other" as the provider. Enter the IMAP and SMTP settings above. Smartlead will test the connection automatically.
+
+**Instantly**: Under **Settings > Email Accounts > Add Account**, choose "Any Provider (SMTP)." Fill in both the SMTP and IMAP fields using the values above.
+
+**Mailreach and Warmup Inbox**: Both tools follow the same pattern. Look for the "Add Account" or "Connect Mailbox" option, select a generic/custom IMAP+SMTP provider, and enter the credentials from the tables above.
+
+## Recommended warm-up ramp
+
+Start conservatively and increase volume over two weeks. The goal is to build a track record of positive engagement before you begin cold outreach.
+
+| Day | Warm-up emails per day | Notes |
+| --- | --- | --- |
+| 1 to 3 | 5 to 10 | Initial connections, mostly replies within the warm-up network |
+| 4 to 7 | 10 to 20 | Steady increase, monitor for any spam placement |
+| 8 to 10 | 20 to 30 | Continue scaling if engagement looks healthy |
+| 11 to 14 | 30 to 40 | Target range for sustained warm-up |
+| 14+ | 30 to 40 (maintain) | Keep warm-up running even after you start cold outbound |
+
+<Note>
+Most warm-up tools manage the ramp schedule automatically. The numbers above are a guideline for what to expect if you configure the ramp manually.
+</Note>
+
+<Warning>
+Do not stop warm-up the moment you start cold outbound. Continue running warm-up alongside your campaigns to maintain positive engagement signals. Many users keep warm-up active indefinitely.
+</Warning>
+
+## How to verify warm-up is working
+
+After one to two weeks of warm-up, verify that your inbox has built enough reputation to land in the primary inbox.
+
+### Check spam placement
+
+Use a spam testing tool to send a test email and see where it lands:
+
+- [Mail-tester](https://www.mail-tester.com): Send an email to the address shown on the site and get a deliverability score out of 10.
+- [GlockApps](https://glockapps.com): Run an inbox placement test across multiple providers (Gmail, Outlook, Yahoo) to see where your emails land.
+
+A score of 8 or higher on Mail-tester, or primary inbox placement across major providers in GlockApps, indicates your warm-up is on track.
+
+### Monitor sender reputation
+
+- **Google Postmaster Tools**: Register your domain at [postmaster.google.com](https://postmaster.google.com) to see how Gmail rates your domain and IP reputation. Look for "High" reputation on both metrics.
+- **Smartlead/Instantly dashboards**: Both tools show warm-up health metrics, including reply rates, spam placement rates, and overall sender score. Aim for a reply rate above 30% within the warm-up network.
+
+### Check AgentMail metrics
+
+Use the [Query Metrics](https://docs.agentmail.to/api-reference/metrics/query) endpoint or the Metrics page in the AgentMail Console to track bounce rates and delivery rates for your inbox.
+
+## Troubleshooting
+
+| Problem | Likely cause | Fix |
+| --- | --- | --- |
+| Warm-up emails landing in spam | DNS records not configured, or warm-up volume too high too fast | Verify SPF, DKIM, and DMARC records are passing. Reduce daily warm-up volume and ramp more slowly. See [SPF, DKIM, and DMARC setup](https://docs.agentmail.to/knowledge-base/spf-dkim-dmarc). |
+| IMAP authentication failure | Wrong username or password | Username must be the full inbox email address (e.g., `outreach@yourdomain.com`), not just the local part. Password is your AgentMail API key. See [IMAP & SMTP credentials](https://docs.agentmail.to/imap-smtp#finding-your-credentials). |
+| SMTP authentication failure | Wrong credentials or port | Confirm you are using port `465` with SSL/TLS enabled. Username is your inbox email. Password is your API key. |
+| Low reputation score in Smartlead | Inbox is too new, or warm-up just started | Allow at least 10 to 14 days of consistent warm-up before evaluating reputation. If the score stays low after two weeks, check DNS records and reduce cold outbound volume. |
+| Warm-up tool reports "folder not found" | Tool is looking for a Junk or Spam folder | AgentMail's IMAP facade currently supports the INBOX folder. Some warm-up tools look for a Junk or Spam folder to move emails out of. If the tool reports an error about a missing folder, check the tool's settings for an option to skip junk folder operations, or contact the tool's support for guidance on IMAP providers with a single folder. |
+| Connection timeout | Firewall or network blocking IMAP/SMTP ports | Ensure ports 993 (IMAP) and 465 (SMTP) are open on your network. SSL/TLS must be enabled, not STARTTLS. |
+
+## Related
+
+- [Email Deliverability](https://docs.agentmail.to/email-deliverability): Comprehensive guide to sending strategy and content best practices.
+- [SPF, DKIM, and DMARC setup](https://docs.agentmail.to/knowledge-base/spf-dkim-dmarc): Configure DNS authentication records for your domain.
+- [Domain warming schedule](https://docs.agentmail.to/knowledge-base/domain-warming): Ramp up sending volume on a new domain.
+- [IMAP & SMTP setup](https://docs.agentmail.to/imap-smtp): Full IMAP and SMTP configuration reference.
