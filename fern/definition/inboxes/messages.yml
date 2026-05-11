@@ -55,6 +55,24 @@ service:
       errors:
         - global.NotFoundError
 
+    batchGet:
+      method: POST
+      path: /batch-get
+      display-name: Batch Get Messages
+      docs: |
+        Fetch metadata for up to 500 messages in one request. Missing or
+        restricted IDs are silently omitted; compare `count` against `limit`
+        to detect misses.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:messages batch-get --inbox-id <inbox_id> --message-id <id1> --message-id <id2>
+        ```
+      request: messages.BatchGetMessagesRequest
+      response: messages.BatchGetMessagesResponse
+      errors:
+        - global.ValidationError
+
     getAttachment:
       method: GET
       path: /{message_id}/attachments/{attachment_id}

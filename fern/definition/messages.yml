@@ -145,6 +145,29 @@ types:
         type: list<MessageItem>
         docs: Ordered by `timestamp` descending.
 
+  BatchGetMessagesMessageIds:
+    type: list<MessageId>
+    docs: |
+      IDs of messages to fetch. Maximum 500 ids per request. Duplicates are
+      rejected with a validation error. IDs not found in the inbox (including
+      cross-inbox or permission-restricted) are silently omitted from the
+      response; callers detect misses by comparing `count` against `limit`.
+
+  BatchGetMessagesRequest:
+    properties:
+      message_ids: BatchGetMessagesMessageIds
+
+  BatchGetMessagesResponse:
+    properties:
+      limit: global.Limit
+      count: global.Count
+      messages:
+        type: list<Message>
+        docs: |
+          Found messages. Order matches `message_ids` in the request. Body
+          fields (`text`, `html`, `extracted_text`, `extracted_html`) are
+          never populated; use the single-message endpoint to retrieve bodies.
+
   RawMessageResponse:
     docs: S3 presigned URL to download the raw .eml file.
     properties:
