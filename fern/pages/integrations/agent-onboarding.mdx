@@ -72,6 +72,34 @@ Alternatively, a human can create an account at [console.agentmail.to](https://c
   AgentMail's free tier includes 3 inboxes and 3,000 emails/month. Your agent can start building immediately.
 </Info>
 
+## Create an API key
+
+Once you have an account, create additional API keys via the API or the [Console](https://console.agentmail.to):
+
+<CodeBlocks>
+
+```python title="Python"
+key = client.api_keys.create(name="my-agent-key")
+print(key.api_key)  # starts with am_, shown only once
+```
+
+```typescript title="TypeScript"
+const key = await client.apiKeys.create({ name: "my-agent-key" });
+console.log(key.apiKey);  // starts with am_, shown only once
+```
+
+```bash title="CLI"
+agentmail api-keys create --name "my-agent-key"
+```
+
+</CodeBlocks>
+
+<Warning>
+  API keys are only shown once at creation. Store them securely.
+</Warning>
+
+You can also create keys scoped to a specific [pod](/core-concepts/pods) or [inbox](/core-concepts/inboxes). See the [API reference](/api-reference/api-keys/create-api-key) for details.
+
 ## AgentMail MCP Server
 
 MCP (Model Context Protocol) is an open protocol that standardizes how applications provide context to LLMs. The AgentMail MCP server gives your AI agent tools to create inboxes, send emails, manage threads, and more.
