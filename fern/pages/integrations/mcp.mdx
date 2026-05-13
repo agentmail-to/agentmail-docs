@@ -1,41 +1,128 @@
 ---
 title: MCP
-subtitle: Connect AgentMail to any MCP-compatible AI client
+subtitle: Connect AgentMail to Claude, Cursor, and other MCP clients
 slug: integrations/mcp
-description: AgentMail's Model Context Protocol (MCP) integration
+description: Connect AgentMail to Claude, Cursor, and other MCP clients
 ---
 
-## Getting started
+## Overview
 
-The Model Context Protocol (MCP) is an open standard that enables AI applications to connect with external tools and data sources. AgentMail provides an MCP server that allows any MCP-compatible client to interact with the AgentMail API.
+The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client.
 
-### Setup
+The server supports two authentication paths:
 
-Install with:
+- **OAuth** (default, recommended for Claude Desktop and Claude.ai). The client signs in through `console.agentmail.to` and the server uses your console identity for every call.
+- **API key** (for Cursor, Windsurf, and other clients that do not implement the MCP OAuth flow). Pass the key as a `?apiKey=` query parameter or an `x-api-key` header.
 
-```bash
-npx add-mcp https://mcp.agentmail.to/mcp
+If you belong to more than one AgentMail organization, the OAuth consent screen will ask you to pick which one to use before completing the connection.
+
+## Setup
+
+### Claude Desktop and Claude.ai (OAuth)
+
+1. Open **Settings**, then **Connectors**, and click **Add custom connector**.
+2. Set the name to `AgentMail`.
+3. Set the URL to `https://mcp.agentmail.to/mcp`.
+4. Click **Add**, then **Connect** on the new connector.
+5. A browser window opens at `console.agentmail.to`. Sign in.
+6. If you belong to multiple organizations, pick one on the consent screen.
+7. Back in Claude, send a test message like `List my AgentMail inboxes` to confirm the connection.
+
+<Tip>
+OAuth is the recommended path for Claude products. You do not need an API key; the server uses your console identity to call AgentMail on your behalf.
+</Tip>
+
+### Cursor (API key)
+
+1. Generate an API key at [console.agentmail.to](https://console.agentmail.to) under **Settings**, then **API Keys**.
+2. Open Cursor settings, go to **MCP**, and add a server with this config:
+
+```json
+{
+  "agentmail": {
+    "url": "https://mcp.agentmail.to/mcp?apiKey=YOUR_API_KEY"
+  }
+}
 ```
 
-Configure your API key when prompted. Get your key from the [AgentMail Console](https://console.agentmail.to). For more details, visit [mcp.agentmail.to/mcp](https://mcp.agentmail.to/mcp).
+If your client supports custom headers, you can pass the key as a header instead of a query parameter:
 
-## Features
+```
+x-api-key: YOUR_API_KEY
+```
 
-The AgentMail MCP server provides tools for:
+### Windsurf and other MCP clients
 
-- **Inbox management:** Create, list, and delete inboxes
-- **Message operations:** Send, receive, and reply to emails
-- **Drafts:** Create, schedule, update, and send draft emails
-- **Thread management:** Access and manage email threads
-- **Attachments:** Handle email attachments
+Use the same URL and API key pattern as Cursor. Most clients accept either the `?apiKey=YOUR_API_KEY` query form or the `x-api-key` header.
 
-## Compatible clients
+### Claude Code
 
-The AgentMail MCP server works with any MCP-compatible client, including:
+Add the server with the `claude mcp` command:
 
-- Claude Desktop
-- Cursor
-- Windsurf
-- Other MCP-enabled AI applications
+```bash
+claude mcp add --transport http agentmail https://mcp.agentmail.to/mcp
+```
 
-For detailed setup instructions and available tools, visit [mcp.agentmail.to/mcp](https://mcp.agentmail.to/mcp).
+Claude Code will run the same OAuth flow on first use. Connectors installed on Claude.ai do not automatically sync to Claude Code, so install it separately.
+
+## Available tools
+
+The server exposes 17 tools, grouped by resource.
+
+### Inboxes
+
+| Tool | Description |
+| --- | --- |
+| `list_inboxes` | List inboxes in the organization. |
+| `get_inbox` | Get a single inbox by ID. |
+| `create_inbox` | Create a new inbox. |
+| `delete_inbox` | Delete an inbox. |
+
+### Threads
+
+| Tool | Description |
+| --- | --- |
+| `list_threads` | List threads in an inbox. |
+| `get_thread` | Get a thread and its messages. |
+
+### Messages
+
+| Tool | Description |
+| --- | --- |
+| `send_message` | Send a new message from an inbox. |
+| `reply_to_message` | Reply to an existing message. |
+| `forward_message` | Forward a message to another recipient. |
+| `update_message` | Update a message, for example to change its labels. |
+
+### Drafts
+
+| Tool | Description |
+| --- | --- |
+| `create_draft` | Create a draft. Set `send_at` (ISO 8601) to schedule it. |
+| `list_drafts` | List drafts in an inbox. Filter by label, for example `scheduled`. |
+| `get_draft` | Get a draft, including its content and scheduled send time. |
+| `update_draft` | Update a draft. Use `send_at` to reschedule a scheduled draft. |
+| `send_draft` | Send a draft immediately. |
+| `delete_draft` | Delete a draft. Also cancels a scheduled send. |
+
+### Attachments
+
+| Tool | Description |
+| --- | --- |
+| `get_attachment` | Get an attachment by ID. |
+
+## Troubleshooting
+
+**Claude says it cannot access AgentMail.** The connector is not installed or not connected. Follow the Claude Desktop setup steps above and confirm the connector shows as connected in **Settings**, then **Connectors**.
+
+**OAuth opens `console.agentmail.to` but says you do not have an account.** Sign up at [console.agentmail.to](https://console.agentmail.to) first, then retry the connector flow.
+
+**You picked the wrong organization on the consent screen.** Open **Settings**, then **Connectors**, disconnect the AgentMail connector, and connect again. The consent screen will let you choose a different organization.
+
+**API key requests return an authentication error.** Verify the key in [console.agentmail.to](https://console.agentmail.to) under **Settings**, then **API Keys**. Confirm the key has not been revoked and that you copied the full value, including the `am_` prefix.
+
+## Resources
+
+- [AgentMail Console](https://console.agentmail.to) to manage API keys and organizations.
+- [Support](/support) for help with installation or auth issues.
+- [agentmail-manufact-mcp on GitHub](https://github.com/agentmail-to/agentmail-manufact-mcp) for the server source.
