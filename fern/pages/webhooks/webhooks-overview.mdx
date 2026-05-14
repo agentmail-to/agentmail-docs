@@ -40,6 +40,15 @@ AgentMail supports ten webhook event types. When creating a webhook, you can sub
   Spam, blocked, and unauthenticated events are excluded by default. To receive them, explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in the `event_types` list when creating a webhook. These messages are no longer sent as `message.received`.
 </Callout>
 
+## Updating `event_types` on a webhook
+
+When you [update a webhook](https://docs.agentmail.to/api-reference/webhooks/update-webhook), you can change which events it receives by sending `event_types` on `PATCH`:
+
+- **Non-empty array:** Replaces the webhook's subscribed event types **in full** (same idea as create: you set the whole list, not a diff). If you send only one type, the webhook will only receive that type afterward.
+- **Omitted or empty array:** Leaves the current event types unchanged. You cannot clear all subscriptions by sending an empty list.
+
+Subscribing to `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` on update still requires the same [label permissions](/core-concepts/permissions) as on create.
+
 ## The Webhook Workflow
 
 The process is straightforward:
@@ -188,12 +197,13 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   API reference:
   - webhooks.create(url, event_types?, inbox_ids?, pod_ids?, client_id?)
   - webhooks.get(webhook_id), webhooks.list(limit?, page_token?)
-  - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?)
+  - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?, event_types?)
   - webhooks.delete(webhook_id)
 
   Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
   Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
+  On update, non-empty event_types replaces the subscribed list in full (omit or [] to leave types unchanged).
   """
   import os
   from dotenv import load_dotenv
@@ -217,11 +227,12 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * API reference:
    * - webhooks.create({ url, eventTypes?, inboxIds?, podIds?, clientId? })
    * - webhooks.get(webhookId), webhooks.list({ limit?, pageToken? })
-   * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds? })
+   * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds?, eventTypes? })
    * - webhooks.delete(webhookId)
    *
    * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
    * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
+   * On update, non-empty eventTypes replaces the subscribed list in full (omit or [] to leave types unchanged).
    * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
    */
   import { AgentMailClient } from "agentmail";
