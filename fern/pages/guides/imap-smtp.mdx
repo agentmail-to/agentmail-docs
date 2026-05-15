@@ -146,7 +146,7 @@ Use SMTP to send emails from your AgentMail inbox.
 | ------------ | ------------------------------ |
 | **Host**     | `smtp.agentmail.to`            |
 | **Port**     | `465`                          |
-| **Username** | agentmail                      |
+| **Username** | Your inbox email (e.g., `myinbox@agentmail.to`) |
 | **Password** | Your API key                   |
 | **SSL/TLS**  | **Required** (must be enabled) |
 
@@ -225,6 +225,7 @@ sendEmail().catch(console.error);
 | Error                   | Cause                   | Solution                                               |
 | ----------------------- | ----------------------- | ------------------------------------------------------ |
 | "Authentication failed" | Invalid credentials     | Verify your inbox email and API key from the console   |
+| "Authentication failed" | Username set to `agentmail` | Use your inbox email address as the SMTP username      |
 | "Connection refused"    | SSL not enabled         | Enable SSL/TLS in your client settings                 |
 | "Connection timeout"    | Firewall blocking ports | Ensure ports 993 (IMAP) and 465/587 (SMTP) are open    |
 | "Sender not authorized" | Wrong From address      | Use your inbox's email address as the From address     |
