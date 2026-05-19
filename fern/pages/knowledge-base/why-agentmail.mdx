@@ -1,0 +1,120 @@
+---
+title: "Why AgentMail? Choosing an email API for AI agents"
+subtitle: How AgentMail compares to Resend, SendGrid, Gmail API, and open-source alternatives for building agents that send and receive email.
+slug: knowledge-base/why-agentmail
+---
+
+Most email APIs were built for one thing: sending transactional emails from your app to your users. Password resets, receipts, marketing campaigns. They assume a human wrote the email, a human will read it, and any replies go to a support inbox.
+
+AI agents break all of those assumptions. An agent needs its own inbox. It needs to receive emails, parse them, decide what to do, and reply in context. It needs to manage threads across multiple conversations simultaneously, often with no human in the loop.
+
+AgentMail was built specifically for this. Here is how it compares to the alternatives.
+
+## What agents actually need from email
+
+Before comparing tools, it helps to define what an AI agent email workflow looks like:
+
+1. **Own identity**: The agent needs a real email address that can send and receive.
+2. **Inbound processing**: Emails arrive and the agent can read them programmatically in real time.
+3. **Thread management**: The agent tracks conversation threads, not just individual messages.
+4. **Contextual replies**: The agent replies in-thread with proper headers so the conversation stays coherent in the recipient's inbox.
+5. **Webhooks or streaming**: The agent gets notified of new emails without polling.
+6. **Programmatic inbox lifecycle**: Spin up and tear down inboxes on demand, per agent or per task.
+
+## AgentMail vs Resend
+
+Resend is an excellent developer-first email sending API. It has clean SDKs, React Email integration, and a polished dashboard. For transactional sending, it is a strong choice.
+
+However, Resend is **send-only**. There is no inbox, no inbound email processing, no thread management, and no way for an agent to receive and respond to emails autonomously.
+
+| Capability | AgentMail | Resend |
+|---|---|---|
+| Send emails | Yes | Yes |
+| Receive emails | Yes | No |
+| Create inboxes on demand | Yes | No |
+| Thread management | Yes | No |
+| Webhooks for inbound email | Yes | No (outbound events only) |
+| WebSocket streaming | Yes | No |
+| MCP server | Yes | No |
+| Agent-specific features (labels, drafts, pods) | Yes | No |
+
+**When to use Resend**: You are a web app sending transactional emails to humans.
+
+**When to use AgentMail**: Your AI agent needs a real email inbox to send, receive, and manage conversations.
+
+## AgentMail vs SendGrid / Amazon SES
+
+SendGrid and SES are high-volume email delivery platforms. They handle millions of emails per day with strong deliverability infrastructure. Both offer inbound email parsing via webhooks.
+
+The challenge for agents is that these platforms were not designed for inbox-level abstraction. Inbound email on SendGrid requires configuring MX records, Inbound Parse webhooks, and writing your own logic to associate incoming messages with threads, agent identities, and conversation state. There is no concept of "create an inbox for this agent."
+
+| Capability | AgentMail | SendGrid / SES |
+|---|---|---|
+| Send emails | Yes | Yes |
+| Receive emails | Yes | Yes (via webhook parsing) |
+| On-demand inbox creation | Yes (one API call) | No (manual DNS + config) |
+| Thread management | Yes (built-in) | No (build your own) |
+| Per-agent email identity | Yes | Manual setup per address |
+| WebSocket streaming | Yes | No |
+| Time to first inbox | Seconds | Hours to days |
+
+**When to use SendGrid/SES**: High-volume email delivery where you control the infrastructure and need fine-grained deliverability tuning.
+
+**When to use AgentMail**: You want to give agents email capabilities without building inbox infrastructure yourself.
+
+## AgentMail vs Gmail API
+
+The Gmail API gives you full access to a Gmail inbox. You can read, send, search, label, and manage threads. It is powerful and well-documented.
+
+The problem is that Gmail API access is tied to Google Workspace accounts with OAuth. Each agent needs a Google account, OAuth consent flow, and token management. Creating inboxes programmatically is not possible. Rate limits are per-user and designed for human usage patterns, not agent workflows.
+
+| Capability | AgentMail | Gmail API |
+|---|---|---|
+| Send emails | Yes | Yes |
+| Receive emails | Yes | Yes |
+| Programmatic inbox creation | Yes | No (requires Google account) |
+| Authentication | API key | OAuth 2.0 per account |
+| Thread management | Yes | Yes |
+| Webhooks | Yes | Pub/Sub (complex setup) |
+| Rate limits | Agent-friendly | Per-user (human patterns) |
+| Inbox lifecycle management | Full API control | Manual |
+
+**When to use Gmail API**: You are building a tool that operates on a specific user's existing Gmail inbox with their consent.
+
+**When to use AgentMail**: You are building agents that need their own email identities without per-account OAuth flows.
+
+## AgentMail vs open-source alternatives
+
+Several open-source projects have appeared for agent email, including E2a (email gateway for AI agents) and MCP Agent Mail (coordination layer over MCP + Git + SQLite).
+
+These projects solve real problems but come with tradeoffs:
+
+- **Self-hosted infrastructure**: You manage the SMTP server, DNS, deliverability, and uptime.
+- **Deliverability risk**: Shared IP reputation, SPF/DKIM configuration, and bounce handling are your responsibility.
+- **Limited SDK ecosystem**: Most are single-language with minimal client library support.
+- **No managed scaling**: Handling concurrent agent inboxes at scale requires significant operational work.
+
+AgentMail provides a managed API with SDKs in Python, TypeScript, and Go, plus an MCP server and CLI. Deliverability, DNS, and infrastructure are handled for you.
+
+## Quick start
+
+Create an inbox and receive your first email in under 5 lines:
+
+```python
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# create an inbox for your agent
+inbox = client.inboxes.create()
+print(f"Agent email: {inbox.inbox_id}")
+
+# list messages (after someone sends an email to this address)
+messages = client.inboxes.messages.list(inbox_id=inbox.inbox_id)
+```
+
+To receive emails in real time, use [webhooks](https://docs.agentmail.to/webhooks/webhooks-overview) or [WebSockets](https://docs.agentmail.to/core-concepts/websockets).
+
+<Note>
+Get your API key and start building at [agentmail.to](https://agentmail.to). Check the [quickstart guide](https://docs.agentmail.to/get-started/quickstart) for a full walkthrough.
+</Note>
