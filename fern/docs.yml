@@ -445,6 +445,11 @@ navigation:
       - page: Introduction
         icon: fa-solid fa-book-open
         path: pages/knowledge-base/introduction.mdx
+      - section: Comparisons
+        contents:
+          - page: AgentMail vs Resend
+            icon: fa-solid fa-scale-balanced
+            path: pages/knowledge-base/agentmail-vs-resend.mdx
       - section: Getting Started
         contents:
           - page: What is AgentMail?
