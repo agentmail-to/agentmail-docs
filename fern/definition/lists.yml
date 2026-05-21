@@ -38,6 +38,9 @@ types:
       created_at:
         type: datetime
         docs: Time at which entry was created.
+      read_only:
+        type: optional<boolean>
+        docs: Whether the entry is read-only and cannot be deleted via the API.
 
   ListEntry:
     extends: ListEntryBase
