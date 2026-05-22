@@ -56,9 +56,17 @@ Use IMAP to read emails from your AgentMail inbox.
 | **SSL/TLS**  | **Required** (must be enabled)                  |
 
 <Callout intent="tip" title="Folder Support">
-  Currently, only the **INBOX** folder is accessible via IMAP. Other folders
-  (Sent, Drafts, Trash) are not available through IMAP. Use the [AgentMail
-  API](/introduction) for full folder access.
+  IMAP exposes the following folders: **INBOX**, **Sent**, **Trash**, and
+  **Spam**. A **Drafts** folder is also listed for client compatibility but
+  always appears empty — use the [AgentMail API](/introduction) to create
+  and manage drafts.
+</Callout>
+
+<Callout intent="tip" title="Real-time updates with IDLE">
+  The IMAP server supports the `IDLE` extension (RFC 2177), so modern
+  clients (Thunderbird, Outlook, Apple Mail) receive new messages
+  push-style without polling. Clients negotiate `IDLE` automatically when
+  supported — no extra configuration needed.
 </Callout>
 
 ### Python IMAP Example
@@ -79,7 +87,7 @@ try:
     # Authenticate using inbox email as username
     imap.login(inbox_email, api_key)
 
-    # Select INBOX (only supported folder)
+    # Select a folder (INBOX, Sent, Trash, or Spam)
     imap.select("INBOX")
 
     # Search for all messages
@@ -133,18 +141,20 @@ imap.connect();
 
 Use SMTP to send emails from your AgentMail inbox.
 
-<Callout intent="warning" title="SSL/TLS Required">
-  SSL/TLS is **required** for all SMTP connections. Connections without SSL will
-  be rejected. Make sure to enable SSL/TLS in your email client settings.
+<Callout intent="warning" title="Encryption Required">
+  Encryption is **required** for all SMTP connections. Connect using **port 465
+  with implicit TLS** (SSL on connect) or **port 587 with STARTTLS** (upgrade
+  in-band). On port 587, attempting to authenticate before issuing `STARTTLS`
+  is rejected with a `538` error.
 </Callout>
 
-| Setting      | Value                          |
-| ------------ | ------------------------------ |
-| **Host**     | `smtp.agentmail.to`            |
-| **Port**     | `465`                          |
-| **Username** | agentmail                      |
-| **Password** | Your API key                   |
-| **SSL/TLS**  | **Required** (must be enabled) |
+| Setting      | Value                                                  |
+| ------------ | ------------------------------------------------------ |
+| **Host**     | `smtp.agentmail.to`                                    |
+| **Port**     | `465` (implicit TLS) or `587` (STARTTLS)               |
+| **Username** | Your inbox email (e.g., `myinbox@agentmail.to`)        |
+| **Password** | Your API key                                           |
+| **Encryption** | Port `465`: SSL/TLS on connect · Port `587`: STARTTLS |
 
 <Callout intent="warning" title="From Address">
   The "From" address in your email should match the email address of your inbox
@@ -177,11 +187,17 @@ msg["From"] = inbox_email  # Use your inbox email as the From address
 msg["To"] = "recipient@example.com"
 msg.attach(MIMEText("This is a test email sent via SMTP.", "plain"))
 
-# Connect with SSL (required) and send
+# Connect with implicit TLS on port 465 and send
 with smtplib.SMTP_SSL("smtp.agentmail.to", 465) as server:
     server.login(inbox_email, api_key)
     server.send_message(msg)
     print("Email sent successfully!")
+
+# Alternatively, use STARTTLS on port 587:
+#   with smtplib.SMTP("smtp.agentmail.to", 587) as server:
+#       server.starttls()
+#       server.login(inbox_email, api_key)
+#       server.send_message(msg)
 ```
 
 ### TypeScript SMTP Example
@@ -196,7 +212,8 @@ const apiKey = process.env.AGENTMAIL_API_KEY!; // From Dashboard → API Keys
 const transporter = nodemailer.createTransport({
   host: "smtp.agentmail.to",
   port: 465,
-  secure: true, // SSL required
+  secure: true, // implicit TLS on port 465
+  // For STARTTLS on port 587 instead, use: port: 587, secure: false
   auth: {
     user: inboxEmail,
     pass: apiKey,
@@ -221,10 +238,11 @@ sendEmail().catch(console.error);
 | Error                   | Cause                   | Solution                                               |
 | ----------------------- | ----------------------- | ------------------------------------------------------ |
 | "Authentication failed" | Invalid credentials     | Verify your inbox email and API key from the console   |
-| "Connection refused"    | SSL not enabled         | Enable SSL/TLS in your client settings                 |
+| "Connection refused" / handshake error | Wrong encryption mode for the port | Use SSL/TLS on connect for port `465`, or STARTTLS for port `587` |
+| `538` "Must issue a STARTTLS command first" | Plaintext AUTH on port `587` | Enable STARTTLS on port `587` (or use implicit TLS on `465`) before authenticating |
 | "Connection timeout"    | Firewall blocking ports | Ensure ports 993 (IMAP) and 465/587 (SMTP) are open    |
 | "Sender not authorized" | Wrong From address      | Use your inbox's email address as the From address     |
-| "Folder not found"      | Non-INBOX folder        | Only INBOX is supported; use the API for other folders |
+| "Folder not found"      | Folder name typo or unsupported folder | IMAP exposes `INBOX`, `Sent`, `Trash`, and `Spam`. Folder names other than `INBOX` are case-sensitive. Use the [API](/introduction) to manage drafts. |
 
 ## When to Use IMAP/SMTP vs API
 
