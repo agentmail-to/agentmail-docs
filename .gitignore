@@ -8,3 +8,6 @@ node_modules/
 
 # Generated CLI build artifacts
 /cli/target/
+
+# Transient OpenAPI export (regenerated in CI, pushed to Stainless)
+/openapi/

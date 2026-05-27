@@ -1,11 +1,13 @@
 # yaml-language-server: $schema=https://schema.buildwithfern.dev/generators-yml.json
-# CLI API — sourced from the OpenAPI spec in this folder (with an OpenAPI
-# overlay that maps operations into nested x-fern-sdk-group-name groups).
-# Kept separate from the Fern-Definition-backed SDK API so the two evolve
-# independently. Generate with: fern generate --api cli --group cli --local
+# CLI API — sourced from openapi.yml, which is the OpenAPI export of the Fern
+# Definition (the same spec the `api` group's openapi generator produces and
+# sync-stainless pushes). Regenerate it via the regenerate-cli workflow or:
+#   fern generate --api api --group openapi --local && cp ../../../openapi/openapi.yml openapi.yml
+# The overlay maps operations into nested x-fern-sdk-group-name groups.
+# Generate the CLI with: fern generate --api cli --group cli --local
 api:
   specs:
-    - openapi: openapi.json
+    - openapi: openapi.yml
       overlays: overlay.yaml
 default-group: cli
 groups:

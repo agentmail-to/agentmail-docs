@@ -1,0 +1,37 @@
+name: Regenerate CLI
+
+# Regenerates the CLI from the Fern Definition: exports the OpenAPI spec,
+# refreshes fern/apis/cli/openapi.yml, then runs the fern-cli generator.
+#
+# NOTE: today the `cli` group outputs to the local file system, so a CI run
+# regenerates into the runner and the artifacts are discarded — this workflow
+# is intentionally a no-op end-to-end for now. Once the `cli` group's output is
+# switched to a GitHub repo target (like the SDK release workflows), this will
+# publish the CLI. Manual-only until then.
+on:
+  workflow_dispatch:
+
+jobs:
+  regenerate-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Fern
+        run: npm install -g fern-api
+
+      - name: Export OpenAPI spec from the Fern Definition
+        working-directory: fern
+        run: fern generate --api api --group openapi --local
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+
+      - name: Refresh the CLI input spec
+        run: cp openapi/openapi.yml fern/apis/cli/openapi.yml
+
+      - name: Generate the CLI
+        working-directory: fern
+        run: fern generate --api cli --group cli --local
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
