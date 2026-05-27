@@ -13,6 +13,10 @@ on:
 
 jobs:
   regenerate-cli:
+    # `fern generate --local` runs the generators in Docker. GitHub-hosted
+    # ubuntu runners ship Docker pre-installed with the daemon running, so no
+    # explicit Docker setup is needed (same pattern as fern's own
+    # python-generator CI and anduril/fern-mock-andurilapis generate-sdks).
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
