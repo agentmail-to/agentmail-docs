@@ -56,7 +56,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "inboxes_create",
@@ -110,7 +114,11 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/inboxes/{inbox_id}": {
@@ -164,7 +172,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "patch": {
         "operationId": "inboxes_update",
@@ -226,7 +238,11 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "update"
       },
       "delete": {
         "operationId": "inboxes_delete",
@@ -271,7 +287,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/pods": {
@@ -325,7 +345,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "pods_create",
@@ -378,7 +402,11 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "pods"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/pods/{pod_id}": {
@@ -432,7 +460,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "delete": {
         "operationId": "pods_delete",
@@ -477,7 +509,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/webhooks": {
@@ -531,7 +567,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "webhooks"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "webhooks_create",
@@ -584,7 +624,11 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "webhooks"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/webhooks/{webhook_id}": {
@@ -638,7 +682,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "webhooks"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "patch": {
         "operationId": "webhooks_update",
@@ -710,7 +758,11 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "webhooks"
+        ],
+        "x-fern-sdk-method-name": "update"
       },
       "delete": {
         "operationId": "webhooks_delete",
@@ -755,7 +807,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "webhooks"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/api-keys": {
@@ -809,7 +865,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "apiKeys"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "apiKeys_create",
@@ -862,7 +922,11 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "apiKeys"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/api-keys/{api_key}": {
@@ -909,7 +973,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "apiKeys"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/domains": {
@@ -963,7 +1031,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "domains_create",
@@ -1016,7 +1088,11 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/domains/{domain_id}": {
@@ -1070,7 +1146,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "delete": {
         "operationId": "domains_delete",
@@ -1115,7 +1195,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/domains/{domain_id}/zone-file": {
@@ -1162,7 +1246,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "getZoneFile"
       }
     },
     "/v0/domains/{domain_id}/verify": {
@@ -1209,7 +1297,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "verify"
       }
     },
     "/v0/drafts": {
@@ -1309,7 +1401,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "list"
       }
     },
     "/v0/drafts/{draft_id}": {
@@ -1363,7 +1459,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "get"
       }
     },
     "/v0/inboxes/{inbox_id}/drafts": {
@@ -1471,7 +1571,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "inboxes_drafts_create",
@@ -1533,7 +1638,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/inboxes/{inbox_id}/drafts/{draft_id}": {
@@ -1595,7 +1705,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "patch": {
         "operationId": "inboxes_drafts_update",
@@ -1665,7 +1780,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "update"
       },
       "delete": {
         "operationId": "inboxes_drafts_delete",
@@ -1718,7 +1838,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/inboxes/{inbox_id}/drafts/{draft_id}/send": {
@@ -1810,7 +1935,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "send"
       }
     },
     "/v0/inboxes/{inbox_id}/messages": {
@@ -1927,7 +2057,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "list"
       }
     },
     "/v0/inboxes/{inbox_id}/messages/{message_id}": {
@@ -1989,7 +2124,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "patch": {
         "operationId": "inboxes_messages_update",
@@ -2069,7 +2209,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "update"
       }
     },
     "/v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}": {
@@ -2139,7 +2284,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "getAttachment"
       }
     },
     "/v0/inboxes/{inbox_id}/messages/{message_id}/raw": {
@@ -2201,7 +2351,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "getRaw"
       }
     },
     "/v0/inboxes/{inbox_id}/messages/send": {
@@ -2285,7 +2440,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "send"
       }
     },
     "/v0/inboxes/{inbox_id}/messages/{message_id}/reply": {
@@ -2377,7 +2537,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "reply"
       }
     },
     "/v0/inboxes/{inbox_id}/messages/{message_id}/reply-all": {
@@ -2469,7 +2634,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "reply-all"
       }
     },
     "/v0/inboxes/{inbox_id}/messages/{message_id}/forward": {
@@ -2561,7 +2731,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "messages"
+        ],
+        "x-fern-sdk-method-name": "forward"
       }
     },
     "/v0/inboxes/{inbox_id}/metrics": {
@@ -2650,7 +2825,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "metrics"
+        ],
+        "x-fern-sdk-method-name": "get"
       }
     },
     "/v0/inboxes/{inbox_id}/threads": {
@@ -2767,7 +2947,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "list"
       }
     },
     "/v0/inboxes/{inbox_id}/threads/{thread_id}": {
@@ -2829,7 +3014,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "delete": {
         "operationId": "inboxes_threads_delete",
@@ -2882,7 +3072,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/inboxes/{inbox_id}/threads/{thread_id}/attachments/{attachment_id}": {
@@ -2952,7 +3147,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "inboxes",
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "getAttachment"
       }
     },
     "/v0/metrics": {
@@ -3023,7 +3223,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "metrics"
+        ],
+        "x-fern-sdk-method-name": "list"
       }
     },
     "/v0/organizations": {
@@ -3059,7 +3263,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "organizations"
+        ],
+        "x-fern-sdk-method-name": "get"
       }
     },
     "/v0/pods/{pod_id}/domains": {
@@ -3131,7 +3339,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "pods_domains_create",
@@ -3193,7 +3406,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "pods",
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/pods/{pod_id}/domains/{domain_id}": {
@@ -3248,7 +3466,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "domains"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/pods/{pod_id}/drafts": {
@@ -3356,7 +3579,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "list"
       }
     },
     "/v0/pods/{pod_id}/drafts/{draft_id}": {
@@ -3418,7 +3646,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "drafts"
+        ],
+        "x-fern-sdk-method-name": "get"
       }
     },
     "/v0/pods/{pod_id}/inboxes": {
@@ -3490,7 +3723,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "list"
       },
       "post": {
         "operationId": "pods_inboxes_create",
@@ -3552,7 +3790,12 @@
               }
             }
           }
-        }
+        },
+        "x-fern-sdk-group-name": [
+          "pods",
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "create"
       }
     },
     "/v0/pods/{pod_id}/inboxes/{inbox_id}": {
@@ -3614,7 +3857,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "get"
       },
       "delete": {
         "operationId": "pods_inboxes_delete",
@@ -3667,7 +3915,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "inboxes"
+        ],
+        "x-fern-sdk-method-name": "delete"
       }
     },
     "/v0/pods/{pod_id}/threads": {
@@ -3784,7 +4037,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "list"
       }
     },
     "/v0/pods/{pod_id}/threads/{thread_id}": {
@@ -3846,7 +4104,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "get"
       }
     },
     "/v0/pods/{pod_id}/threads/{thread_id}/attachments/{attachment_id}": {
@@ -3916,7 +4179,12 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "pods",
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "getAttachment"
       }
     },
     "/v0/threads": {
@@ -4025,7 +4293,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "list"
       }
     },
     "/v0/threads/{thread_id}": {
@@ -4079,7 +4351,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "get"
       }
     },
     "/v0/threads/{thread_id}/attachments/{attachment_id}": {
@@ -4141,7 +4417,11 @@
           {
             "BearerAuth": []
           }
-        ]
+        ],
+        "x-fern-sdk-group-name": [
+          "threads"
+        ],
+        "x-fern-sdk-method-name": "getAttachment"
       }
     }
   },

@@ -2,7 +2,6 @@
 api:
   specs:
     - openapi: openapi.json
-      overrides: overlay.yaml
 default-group: local
 groups:
   local:
@@ -98,7 +97,7 @@ groups:
         version: 0.4.0
         output:
           location: local-file-system
-          path: generated/cli
+          path: ../cli
         config:
           binaryName: agentmail
         smart-casing: false

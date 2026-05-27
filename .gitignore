@@ -5,3 +5,6 @@ node_modules/
 **/generated/
 .DS_Store
 *-openapi.json
+
+# Generated CLI build artifacts
+/cli/target/
