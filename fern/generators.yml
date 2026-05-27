@@ -2,6 +2,7 @@
 api:
   specs:
     - openapi: openapi.json
+      overlays: overlay.yaml
 default-group: local
 groups:
   local:

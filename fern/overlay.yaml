@@ -1,0 +1,354 @@
+# Auto-generated overlay that maps AgentMail operationIds → nested CLI
+# group + method names. Without this, the CLI surface ends up stuttered
+# (e.g. `agentmail inboxes-messages inboxes-messages-list`) because the
+# upstream spec uses flat tag names like `InboxesMessages` instead of
+# x-fern-sdk-group-name. Regenerate from the spec by running the inline
+# script in this directory's README.
+#
+overlay: 1.0.0
+info:
+  title: AgentMail CLI group/method overlay
+  version: 1.0.0
+actions:
+- target: $.paths['/v0/inboxes'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/inboxes'].post
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/inboxes/{inbox_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/inboxes/{inbox_id}'].patch
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    x-fern-sdk-method-name: update
+- target: $.paths['/v0/inboxes/{inbox_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/pods'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/pods'].post
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/pods/{pod_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/pods/{pod_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/webhooks'].get
+  update:
+    x-fern-sdk-group-name:
+    - webhooks
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/webhooks'].post
+  update:
+    x-fern-sdk-group-name:
+    - webhooks
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/webhooks/{webhook_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - webhooks
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/webhooks/{webhook_id}'].patch
+  update:
+    x-fern-sdk-group-name:
+    - webhooks
+    x-fern-sdk-method-name: update
+- target: $.paths['/v0/webhooks/{webhook_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - webhooks
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/api-keys'].get
+  update:
+    x-fern-sdk-group-name:
+    - apiKeys
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/api-keys'].post
+  update:
+    x-fern-sdk-group-name:
+    - apiKeys
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/api-keys/{api_key}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - apiKeys
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/domains'].get
+  update:
+    x-fern-sdk-group-name:
+    - domains
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/domains'].post
+  update:
+    x-fern-sdk-group-name:
+    - domains
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/domains/{domain_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - domains
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/domains/{domain_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - domains
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/domains/{domain_id}/zone-file'].get
+  update:
+    x-fern-sdk-group-name:
+    - domains
+    x-fern-sdk-method-name: getZoneFile
+- target: $.paths['/v0/domains/{domain_id}/verify'].post
+  update:
+    x-fern-sdk-group-name:
+    - domains
+    x-fern-sdk-method-name: verify
+- target: $.paths['/v0/drafts'].get
+  update:
+    x-fern-sdk-group-name:
+    - drafts
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/drafts/{draft_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - drafts
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/inboxes/{inbox_id}/drafts'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - drafts
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/inboxes/{inbox_id}/drafts'].post
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - drafts
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/inboxes/{inbox_id}/drafts/{draft_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - drafts
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/inboxes/{inbox_id}/drafts/{draft_id}'].patch
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - drafts
+    x-fern-sdk-method-name: update
+- target: $.paths['/v0/inboxes/{inbox_id}/drafts/{draft_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - drafts
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/inboxes/{inbox_id}/drafts/{draft_id}/send'].post
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - drafts
+    x-fern-sdk-method-name: send
+- target: $.paths['/v0/inboxes/{inbox_id}/messages'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/{message_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/{message_id}'].patch
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: update
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: getAttachment
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/{message_id}/raw'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: getRaw
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/send'].post
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: send
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/{message_id}/reply'].post
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: reply
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/{message_id}/reply-all'].post
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: reply-all
+- target: $.paths['/v0/inboxes/{inbox_id}/messages/{message_id}/forward'].post
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - messages
+    x-fern-sdk-method-name: forward
+- target: $.paths['/v0/inboxes/{inbox_id}/metrics'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - metrics
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/inboxes/{inbox_id}/threads'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - threads
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/inboxes/{inbox_id}/threads/{thread_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - threads
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/inboxes/{inbox_id}/threads/{thread_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - threads
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/inboxes/{inbox_id}/threads/{thread_id}/attachments/{attachment_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - inboxes
+    - threads
+    x-fern-sdk-method-name: getAttachment
+- target: $.paths['/v0/metrics'].get
+  update:
+    x-fern-sdk-group-name:
+    - metrics
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/organizations'].get
+  update:
+    x-fern-sdk-group-name:
+    - organizations
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/pods/{pod_id}/domains'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - domains
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/pods/{pod_id}/domains'].post
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - domains
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/pods/{pod_id}/domains/{domain_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - domains
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/pods/{pod_id}/drafts'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - drafts
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/pods/{pod_id}/drafts/{draft_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - drafts
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/pods/{pod_id}/inboxes'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - inboxes
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/pods/{pod_id}/inboxes'].post
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - inboxes
+    x-fern-sdk-method-name: create
+- target: $.paths['/v0/pods/{pod_id}/inboxes/{inbox_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - inboxes
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/pods/{pod_id}/inboxes/{inbox_id}'].delete
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - inboxes
+    x-fern-sdk-method-name: delete
+- target: $.paths['/v0/pods/{pod_id}/threads'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - threads
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/pods/{pod_id}/threads/{thread_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - threads
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/pods/{pod_id}/threads/{thread_id}/attachments/{attachment_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - pods
+    - threads
+    x-fern-sdk-method-name: getAttachment
+- target: $.paths['/v0/threads'].get
+  update:
+    x-fern-sdk-group-name:
+    - threads
+    x-fern-sdk-method-name: list
+- target: $.paths['/v0/threads/{thread_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - threads
+    x-fern-sdk-method-name: get
+- target: $.paths['/v0/threads/{thread_id}/attachments/{attachment_id}'].get
+  update:
+    x-fern-sdk-group-name:
+    - threads
+    x-fern-sdk-method-name: getAttachment
