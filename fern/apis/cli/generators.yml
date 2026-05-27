@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://schema.buildwithfern.dev/generators-yml.json
+# CLI API — sourced from the OpenAPI spec in this folder (with an OpenAPI
+# overlay that maps operations into nested x-fern-sdk-group-name groups).
+# Kept separate from the Fern-Definition-backed SDK API so the two evolve
+# independently. Generate with: fern generate --api cli --group cli --local
+api:
+  specs:
+    - openapi: openapi.json
+      overlays: overlay.yaml
+default-group: cli
+groups:
+  cli:
+    generators:
+      - name: fernapi/fern-cli
+        version: 0.4.1
+        output:
+          location: local-file-system
+          path: ../../../cli
+        config:
+          binaryName: agentmail
+        smart-casing: false

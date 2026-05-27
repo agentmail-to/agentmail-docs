@@ -3,7 +3,7 @@ name: API Changelog Automation
 on:
   pull_request:
     paths:
-      - 'fern/definition/**/*.yml'
+      - 'fern/apis/api/definition/**/*.yml'
   workflow_dispatch:
 
 jobs:
