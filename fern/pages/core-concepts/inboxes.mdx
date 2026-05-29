@@ -140,6 +140,99 @@ agentmail inboxes list
   domains](/guides/domains/managing-domains) to learn more.
 </Tip>
 
+## Metadata
+
+Attach your own key-value data to any `Inbox` with the `metadata` field. Use it to link an inbox to records in your own system: a user ID, an agent name, or feature flags. Metadata is returned on every inbox response.
+
+Values may be a string, number, or boolean. An `Inbox` can hold up to 256 keys, and each key and string value is limited to 256 characters.
+
+<CodeBlocks>
+
+```python title="Python"
+# Attach metadata when creating an inbox; values may be a string, int, float, or boolean
+inbox = client.inboxes.create(
+    username="support-agent",
+    metadata={
+        "tenant_id": "acme",       # string
+        "seat_count": 5,           # int
+        "monthly_spend": 19.99,    # float
+        "active": True,            # boolean
+    },
+)
+
+# Read it back from any inbox response
+print(inbox.metadata)
+```
+
+```typescript title="TypeScript"
+// Attach metadata when creating an inbox; values may be a string, int, float, or boolean
+const inbox = await client.inboxes.create({
+  username: "support-agent",
+  metadata: {
+    tenant_id: "acme", // string
+    seat_count: 5, // int
+    monthly_spend: 19.99, // float
+    active: true, // boolean
+  },
+});
+
+// Read it back from any inbox response
+console.log(inbox.metadata);
+```
+
+</CodeBlocks>
+
+### Updating metadata
+
+Updates **merge** into the inbox's existing metadata — keys you include are added or overwritten, and keys you omit are preserved.
+
+<Note>
+  To remove a single key, send it with a `null` value. To clear all metadata at
+  once, send `metadata` as `null`. Every update must include either
+  `display_name` or `metadata`.
+</Note>
+
+<CodeBlocks>
+
+```python title="Python"
+# Add or overwrite keys; the keys you omit stay unchanged
+client.inboxes.update(
+    inbox_id="support-agent@agentmail.to",
+    metadata={"tier": "enterprise"},
+)
+
+# Remove a single key
+client.inboxes.update(
+    inbox_id="support-agent@agentmail.to",
+    metadata={"tier": None},
+)
+
+# Clear all metadata
+client.inboxes.update(
+    inbox_id="support-agent@agentmail.to",
+    metadata=None,
+)
+```
+
+```typescript title="TypeScript"
+// Add or overwrite keys; the keys you omit stay unchanged
+await client.inboxes.update("support-agent@agentmail.to", {
+  metadata: { tier: "enterprise" },
+});
+
+// Remove a single key
+await client.inboxes.update("support-agent@agentmail.to", {
+  metadata: { tier: null },
+});
+
+// Clear all metadata
+await client.inboxes.update("support-agent@agentmail.to", {
+  metadata: null,
+});
+```
+
+</CodeBlocks>
+
 ## Inbox-scoped API keys
 
 You can create API keys that are restricted to a single inbox. An inbox-scoped key can only access that inbox's threads, messages, and drafts. This is useful when you want to give an agent or integration the minimum access it needs.
@@ -180,10 +273,10 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.create(username?, domain?, display_name?, client_id?) — client_id for idempotent retries
+  - inboxes.create(username?, domain?, display_name?, client_id?, metadata?) — client_id for idempotent retries; metadata is custom key-value data
   - inboxes.get(inbox_id)
   - inboxes.list(limit?, page_token?)
-  - inboxes.update(inbox_id, display_name)
+  - inboxes.update(inbox_id, display_name?, metadata?) — at least one field required; metadata is merged, not replaced
   - inboxes.delete(inbox_id)
   - inboxes.api_keys.create(inbox_id, name) — inbox-scoped key
   - inboxes.api_keys.list(inbox_id)
@@ -214,10 +307,10 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
    * API reference:
-   * - inboxes.create({ username?, domain?, displayName?, clientId? })
+   * - inboxes.create({ username?, domain?, displayName?, clientId?, metadata? }) — metadata is custom key-value data
    * - inboxes.get(inboxId)
    * - inboxes.list({ limit?, pageToken? })
-   * - inboxes.update(inboxId, { displayName })
+   * - inboxes.update(inboxId, { displayName?, metadata? }) — at least one field required
    * - inboxes.delete(inboxId)
    * - inboxes.apiKeys.create(inboxId, { name }) — inbox-scoped key
    * - inboxes.apiKeys.list(inboxId)

@@ -30,6 +30,23 @@ types:
     type: string
     docs: Client ID of inbox.
 
+  MetadataValue:
+    discriminated: false
+    union:
+      - string
+      - double
+      - boolean
+    docs: A metadata value. May be a string, number, or boolean.
+
+  Metadata:
+    type: map<string, MetadataValue>
+    docs: |
+      Custom key-value pairs attached to the inbox. Up to 256 keys. Keys and
+      string values are each limited to 256 characters.
+    examples:
+      - value:
+          metadata_key: metadata_value
+
   Inbox:
     properties:
       pod_id: pods.PodId
@@ -37,6 +54,9 @@ types:
       email: Email
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
+      metadata:
+        type: optional<Metadata>
+        docs: Custom metadata attached to the inbox.
       updated_at:
         type: datetime
         docs: Time at which inbox was last updated.
@@ -63,10 +83,20 @@ types:
         docs: Domain of address. Must be verified domain. Defaults to `agentmail.to`.
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
+      metadata:
+        type: optional<Metadata>
+        docs: Custom metadata to attach to the inbox.
 
   UpdateInboxRequest:
     properties:
-      display_name: DisplayName
+      display_name: optional<DisplayName>
+      metadata:
+        type: optional<Metadata>
+        docs: |
+          Metadata to merge into the inbox's existing metadata. Keys you include
+          are added or overwritten; keys you omit are left unchanged. To remove a
+          single key, send it with a null value. To clear all metadata, send
+          `metadata` as null. Provide at least one of `display_name` or `metadata`.
 
 service:
   url: Http
@@ -135,6 +165,7 @@ service:
       response: Inbox
       errors:
         - global.NotFoundError
+        - global.ValidationError
 
     delete:
       method: DELETE

@@ -1,0 +1,68 @@
+---
+tags: ["inboxes-api", "new-feature"]
+---
+
+## Summary
+
+Inboxes now support custom `metadata`: your own key-value data attached to any inbox. Link an inbox to records in your own system, such as a tenant ID, user ID, or feature flags, and read it back on every inbox response. Build agents that carry your application's context wherever an inbox goes.
+
+### What's new?
+
+**New features:**
+- **Inbox metadata**: Attach custom key-value pairs to an inbox. Values may be a string, number, or boolean, with up to 256 keys per inbox.
+
+**Changes:**
+- The `Inbox` object now includes an optional `metadata` field, returned on get, list, and create responses.
+- `POST /v0/inboxes` accepts a `metadata` field to set metadata at creation time.
+- `PATCH /v0/inboxes/:inbox_id` accepts a `metadata` field. Updates merge into existing metadata: keys you include are added or overwritten, and keys you omit are preserved. Send a key with a null value to remove it, or set `metadata` to null to clear everything. Each update must include at least one of `display_name` or `metadata`.
+
+### Use cases
+
+Build agents that:
+- Tag each inbox with a tenant or customer ID so you can map inboxes back to your own data model
+- Store per-inbox feature flags or routing hints that your agent reads at runtime
+- Track lifecycle state, such as an onboarding step or campaign name, directly on the inbox
+- Filter and organize a large fleet of inboxes by the attributes that matter to your application
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# attach metadata when creating an inbox
+inbox = client.inboxes.create(
+    username="support-agent",
+    metadata={"tenant_id": "acme", "tier": "pro", "active": True},
+)
+
+# merge in a change; omitted keys are preserved
+client.inboxes.update(
+    inbox_id=inbox.inbox_id,
+    metadata={"tier": "enterprise"},
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "your-api-key" });
+
+// attach metadata when creating an inbox
+const inbox = await client.inboxes.create({
+  username: "support-agent",
+  metadata: { tenant_id: "acme", tier: "pro", active: true },
+});
+
+// merge in a change; omitted keys are preserved
+await client.inboxes.update(inbox.inboxId, {
+  metadata: { tier: "enterprise" },
+});
+```
+
+</CodeBlocks>
+
+<Note>
+  Learn more about attaching and updating inbox data in the [Inboxes metadata guide](https://docs.agentmail.to/inboxes#metadata).
+</Note>
