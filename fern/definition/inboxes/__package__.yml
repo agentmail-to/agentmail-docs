@@ -43,9 +43,6 @@ types:
     docs: |
       Custom key-value pairs attached to the inbox. Up to 256 keys. Keys and
       string values are each limited to 256 characters.
-    examples:
-      - value:
-          metadata_key: metadata_value
 
   Inbox:
     properties:
