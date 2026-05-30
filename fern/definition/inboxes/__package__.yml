@@ -42,7 +42,16 @@ types:
     type: map<string, MetadataValue>
     docs: |
       Custom key-value pairs attached to the inbox. Up to 256 keys. Keys and
-      string values are each limited to 256 characters.
+      string values are each limited to 256 characters. When updating metadata,
+      send a key with a null value to remove that key.
+
+  UpdateMetadata:
+    type: map<string, optional<MetadataValue>>
+    docs: |
+      Custom key-value pairs to merge into the inbox's existing metadata. A
+      value may be a string, number, boolean, or null. Setting a key to null
+      removes it. Up to 256 keys; keys and string values are each limited to
+      256 characters.
 
   Inbox:
     properties:
@@ -88,12 +97,12 @@ types:
     properties:
       display_name: optional<DisplayName>
       metadata:
-        type: optional<Metadata>
+        type: optional<UpdateMetadata>
         docs: |
           Metadata to merge into the inbox's existing metadata. Keys you include
           are added or overwritten; keys you omit are left unchanged. To remove a
           single key, send it with a null value. To clear all metadata, send
-          `metadata` as null. Provide at least one of `display_name` or `metadata`.
+          `metadata` as null.
 
 service:
   url: Http
@@ -158,7 +167,10 @@ service:
         ```
       path-parameters:
         inbox_id: InboxId
-      request: UpdateInboxRequest
+      request:
+        body:
+          type: UpdateInboxRequest
+          docs: Expects an object; provide at least one of `display_name` or `metadata`.
       response: Inbox
       errors:
         - global.NotFoundError
