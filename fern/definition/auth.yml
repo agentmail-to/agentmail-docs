@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  ScopeType:
+    enum:
+      - organization
+      - pod
+      - inbox
+    docs: The scope tier the authenticated credential is bound to.
+
+  Identity:
+    docs: Identity and scope of the authenticated credential.
+    properties:
+      scope_type: ScopeType
+      scope_id:
+        type: string
+        docs: |
+          ID of the most specific scope the credential is bound to.
+          Equals inbox_id when scope_type is inbox, pod_id when pod, organization_id when organization.
+      organization_id: global.OrganizationId
+      pod_id:
+        type: optional<string>
+        docs: ID of the pod the credential is scoped to. Present when scope_type is pod or inbox.
+      inbox_id:
+        type: optional<string>
+        docs: ID of the inbox the credential is scoped to. Present when scope_type is inbox.
+      api_key_id:
+        type: optional<string>
+        docs: ID of the API key used to authenticate. Absent for JWT and proxy credentials.
+
+service:
+  url: Http
+  base-path: /auth
+  auth: true
+
+  endpoints:
+    me:
+      method: GET
+      path: /me
+      display-name: Who Am I
+      docs: |
+        Returns the identity and scope of the authenticated credential. Useful when a client holds a pod-scoped or inbox-scoped API key and needs to discover the parent organization, pod, or inbox without prior knowledge.
+
+        **CLI:**
+        ```bash
+        agentmail auth me
+        ```
+      response: Identity
