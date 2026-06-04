@@ -1,0 +1,29 @@
+name: Release CLI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # a) API spec changes
+      - "openapi/openapi.yml"
+      # b) Fern CLI version changes
+      - "fern/fern.config.json"
+      # c) Generator version changes
+      - "fern/api/cli/generators.yml"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup Fern CLI
+        uses: fern-api/setup-fern-cli@v1
+
+      - name: Generate CLI
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --api cli --group cli --log-level debug --version AUTO

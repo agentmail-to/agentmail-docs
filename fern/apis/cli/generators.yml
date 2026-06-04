@@ -15,4 +15,4 @@ groups:
           token: OIDC
         github:
           repository: agentmail-to/agentmail-cli
-          mode: release
+          mode: pull-request
