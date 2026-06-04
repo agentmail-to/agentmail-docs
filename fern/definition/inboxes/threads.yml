@@ -19,6 +19,11 @@ service:
       path: ""
       display-name: List Threads
       docs: |
+        Lists threads in the inbox, most recent first. Pass `senders`,
+        `recipients`, or `subject` to filter by substring. Filtered requests are
+        served by search, which caps `limit` at 100. For relevance-ranked
+        full-text search, use `Search Threads`.
+
         **CLI:**
         ```bash
         agentmail inboxes:threads list --inbox-id <inbox_id>
@@ -36,8 +41,39 @@ service:
           include_blocked: optional<global.IncludeBlocked>
           include_unauthenticated: optional<global.IncludeUnauthenticated>
           include_trash: optional<global.IncludeTrash>
+          senders:
+            type: optional<list<string>>
+            docs: Filter to threads whose senders contain this value (substring match). Repeatable; all values must match.
+          recipients:
+            type: optional<list<string>>
+            docs: Filter to threads whose recipients contain this value (substring match). Repeatable; all values must match.
+          subject:
+            type: optional<list<string>>
+            docs: Filter to threads whose subject contains this value (substring match). Repeatable; all values must match.
       response: threads.ListThreadsResponse
       errors:
+        - global.NotFoundError
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Threads
+      docs: |
+        Full-text search across threads in the inbox, ranked by relevance. The
+        query is matched against senders, recipients, and subject (substring)
+        and the message body (tokenized full text). Spam, trash, blocked, and
+        unauthenticated threads are always excluded. `limit` cannot exceed 100.
+      request:
+        name: SearchThreadsRequest
+        query-parameters:
+          q: global.Query
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          before: optional<global.Before>
+          after: optional<global.After>
+      response: threads.SearchThreadsResponse
+      errors:
+        - global.ValidationError
         - global.NotFoundError
 
     get:

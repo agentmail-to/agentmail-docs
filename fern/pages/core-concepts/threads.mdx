@@ -79,10 +79,50 @@ agentmail threads list
 
 </CodeBlocks>
 
-<Callout title="Coming Soon: Org-Wide Semantic Search" intent="info">
-  We are actively developing semantic search for the organization-wide thread
-  listing endpoint. Soon, you'll be able to find `Threads` based on the meaning
-  and concepts within the `Messages`, not just keywords.
+### Searching `Threads`
+
+Full-text search finds `Threads` by keyword across the sender, recipients, subject, and message body, ranked by relevance. Like listing, it works per-`Inbox` or across the whole `Organization` — omit the `inbox_id` to search every `Inbox`. Spam, trash, blocked, and unauthenticated threads are excluded, and `limit` cannot exceed `100`.
+
+<CodeBlocks>
+```python title="Python"
+# search every inbox in the organization
+results = client.threads.search(q="invoice overdue")
+
+for thread in results.threads:
+    print(thread.thread_id, thread.subject)
+    # highlights shows which fields matched, with matched terms wrapped in **
+    if thread.highlights:
+        print(thread.highlights)
+
+# or scope the search to a single inbox
+inbox_results = client.inboxes.threads.search(
+    inbox_id="inbound-agent@agentmail.to",
+    q="invoice overdue",
+)
+```
+
+```typescript title="TypeScript"
+// search every inbox in the organization
+const results = await client.threads.search({ q: "invoice overdue" });
+
+for (const thread of results.threads) {
+  console.log(thread.threadId, thread.subject);
+  // highlights shows which fields matched, with matched terms wrapped in **
+  if (thread.highlights) console.log(thread.highlights);
+}
+
+// or scope the search to a single inbox
+const inboxResults = await client.inboxes.threads.search(
+  "inbound-agent@agentmail.to",
+  { q: "invoice overdue" },
+);
+```
+</CodeBlocks>
+
+<Callout intent="info">
+  Need an exact-field filter instead of relevance ranking? `threads.list`
+  accepts `senders`, `recipients`, and `subject` substring filters and keeps the
+  usual newest-first ordering.
 </Callout>
 
 ### Getting a Single `Thread`
@@ -134,11 +174,13 @@ Copy one of the blocks below into Cursor or Claude for complete Threads API know
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.threads.list(inbox_id, limit?, page_token?, labels?, before?, after?, ascending?)
+  - inboxes.threads.list(inbox_id, limit?, page_token?, labels?, before?, after?, ascending?, senders?, recipients?, subject?)
+  - inboxes.threads.search(inbox_id, q, limit?, page_token?, before?, after?) — full-text, relevance-ranked
   - inboxes.threads.get(inbox_id, thread_id)
   - inboxes.threads.get_attachment(inbox_id, thread_id, attachment_id)
   - inboxes.threads.delete(inbox_id, thread_id)
-  - threads.list(limit?, page_token?, labels?) — org-wide, all inboxes
+  - threads.list(limit?, page_token?, labels?, senders?, recipients?, subject?) — org-wide, all inboxes
+  - threads.search(q, limit?, page_token?, before?, after?) — org-wide full-text
   - threads.get(thread_id) — org-wide
   - threads.get_attachment(thread_id, attachment_id)
 
@@ -172,11 +214,13 @@ Copy one of the blocks below into Cursor or Claude for complete Threads API know
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
    * API reference:
-   * - inboxes.threads.list(inboxId, { limit?, pageToken?, labels?, before?, after?, ascending? })
+   * - inboxes.threads.list(inboxId, { limit?, pageToken?, labels?, before?, after?, ascending?, senders?, recipients?, subject? })
+   * - inboxes.threads.search(inboxId, { q, limit?, pageToken?, before?, after? }) — full-text, relevance-ranked
    * - inboxes.threads.get(inboxId, threadId)
    * - inboxes.threads.getAttachment(inboxId, threadId, attachmentId)
    * - inboxes.threads.delete(inboxId, threadId)
-   * - threads.list({ limit?, pageToken?, labels? }) — org-wide
+   * - threads.list({ limit?, pageToken?, labels?, senders?, recipients?, subject? }) — org-wide
+   * - threads.search({ q, limit?, pageToken?, before?, after? }) — org-wide full-text
    * - threads.get(threadId) — org-wide
    * - threads.getAttachment(threadId, attachmentId)
    *

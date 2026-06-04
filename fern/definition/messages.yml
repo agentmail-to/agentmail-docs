@@ -145,6 +145,41 @@ types:
         type: list<MessageItem>
         docs: Ordered by `timestamp` descending.
 
+  SearchMessageHighlights:
+    docs: |
+      Matched fragments per field on a message search result, with matched terms
+      wrapped in `**`. A field key is present only when the query matched that
+      field, so the present keys also tell you which fields produced the hit.
+    properties:
+      from:
+        type: optional<list<string>>
+        docs: Matched fragments from the sender address.
+      recipients:
+        type: optional<list<string>>
+        docs: Matched fragments from the recipient addresses (to, cc, or bcc).
+      subject:
+        type: optional<list<string>>
+        docs: Matched fragments from the subject.
+      text:
+        type: optional<list<string>>
+        docs: Matched fragments from the message body.
+
+  SearchMessageItem:
+    extends: MessageItem
+    properties:
+      highlights:
+        type: optional<SearchMessageHighlights>
+        docs: Matched fragments per field. Present only when the query matched an indexed field.
+
+  SearchMessagesResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      messages:
+        type: list<SearchMessageItem>
+        docs: Ordered by relevance, best match first.
+
   BatchGetMessagesMessageIds:
     type: list<MessageId>
     docs: |

@@ -49,6 +49,12 @@ types:
     type: string
     docs: ID of organization.
 
+  Query:
+    type: string
+    docs: |
+      Full-text search query. Matched against the sender, recipients, and
+      subject (substring) and the message body (tokenized full text).
+
   ErrorName:
     type: string
     docs: Name of error.

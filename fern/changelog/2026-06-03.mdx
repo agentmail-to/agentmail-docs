@@ -1,0 +1,92 @@
+---
+tags: ["messages-api", "threads-api", "new-feature"]
+---
+
+## Summary
+
+You can now search messages and threads by keyword. Full-text search ranks results by relevance across the sender, recipients, subject, and message body, and works per-inbox or across your entire organization. List endpoints also gained substring filters, so you can narrow a list to a specific sender, recipient, or subject without paging through everything. Build agents that find the right conversation instead of scanning every thread.
+
+### What's new?
+
+**New endpoints:**
+- `GET /v0/inboxes/:inbox_id/messages/search` - Full-text search of messages in an inbox, ranked by relevance.
+- `GET /v0/threads/search` - Org-wide full-text search across threads in every inbox.
+- `GET /v0/inboxes/:inbox_id/threads/search` - Full-text search of threads in a single inbox.
+- `GET /v0/pods/:pod_id/threads/search` - Full-text search of threads in a pod.
+
+**New features:**
+- **Full-text search**: A `q` query matches against the sender, recipients, and subject (substring) and the message body (tokenized full text). Results are ordered by relevance. Spam, trash, blocked, and unauthenticated items are always excluded, and `limit` is capped at 100.
+- **Match highlights**: Each search result includes an optional `highlights` object with the matched fragments per field, with matched terms wrapped in `**`. A field appears only when it matched, so the present keys also tell you which fields produced the hit.
+
+**Changes:**
+- `GET /v0/inboxes/:inbox_id/messages` now accepts `from`, `to`, and `subject` substring filters. `to` matches the `to`, `cc`, or `bcc` fields.
+- `GET /v0/threads`, `GET /v0/inboxes/:inbox_id/threads`, and `GET /v0/pods/:pod_id/threads` now accept `senders`, `recipients`, and `subject` substring filters.
+- Filtered list requests are served by search and cap `limit` at 100; results keep the usual newest-first ordering.
+
+### Use cases
+
+Build agents that:
+- Pull up every thread mentioning an order number, invoice, or customer name across all of your inboxes
+- Find the conversation a reply belongs to by searching the subject or body, instead of paging through history
+- Narrow a list to a single sender or recipient before processing, using the new substring filters
+- Surface the matched snippet to a human reviewer using per-field `highlights`
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# org-wide full-text search across every inbox
+results = client.threads.search(q="invoice overdue")
+
+for thread in results.threads:
+    print(thread.thread_id, thread.subject)
+    # highlights tells you which fields matched
+    if thread.highlights:
+        print(thread.highlights)
+
+# scope a search to one inbox's messages
+inbox_results = client.inboxes.messages.search(
+    inbox_id="support@agentmail.to",
+    q="refund requested",
+)
+
+# or just filter a list by subject, no relevance ranking
+filtered = client.inboxes.messages.list(
+    inbox_id="support@agentmail.to",
+    subject=["invoice"],
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "your-api-key" });
+
+// org-wide full-text search across every inbox
+const results = await client.threads.search({ q: "invoice overdue" });
+
+for (const thread of results.threads) {
+  console.log(thread.threadId, thread.subject);
+  // highlights tells you which fields matched
+  if (thread.highlights) console.log(thread.highlights);
+}
+
+// scope a search to one inbox's messages
+const inboxResults = await client.inboxes.messages.search("support@agentmail.to", {
+  q: "refund requested",
+});
+
+// or just filter a list by subject, no relevance ranking
+const filtered = await client.inboxes.messages.list("support@agentmail.to", {
+  subject: ["invoice"],
+});
+```
+
+</CodeBlocks>
+
+<Note>
+  Learn more in the [Messages](https://docs.agentmail.to/messages) and [Threads](https://docs.agentmail.to/threads) guides.
+</Note>

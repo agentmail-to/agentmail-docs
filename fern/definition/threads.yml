@@ -131,6 +131,41 @@ types:
         type: list<ThreadItem>
         docs: Ordered by `timestamp` descending.
 
+  SearchThreadHighlights:
+    docs: |
+      Matched fragments per field on a thread search result, with matched terms
+      wrapped in `**`. A field key is present only when the query matched that
+      field, so the present keys also tell you which fields produced the hit.
+    properties:
+      from:
+        type: optional<list<string>>
+        docs: Matched fragments from a sender address in the thread.
+      recipients:
+        type: optional<list<string>>
+        docs: Matched fragments from a recipient address in the thread (to, cc, or bcc).
+      subject:
+        type: optional<list<string>>
+        docs: Matched fragments from the subject.
+      text:
+        type: optional<list<string>>
+        docs: Matched fragments from a message body in the thread.
+
+  SearchThreadItem:
+    extends: ThreadItem
+    properties:
+      highlights:
+        type: optional<SearchThreadHighlights>
+        docs: Matched fragments per field. Present only when the query matched an indexed field.
+
+  SearchThreadsResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      threads:
+        type: list<SearchThreadItem>
+        docs: Ordered by relevance, best match first.
+
 service:
   url: Http
   base-path: /threads
@@ -142,6 +177,12 @@ service:
       path: ""
       display-name: List Threads
       docs: |
+        Lists threads, most recent first. Pass `senders`, `recipients`, or
+        `subject` to filter by substring. Filtered requests are served by
+        search, which caps `limit` at 100. For relevance-ranked full-text
+        search across senders, recipients, subject, and message body, use
+        `Search Threads`.
+
         **CLI:**
         ```bash
         agentmail threads list
@@ -159,8 +200,40 @@ service:
           include_blocked: optional<global.IncludeBlocked>
           include_unauthenticated: optional<global.IncludeUnauthenticated>
           include_trash: optional<global.IncludeTrash>
+          senders:
+            type: optional<list<string>>
+            docs: Filter to threads whose senders contain this value (substring match). Repeatable; all values must match.
+          recipients:
+            type: optional<list<string>>
+            docs: Filter to threads whose recipients contain this value (substring match). Repeatable; all values must match.
+          subject:
+            type: optional<list<string>>
+            docs: Filter to threads whose subject contains this value (substring match). Repeatable; all values must match.
       response: ListThreadsResponse
       errors:
+        - global.NotFoundError
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Threads
+      docs: |
+        Full-text search across threads in the organization, ranked by
+        relevance. The query is matched against senders, recipients, and
+        subject (substring) and the message body (tokenized full text). Spam,
+        trash, blocked, and unauthenticated threads are always excluded.
+        `limit` cannot exceed 100.
+      request:
+        name: SearchThreadsRequest
+        query-parameters:
+          q: global.Query
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          before: optional<global.Before>
+          after: optional<global.After>
+      response: SearchThreadsResponse
+      errors:
+        - global.ValidationError
         - global.NotFoundError
 
     get:

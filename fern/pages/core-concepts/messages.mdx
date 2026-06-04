@@ -122,6 +122,43 @@ agentmail inboxes:messages list --inbox-id outreach@agentmail.to
 
 </CodeBlocks>
 
+### Searching `Messages`
+
+To find `Messages` by keyword, run a full-text search across an `Inbox`. The query is matched against the sender, recipients, subject, and message body, and results are ranked by relevance. Each result includes a `highlights` object showing which fields matched, with the matched terms wrapped in `**`. Spam, trash, blocked, and unauthenticated messages are excluded, and `limit` cannot exceed `100`.
+
+<CodeBlocks>
+```python title="Python"
+# full-text search across the inbox, ranked by relevance
+results = client.inboxes.messages.search(
+    inbox_id="outreach@agentmail.to",
+    q="demo next week",
+)
+
+for message in results.messages:
+    print(message.message_id, message.subject)
+    if message.highlights:
+        print(message.highlights)
+```
+
+```typescript title="TypeScript"
+// full-text search across the inbox, ranked by relevance
+const results = await client.inboxes.messages.search("outreach@agentmail.to", {
+  q: "demo next week",
+});
+
+for (const message of results.messages) {
+  console.log(message.messageId, message.subject);
+  if (message.highlights) console.log(message.highlights);
+}
+```
+</CodeBlocks>
+
+<Callout intent="info">
+  Need an exact-field filter instead of relevance ranking? `messages.list`
+  accepts `from`, `to`, and `subject` substring filters and keeps the usual
+  newest-first ordering. `to` matches the `to`, `cc`, or `bcc` fields.
+</Callout>
+
 ### 4. Reply to a `Message`
 
 Replying to an existing `Message` adds your new `Message` to the same `Thread`, keeping the conversation organized.
@@ -225,7 +262,8 @@ Copy one of the blocks below into Cursor or Claude for complete Messages API kno
 
   API reference:
   - messages.send(inbox_id, to, subject, text, html?, cc?, bcc?, reply_to?, labels?, attachments?)
-  - messages.list(inbox_id, limit?, page_token?, labels?)
+  - messages.list(inbox_id, limit?, page_token?, labels?, before?, after?, from?, to?, subject?)
+  - messages.search(inbox_id, q, limit?, page_token?, before?, after?) — full-text, relevance-ranked
   - messages.get(inbox_id, message_id)
   - messages.reply(inbox_id, message_id, text, html?, attachments?, reply_all?)
   - messages.forward(inbox_id, message_id, to, subject?, text?, html?)
@@ -267,7 +305,8 @@ Copy one of the blocks below into Cursor or Claude for complete Messages API kno
    *
    * API reference:
    * - messages.send(inboxId, { to, subject, text, html?, cc?, bcc?, replyTo?, labels?, attachments? })
-   * - messages.list(inboxId, { limit?, pageToken?, labels? })
+   * - messages.list(inboxId, { limit?, pageToken?, labels?, before?, after?, from?, to?, subject? })
+   * - messages.search(inboxId, { q, limit?, pageToken?, before?, after? }) — full-text, relevance-ranked
    * - messages.get(inboxId, messageId)
    * - messages.reply(inboxId, messageId, { text, html?, attachments?, replyAll? })
    * - messages.forward(inboxId, messageId, { to, subject?, text?, html? })

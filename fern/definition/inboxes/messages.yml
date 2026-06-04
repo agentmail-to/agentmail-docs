@@ -19,6 +19,12 @@ service:
       path: ""
       display-name: List Messages
       docs: |
+        Lists messages in the inbox, most recent first. Pass `from`, `to`, or
+        `subject` to filter by substring. Filtered requests are served by
+        search, which caps `limit` at 100. For relevance-ranked full-text
+        search across sender, recipients, subject, and message body, use
+        `Search Messages`.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages list --inbox-id <inbox_id>
@@ -36,8 +42,39 @@ service:
           include_blocked: optional<global.IncludeBlocked>
           include_unauthenticated: optional<global.IncludeUnauthenticated>
           include_trash: optional<global.IncludeTrash>
+          from:
+            type: optional<list<string>>
+            docs: Filter to messages whose sender contains this value (substring match). Repeatable; all values must match.
+          to:
+            type: optional<list<string>>
+            docs: Filter to messages whose recipients (to, cc, or bcc) contain this value (substring match). Repeatable; all values must match.
+          subject:
+            type: optional<list<string>>
+            docs: Filter to messages whose subject contains this value (substring match). Repeatable; all values must match.
       response: messages.ListMessagesResponse
       errors:
+        - global.NotFoundError
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Messages
+      docs: |
+        Full-text search across messages in the inbox, ranked by relevance. The
+        query is matched against the sender, recipients, and subject (substring)
+        and the message body (tokenized full text). Spam, trash, blocked, and
+        unauthenticated messages are always excluded. `limit` cannot exceed 100.
+      request:
+        name: SearchMessagesRequest
+        query-parameters:
+          q: global.Query
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          before: optional<global.Before>
+          after: optional<global.After>
+      response: messages.SearchMessagesResponse
+      errors:
+        - global.ValidationError
         - global.NotFoundError
 
     get:
