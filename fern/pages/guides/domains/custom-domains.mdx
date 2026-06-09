@@ -387,6 +387,105 @@ Here are instructions for some common DNS providers. This list is not exhaustive
   custom domain and building your agents!
 </Callout>
 
+## Setting Up Subdomains
+
+By default, a verified domain only hosts inboxes on the exact domain you registered (e.g. `agent@example.com`). To create inboxes on **arbitrary subdomains** (e.g. `agent@bot.example.com`, `support@sales.example.com`) without registering each subdomain as its own domain, enable **subdomains** on the parent domain.
+
+To set this up, add one new **required** record to your top-level domain: a wildcard MX (`*.example.com`). Once it's published and verified, you can create inboxes on any subdomain of the domain.
+
+<Steps>
+<Step title="1. Enable subdomains on the domain">
+
+Set `subdomains_enabled` when you create the domain, or turn it on later with an update.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# Enable at creation
+domain = client.domains.create(domain="example.com", subdomains_enabled=True)
+
+# Or enable on an existing domain
+domain = client.domains.update("example.com", subdomains_enabled=True)
+
+print("DNS records:", domain.records)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// Enable at creation
+let domain = await client.domains.create({ domain: "example.com", subdomainsEnabled: true });
+
+// Or enable on an existing domain
+domain = await client.domains.update("example.com", { subdomainsEnabled: true });
+
+console.log("DNS records:", domain.records);
+```
+
+```bash title="cURL"
+# Enable on an existing domain
+curl -X PATCH https://api.agentmail.to/v0/domains/example.com \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"subdomains_enabled": true}'
+```
+</CodeBlocks>
+
+<Callout type="warning" title="Verified domains return to Pending">
+  Enabling subdomains on an already-verified domain adds the wildcard MX as a new required record, so the domain returns to `Pending` until that record is published and verified. Sending is not interrupted while this happens.
+</Callout>
+
+</Step>
+<Step title="2. Publish the wildcard MX record">
+
+The response `records` array (and the BIND zone file) now includes a wildcard MX. Add it to your DNS provider exactly like the other MX record, using `*` as the host:
+
+| Field       | Value                              |
+| :---------- | :--------------------------------- |
+| Type        | `MX`                               |
+| Name / Host | `*` (resolves to `*.example.com`)  |
+| Value       | `inbound-smtp.us-east-1.amazonaws.com` |
+| Priority    | `10`                               |
+
+<Callout type="info" title="If your domain is itself a subdomain">
+  If the domain you registered is itself a subdomain (e.g. `mail.example.com`), the wildcard is `*.mail.example.com`, so enter `*.mail` as the host. The console and zone file always show the exact name to use.
+</Callout>
+
+</Step>
+<Step title="3. Create inboxes on any subdomain">
+
+Once the domain is `Verified`, create an inbox on any subdomain by passing it as the `domain`:
+
+<CodeBlocks>
+```python title="Python"
+inbox = client.inboxes.create(username="agent", domain="bot.example.com")
+print(inbox.inbox_id)  # agent@bot.example.com
+```
+
+```typescript title="TypeScript"
+const inbox = await client.inboxes.create({ username: "agent", domain: "bot.example.com" });
+console.log(inbox.inboxId); // agent@bot.example.com
+```
+</CodeBlocks>
+
+You don't need to register `bot.example.com` separately: AgentMail routes it through the parent domain's wildcard MX. Creating a subdomain inbox on a domain that does **not** have subdomains enabled returns a `422` error.
+
+<Note>
+  Subdomain inboxes don't appear under `GET /domains` (only registered domains do); list your inboxes to see them.
+</Note>
+
+</Step>
+</Steps>
+
+<Note>
+  Inboxes on a subdomain send under the parent domain's identity and DKIM, so they share its sending reputation rather than building their own. To give a subdomain an isolated reputation, register it as a separate domain instead, see [Isolate reputations with subdomains](/managing-domains#strategy-1-isolate-reputations-with-subdomains).
+</Note>
+
 ## Troubleshooting Common DNS Issues
 
 DNS can be tricky. Here are some common issues and how to resolve them.

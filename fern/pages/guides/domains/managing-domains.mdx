@@ -36,6 +36,20 @@ Your domains are resources that can be fully managed through the API. Here are t
 
   </Accordion>
 
+  <Accordion title="Update a Domain">
+    Use the `PATCH /domains/{domain}` endpoint to change a domain's settings. Provide at least one of `feedback_enabled` or `subdomains_enabled`; omitted fields are left unchanged.
+
+    <EndpointRequestSnippet
+      endpoint="PATCH /domains/{domain}"
+      title="Update a Domain"
+    />
+
+    <Callout type="info">
+      Enabling `subdomains_enabled` adds a required wildcard MX record and returns a verified domain to `Pending` until that record is published and verified. See [Setting Up Subdomains](/custom-domains#setting-up-subdomains).
+    </Callout>
+
+  </Accordion>
+
   <Accordion title="Delete a Domain">
     If you no longer need a domain, you can remove it using the `DELETE /domains/{domain}` endpoint.
 
@@ -64,6 +78,8 @@ Different agents have different sending patterns and risk profiles. A transactio
 - **`billing.your-company.com`**: For critical transactional agents (receipts, invoices).
 - **`outreach.your-company.com`**: For high-volume sales or marketing agents.
 - **`support.your-company.com`**: For customer service and support agents.
+
+Registering each subdomain as its own domain gives it an independent sending identity (its own DKIM), which is what isolates its reputation. If you don't need isolated reputations and only want inboxes to live on many subdomains under one verified parent, [enable subdomains](/custom-domains#setting-up-subdomains) instead: turn them on once for the parent domain, publish the wildcard MX record, then create inboxes on any subdomain without registering each one. Inboxes created this way send under the parent domain's identity, so they share its sending reputation rather than building their own.
 
 ### Strategy 2: Scale Deliverability with Domain Pooling
 
