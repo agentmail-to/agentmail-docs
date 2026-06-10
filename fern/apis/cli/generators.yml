@@ -2,6 +2,7 @@
 api:
   specs:
     - openapi: ../../../openapi/openapi.yml
+      overrides: ./openapi-overrides.yml
 default-group: cli
 groups:
   cli:

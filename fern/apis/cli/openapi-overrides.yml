@@ -1,0 +1,7 @@
+# Overrides merged onto ../../../openapi/openapi.yml for CLI generation.
+# Rename the Send schema's generated type so it doesn't shadow Rust's
+# std::marker::Send trait in the generated CLI crate.
+components:
+  schemas:
+    Send:
+      x-fern-type-name: SendEvent

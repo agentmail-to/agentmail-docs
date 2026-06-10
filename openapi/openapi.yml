@@ -6969,7 +6969,6 @@ components:
         - status
     Send:
       title: Send
-      x-fern-type-name: SendEvent
       type: object
       properties:
         inbox_id:
