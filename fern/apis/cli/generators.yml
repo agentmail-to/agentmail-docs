@@ -14,7 +14,7 @@ groups:
           binaryName: agentmail
         output:
           location: npm
-          package-name: "agentmail-cli"
+          package-name: "@fern-demo/agentmail-cli"
           token: OIDC
         github:
           repository: fern-demo/agentmail-cli
