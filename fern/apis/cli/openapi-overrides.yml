@@ -1,4 +1,8 @@
 # Overrides merged onto ../../../openapi/openapi.yml for CLI generation.
+# The spec's info.title is "api" (from the Fern definition's API name),
+# which leaks into the generated README ("# api CLI").
+info:
+  title: AgentMail
 # Rename the Send schema's generated type so it doesn't shadow Rust's
 # std::marker::Send trait in the generated CLI crate.
 components:
