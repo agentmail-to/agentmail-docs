@@ -7,12 +7,14 @@ groups:
   cli:
     generators:
       - name: fern-cli-generator
-        version: 0.8.0
+        version: 0.17.3
         smart-casing: true
+        config:
+          binaryName: agentmail
         output:
           location: npm
           package-name: "agentmail-cli"
           token: OIDC
         github:
-          repository: agentmail-to/agentmail-cli
+          repository: fern-demo/agentmail-cli
           mode: pull-request
