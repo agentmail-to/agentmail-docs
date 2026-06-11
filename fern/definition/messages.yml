@@ -203,6 +203,35 @@ types:
           fields (`text`, `html`, `extracted_text`, `extracted_html`) are
           never populated; use the single-message endpoint to retrieve bodies.
 
+  BatchUpdateMessagesMessageIds:
+    type: list<MessageId>
+    docs: |
+      IDs of messages to update. Maximum 50 ids per request. Duplicates are
+      rejected with a validation error. IDs not found in the inbox (including
+      cross-inbox or permission-restricted) are silently excluded from the
+      update; callers detect exclusions by comparing `count` against `limit`.
+
+  BatchUpdateMessagesRequest:
+    properties:
+      message_ids: BatchUpdateMessagesMessageIds
+      add_labels:
+        type: optional<UpdateMessageLabels>
+        docs: Label or labels to add to every message.
+      remove_labels:
+        type: optional<UpdateMessageLabels>
+        docs: Label or labels to remove from every message.
+
+  BatchUpdateMessagesResponse:
+    properties:
+      limit: global.Limit
+      count: global.Count
+      updates:
+        type: list<UpdateMessageResponse>
+        docs: |
+          Updated messages with their new labels. Order matches `message_ids`
+          in the request. Excluded ids are omitted, so `count` may be less than
+          `limit`.
+
   RawMessageResponse:
     docs: S3 presigned URL to download the raw .eml file.
     properties:
