@@ -20,7 +20,7 @@ You can now track cumulative usage over time. The new usage endpoint returns run
 - **Bucketing**: `period` sets the bucket size in seconds. The range divided by `period` must not exceed 1000 buckets — narrow the range or coarsen the period for fine-grained series.
 
 **Changes:**
-- `GET /v0/metrics` (and its pod/inbox variants) is replaced by `/metrics/events`. The old path still responds, so existing clients keep working, but it's removed from the docs and SDKs — use `client.metrics.events()` in place of `client.metrics.query()`.
+- `GET /v0/metrics` (and its pod/inbox variants) is replaced by `/metrics/events`. The old path still responds, so existing clients keep working, but it's removed from the docs and SDKs — use `client.metrics.queryEvents()` in place of `client.metrics.query()`.
 - Metric queries now clamp a future `end` to the current time instead of returning phantom future points, and `period`/`limit` must be whole numbers.
 - The documented metric event types now match what the API accepts: added `message.received.spam`, `message.received.blocked`, `message.received.unauthenticated`, and `domain.verified`; removed `message.delayed`, which the API never accepted.
 
@@ -40,7 +40,7 @@ from agentmail import AgentMail
 client = AgentMail(api_key="your-api-key")
 
 # storage growth for the last week, one point per hour
-usage = client.metrics.usage(
+usage = client.metrics.query_usage(
     usage_types=["storage_bytes"],
     start="2026-06-05T00:00:00Z",
     period=3600,
@@ -50,10 +50,10 @@ for point in usage["storage_bytes"]:
     print(point.timestamp, point.value)
 
 # usage for a single inbox (storage, messages, threads)
-inbox_usage = client.inboxes.metrics.usage(inbox_id="support@agentmail.to")
+inbox_usage = client.inboxes.metrics.query_usage(inbox_id="support@agentmail.to")
 
 # event counts now live at /metrics/events
-events = client.metrics.events(
+events = client.metrics.query_events(
     event_types=["message.sent", "message.bounced"],
     period=3600,
 )
@@ -65,7 +65,7 @@ import { AgentMailClient } from "agentmail";
 const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // storage growth for the last week, one point per hour
-const usage = await client.metrics.usage({
+const usage = await client.metrics.queryUsage({
   usageTypes: ["storage_bytes"],
   start: "2026-06-05T00:00:00Z",
   period: 3600,
@@ -76,10 +76,10 @@ for (const point of usage["storage_bytes"] ?? []) {
 }
 
 // usage for a single inbox (storage, messages, threads)
-const inboxUsage = await client.inboxes.metrics.usage("support@agentmail.to");
+const inboxUsage = await client.inboxes.metrics.queryUsage("support@agentmail.to");
 
 // event counts now live at /metrics/events
-const events = await client.metrics.events({
+const events = await client.metrics.queryEvents({
   eventTypes: ["message.sent", "message.bounced"],
   period: 3600,
 });

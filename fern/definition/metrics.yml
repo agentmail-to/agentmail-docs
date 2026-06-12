@@ -110,7 +110,7 @@ service:
   auth: true
 
   endpoints:
-    events:
+    queryEvents:
       method: GET
       path: /events
       display-name: Query Events
@@ -138,7 +138,7 @@ service:
       errors:
         - global.ValidationError
 
-    usage:
+    queryUsage:
       method: GET
       path: /usage
       display-name: Query Usage
