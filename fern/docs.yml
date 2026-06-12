@@ -130,7 +130,15 @@ redirects:
   - source: /v0/pods/pod_id/threads/thread_id
     destination: /api-reference/pods/threads/list
   - source: /v0/inboxes/:inbox_id/metrics
-    destination: /api-reference/inboxes/metrics/get
+    destination: /api-reference/inboxes/metrics/events
+
+  # Old bare-metrics endpoint pages (replaced by /metrics/events)
+  - source: /api-reference/metrics/query
+    destination: /api-reference/metrics/events
+  - source: /api-reference/inboxes/metrics/query
+    destination: /api-reference/inboxes/metrics/events
+  - source: /api-reference/pods/metrics/query
+    destination: /api-reference/pods/metrics/events
   - source: /v0/pods/:pod_id/drafts/:draft_id
     destination: /api-reference/pods/drafts/get
   - source: /v0/inboxes/inbox_id/messages/send

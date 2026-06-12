@@ -13,17 +13,23 @@ service:
   auth: true
 
   endpoints:
-    query:
+    events:
       method: GET
-      path: ""
-      display-name: Query Metrics
+      path: /events
+      display-name: Query Events
       docs: |
+        Counts of email events (sent, delivered, bounced, etc.) over time for
+        the inbox. Defaults to the last 24 hours; `start` must be within the
+        last 90 days, and a future `end` is clamped to now. Omit `period` for
+        individual event counts, or set it to sum counts into buckets of that
+        many seconds.
+
         **CLI:**
         ```bash
         agentmail inboxes:metrics query --inbox-id <inbox_id>
         ```
       request:
-        name: QueryMetricsRequest
+        name: QueryEventsRequest
         query-parameters:
           event_types: optional<metrics.MetricEventTypes>
           start: optional<metrics.Start>
@@ -32,5 +38,30 @@ service:
           limit: optional<metrics.MetricLimit>
           descending: optional<metrics.Descending>
       response: metrics.QueryMetricsResponse
+      errors:
+        - global.ValidationError
+
+    usage:
+      method: GET
+      path: /usage
+      display-name: Query Usage
+      docs: |
+        Cumulative usage series for the inbox. Each point is the running total
+        of the usage type at that timestamp, not the change within the bucket.
+        Inbox-scoped queries carry `storage_bytes`, `message_count`, and
+        `thread_count`; requested types that don't apply to the scope are
+        ignored. Defaults to the last 24 hours; `start` must be within the
+        last 90 days, and a future `end` is clamped to now. The range divided
+        by `period` must not exceed 1000 buckets.
+      request:
+        name: QueryUsageRequest
+        query-parameters:
+          usage_types: optional<metrics.UsageTypes>
+          start: optional<metrics.Start>
+          end: optional<metrics.End>
+          period: optional<metrics.Period>
+          limit: optional<metrics.MetricLimit>
+          descending: optional<metrics.Descending>
+      response: metrics.QueryUsageResponse
       errors:
         - global.ValidationError

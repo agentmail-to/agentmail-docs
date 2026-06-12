@@ -1,0 +1,92 @@
+---
+tags: ["metrics-api", "new-feature"]
+---
+
+## Summary
+
+You can now track cumulative usage over time. The new usage endpoint returns running totals of storage, messages, threads, inboxes, domains, and pods — for your whole organization, a single pod, or a single inbox. Event counts also move to a dedicated `/metrics/events` path, so the metrics API now cleanly separates "what happened" (events) from "what you have" (usage).
+
+### What's new?
+
+**New endpoints:**
+- `GET /v0/metrics/usage` - Cumulative usage series for the organization.
+- `GET /v0/pods/:pod_id/metrics/usage` - Cumulative usage series for a pod.
+- `GET /v0/inboxes/:inbox_id/metrics/usage` - Cumulative usage series for an inbox.
+- `GET /v0/metrics/events` (and pod/inbox variants) - The canonical path for event counts, replacing bare `GET /v0/metrics`.
+
+**New features:**
+- **Usage series**: Each point is the running total of a usage type at that timestamp, not the change within the bucket. An idle scope renders a flat line at its current level, so charts stay meaningful even with no activity in the window.
+- **Usage types**: `storage_bytes`, `message_count`, `thread_count`, `inbox_count`, `domain_count`, and `pod_count`. Filter with the `usage_types` query parameter, or omit it to get every type the scope carries. Inboxes carry the first three; pods add `inbox_count` and `domain_count`; organizations add `pod_count`.
+- **Bucketing**: `period` sets the bucket size in seconds. The range divided by `period` must not exceed 1000 buckets — narrow the range or coarsen the period for fine-grained series.
+
+**Changes:**
+- `GET /v0/metrics` (and its pod/inbox variants) is replaced by `/metrics/events`. The old path still responds, so existing clients keep working, but it's removed from the docs and SDKs — use `client.metrics.events()` in place of `client.metrics.query()`.
+- Metric queries now clamp a future `end` to the current time instead of returning phantom future points, and `period`/`limit` must be whole numbers.
+- The documented metric event types now match what the API accepts: added `message.received.spam`, `message.received.blocked`, `message.received.unauthenticated`, and `domain.verified`; removed `message.delayed`, which the API never accepted.
+
+### Use cases
+
+Build agents that:
+- Chart storage growth over time and archive old threads before hitting quota
+- Monitor message and thread volume per inbox to spot runaway automations
+- Verify cleanup actually happened by watching usage drop after bulk deletes
+- Compare pods by inbox and domain footprint to balance workloads
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# storage growth for the last week, one point per hour
+usage = client.metrics.usage(
+    usage_types=["storage_bytes"],
+    start="2026-06-05T00:00:00Z",
+    period=3600,
+)
+
+for point in usage["storage_bytes"]:
+    print(point.timestamp, point.value)
+
+# usage for a single inbox (storage, messages, threads)
+inbox_usage = client.inboxes.metrics.usage(inbox_id="support@agentmail.to")
+
+# event counts now live at /metrics/events
+events = client.metrics.events(
+    event_types=["message.sent", "message.bounced"],
+    period=3600,
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "your-api-key" });
+
+// storage growth for the last week, one point per hour
+const usage = await client.metrics.usage({
+  usageTypes: ["storage_bytes"],
+  start: "2026-06-05T00:00:00Z",
+  period: 3600,
+});
+
+for (const point of usage["storage_bytes"] ?? []) {
+  console.log(point.timestamp, point.value);
+}
+
+// usage for a single inbox (storage, messages, threads)
+const inboxUsage = await client.inboxes.metrics.usage("support@agentmail.to");
+
+// event counts now live at /metrics/events
+const events = await client.metrics.events({
+  eventTypes: ["message.sent", "message.bounced"],
+  period: 3600,
+});
+```
+
+</CodeBlocks>
+
+<Note>
+  Check out the [Metrics API reference](https://docs.agentmail.to/api-reference/metrics) for full parameter details.
+</Note>
