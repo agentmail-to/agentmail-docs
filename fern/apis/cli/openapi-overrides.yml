@@ -9,3 +9,365 @@ components:
   schemas:
     Send:
       x-fern-type-name: SendEvent
+
+# Nest the flattened inboxes-*/pods-* command groups (e.g. inboxes-messages ->
+# 'inboxes messages') by restoring the group structure the OpenAPI export drops.
+# Generated from operationId prefixes; method names are the remaining segments.
+paths:
+  /v0/inboxes/{inbox_id}/api-keys:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - apiKeys
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - apiKeys
+      x-fern-sdk-method-name: create
+  /v0/inboxes/{inbox_id}/api-keys/{api_key_id}:
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - apiKeys
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/drafts:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - drafts
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - drafts
+      x-fern-sdk-method-name: create
+  /v0/inboxes/{inbox_id}/drafts/{draft_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - drafts
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - drafts
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - drafts
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/drafts/{draft_id}/attachments/{attachment_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - drafts
+      x-fern-sdk-method-name: getAttachment
+  /v0/inboxes/{inbox_id}/drafts/{draft_id}/send:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - drafts
+      x-fern-sdk-method-name: send
+  /v0/inboxes/{inbox_id}/events:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - events
+      x-fern-sdk-method-name: list
+  /v0/inboxes/{inbox_id}/lists/{direction}/{type}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - lists
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - lists
+      x-fern-sdk-method-name: create
+  /v0/inboxes/{inbox_id}/lists/{direction}/{type}/{entry}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - lists
+      x-fern-sdk-method-name: get
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - lists
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/messages:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: list
+  /v0/inboxes/{inbox_id}/messages/search:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: search
+  /v0/inboxes/{inbox_id}/messages/{message_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/messages/batch-get:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: batchGet
+  /v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: getAttachment
+  /v0/inboxes/{inbox_id}/messages/{message_id}/raw:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: getRaw
+  /v0/inboxes/{inbox_id}/messages/send:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: send
+  /v0/inboxes/{inbox_id}/messages/{message_id}/reply:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: reply
+  /v0/inboxes/{inbox_id}/messages/{message_id}/reply-all:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: reply-all
+  /v0/inboxes/{inbox_id}/messages/{message_id}/forward:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: forward
+  /v0/inboxes/{inbox_id}/metrics:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - metrics
+      x-fern-sdk-method-name: query
+  /v0/inboxes/{inbox_id}/threads:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - threads
+      x-fern-sdk-method-name: list
+  /v0/inboxes/{inbox_id}/threads/search:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - threads
+      x-fern-sdk-method-name: search
+  /v0/inboxes/{inbox_id}/threads/{thread_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - threads
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - threads
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - threads
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/threads/{thread_id}/attachments/{attachment_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - threads
+      x-fern-sdk-method-name: getAttachment
+  /v0/pods/{pod_id}/api-keys:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - apiKeys
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - apiKeys
+      x-fern-sdk-method-name: create
+  /v0/pods/{pod_id}/api-keys/{api_key_id}:
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - apiKeys
+      x-fern-sdk-method-name: delete
+  /v0/pods/{pod_id}/domains:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - domains
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - domains
+      x-fern-sdk-method-name: create
+  /v0/pods/{pod_id}/domains/{domain_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - domains
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - domains
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - domains
+      x-fern-sdk-method-name: delete
+  /v0/pods/{pod_id}/domains/{domain_id}/zone-file:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - domains
+      x-fern-sdk-method-name: getZoneFile
+  /v0/pods/{pod_id}/domains/{domain_id}/verify:
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - domains
+      x-fern-sdk-method-name: verify
+  /v0/pods/{pod_id}/drafts:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - drafts
+      x-fern-sdk-method-name: list
+  /v0/pods/{pod_id}/drafts/{draft_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - drafts
+      x-fern-sdk-method-name: get
+  /v0/pods/{pod_id}/drafts/{draft_id}/attachments/{attachment_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - drafts
+      x-fern-sdk-method-name: getAttachment
+  /v0/pods/{pod_id}/inboxes:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - inboxes
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - inboxes
+      x-fern-sdk-method-name: create
+  /v0/pods/{pod_id}/inboxes/{inbox_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - inboxes
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - inboxes
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - inboxes
+      x-fern-sdk-method-name: delete
+  /v0/pods/{pod_id}/lists/{direction}/{type}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - lists
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - lists
+      x-fern-sdk-method-name: create
+  /v0/pods/{pod_id}/lists/{direction}/{type}/{entry}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - lists
+      x-fern-sdk-method-name: get
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - lists
+      x-fern-sdk-method-name: delete
+  /v0/pods/{pod_id}/metrics:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - metrics
+      x-fern-sdk-method-name: query
+  /v0/pods/{pod_id}/threads:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - threads
+      x-fern-sdk-method-name: list
+  /v0/pods/{pod_id}/threads/search:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - threads
+      x-fern-sdk-method-name: search
+  /v0/pods/{pod_id}/threads/{thread_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - threads
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - threads
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - threads
+      x-fern-sdk-method-name: delete
+  /v0/pods/{pod_id}/threads/{thread_id}/attachments/{attachment_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - threads
+      x-fern-sdk-method-name: getAttachment
