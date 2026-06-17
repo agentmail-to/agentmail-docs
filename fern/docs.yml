@@ -285,6 +285,9 @@ navigation:
           - page: Google ADK
             icon: fa-brands fa-google
             path: pages/integrations/google-adk.mdx
+          - page: LangChain
+            icon: fa-solid fa-link
+            path: pages/integrations/langchain.mdx
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
