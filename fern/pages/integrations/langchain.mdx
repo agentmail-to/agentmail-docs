@@ -1,0 +1,156 @@
+---
+title: LangChain
+subtitle: Give your LangChain agent its own email inbox
+slug: integrations/langchain
+description: AgentMail's LangChain integration
+---
+
+## Getting started
+
+[LangChain](https://www.langchain.com/) is the most widely used framework for building LLM-powered agents. The [`langchain-agentmail`](https://github.com/agentmail-to/langchain-agentmail) package wraps the AgentMail SDK as standard LangChain tools, plus a document loader and a retriever — so a LangGraph agent can send, reply, draft, label, and search email through a real inbox without any glue code.
+
+The full reference lives on the LangChain docs site: [docs.langchain.com/oss/python/integrations/providers/agentmail](https://docs.langchain.com/oss/python/integrations/providers/agentmail).
+
+## Use cases
+
+- **Give agents their own inboxes:** Provision a dedicated email address per agent so it can send and receive mail independently.
+- **Triage and reply:** Read recent threads, summarize what's new, and reply inside the same thread with the right In-Reply-To headers.
+- **Stage and schedule sends:** Use the draft tools to compose iteratively or schedule a delivery time via `send_at`.
+- **RAG over email:** Load messages as LangChain `Document`s and index them into a vector store for semantic search across the inbox.
+
+## Prerequisites
+
+1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to).
+2. Python 3.10+ and a LangChain-compatible model provider (e.g. an `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`).
+
+## Setup
+
+Install the integration package:
+
+```bash
+pip install langchain-agentmail
+```
+
+Set your API key:
+
+```bash
+export AGENTMAIL_API_KEY="your-api-key"
+```
+
+## Quickstart
+
+Build a ReAct agent with the full toolkit in a few lines:
+
+```python title="Python"
+from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
+
+from langchain_agentmail import AgentMailToolkit
+
+toolkit = AgentMailToolkit.from_api_key()
+agent = create_react_agent(
+    ChatOpenAI(model="gpt-4o-mini"),
+    tools=toolkit.get_tools(),
+)
+
+result = agent.invoke(
+    {"messages": [("user", "Summarize my most recent email thread.")]}
+)
+print(result["messages"][-1].content)
+```
+
+You can also pull a single tool in if you don't need the whole toolkit:
+
+```python title="Python"
+from langchain_agentmail import AgentMailClient, AgentMailSendTool
+
+send = AgentMailSendTool(client=AgentMailClient())
+send.invoke({
+    "inbox_id": "ib_...",
+    "to": "alice@example.com",
+    "subject": "Ping",
+    "text": "Hello from my agent.",
+})
+```
+
+## Available tools
+
+The toolkit exposes one tool per AgentMail operation.
+
+### Inbox and thread management
+
+| Tool | Description |
+| --- | --- |
+| `agentmail_list_inboxes` | List inboxes the account owns |
+| `agentmail_create_inbox` | Create a new inbox (random or custom username) |
+| `agentmail_list_threads` | List threads across an inbox with label / time filters |
+| `agentmail_get_thread` | Pull every message in a thread |
+
+### Message operations
+
+| Tool | Description |
+| --- | --- |
+| `agentmail_list_messages` | List messages inside an inbox |
+| `agentmail_get_message` | Fetch one message with its full plain-text body |
+| `agentmail_send_message` | Send a new email |
+| `agentmail_reply_to_message` | Reply inside an existing thread (with optional reply-all) |
+| `agentmail_update_message_labels` | Add or remove labels (archive, follow-up, etc.) |
+| `agentmail_get_attachment` | Get a presigned URL to download a message attachment |
+
+### Draft management
+
+| Tool | Description |
+| --- | --- |
+| `agentmail_create_draft` | Stage a draft (with optional `send_at` for scheduled delivery) |
+| `agentmail_update_draft` | Revise an existing draft |
+| `agentmail_send_draft` | Send a previously created draft |
+| `agentmail_delete_draft` | Permanently delete a draft |
+
+## RAG over an inbox
+
+`AgentMailLoader` streams messages as LangChain `Document`s — one per message, plain-text body as `page_content`, sender / subject / labels / thread / attachment metadata on `metadata`. Pair it with any vector store for semantic search:
+
+```python title="Python"
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_openai import OpenAIEmbeddings
+
+from langchain_agentmail import AgentMailLoader
+
+docs = AgentMailLoader(inbox_id="ib_...", limit=200).load()
+store = InMemoryVectorStore.from_documents(docs, OpenAIEmbeddings())
+retriever = store.as_retriever(search_kwargs={"k": 5})
+
+retriever.invoke("Q3 invoice from acme")
+```
+
+For a quick keyword search without embeddings, use the bundled `AgentMailRetriever` instead.
+
+## Inbound email via webhooks
+
+The `webhooks` extra ships a FastAPI router with svix-compatible signature verification so a LangGraph agent can react to inbound mail:
+
+```bash
+pip install 'langchain-agentmail[webhooks]'
+```
+
+```python title="Python"
+from fastapi import FastAPI
+from langchain_agentmail.webhooks import AgentMailEvent, create_fastapi_router
+
+async def on_event(event: AgentMailEvent) -> None:
+    if event.event_type == "message.received":
+        # drive your LangGraph agent here
+        ...
+
+app = FastAPI()
+app.include_router(
+    create_fastapi_router(on_event),  # reads AGENTMAIL_WEBHOOK_SECRET
+    prefix="/agentmail",
+)
+```
+
+## Resources
+
+- **LangChain integration docs:** [docs.langchain.com/oss/python/integrations/providers/agentmail](https://docs.langchain.com/oss/python/integrations/providers/agentmail)
+- **Source code:** [github.com/agentmail-to/langchain-agentmail](https://github.com/agentmail-to/langchain-agentmail)
+- **PyPI:** [pypi.org/project/langchain-agentmail/](https://pypi.org/project/langchain-agentmail/)
