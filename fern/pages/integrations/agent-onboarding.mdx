@@ -7,7 +7,7 @@ description: >-
 ---
 
 <llms-only>
-> Everything you need to onboard your AI agent to AgentMail — the email platform built for AI agents.
+> Everything you need to onboard your AI agent to AgentMail â the email platform built for AI agents.
 </llms-only>
 
 If you're developing with AI, AgentMail offers several resources to improve your experience.
@@ -65,6 +65,15 @@ agentmail agent verify --otp-code 123456
 <Info>
   The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
 </Info>
+
+
+<Warning>
+  **Unverified accounts can only send email to the signup address.** Until you complete OTP verification, outbound emails to any other address will fail silently. Always call `agent.verify()` before sending to external recipients.
+</Warning>
+
+<Warning>
+  **Some domains cannot be used for agent signup.** Common placeholder domains (e.g., `example.com`) and certain provider-specific domains are blocklisted. If signup fails, use a real email address from your own domain or a standard email provider.
+</Warning>
 
 Alternatively, a human can create an account at [console.agentmail.to](https://console.agentmail.to) and generate an API key from the dashboard.
 
@@ -346,14 +355,14 @@ Unlike traditional email APIs that are built for one-way transactional email, Ag
 
 | Feature | AgentMail | Traditional Email APIs |
 | -- | -- | -- |
-| Per-agent inboxes | ✅ Create thousands via API | ❌ Shared sending domains |
-| Receive & parse emails | ✅ Native with threads | ⚠️ Limited or add-on |
-| Threaded conversations | ✅ First-class API support | ❌ Not supported |
-| Allowlists/blocklists | ✅ Per-inbox controls | ❌ Not available |
-| Multi-tenant (Pods) | ✅ Built-in isolation | ❌ Build it yourself |
-| WebSocket events | ✅ Real-time streaming | ❌ Webhooks only |
-| IMAP/SMTP access | ✅ Full protocol support | ❌ API-only |
-| Usage-based pricing | ✅ Pay per email | ❌ Per-inbox subscriptions |
+| Per-agent inboxes | â Create thousands via API | â Shared sending domains |
+| Receive & parse emails | â Native with threads | â ï¸ Limited or add-on |
+| Threaded conversations | â First-class API support | â Not supported |
+| Allowlists/blocklists | â Per-inbox controls | â Not available |
+| Multi-tenant (Pods) | â Built-in isolation | â Build it yourself |
+| WebSocket events | â Real-time streaming | â Webhooks only |
+| IMAP/SMTP access | â Full protocol support | â API-only |
+| Usage-based pricing | â Pay per email | â Per-inbox subscriptions |
 
 ## Next Steps
 
