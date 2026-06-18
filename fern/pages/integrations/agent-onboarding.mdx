@@ -75,6 +75,15 @@ agentmail agent verify --otp-code 123456
   **Some domains cannot be used for agent signup.** Common placeholder domains (e.g., `example.com`) and certain provider-specific domains are blocklisted. If signup fails, use a real email address from your own domain or a standard email provider.
 </Warning>
 
+
+<Warning>
+  **Unverified accounts can only send email to the signup address.** Until you complete OTP verification, outbound emails to any other address will fail silently. Always call `agent.verify()` before sending to external recipients.
+</Warning>
+
+<Warning>
+  **Some domains cannot be used for agent signup.** Common placeholder domains (e.g., `example.com`) and certain provider-specific domains are blocklisted. If signup fails, use a real email address from your own domain or a standard email provider.
+</Warning>
+
 Alternatively, a human can create an account at [console.agentmail.to](https://console.agentmail.to) and generate an API key from the dashboard.
 
 <Info>
