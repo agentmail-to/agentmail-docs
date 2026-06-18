@@ -7,7 +7,7 @@ description: Learn how to create, manage, and send Drafts to enable advanced age
 
 ## What is a Draft?
 
-A `Draft` is an unsent `Message`. It's a resource that allows your agent to prepare the contents of an emailâincluding recipients, a subject, a body, and `Attachments`âwithout sending it immediately.
+A `Draft` is an unsent `Message`. It's a resource that allows your agent to prepare the contents of an email—including recipients, a subject, a body, and `Attachments`—without sending it immediately.
 
 We know agent reliability is big these days--with `Drafts` you can have agents have ready-to-send emails and only with your permission it can send them off into the world.
 
@@ -72,7 +72,7 @@ Once a `Draft` is created, you can retrieve it by its ID
 <CodeBlocks>
 ```python title="Python"
 # Get the draft
-draft = client.inboxes.drafts.get(inbox_id = âmy_inbox@domain.comâ, draft_id = âdraft_id_123â)
+draft = client.inboxes.drafts.get(inbox_id = “my_inbox@domain.com”, draft_id = “draft_id_123”)
 
 ````
 
@@ -130,7 +130,7 @@ Note that now we access it by message_id now because now its a message!!
 
 ## Scheduled Sending
 
-You can schedule a `Draft` to be sent automatically at a future time by passing the `send_at` field when creating or updating a `Draft`. AgentMail will automatically send it at the specified timeâno cron jobs or polling required.
+You can schedule a `Draft` to be sent automatically at a future time by passing the `send_at` field when creating or updating a `Draft`. AgentMail will automatically send it at the specified time—no cron jobs or polling required.
 
 ### Schedule a `Draft`
 
@@ -255,7 +255,7 @@ scheduled = client.inboxes.drafts.list(
 )
 
 for draft in scheduled.drafts:
-    print(f"{draft.subject} â scheduled for {draft.send_at} ({draft.send_status})")
+    print(f"{draft.subject} — scheduled for {draft.send_at} ({draft.send_status})")
 ```
 
 ```typescript title="TypeScript"
@@ -266,7 +266,7 @@ const scheduled = await client.inboxes.drafts.list(
 );
 
 for (const draft of scheduled.drafts) {
-    console.log(`${draft.subject} â scheduled for ${draft.sendAt} (${draft.sendStatus})`);
+    console.log(`${draft.subject} — scheduled for ${draft.sendAt} (${draft.sendStatus})`);
 }
 ```
 
@@ -279,9 +279,9 @@ agentmail inboxes:drafts list \
 </CodeBlocks>
 
 <Callout intent="info" title="send_status Values">
-- `scheduled` â The draft is queued and will be sent at the `send_at` time.
-- `sending` â The draft is currently being processed for delivery.
-- `failed` â The send attempt failed. You can retry by updating `send_at` to a new time.
+- `scheduled` — The draft is queued and will be sent at the `send_at` time.
+- `sending` — The draft is currently being processed for delivery.
+- `failed` — The send attempt failed. You can retry by updating `send_at` to a new time.
 </Callout>
 
 ### Conditional Follow-Ups
@@ -311,7 +311,7 @@ follow_up = client.inboxes.drafts.create(
     inbox_id=inbox_id,
     to=["prospect@example.com"],
     subject="Re: Quick question about your workflow",
-    text="Hi again â just bumping this in case it got buried...",
+    text="Hi again — just bumping this in case it got buried...",
     in_reply_to=initial.message_id,
     send_at=follow_up_time.isoformat() + "Z"
 )
@@ -342,7 +342,7 @@ followUpTime.setUTCHours(9, 0, 0, 0);
 const followUp = await client.inboxes.drafts.create(inboxId, {
     to: ["prospect@example.com"],
     subject: "Re: Quick question about your workflow",
-    text: "Hi again â just bumping this in case it got buried...",
+    text: "Hi again — just bumping this in case it got buried...",
     inReplyTo: initial.messageId,
     sendAt: followUpTime.toISOString()
 });
@@ -366,7 +366,7 @@ agentmail inboxes:drafts create \
   --inbox-id outreach@domain.com \
   --to prospect@example.com \
   --subject "Re: Quick question about your workflow" \
-  --text "Hi again â just bumping this in case it got buried..." \
+  --text "Hi again — just bumping this in case it got buried..." \
   --in-reply-to initial_message_id \
   --send-at 2026-04-03T09:00:00Z
 ```
@@ -452,7 +452,7 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
 <CodeBlocks>
   ```python title="Python"
   """
-  AgentMail Drafts â copy into Cursor/Claude.
+  AgentMail Drafts — copy into Cursor/Claude.
 
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
@@ -460,10 +460,10 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
   - inboxes.drafts.create(inbox_id, to, subject?, text?, html?, cc?, bcc?, reply_to?, attachments?, send_at?)
   - inboxes.drafts.get(inbox_id, draft_id)
   - inboxes.drafts.update(inbox_id, draft_id, to?, subject?, text?, html?, send_at?, ...)
-  - inboxes.drafts.send(inbox_id, draft_id) â converts to Message, deletes draft
+  - inboxes.drafts.send(inbox_id, draft_id) — converts to Message, deletes draft
   - inboxes.drafts.delete(inbox_id, draft_id)
   - inboxes.drafts.list(inbox_id, limit?, page_token?, labels?)
-  - drafts.list(limit?, page_token?) â org-wide
+  - drafts.list(limit?, page_token?) — org-wide
 
   Scheduled sending: pass send_at (ISO 8601 datetime) to create() or update().
   Draft is auto-labeled 'scheduled' and sent at the specified time.
@@ -500,7 +500,7 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
 
   ```typescript title="TypeScript"
   /**
-   * AgentMail Drafts â copy into Cursor/Claude.
+   * AgentMail Drafts — copy into Cursor/Claude.
    *
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
@@ -508,10 +508,10 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
    * - inboxes.drafts.create(inboxId, { to, subject?, text?, html?, cc?, bcc?, replyTo?, attachments?, sendAt? })
    * - inboxes.drafts.get(inboxId, draftId)
    * - inboxes.drafts.update(inboxId, draftId, { to?, subject?, text?, html?, sendAt?, ... })
-   * - inboxes.drafts.send(inboxId, draftId) â converts to Message, deletes draft
+   * - inboxes.drafts.send(inboxId, draftId) — converts to Message, deletes draft
    * - inboxes.drafts.delete(inboxId, draftId)
    * - inboxes.drafts.list(inboxId, { limit?, pageToken?, labels? })
-   * - drafts.list({ limit?, pageToken? }) â org-wide
+   * - drafts.list({ limit?, pageToken? }) — org-wide
    *
    * Scheduled sending: pass sendAt (ISO 8601 datetime) to create() or update().
    * Draft is auto-labeled 'scheduled' and sent at the specified time.
