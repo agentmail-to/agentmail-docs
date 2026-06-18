@@ -47,5 +47,6 @@ To use idempotency effectively, the `client_id` you generate must be unique and 
 - **Deterministic:** The same logical resource on your end should always generate the same `client_id`. For example, a `client_id` for a user's primary inbox could be `inbox-for-user-{{USER_ID}}`.
 - **Unique:** Do not reuse a `client_id` for creating different resources. A `client_id` used to create an inbox should not be used to create a webhook.
 - **No `@` symbol:** The `client_id` value cannot contain the `@` symbol. If you want to use an email address as an identifier, replace `@` with another character (e.g., `user_at_example.com` instead of `user@example.com`).
+- **No `@` symbol:** The `client_id` value cannot contain the `@` symbol. If you want to use an email address as an identifier, replace `@` with another character (e.g., `user_at_example.com` instead of `user@example.com`).
 
 A common and highly effective pattern is to generate a UUID (like a `UUID v4`) on your client side for a resource you are about to create, save that UUID in your own database, and then use it as the `client_id` in the API call. This gives you a reliable key to use for any retries.
