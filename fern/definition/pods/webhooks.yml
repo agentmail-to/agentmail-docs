@@ -1,0 +1,93 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  pods: __package__.yml
+  webhooks: ../webhooks/__package__.yml
+
+service:
+  url: Http
+  base-path: /pods/{pod_id}/webhooks
+  path-parameters:
+    pod_id: pods.PodId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Webhooks
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:webhooks list --pod-id <pod_id>
+        ```
+      request:
+        name: PodListWebhooksRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: webhooks.ListWebhooksResponse
+
+    get:
+      method: GET
+      path: /{webhook_id}
+      display-name: Get Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:webhooks get --pod-id <pod_id> --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      response: webhooks.Webhook
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Webhook
+      docs: |
+        Create a webhook scoped to this pod.
+
+        **CLI:**
+        ```bash
+        agentmail pods:webhooks create --pod-id <pod_id> --url https://example.com/webhook --event-type message.received
+        ```
+      request: webhooks.CreatePodWebhookRequest
+      response: webhooks.Webhook
+      errors:
+        - global.ValidationError
+
+    update:
+      method: PATCH
+      path: /{webhook_id}
+      display-name: Update Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:webhooks update --pod-id <pod_id> --webhook-id <webhook_id> --add-inbox-id <inbox_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      request: webhooks.UpdatePodWebhookRequest
+      response: webhooks.Webhook
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
+    delete:
+      method: DELETE
+      path: /{webhook_id}
+      display-name: Delete Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods:webhooks delete --pod-id <pod_id> --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      errors:
+        - global.NotFoundError

@@ -49,6 +49,59 @@ When you [update a webhook](https://docs.agentmail.to/api-reference/webhooks/upd
 
 Subscribing to `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` on update still requires the same [label permissions](/core-concepts/permissions) as on create.
 
+## Scoping a webhook to a pod or inbox
+
+By default a webhook is registered at the organization level. You can scope it to a single [pod](/core-concepts/pods) or inbox in two equivalent ways:
+
+- **From the organization endpoint:** pass `pod_ids` or `inbox_ids` when you `webhooks.create` (and add or remove them later with `add_pod_ids` / `add_inbox_ids` on update).
+- **From the scoped endpoints:** call `pods.webhooks.create(pod_id, ...)` or `inboxes.webhooks.create(inbox_id, ...)`. The pod or inbox comes from the path, so you don't pass `pod_ids` / `inbox_ids` in the body. A pod-scoped webhook receives events for the whole pod (optionally narrowed to specific inboxes with `inbox_ids`); an inbox-scoped webhook is fixed to that inbox and can only change its `event_types`.
+
+The scoped endpoints are the natural fit for [pod- or inbox-scoped API keys](/core-concepts/permissions): such a key can manage only its own webhooks, and a scoped webhook must always keep at least one pod or inbox subscription.
+
+<CodeBlocks>
+```python title="Python"
+# webhook scoped to a single pod
+client.pods.webhooks.create(
+    pod_id="pod_abc123",
+    url="https://your-server.com/webhooks",
+    event_types=["message.received"],
+)
+
+# webhook scoped to a single inbox
+client.inboxes.webhooks.create(
+    inbox_id="agent@domain.com",
+    url="https://your-server.com/webhooks",
+    event_types=["message.received"],
+)
+```
+```typescript title="TypeScript"
+// webhook scoped to a single pod
+await client.pods.webhooks.create("pod_abc123", {
+  url: "https://your-server.com/webhooks",
+  eventTypes: ["message.received"],
+});
+
+// webhook scoped to a single inbox
+await client.inboxes.webhooks.create("agent@domain.com", {
+  url: "https://your-server.com/webhooks",
+  eventTypes: ["message.received"],
+});
+```
+```bash title="CLI"
+# webhook scoped to a single pod
+agentmail pods:webhooks create \
+  --pod-id pod_abc123 \
+  --url https://your-server.com/webhooks \
+  --event-type message.received
+
+# webhook scoped to a single inbox
+agentmail inboxes:webhooks create \
+  --inbox-id agent@domain.com \
+  --url https://your-server.com/webhooks \
+  --event-type message.received
+```
+</CodeBlocks>
+
 ## The Webhook Workflow
 
 The process is straightforward:
@@ -199,6 +252,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   - webhooks.get(webhook_id), webhooks.list(limit?, page_token?)
   - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?, event_types?)
   - webhooks.delete(webhook_id)
+  - scoped variants: pods.webhooks.* (pod_id) and inboxes.webhooks.* (inbox_id) — same CRUD, scope from the path
 
   Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
@@ -229,6 +283,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * - webhooks.get(webhookId), webhooks.list({ limit?, pageToken? })
    * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds?, eventTypes? })
    * - webhooks.delete(webhookId)
+   * - scoped variants: pods.webhooks.* (podId) and inboxes.webhooks.* (inboxId) — same CRUD, scope from the path
    *
    * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
    * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.

@@ -59,6 +59,14 @@ types:
     type: string
     docs: ID of message being replied to.
 
+  DraftForwardOf:
+    type: string
+    docs: ID of message being forwarded.
+
+  DraftReplyAll:
+    type: boolean
+    docs: Reply to all recipients of the original message.
+
   DraftSendStatus:
     enum:
       - scheduled
@@ -87,6 +95,7 @@ types:
       preview: optional<DraftPreview>
       attachments: optional<DraftAttachments>
       in_reply_to: optional<DraftInReplyTo>
+      forward_of: optional<DraftForwardOf>
       send_status: optional<DraftSendStatus>
       send_at: optional<DraftSendAt>
       updated_at: DraftUpdatedAt
@@ -107,6 +116,7 @@ types:
       html: optional<DraftHtml>
       attachments: optional<DraftAttachments>
       in_reply_to: optional<DraftInReplyTo>
+      forward_of: optional<DraftForwardOf>
       references:
         type: optional<list<string>>
         docs: IDs of previous messages in thread.
@@ -153,6 +163,66 @@ types:
       text: optional<DraftText>
       html: optional<DraftHtml>
       send_at: optional<DraftSendAt>
+
+  CreateDraftReplyRequest:
+    docs: |
+      Body for creating a draft that replies to a message. `in_reply_to`,
+      `references`, and the subject are derived from the source message. Set
+      `reply_all` to address the whole thread (you cannot then also pass `to`,
+      `cc`, or `bcc`).
+    properties:
+      labels: optional<DraftLabels>
+      reply_to: optional<DraftReplyTo>
+      to: optional<DraftTo>
+      cc: optional<DraftCc>
+      bcc: optional<DraftBcc>
+      reply_all: optional<DraftReplyAll>
+      subject: optional<DraftSubject>
+      text: optional<DraftText>
+      html: optional<DraftHtml>
+      attachments:
+        type: optional<list<attachments.SendAttachment>>
+        docs: Attachments to include in draft.
+      send_at: optional<DraftSendAt>
+      client_id: optional<DraftClientId>
+
+  CreateDraftReplyAllRequest:
+    docs: |
+      Body for creating a draft that replies to the whole thread. Recipients,
+      `in_reply_to`, `references`, and the subject are always derived from the
+      source message, so `to`, `cc`, and `bcc` are not accepted.
+    properties:
+      labels: optional<DraftLabels>
+      reply_to: optional<DraftReplyTo>
+      subject: optional<DraftSubject>
+      text: optional<DraftText>
+      html: optional<DraftHtml>
+      attachments:
+        type: optional<list<attachments.SendAttachment>>
+        docs: Attachments to include in draft.
+      send_at: optional<DraftSendAt>
+      client_id: optional<DraftClientId>
+
+  CreateDraftForwardRequest:
+    docs: |
+      Body for creating a draft that forwards a message. The subject and
+      threading are derived from the source message, whose body and attachments
+      are merged in at send time. Recipients are optional, so a forward draft can
+      be saved without an address and addressed later.
+    properties:
+      labels: optional<DraftLabels>
+      reply_to: optional<DraftReplyTo>
+      to: optional<DraftTo>
+      cc: optional<DraftCc>
+      bcc: optional<DraftBcc>
+      subject: optional<DraftSubject>
+      text: optional<DraftText>
+      html: optional<DraftHtml>
+      attachments:
+        type: optional<list<attachments.SendAttachment>>
+        docs: Attachments to include in draft.
+      send_at: optional<DraftSendAt>
+      client_id: optional<DraftClientId>
 
 service:
   url: Http
