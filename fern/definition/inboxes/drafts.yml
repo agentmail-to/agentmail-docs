@@ -116,6 +116,7 @@ service:
       method: POST
       path: /{draft_id}/send
       display-name: Send Draft
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -128,4 +129,5 @@ service:
       errors:
         - global.NotFoundError
         - global.ValidationError
+        - global.ConflictError
         - messages.MessageRejectedError
