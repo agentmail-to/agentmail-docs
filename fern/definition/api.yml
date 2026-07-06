@@ -41,6 +41,6 @@ idempotency-headers:
     docs: >-
       Unique key that makes a send idempotent. A retry carrying the same key
       returns the original message instead of sending a second email; reusing a
-      key with a different request — different message content, a different
-      sending inbox, or a different send endpoint — returns a 409 conflict.
+      key with a different request (different message content, a different
+      sending inbox, or a different send endpoint) returns a 409 conflict.
       Keys expire 24 hours after the send completes.
