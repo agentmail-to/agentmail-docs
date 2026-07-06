@@ -53,14 +53,14 @@ A common and highly effective pattern is to generate a UUID (like a `UUID v4`) o
 
 ## Idempotent Sends
 
-Sends — `messages.send`, replies, forwards, and `drafts.send` — are idempotent too, but through a different mechanism. A send is **irreversible** (an email actually goes out), so instead of the body `client_id` used for resource creation, you pass an **`Idempotency-Key` HTTP header**.
+Sends (`messages.send`, replies, forwards, and `drafts.send`) are idempotent too, but through a different mechanism. A send is **irreversible** (an email actually goes out), so instead of the body `client_id` used for resource creation, you pass an **`Idempotency-Key` HTTP header**.
 
 When a send carries an `Idempotency-Key`:
 
 - **The first time** we see the key, we send the email, record the result against the key, and return the message.
 - **A retry with the same key** returns the original `message_id` and `thread_id` and sends **no second email**.
-- **The same key with a different request** — different message content, a different sending inbox, or a different send endpoint — returns `409 Conflict`, so an accidental key reuse surfaces loudly instead of silently replaying the wrong result.
-- **An explicitly empty `Idempotency-Key` header** is rejected with a `400` rather than silently treated as absent — if you meant to use idempotency, a broken key fails loudly instead of quietly losing protection.
+- **The same key with a different request** (different message content, a different sending inbox, or a different send endpoint) returns `409 Conflict`, so an accidental key reuse surfaces loudly instead of silently replaying the wrong result.
+- **An explicitly empty `Idempotency-Key` header** is rejected with a `400` rather than silently treated as absent: if you meant to use idempotency, a broken key fails loudly instead of quietly losing protection.
 - Keys are scoped to your organization and **expire 24 hours** after the send completes, after which the key can be reused.
 
 ```bash title="cURL"
@@ -89,4 +89,4 @@ const message = await client.inboxes.messages.send(
 );
 ```
 
-Choose a key that is **unique per logical send** — either a random `UUID v4` you generate once and reuse across retries of that one send, or a deterministic key derived from your own data (e.g. `order-{{ORDER_ID}}-receipt`). The character rules match `client_id`: 1–256 characters from `A-Z a-z 0-9 - . _ ~`.
+Choose a key that is **unique per logical send**: either a random `UUID v4` you generate once and reuse across retries of that one send, or a deterministic key derived from your own data (e.g. `order-{{ORDER_ID}}-receipt`). The character rules match `client_id`: 1 to 256 characters from `A-Z a-z 0-9 - . _ ~`.
