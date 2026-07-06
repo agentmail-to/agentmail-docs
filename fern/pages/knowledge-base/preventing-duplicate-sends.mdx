@@ -36,7 +36,7 @@ const sameInbox = await client.inboxes.create({
 
 The `clientId` parameter is for resource creation, not for `messages.send`. Sends are made idempotent with an **`Idempotency-Key` HTTP header** instead.
 
-Pass a unique key per logical send. A retry carrying the same key returns the original message and sends no second email; reusing a key with a different message returns `409 Conflict`. Keys expire 24 hours after the send completes.
+Pass a unique key per logical send. A retry carrying the same key returns the original message and sends no second email; reusing a key with a different request (different content, inbox, or endpoint) returns `409 Conflict`. Keys expire 24 hours after the send completes.
 
 ```typescript title="TypeScript"
 const key = `order-${orderId}-confirmation`; // unique per logical send, reused across retries
