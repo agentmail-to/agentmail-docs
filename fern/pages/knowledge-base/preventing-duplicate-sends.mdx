@@ -34,7 +34,21 @@ const sameInbox = await client.inboxes.create({
 
 ## Preventing duplicate email sends
 
-The `clientId` parameter is for resource creation, not for `messages.send`. To prevent duplicate email sends, you need to handle this in your application logic. Here are common patterns:
+The `clientId` parameter is for resource creation, not for `messages.send`. Sends are made idempotent with an **`Idempotency-Key` HTTP header** instead.
+
+Pass a unique key per logical send. A retry carrying the same key returns the original message and sends no second email; reusing a key with a different request (different content, inbox, or endpoint) returns `409 Conflict`. Keys expire 24 hours after the send completes.
+
+```typescript title="TypeScript"
+const key = `order-${orderId}-confirmation`; // unique per logical send, reused across retries
+
+const message = await client.inboxes.messages.send(
+  inbox.inboxId,
+  { to: ["customer@example.com"], subject: "Order confirmation", text: "Your order has been confirmed." },
+  { headers: { "Idempotency-Key": key } },
+);
+```
+
+See the [Idempotent Requests](/idempotency) guide for the full semantics. The application-side patterns below still help when you want to dedupe on your own business state (e.g. "have I already replied to this thread?").
 
 ### Track sent messages with labels
 
@@ -84,6 +98,7 @@ Since drafts support `clientId`, creating the same draft multiple times is safe.
 
 ## Best practices
 
+- **Use an `Idempotency-Key` header on sends** (`messages.send`, replies, forwards, `drafts.send`) so retries never duplicate an email
 - **Use `clientId` on all create operations** (inboxes, pods, webhooks, drafts) to make them safe to retry
 - **Generate `clientId` from your business logic** (e.g., `order-${orderId}-confirmation`), not random UUIDs
 - **Track state with labels** to prevent your agent from processing the same message twice

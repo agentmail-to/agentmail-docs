@@ -200,6 +200,7 @@ service:
       method: POST
       path: /send
       display-name: Send Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -210,12 +211,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     reply:
       method: POST
       path: /{message_id}/reply
       display-name: Reply To Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -228,12 +231,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     reply-all:
       method: POST
       path: /{message_id}/reply-all
       display-name: Reply All Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -246,12 +251,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     forward:
       method: POST
       path: /{message_id}/forward
       display-name: Forward Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -264,6 +271,7 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     draft-reply:

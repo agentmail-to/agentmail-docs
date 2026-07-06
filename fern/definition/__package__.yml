@@ -91,3 +91,7 @@ errors:
   UnprocessableError:
     status-code: 422
     type: ErrorResponse
+
+  ConflictError:
+    status-code: 409
+    type: ErrorResponse
