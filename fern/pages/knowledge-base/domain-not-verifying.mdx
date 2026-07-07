@@ -21,15 +21,20 @@ DNS changes can take anywhere from a few minutes to 48 hours to propagate, depen
 
 ## 2. Wrong record type
 
-Make sure you are adding the correct record type as specified by AgentMail. A common mistake is adding a TXT record where a CNAME is needed, or vice versa.
+Make sure you are adding the exact record type AgentMail provides. AgentMail uses TXT records for SPF, DMARC, and new DKIM selector verification, plus MX records when the domain receives mail. Older domains may still use DKIM CNAME records.
 
 | Record | Correct type |
 | --- | --- |
 | SPF | TXT |
-| DKIM | CNAME |
+| DKIM | TXT for domains created on or after July 6, 2026; CNAME for legacy domains if shown |
+| DMARC | TXT |
 | MX | MX |
 
 Double check the records in the AgentMail Console under **Domains** to see the exact type and value required.
+
+<Note>
+As of July 6, 2026, new DKIM records are authenticated with custom TXT selector records instead of CNAME records. For existing domains, do not convert a working CNAME unless AgentMail provides replacement TXT records.
+</Note>
 
 ## 3. Extra quotes or spaces
 
@@ -41,15 +46,15 @@ Route 53 is the opposite: it **requires** quotes around TXT values. If you omit 
 
 ## 4. Domain name auto-appended
 
-Many DNS providers (Namecheap, GoDaddy, Cloudflare) automatically append your domain to the record name. If you enter `agentmail._domainkey.yourcompany.com` instead of just `agentmail._domainkey`, the actual record becomes `agentmail._domainkey.yourcompany.com.yourcompany.com`, which will fail.
+Many DNS providers (Namecheap, GoDaddy, Cloudflare) automatically append your domain to the record name. If AgentMail provides a DKIM selector host like `selector._domainkey.yourcompany.com`, entering the full hostname may create `selector._domainkey.yourcompany.com.yourcompany.com`, which will fail.
 
-**What to do:** Enter only the subdomain portion. For example, enter `agentmail._domainkey`, not the full hostname.
+**What to do:** Enter only the host portion your DNS provider expects. For example, if your provider appends the domain automatically, enter `selector._domainkey`, not the full hostname.
 
 ## 5. Conflicting records
 
-CNAME records cannot coexist with other record types on the same name. If you have an existing TXT or A record on the same subdomain as your DKIM CNAME, verification may fail.
+Some DNS providers reject multiple records with the same host and type, and multiple SPF records on one host will fail authentication. If an old DKIM record or another stale record exists at the same selector host, it can also prevent the new TXT selector record from validating.
 
-**What to do:** Check your DNS dashboard for conflicts on the DKIM selector subdomain and remove any conflicting records.
+**What to do:** Check your DNS dashboard for conflicts on the DKIM selector host. Keep the current DKIM record from AgentMail and remove stale or duplicate records that use the same host.
 
 ## 6. Nameservers pointing elsewhere
 

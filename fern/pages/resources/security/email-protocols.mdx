@@ -34,15 +34,17 @@ Your DNS records are simply the way you tell the world that you've authorized us
 - **What it is:** DKIM is like a digital signature for your emails. This signature proves two things: that the email actually came from your domain and that its content hasn't been messed with with in transit from you to who you are trying to send to.
 - **How it works:** We generate a unique, secure key for your domain. When we send an email, we "sign" it with this key. The public part of that key is published in your DNS. Receiving servers use this public key to verify the signature.
 
-These are a couple of records we might ask you to add.
+This is the kind of record we might ask you to add.
 
 - **Your Records:**
   ```text
-  CNAME | b4w..._domainkey.payment... | b4w...dkim.agentmail.com
-  CNAME | 32c..._domainkey.payment... | 32c...dkim.agentmail.com
-  CNAME | xl4..._domainkey.payment... | xl4...dkim.agentmail.com
+  TXT | b4w..._domainkey.payment... | v=DKIM1; k=rsa; p=MIIB...
   ```
-  Instead of having you publish the raw key (which can be messy and needs to be rotated), we use `CNAME` records. These records act as aliases, pointing a specific address on your domain to one managed by us. This allows us to manage the security of your signing keys automatically without you ever needing to change them.
+  AgentMail gives you a custom DKIM selector host and TXT value. Publishing the key directly at that selector gives receiving servers a precise public key to verify signatures from your domain.
+
+<Note>
+As of July 6, 2026, newly created domains use DKIM TXT records. Older domains may still use DKIM CNAME records, so always publish the exact record type AgentMail returns.
+</Note>
 
 ### DMARC: Domain-based Message Authentication, Reporting, and Conformance
 
