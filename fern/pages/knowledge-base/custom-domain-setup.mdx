@@ -26,10 +26,10 @@ import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient({ apiKey: "am_..." });
 
-// Add your domain
+// add your domain
 const domain = await client.domains.create("yourcompany.com");
 
-// View the DNS records you need to add
+// view the DNS records you need to add
 for (const record of domain.records) {
   console.log(`${record.type} | ${record.name} | ${record.value}`);
 }
@@ -42,8 +42,14 @@ The response includes all the DNS records you need to add at your DNS provider.
 | Record type | Purpose |
 | --- | --- |
 | TXT (SPF) | Authorizes AgentMail to send email on behalf of your domain |
-| CNAME (DKIM) | Cryptographic signature proving emails are authentically from you |
+| TXT (DKIM) | Publishes the custom DKIM selector key used to sign your email |
+| CNAME (DKIM) | Legacy DKIM record type for older domains |
+| TXT (DMARC) | Defines how receivers handle authentication failures |
 | MX | Routes incoming mail for your domain to AgentMail |
+
+<Note>
+As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Always add the exact record type, name, and value shown in the AgentMail Console or API response.
+</Note>
 
 <Note>
 The MX record is only needed if you want to **receive** emails on your custom domain. If you only need to send, you can skip the MX record.

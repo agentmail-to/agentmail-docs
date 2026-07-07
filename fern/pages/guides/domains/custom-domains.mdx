@@ -245,6 +245,10 @@ A BIND zone file is a text file that contains DNS resource records in a standard
 
 Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The instructions vary depending on whether you're using the AgentMail Console or the API directly.
 
+<Callout type="info" title="DKIM record type">
+  As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Always publish the exact `type`, `name`, and `value` returned by the AgentMail Console or API.
+</Callout>
+
 <Tabs>
   <Tab title="Via Console">
     If you created your domain through the [AgentMail Console](https://console.agentmail.to), the DNS records are displayed in a simplified format that's ready for copy-paste into your DNS provider.
@@ -253,9 +257,14 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
       <Tab title="Cloudflare">
         In the dashboard (**DNS > Records**), click **"Add record"**.
 
-        - **TXT (DMARC/SPF/DKIM):**
+        - **TXT (DMARC/SPF/DKIM for new domains):**
           - **Name:** Copy the **Name** value directly from the console.
           - **Content:** Copy the **Value** from the console.
+
+        - **CNAME (legacy DKIM only):**
+          - **Name:** Copy the **Name** value directly from the console.
+          - **Target:** Copy the **Value** from the console.
+          - **Proxy status:** Set to **DNS only**.
 
         - **MX:**
           - **Name:** Enter `@` to apply the record to the root domain.
@@ -267,9 +276,13 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
         In your hosted zone, click **"Create record"**.
 
 
-        - **TXT (DMARC/SPF):**
-          - **Record name:** Copy the **Name** value directly from the console (e.g., `_dmarc` or `mail` or `agentmail._domainkey`).
+        - **TXT (DMARC/SPF/DKIM for new domains):**
+          - **Record name:** Copy the **Name** value directly from the console (e.g., `_dmarc` or `mail` or `selector._domainkey`).
           - **Value:** Copy the **Value** from the console, ensuring it is enclosed in quotes.
+
+        - **CNAME (legacy DKIM only):**
+          - **Record name:** Copy the **Name** value directly from the console.
+          - **Value:** Copy the **Value** from the console without quotes.
 
         <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
           **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)
@@ -306,9 +319,14 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
       <Tab title="Cloudflare">
         In the dashboard (**DNS > Records**), click **"Add record"**.
 
-        - **TXT (DMARC/SPF/DKIM):**
+        - **TXT (DMARC/SPF/DKIM for new domains):**
           - **Name:** Enter the part of the `name` before your root domain (e.g. `_dmarc`).
           - **Content:** Copy paste the `value` from the API response.
+
+        - **CNAME (legacy DKIM only):**
+          - **Name:** Enter the part of the `name` before your root domain.
+          - **Target:** Copy paste the `value` from the API response.
+          - **Proxy status:** Set to **DNS only**.
 
         - **MX:**
           - **Name:** Enter the part of the name before your root domain
@@ -319,9 +337,13 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
       <Tab title="AWS Route 53">
         In your hosted zone, click **"Create record"**.
 
-        - **TXT (DMARC/SPF/DKIM):**
-          - **Record name:** Enter the part of the `name` before your root domain (e.g., `_dmarc` for a `name` of `_dmarc.domain.com`, or `mail` for a `name` of `mail.domain.com`, or `agentmail._domainkey` for a `name` of agentmail._domainkey.agents.com).
-          - **Value:** Can copy paste the`value` from the API, ensuring it is enclosed in quotes.
+        - **TXT (DMARC/SPF/DKIM for new domains):**
+          - **Record name:** Enter the part of the `name` before your root domain (e.g., `_dmarc` for a `name` of `_dmarc.domain.com`, or `mail` for a `name` of `mail.domain.com`, or `selector._domainkey` for a `name` of `selector._domainkey.agents.com`).
+          - **Value:** Copy paste the `value` from the API, ensuring it is enclosed in quotes.
+
+        - **CNAME (legacy DKIM only):**
+          - **Record name:** Enter the part of the `name` before your root domain.
+          - **Value:** Copy paste the `value` from the API without quotes.
 
         <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
           **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)

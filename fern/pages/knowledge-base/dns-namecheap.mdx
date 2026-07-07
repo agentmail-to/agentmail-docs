@@ -28,18 +28,22 @@ Make sure your domain is using **Namecheap BasicDNS** or **Namecheap PremiumDNS*
 If you already have an SPF record for your domain, do **not** create a second one. Instead, add `include:agentmail.to` to your existing SPF record. Having multiple SPF records will cause validation failures.
 </Warning>
 
-## Adding a CNAME Record (DKIM)
+## Adding a DKIM Record
 
 | Field | Value |
 | --- | --- |
-| Type | `CNAME Record` |
-| Host | The DKIM selector from AgentMail (e.g., `agentmail._domainkey`) |
-| Value | The DKIM target from AgentMail |
+| Type | `TXT Record` for new domains; `CNAME Record` for legacy domains if AgentMail shows CNAME |
+| Host | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
+| Value | The DKIM value from AgentMail |
 | TTL | `Automatic` |
 
 <Warning>
-**Namecheap automatically appends your domain to the Host field.** Enter only the subdomain portion. For example, enter `agentmail._domainkey`, not `agentmail._domainkey.yourdomain.com`.
+**Namecheap automatically appends your domain to the Host field.** Enter only the selector host portion. For example, enter `selector._domainkey`, not `selector._domainkey.yourdomain.com`.
 </Warning>
+
+<Note>
+As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Add the exact type and value shown in AgentMail.
+</Note>
 
 ## Adding an MX Record (Receiving)
 
@@ -61,7 +65,7 @@ Namecheap DNS typically propagates within **15 to 30 minutes**, but in some case
 
 ## Common Namecheap Issues
 
-- **Host field auto-appends domain:** Namecheap adds your domain automatically. If your DKIM selector is `agentmail._domainkey`, enter just that, not the full `agentmail._domainkey.yourdomain.com`. If you enter the full value, the actual record will end up as `agentmail._domainkey.yourdomain.com.yourdomain.com`.
+- **Host field auto-appends domain:** Namecheap adds your domain automatically. If your DKIM selector is `selector._domainkey`, enter just that, not the full `selector._domainkey.yourdomain.com`. If you enter the full value, the actual record will end up as `selector._domainkey.yourdomain.com.yourdomain.com`.
 
 - **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
 
