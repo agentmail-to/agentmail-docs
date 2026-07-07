@@ -28,16 +28,20 @@ If your domain is registered with a different registrar but uses Route 53 for DN
 Route 53 requires TXT values to be **wrapped in double quotes**. If you omit the quotes, the record will fail validation. Also, if you already have an SPF record, add `include:agentmail.to` to the existing record rather than creating a second one. Multiple SPF records on the same domain will cause authentication failures.
 </Warning>
 
-## Adding a CNAME Record (DKIM)
+## Adding a DKIM Record
 
 | Field | Value |
 | --- | --- |
-| Record name | The DKIM selector from AgentMail (e.g., `agentmail._domainkey`) |
-| Record type | `CNAME` |
-| Value | The DKIM target from AgentMail |
+| Record name | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
+| Record type | `TXT` for new domains; `CNAME` for legacy domains if AgentMail shows CNAME |
+| Value | The DKIM value from AgentMail |
 | TTL | `300` |
 
-CNAME values should **not** be wrapped in quotes.
+Route 53 requires TXT values to be **wrapped in double quotes**. CNAME values should not be wrapped in quotes. If a DKIM TXT value is longer than 255 characters, split it into adjacent quoted strings within one TXT record.
+
+<Note>
+As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Add the exact type and value shown in AgentMail.
+</Note>
 
 ## Adding an MX Record (Receiving)
 
@@ -60,9 +64,7 @@ Route 53 name servers typically pick up changes within **60 seconds**, but full 
 
 ## Common Route 53 Issues
 
-- **TXT records must be quoted:** Unlike most DNS providers, Route 53 requires double quotes around TXT record values. If your SPF or other TXT records are missing quotes, they won't validate.
-
-- **CNAME at root domain:** Route 53 does not allow CNAME records on the root domain (zone apex). If you need to set up DKIM, the selector (e.g., `agentmail._domainkey`) is a subdomain, so this is typically not an issue. However, if you run into conflicts, consider using a subdomain for sending.
+- **TXT records must be quoted:** Unlike most DNS providers, Route 53 requires double quotes around TXT record values. If your SPF, DKIM, or DMARC TXT records are missing quotes, they won't validate.
 
 - **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
 
@@ -70,7 +72,7 @@ Route 53 name servers typically pick up changes within **60 seconds**, but full 
 
 - **Multiple values in one record:** Route 53 lets you add multiple values to a single record. If you need to add a second MX entry, add it as a new line in the same MX record rather than creating a separate record.
 
-- **DKIM TXT record too long (CharacterStringTooLong error):** If your DKIM record is provided as a TXT value (rather than a CNAME), the DKIM public key is often longer than the 255-character limit that Route 53 enforces per string segment. You will see an error like `CharacterStringTooLong (Value is too long)`. To fix this, split the value into two quoted strings within a single record. The split point should be near the middle of the `p=` value. The two quoted strings must have **no space and no line break** between the closing and opening quotes. For example:
+- **DKIM TXT record too long (CharacterStringTooLong error):** DKIM public keys are often longer than the 255-character limit that Route 53 enforces per string segment. You will see an error like `CharacterStringTooLong (Value is too long)`. To fix this, split the value into two quoted strings within a single record. The split point should be near the middle of the `p=` value. The two quoted strings must have **no space and no line break** between the closing and opening quotes. For example:
 
   ```
   "v=DKIM1; k=rsa; p=MIIBIjANBgkqhki...firsthalf""secondhalf...wIDAQAB"

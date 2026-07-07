@@ -24,18 +24,22 @@ slug: knowledge-base/dns-godaddy
 GoDaddy automatically wraps TXT values in double quotes, so do **not** add your own quotes around the value. If you do, the record will end up double-quoted and fail validation. Also, if you already have an SPF record, add `include:agentmail.to` to the existing record rather than creating a second one.
 </Warning>
 
-## Adding a CNAME Record (DKIM)
+## Adding a DKIM Record
 
 | Field | Value |
 | --- | --- |
-| Type | `CNAME` |
-| Name | The DKIM selector from AgentMail (e.g., `agentmail._domainkey`) |
-| Value | The DKIM target from AgentMail |
+| Type | `TXT` for new domains; `CNAME` for legacy domains if AgentMail shows CNAME |
+| Name | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
+| Value | The DKIM value from AgentMail |
 | TTL | `1 Hour` |
 
 <Warning>
-GoDaddy automatically appends your domain to the Name field. Enter only the subdomain portion. For example, enter `agentmail._domainkey`, not `agentmail._domainkey.yourdomain.com`.
+GoDaddy automatically appends your domain to the Name field. Enter only the selector host portion. For example, enter `selector._domainkey`, not `selector._domainkey.yourdomain.com`.
 </Warning>
+
+<Note>
+As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Add the exact type and value shown in AgentMail.
+</Note>
 
 ## Adding an MX Record (Receiving)
 
@@ -59,7 +63,7 @@ GoDaddy DNS typically propagates within **15 to 30 minutes**, but it can occasio
 
 - **Double-quoted TXT values:** GoDaddy adds quotes around TXT records automatically. If you paste a value that already includes quotes, the final record will be double-quoted and will fail. Paste the raw value without quotes.
 
-- **Name field auto-appends domain:** GoDaddy appends your domain to the Name field. Enter only the subdomain portion (e.g., `agentmail._domainkey`). If you enter the full hostname, it will be duplicated as `agentmail._domainkey.yourdomain.com.yourdomain.com`.
+- **Name field auto-appends domain:** GoDaddy appends your domain to the Name field. Enter only the selector host portion (e.g., `selector._domainkey`). If you enter the full hostname, it will be duplicated as `selector._domainkey.yourdomain.com.yourdomain.com`.
 
 - **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
 

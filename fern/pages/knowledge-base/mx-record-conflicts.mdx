@@ -26,10 +26,10 @@ import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient({ apiKey: "am_..." });
 
-// Use a subdomain to avoid MX conflicts
+// use a subdomain to avoid MX conflicts
 const domain = await client.domains.create("agents.yourcompany.com");
 
-// Create inboxes on the subdomain
+// create inboxes on the subdomain
 const inbox = await client.inboxes.create({
   username: "support",
   domain: "agents.yourcompany.com",
@@ -48,7 +48,7 @@ The setup above puts all your agents on one subdomain. If you instead want inbox
 
 Yes, but only in these scenarios:
 
-**Sending only (no receiving):** If you only need AgentMail to send emails from your root domain, you only need SPF (TXT) and DKIM (CNAME) records. These do not conflict with existing MX records, so your Gmail or Outlook inbound mail is unaffected.
+**Sending only (no receiving):** If you only need AgentMail to send emails from your root domain, you only need SPF and DMARC TXT records plus the DKIM record AgentMail provides. New domains use DKIM TXT records as of July 6, 2026, while legacy domains may still use DKIM CNAME records. These do not conflict with existing MX records, so your Gmail or Outlook inbound mail is unaffected.
 
 **Full AgentMail (sending and receiving):** If you want AgentMail to also receive emails on your root domain, you would need to replace your existing MX records with AgentMail's. This means all incoming mail for that domain routes to AgentMail instead of Gmail or Outlook. Only do this if you want AgentMail to handle all inbound email for that domain.
 
@@ -68,8 +68,10 @@ yourcompany.com            MX    10    aspmx.l.google.com.
 yourcompany.com            MX    20    alt1.aspmx.l.google.com.
 agents.yourcompany.com     MX    10    inbound.agentmail.to.
 agents.yourcompany.com     TXT         v=spf1 include:agentmail.to ~all
-agents.yourcompany.com     CNAME       (DKIM record from AgentMail)
+selector._domainkey.agents.yourcompany.com TXT (DKIM value from AgentMail)
 ```
+
+Older AgentMail domains may show a DKIM CNAME instead of the TXT example above. Use whichever record type AgentMail returns for your domain.
 
 Your team's email continues to flow through Gmail. Agent emails go through AgentMail. Clean separation with no conflicts.
 
