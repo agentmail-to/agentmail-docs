@@ -408,6 +408,9 @@ navigation:
           - page: FAQ
             icon: fa-regular fa-circle-question
             path: pages/resources/faq.mdx
+          - page: Error Reference
+            icon: fa-solid fa-triangle-exclamation
+            path: pages/resources/errors.mdx
           - page: Talon Reply Extraction
             icon: fa-solid fa-scissors
             path: pages/resources/talon.mdx
