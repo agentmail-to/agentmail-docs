@@ -6,9 +6,8 @@ on:
     branches:
       - main
     paths:
-      - "fern/definition/**"
-      - "fern/generators.yml"
-      - "fern/api.yml"
+      - "fern/apis/api/definition/**"
+      - "fern/apis/api/generators.yml"
 
 jobs:
   sync:

@@ -5,12 +5,15 @@ on:
     branches:
       - main
     paths:
-      # a) API spec changes
+      # a) API definition changes (source of truth)
+      - "fern/apis/api/definition/**"
+      # b) Committed OpenAPI export changes
       - "openapi/openapi.yml"
-      # b) Fern CLI version changes
+      # c) CLI generator config / overrides changes
+      - "fern/apis/cli/generators.yml"
+      - "fern/apis/cli/openapi-overrides.yml"
+      # d) Fern CLI version changes
       - "fern/fern.config.json"
-      # c) Generator version changes
-      - "fern/api/cli/generators.yml"
   workflow_dispatch:
 
 jobs:
@@ -22,6 +25,11 @@ jobs:
 
       - name: Setup Fern CLI
         uses: fern-api/setup-fern-cli@v1
+
+      - name: Re-export OpenAPI from definition
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --api api --group openapi --local
 
       - name: Generate CLI
         env:

@@ -63,7 +63,7 @@ paths:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
-      x-fern-sdk-method-name: getAttachment
+      x-fern-sdk-method-name: get-attachment
   /v0/inboxes/{inbox_id}/drafts/{draft_id}/send:
     post:
       x-fern-sdk-group-name:
@@ -131,19 +131,19 @@ paths:
       x-fern-sdk-group-name:
       - inboxes
       - messages
-      x-fern-sdk-method-name: batchGet
+      x-fern-sdk-method-name: batch-get
   /v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - messages
-      x-fern-sdk-method-name: getAttachment
+      x-fern-sdk-method-name: get-attachment
   /v0/inboxes/{inbox_id}/messages/{message_id}/raw:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - messages
-      x-fern-sdk-method-name: getRaw
+      x-fern-sdk-method-name: get-raw
   /v0/inboxes/{inbox_id}/messages/send:
     post:
       x-fern-sdk-group-name:
@@ -207,7 +207,7 @@ paths:
       x-fern-sdk-group-name:
       - inboxes
       - threads
-      x-fern-sdk-method-name: getAttachment
+      x-fern-sdk-method-name: get-attachment
   /v0/pods/{pod_id}/api-keys:
     get:
       x-fern-sdk-group-name:
@@ -257,7 +257,7 @@ paths:
       x-fern-sdk-group-name:
       - pods
       - domains
-      x-fern-sdk-method-name: getZoneFile
+      x-fern-sdk-method-name: get-zone-file
   /v0/pods/{pod_id}/domains/{domain_id}/verify:
     post:
       x-fern-sdk-group-name:
@@ -281,7 +281,7 @@ paths:
       x-fern-sdk-group-name:
       - pods
       - drafts
-      x-fern-sdk-method-name: getAttachment
+      x-fern-sdk-method-name: get-attachment
   /v0/pods/{pod_id}/inboxes:
     get:
       x-fern-sdk-group-name:
@@ -370,7 +370,7 @@ paths:
       x-fern-sdk-group-name:
       - pods
       - threads
-      x-fern-sdk-method-name: getAttachment
+      x-fern-sdk-method-name: get-attachment
   /v0/inboxes:
     get:
       x-fern-sdk-group-name:
@@ -531,7 +531,7 @@ paths:
     get:
       x-fern-sdk-group-name:
       - metrics
-      x-fern-sdk-method-name: list
+      x-fern-sdk-method-name: query
   /v0/organizations:
     get:
       x-fern-sdk-group-name:
