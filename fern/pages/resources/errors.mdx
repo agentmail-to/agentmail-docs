@@ -8,10 +8,10 @@ Every error response from the AgentMail API includes a stable, machine-readable 
 
 ```json
 {
-  "name": "ForbiddenError",
+  "name": "MissingPermissionError",
   "code": "missing_permission",
   "message": "Missing required permission: message_send",
-  "fix": "This API key does not have the 'message_send' permission. Retry with an API key that includes 'message_send', or create one via POST /v0/api-keys (or at https://console.agentmail.to) with that permission enabled.",
+  "fix": "This API key does not have the 'message_send' permission. Retry with an API key that includes 'message_send', or create one via POST /v0/api-keys (or at https://console.agentmail.to) with that permission enabled. If a new key does not resolve this, the permission is outside your credential's scope — use a key with a broader scope (organization-scoped keys hold the widest permissions).",
   "docs": "https://docs.agentmail.to/errors#missing_permission"
 }
 ```
@@ -22,7 +22,7 @@ Branch on `code`, not on `message`: messages may be reworded over time, but code
 
 ### missing_authorization
 
-No `Authorization` header was sent. Send your API key in the `Authorization: Bearer <api_key>` header. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+The `Authorization` header was missing, did not use the required case-sensitive `Bearer ` scheme, or used the scheme correctly but carried no key value after `Bearer ` — the message states which. Send your API key as `Authorization: Bearer <api_key>`. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
 
 ### invalid_token_type
 
@@ -40,7 +40,7 @@ Generic authentication failure. Send a valid API key in the `Authorization: Bear
 
 ### missing_permission
 
-The authenticated API key lacks the specific permission named in the message (for example `message_send`). Retry with an API key that includes that permission, or create one via `POST /v0/api-keys` with the permission enabled.
+The credential lacks the specific permission named in the message (for example `message_send`). The `fix` names the remedy for the actual cause: a restricted key may need the permission granted (retry with a key that includes it, or create one via `POST /v0/api-keys`), while other denials come from the credential's scope or the organization's state, where creating another key at the same scope cannot help — for example `organization_read` requires an organization-scoped key, some permissions (like creating API keys or send-list entries) require completing agent verification via `POST /v0/agent/verify` first, and `agent_verify` itself is only available while an unverified agent organization still needs verification.
 
 ### permission_escalation
 
@@ -48,7 +48,7 @@ A create or update API key request asked for a permission the calling key does n
 
 ### unrestricted_key_required
 
-Clearing a key's permissions (`permissions: null`) or downgrading an unrestricted key requires an unrestricted credential: a dashboard session or an API key stored without a permissions attribute. Retry with one, or pass an explicit permissions object instead.
+Creating an unrestricted child key (`permissions: null`), clearing a key's permissions, or changing the permissions of a currently-unrestricted key requires an unrestricted credential: a dashboard session or an API key stored without a permissions attribute. Retry with one; the `fix` on the response says which gate fired.
 
 ### forbidden
 
@@ -110,7 +110,7 @@ The resource cannot be deleted yet, usually because dependent resources still ex
 
 ### message_rejected
 
-The message was not sent. The message names the reason: blocked recipients (remove them or unblock via `DELETE /v0/lists/send/{type}/{entry}`), a suspended account (email support@agentmail.to), or an unfetchable attachment URL (use a URL that returns 200 without authentication, or send the attachment inline as base64).
+The message was not sent. The message names the reason: recipients on a send block list (remove them from the request, or delete the block entry via `DELETE /v0/lists/send/block/{entry}` at the scope where it was created), recipients missing from an active send allow list (add them via `POST /v0/lists/send/allow` — there is no block entry to delete in this case), a suspended account (email support@agentmail.to), or an unfetchable attachment URL (use a URL that returns 200 without authentication, or send the attachment inline as base64). The `fix` field states which case applies.
 
 ## Transient errors (429 / 500 / 503)
 
