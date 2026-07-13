@@ -22,7 +22,7 @@ Branch on `code`, not on `message`: messages may be reworded over time, but code
 
 ### missing_authorization
 
-No `Authorization` header was sent, or the header did not use the required `Bearer ` scheme (the message distinguishes the two). Send your API key as `Authorization: Bearer <api_key>`. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+The `Authorization` header was missing, did not use the required case-sensitive `Bearer ` scheme, or used the scheme correctly but carried no key value after `Bearer ` — the message states which. Send your API key as `Authorization: Bearer <api_key>`. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
 
 ### invalid_token_type
 
@@ -110,7 +110,7 @@ The resource cannot be deleted yet, usually because dependent resources still ex
 
 ### message_rejected
 
-The message was not sent. The message names the reason: blocked recipients (remove them or unblock via `DELETE /v0/lists/send/{type}/{entry}`), a suspended account (email support@agentmail.to), or an unfetchable attachment URL (use a URL that returns 200 without authentication, or send the attachment inline as base64).
+The message was not sent. The message names the reason: recipients on a send block list (remove them from the request, or delete the block entry via `DELETE /v0/lists/send/block/{entry}` at the scope where it was created), recipients missing from an active send allow list (add them via `POST /v0/lists/send/allow` — there is no block entry to delete in this case), a suspended account (email support@agentmail.to), or an unfetchable attachment URL (use a URL that returns 200 without authentication, or send the attachment inline as base64). The `fix` field states which case applies.
 
 ## Transient errors (429 / 500 / 503)
 
