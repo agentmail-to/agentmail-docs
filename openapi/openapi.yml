@@ -74,6 +74,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Create Inbox
       servers:
         - url: https://api.agentmail.to
@@ -1733,6 +1739,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Send Draft
       servers:
         - url: https://api.agentmail.to
@@ -2441,6 +2453,67 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BatchGetMessagesRequest'
+  /v0/inboxes/{inbox_id}/messages/batch-update:
+    post:
+      description: >-
+        Apply one label change to up to 50 messages in a single request. The
+
+        same add_labels and remove_labels apply to every message id, and at
+
+        least one of them must be provided. The update is atomic: either all
+
+        resolved messages are updated or none are. Missing or restricted ids
+
+        are silently excluded; compare `count` against `limit` to detect
+
+        exclusions.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:messages batch-update --inbox-id <inbox_id>
+        --message-id <id1> --message-id <id2> --add-label read --remove-label
+        unread
+
+        ```
+      operationId: inboxes_messages_batchUpdate
+      tags:
+        - InboxesMessages
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchUpdateMessagesResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Batch Update Messages
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchUpdateMessagesRequest'
   /v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}:
     get:
       description: >-
@@ -2583,6 +2656,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Send Message
       servers:
         - url: https://api.agentmail.to
@@ -2642,6 +2721,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
           description: ''
           content:
             application/json:
@@ -2711,6 +2796,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Reply All Message
       servers:
         - url: https://api.agentmail.to
@@ -2775,6 +2866,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Forward Message
       servers:
         - url: https://api.agentmail.to
@@ -2789,14 +2886,216 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SendMessageRequest'
-  /v0/inboxes/{inbox_id}/metrics:
+  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply:
+    post:
+      description: >-
+        Create a draft that replies to a message instead of sending it. The
+
+        recipients, subject, and threading are derived from the source message.
+
+        Send it later with `Send Draft`.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:messages draft-reply --inbox-id <inbox_id>
+        --message-id <message_id> --text "Reply text"
+
+        ```
+      operationId: inboxes_messages_draft-reply
+      tags:
+        - InboxesMessages
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/MessageId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draft'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Draft Reply
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftReplyRequest'
+  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply-all:
+    post:
+      description: >-
+        Create a draft that replies to every recipient of a message instead of
+
+        sending it. Recipients, subject, and threading are derived from the
+
+        source message. Send it later with `Send Draft`.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:messages draft-reply-all --inbox-id <inbox_id>
+        --message-id <message_id> --text "Reply text"
+
+        ```
+      operationId: inboxes_messages_draft-reply-all
+      tags:
+        - InboxesMessages
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/MessageId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draft'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Draft Reply All
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftReplyAllRequest'
+  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-forward:
+    post:
+      description: >-
+        Create a draft that forwards a message instead of sending it. The
+        subject
+
+        and threading are derived from the source message, whose body and
+
+        attachments are merged in at send time. Send it later with `Send Draft`.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:messages draft-forward --inbox-id <inbox_id>
+        --message-id <message_id> --to recipient@example.com
+
+        ```
+      operationId: inboxes_messages_draft-forward
+      tags:
+        - InboxesMessages
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/MessageId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draft'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Draft Forward
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftForwardRequest'
+  /v0/inboxes/{inbox_id}/metrics/events:
     get:
       description: |-
+        Counts of email events (sent, delivered, bounced, etc.) over time for
+        the inbox. Defaults to the last 24 hours; `start` must be within the
+        last 90 days, and a future `end` is clamped to now. Omit `period` for
+        individual event counts, or set it to sum counts into buckets of that
+        many seconds.
+
         **CLI:**
         ```bash
         agentmail inboxes:metrics query --inbox-id <inbox_id>
         ```
-      operationId: inboxes_metrics_query
+      operationId: inboxes_metrics_queryEvents
       tags:
         - InboxesMetrics
       parameters:
@@ -2854,7 +3153,83 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
-      summary: Query Metrics
+      summary: Query Events
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/inboxes/{inbox_id}/metrics/usage:
+    get:
+      description: |-
+        Cumulative usage series for the inbox. Each point is the running total
+        of the usage type at that timestamp, not the change within the bucket.
+        Inbox-scoped queries carry `storage_bytes`, `message_count`, and
+        `thread_count`; requested types that don't apply to the scope are
+        ignored. Defaults to the last 24 hours; `start` must be within the
+        last 90 days, and a future `end` is clamped to now. The range divided
+        by `period` must not exceed 1000 buckets.
+      operationId: inboxes_metrics_queryUsage
+      tags:
+        - InboxesMetrics
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: usage_types
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UsageTypes'
+            nullable: true
+        - name: start
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Start'
+            nullable: true
+        - name: end
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/End'
+            nullable: true
+        - name: period
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Period'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/MetricLimit'
+            nullable: true
+        - name: descending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Descending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryUsageResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Query Usage
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -3277,6 +3652,248 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/inboxes/{inbox_id}/webhooks:
+    get:
+      description: |-
+        **CLI:**
+        ```bash
+        agentmail inboxes:webhooks list --inbox-id <inbox_id>
+        ```
+      operationId: inboxes_webhooks_list
+      tags:
+        - InboxesWebhooks
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+        - name: ascending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ascending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksListWebhooksResponse'
+      summary: List Webhooks
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: >-
+        Create a webhook scoped to this inbox.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:webhooks create --inbox-id <inbox_id> --url
+        https://example.com/webhook --event-type message.received
+
+        ```
+      operationId: inboxes_webhooks_create
+      tags:
+        - InboxesWebhooks
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhook'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Create Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksCreateInboxWebhookRequest'
+  /v0/inboxes/{inbox_id}/webhooks/{webhook_id}:
+    get:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:webhooks get --inbox-id <inbox_id> --webhook-id
+        <webhook_id>
+
+        ```
+      operationId: inboxes_webhooks_get
+      tags:
+        - InboxesWebhooks
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhook'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:webhooks update --inbox-id <inbox_id> --webhook-id
+        <webhook_id> --event-type message.received
+
+        ```
+      operationId: inboxes_webhooks_update
+      tags:
+        - InboxesWebhooks
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhook'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksUpdateInboxWebhookRequest'
+    delete:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes:webhooks delete --inbox-id <inbox_id> --webhook-id
+        <webhook_id>
+
+        ```
+      operationId: inboxes_webhooks_delete
+      tags:
+        - InboxesWebhooks
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/lists/{direction}/{type}:
     get:
       description: |-
@@ -3475,14 +4092,20 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
-  /v0/metrics:
+  /v0/metrics/events:
     get:
       description: |-
+        Counts of email events (sent, delivered, bounced, etc.) over time for
+        the organization. Defaults to the last 24 hours; `start` must be within
+        the last 90 days, and a future `end` is clamped to now. Omit `period`
+        for individual event counts, or set it to sum counts into buckets of
+        that many seconds.
+
         **CLI:**
         ```bash
         agentmail metrics list
         ```
-      operationId: metrics_query
+      operationId: metrics_queryEvents
       tags:
         - Metrics
       parameters:
@@ -3535,7 +4158,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
-      summary: Query Metrics
+      summary: Query Events
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/metrics/usage:
+    get:
+      description: |-
+        Cumulative usage series for the organization. Each point is the running
+        total of the usage type at that timestamp, not the change within the
+        bucket. Defaults to the last 24 hours; `start` must be within the last
+        90 days, and a future `end` is clamped to now. The range divided by
+        `period` must not exceed 1000 buckets.
+      operationId: metrics_queryUsage
+      tags:
+        - Metrics
+      parameters:
+        - name: usage_types
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UsageTypes'
+            nullable: true
+        - name: start
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Start'
+            nullable: true
+        - name: end
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/End'
+            nullable: true
+        - name: period
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Period'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/MetricLimit'
+            nullable: true
+        - name: descending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Descending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryUsageResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Query Usage
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -4271,6 +4963,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Create Inbox
       servers:
         - url: https://api.agentmail.to
@@ -4633,14 +5331,20 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
-  /v0/pods/{pod_id}/metrics:
+  /v0/pods/{pod_id}/metrics/events:
     get:
       description: |-
+        Counts of email events (sent, delivered, bounced, etc.) over time for
+        the pod. Defaults to the last 24 hours; `start` must be within the last
+        90 days, and a future `end` is clamped to now. Omit `period` for
+        individual event counts, or set it to sum counts into buckets of that
+        many seconds.
+
         **CLI:**
         ```bash
         agentmail pods:metrics query --pod-id <pod_id>
         ```
-      operationId: pods_metrics_query
+      operationId: pods_metrics_queryEvents
       tags:
         - PodsMetrics
       parameters:
@@ -4698,7 +5402,83 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
-      summary: Query Metrics
+      summary: Query Events
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/pods/{pod_id}/metrics/usage:
+    get:
+      description: |-
+        Cumulative usage series for the pod. Each point is the running total of
+        the usage type at that timestamp, not the change within the bucket.
+        Pod-scoped queries carry every usage type except `pod_count`; requested
+        types that don't apply to the scope are ignored. Defaults to the last
+        24 hours; `start` must be within the last 90 days, and a future `end`
+        is clamped to now. The range divided by `period` must not exceed 1000
+        buckets.
+      operationId: pods_metrics_queryUsage
+      tags:
+        - PodsMetrics
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: usage_types
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UsageTypes'
+            nullable: true
+        - name: start
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Start'
+            nullable: true
+        - name: end
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/End'
+            nullable: true
+        - name: period
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Period'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/MetricLimit'
+            nullable: true
+        - name: descending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Descending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryUsageResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Query Usage
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -5109,6 +5889,244 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Get Attachment
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/pods/{pod_id}/webhooks:
+    get:
+      description: |-
+        **CLI:**
+        ```bash
+        agentmail pods:webhooks list --pod-id <pod_id>
+        ```
+      operationId: pods_webhooks_list
+      tags:
+        - PodsWebhooks
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+        - name: ascending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ascending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksListWebhooksResponse'
+      summary: List Webhooks
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: >-
+        Create a webhook scoped to this pod.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail pods:webhooks create --pod-id <pod_id> --url
+        https://example.com/webhook --event-type message.received
+
+        ```
+      operationId: pods_webhooks_create
+      tags:
+        - PodsWebhooks
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhook'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Create Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksCreatePodWebhookRequest'
+  /v0/pods/{pod_id}/webhooks/{webhook_id}:
+    get:
+      description: |-
+        **CLI:**
+        ```bash
+        agentmail pods:webhooks get --pod-id <pod_id> --webhook-id <webhook_id>
+        ```
+      operationId: pods_webhooks_get
+      tags:
+        - PodsWebhooks
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhook'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail pods:webhooks update --pod-id <pod_id> --webhook-id
+        <webhook_id> --add-inbox-id <inbox_id>
+
+        ```
+      operationId: pods_webhooks_update
+      tags:
+        - PodsWebhooks
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhook'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksUpdatePodWebhookRequest'
+    delete:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail pods:webhooks delete --pod-id <pod_id> --webhook-id
+        <webhook_id>
+
+        ```
+      operationId: pods_webhooks_delete
+      tags:
+        - PodsWebhooks
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Webhook
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -5566,14 +6584,38 @@ components:
       title: ErrorMessage
       type: string
       description: Error message.
+    ErrorCode:
+      title: ErrorCode
+      type: string
+      description: >-
+        Stable, machine-readable error code in snake_case (for example,
+        not_found or missing_permission). Branch on this rather than the message
+        text.
+    ErrorFix:
+      title: ErrorFix
+      type: string
+      description: The concrete next action that resolves the error.
+    ErrorDocs:
+      title: ErrorDocs
+      type: string
+      description: Link to the error reference entry for this code.
     ErrorResponse:
       title: ErrorResponse
       type: object
       properties:
         name:
           $ref: '#/components/schemas/ErrorName'
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+          nullable: true
         message:
           $ref: '#/components/schemas/ErrorMessage'
+        fix:
+          $ref: '#/components/schemas/ErrorFix'
+          nullable: true
+        docs:
+          $ref: '#/components/schemas/ErrorDocs'
+          nullable: true
       required:
         - name
         - message
@@ -5583,8 +6625,22 @@ components:
       properties:
         name:
           $ref: '#/components/schemas/ErrorName'
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+          nullable: true
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+          nullable: true
         errors:
-          description: Validation errors.
+          description: >-
+            Validation errors. Each entry has a path and a message identifying
+            the invalid field.
+        fix:
+          $ref: '#/components/schemas/ErrorFix'
+          nullable: true
+        docs:
+          $ref: '#/components/schemas/ErrorDocs'
+          nullable: true
       required:
         - name
         - errors
@@ -5701,8 +6757,12 @@ components:
           type: string
           nullable: true
           description: >-
-            Domain of address. Must be verified domain. Defaults to
-            `agentmail.to`.
+            Domain of address. Must be a verified domain, or any subdomain of a
+
+            verified domain that has subdomains enabled (e.g.,
+            `bot.example.com`).
+
+            Defaults to `agentmail.to`.
         display_name:
           $ref: '#/components/schemas/inboxesDisplayName'
           nullable: true
@@ -5876,38 +6936,101 @@ components:
       required:
         - count
         - webhooks
-    webhooksCreateWebhookRequest:
-      title: webhooksCreateWebhookRequest
+    webhooksCreateWebhookEventTypes:
+      title: webhooksCreateWebhookEventTypes
+      $ref: '#/components/schemas/EventTypes'
+      description: >-
+        Full list of event types this webhook should receive. At least one type
+        is required. Send every type you
+
+        want in this array (not incremental). See [Webhooks
+        overview](https://docs.agentmail.to/webhooks-overview)
+
+        for spam, blocked, and unauthenticated events and required permissions.
+    webhooksUpdateWebhookEventTypes:
+      title: webhooksUpdateWebhookEventTypes
+      $ref: '#/components/schemas/EventTypes'
+      description: >-
+        When you send a non-empty list, it replaces the webhook's subscribed
+        event types in full (the same
+
+        "set the list" behavior as create). It is not a merge or diff: include
+        every event type you want after
+
+        the update. Sending a one-element array means the webhook will only
+        receive that one type afterward.
+
+        Omit this field or send an empty array to leave event types unchanged.
+        Clearing all types with an empty
+
+        list is not supported. Subscribing to `message.received.spam`,
+        `message.received.blocked`, or
+
+        `message.received.unauthenticated` requires the matching label
+        permission on the API key.
+    webhooksCreateInboxWebhookRequest:
+      title: webhooksCreateInboxWebhookRequest
       type: object
+      description: >-
+        Create a webhook scoped to an inbox. The inbox comes from the path, so
+        `inbox_ids` and `pod_ids`
+
+        are not accepted.
       properties:
         url:
           $ref: '#/components/schemas/webhooksUrl'
         event_types:
-          $ref: '#/components/schemas/EventTypes'
-          description: >-
-            Full list of event types this webhook should receive. At least one
-            type is required. Send every type you
-
-            want in this array (not incremental). See [Webhooks
-            overview](https://docs.agentmail.to/webhooks-overview)
-
-            for spam, blocked, and unauthenticated events and required
-            permissions.
-        pod_ids:
-          $ref: '#/components/schemas/PodIds'
-          nullable: true
-        inbox_ids:
-          $ref: '#/components/schemas/InboxIds'
-          nullable: true
+          $ref: '#/components/schemas/webhooksCreateWebhookEventTypes'
         client_id:
           $ref: '#/components/schemas/webhooksClientId'
           nullable: true
       required:
         - url
         - event_types
-    webhooksUpdateWebhookRequest:
-      title: webhooksUpdateWebhookRequest
+    webhooksCreatePodWebhookRequest:
+      title: webhooksCreatePodWebhookRequest
       type: object
+      description: >-
+        Create a webhook scoped to a pod. The pod comes from the path, so
+        `pod_ids` is not accepted.
+
+        Optionally pass `inbox_ids` to narrow the webhook to specific inboxes
+        within the pod; omit to
+
+        receive events for the whole pod.
+      properties:
+        inbox_ids:
+          $ref: '#/components/schemas/InboxIds'
+          nullable: true
+      allOf:
+        - $ref: '#/components/schemas/webhooksCreateInboxWebhookRequest'
+    webhooksCreateWebhookRequest:
+      title: webhooksCreateWebhookRequest
+      type: object
+      properties:
+        pod_ids:
+          $ref: '#/components/schemas/PodIds'
+          nullable: true
+      allOf:
+        - $ref: '#/components/schemas/webhooksCreatePodWebhookRequest'
+    webhooksUpdateInboxWebhookRequest:
+      title: webhooksUpdateInboxWebhookRequest
+      type: object
+      description: >-
+        Update an inbox-scoped webhook. It is fixed to its inbox, so only
+        `event_types` can change.
+      properties:
+        event_types:
+          $ref: '#/components/schemas/webhooksUpdateWebhookEventTypes'
+          nullable: true
+    webhooksUpdatePodWebhookRequest:
+      title: webhooksUpdatePodWebhookRequest
+      type: object
+      description: >-
+        Update a pod-scoped webhook. You can adjust which inboxes within the pod
+        it listens to and replace
+
+        its `event_types`, but not the pod scope itself.
       properties:
         add_inbox_ids:
           $ref: '#/components/schemas/InboxIds'
@@ -5917,6 +7040,12 @@ components:
           $ref: '#/components/schemas/InboxIds'
           nullable: true
           description: Inbox IDs to unsubscribe from the webhook.
+      allOf:
+        - $ref: '#/components/schemas/webhooksUpdateInboxWebhookRequest'
+    webhooksUpdateWebhookRequest:
+      title: webhooksUpdateWebhookRequest
+      type: object
+      properties:
         add_pod_ids:
           $ref: '#/components/schemas/PodIds'
           nullable: true
@@ -5925,27 +7054,8 @@ components:
           $ref: '#/components/schemas/PodIds'
           nullable: true
           description: Pod IDs to unsubscribe from the webhook.
-        event_types:
-          $ref: '#/components/schemas/EventTypes'
-          nullable: true
-          description: >-
-            When you send a non-empty list, it replaces the webhook's subscribed
-            event types in full (the same
-
-            "set the list" behavior as create). It is not a merge or diff:
-            include every event type you want after
-
-            the update. Sending a one-element array means the webhook will only
-            receive that one type afterward.
-
-            Omit this field or send an empty array to leave event types
-            unchanged. Clearing all types with an empty
-
-            list is not supported. Subscribing to `message.received.spam`,
-            `message.received.blocked`, or
-
-            `message.received.unauthenticated` requires the matching label
-            permission on the API key.
+      allOf:
+        - $ref: '#/components/schemas/webhooksUpdatePodWebhookRequest'
     AgentSignupRequest:
       title: AgentSignupRequest
       type: object
@@ -6502,6 +7612,14 @@ components:
       title: FeedbackEnabled
       type: boolean
       description: Bounce and complaint notifications are sent to your inboxes.
+    SubdomainsEnabled:
+      title: SubdomainsEnabled
+      type: boolean
+      description: >-
+        Allow inboxes on any subdomain of this domain. Adds a required wildcard
+        MX
+
+        record (`*.<domain>`) to `records`.
     ClientId:
       title: ClientId
       type: string
@@ -6521,11 +7639,15 @@ components:
           $ref: '#/components/schemas/Status'
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+        subdomains_enabled:
+          $ref: '#/components/schemas/SubdomainsEnabled'
         records:
           type: array
           items:
             $ref: '#/components/schemas/VerificationRecord'
-          description: A list of DNS records required to verify the domain.
+          description: |-
+            A list of DNS records required to verify the domain. Includes a
+            wildcard MX record (`*.<domain>`) when `subdomains_enabled` is true.
         client_id:
           $ref: '#/components/schemas/ClientId'
           nullable: true
@@ -6542,6 +7664,7 @@ components:
         - domain
         - status
         - feedback_enabled
+        - subdomains_enabled
         - records
         - updated_at
         - created_at
@@ -6558,6 +7681,8 @@ components:
           $ref: '#/components/schemas/DomainName'
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+        subdomains_enabled:
+          $ref: '#/components/schemas/SubdomainsEnabled'
         client_id:
           $ref: '#/components/schemas/ClientId'
           nullable: true
@@ -6573,6 +7698,7 @@ components:
         - domain_id
         - domain
         - feedback_enabled
+        - subdomains_enabled
         - updated_at
         - created_at
     ListDomainsResponse:
@@ -6603,15 +7729,32 @@ components:
           $ref: '#/components/schemas/DomainName'
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+          nullable: true
+        subdomains_enabled:
+          $ref: '#/components/schemas/SubdomainsEnabled'
+          nullable: true
       required:
         - domain
-        - feedback_enabled
     UpdateDomainRequest:
       title: UpdateDomainRequest
       type: object
+      description: >-
+        Provide at least one of `feedback_enabled` or `subdomains_enabled`.
+        Omitted
+
+        fields are left unchanged; an empty body is rejected. Enabling
+
+        `subdomains_enabled` on a verified domain returns it to `PENDING` until
+        the
+
+        newly-required wildcard MX record (`*.<domain>`) is published and
+        verified.
       properties:
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+          nullable: true
+        subdomains_enabled:
+          $ref: '#/components/schemas/SubdomainsEnabled'
           nullable: true
     DraftId:
       title: DraftId
@@ -6685,6 +7828,14 @@ components:
       title: DraftInReplyTo
       type: string
       description: ID of message being replied to.
+    DraftForwardOf:
+      title: DraftForwardOf
+      type: string
+      description: ID of message being forwarded.
+    DraftReplyAll:
+      title: DraftReplyAll
+      type: boolean
+      description: Reply to all recipients of the original message.
     DraftSendStatus:
       title: DraftSendStatus
       type: string
@@ -6733,6 +7884,9 @@ components:
           nullable: true
         in_reply_to:
           $ref: '#/components/schemas/DraftInReplyTo'
+          nullable: true
+        forward_of:
+          $ref: '#/components/schemas/DraftForwardOf'
           nullable: true
         send_status:
           $ref: '#/components/schemas/DraftSendStatus'
@@ -6789,6 +7943,9 @@ components:
           nullable: true
         in_reply_to:
           $ref: '#/components/schemas/DraftInReplyTo'
+          nullable: true
+        forward_of:
+          $ref: '#/components/schemas/DraftForwardOf'
           nullable: true
         references:
           type: array
@@ -6904,6 +8061,139 @@ components:
           nullable: true
         send_at:
           $ref: '#/components/schemas/DraftSendAt'
+          nullable: true
+    CreateDraftReplyRequest:
+      title: CreateDraftReplyRequest
+      type: object
+      description: |-
+        Body for creating a draft that replies to a message. `in_reply_to`,
+        `references`, and the subject are derived from the source message. Set
+        `reply_all` to address the whole thread (you cannot then also pass `to`,
+        `cc`, or `bcc`).
+      properties:
+        labels:
+          $ref: '#/components/schemas/DraftLabels'
+          nullable: true
+        reply_to:
+          $ref: '#/components/schemas/DraftReplyTo'
+          nullable: true
+        to:
+          $ref: '#/components/schemas/DraftTo'
+          nullable: true
+        cc:
+          $ref: '#/components/schemas/DraftCc'
+          nullable: true
+        bcc:
+          $ref: '#/components/schemas/DraftBcc'
+          nullable: true
+        reply_all:
+          $ref: '#/components/schemas/DraftReplyAll'
+          nullable: true
+        subject:
+          $ref: '#/components/schemas/DraftSubject'
+          nullable: true
+        text:
+          $ref: '#/components/schemas/DraftText'
+          nullable: true
+        html:
+          $ref: '#/components/schemas/DraftHtml'
+          nullable: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/SendAttachment'
+          nullable: true
+          description: Attachments to include in draft.
+        send_at:
+          $ref: '#/components/schemas/DraftSendAt'
+          nullable: true
+        client_id:
+          $ref: '#/components/schemas/DraftClientId'
+          nullable: true
+    CreateDraftReplyAllRequest:
+      title: CreateDraftReplyAllRequest
+      type: object
+      description: |-
+        Body for creating a draft that replies to the whole thread. Recipients,
+        `in_reply_to`, `references`, and the subject are always derived from the
+        source message, so `to`, `cc`, and `bcc` are not accepted.
+      properties:
+        labels:
+          $ref: '#/components/schemas/DraftLabels'
+          nullable: true
+        reply_to:
+          $ref: '#/components/schemas/DraftReplyTo'
+          nullable: true
+        subject:
+          $ref: '#/components/schemas/DraftSubject'
+          nullable: true
+        text:
+          $ref: '#/components/schemas/DraftText'
+          nullable: true
+        html:
+          $ref: '#/components/schemas/DraftHtml'
+          nullable: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/SendAttachment'
+          nullable: true
+          description: Attachments to include in draft.
+        send_at:
+          $ref: '#/components/schemas/DraftSendAt'
+          nullable: true
+        client_id:
+          $ref: '#/components/schemas/DraftClientId'
+          nullable: true
+    CreateDraftForwardRequest:
+      title: CreateDraftForwardRequest
+      type: object
+      description: >-
+        Body for creating a draft that forwards a message. The subject and
+
+        threading are derived from the source message, whose body and
+        attachments
+
+        are merged in at send time. Recipients are optional, so a forward draft
+        can
+
+        be saved without an address and addressed later.
+      properties:
+        labels:
+          $ref: '#/components/schemas/DraftLabels'
+          nullable: true
+        reply_to:
+          $ref: '#/components/schemas/DraftReplyTo'
+          nullable: true
+        to:
+          $ref: '#/components/schemas/DraftTo'
+          nullable: true
+        cc:
+          $ref: '#/components/schemas/DraftCc'
+          nullable: true
+        bcc:
+          $ref: '#/components/schemas/DraftBcc'
+          nullable: true
+        subject:
+          $ref: '#/components/schemas/DraftSubject'
+          nullable: true
+        text:
+          $ref: '#/components/schemas/DraftText'
+          nullable: true
+        html:
+          $ref: '#/components/schemas/DraftHtml'
+          nullable: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/SendAttachment'
+          nullable: true
+          description: Attachments to include in draft.
+        send_at:
+          $ref: '#/components/schemas/DraftSendAt'
+          nullable: true
+        client_id:
+          $ref: '#/components/schemas/DraftClientId'
           nullable: true
     EventType:
       title: EventType
@@ -7811,6 +9101,55 @@ components:
         - limit
         - count
         - messages
+    BatchUpdateMessagesMessageIds:
+      title: BatchUpdateMessagesMessageIds
+      type: array
+      items:
+        $ref: '#/components/schemas/MessageId'
+      description: |-
+        IDs of messages to update. Maximum 50 ids per request. Duplicates are
+        rejected with a validation error. IDs not found in the inbox (including
+        cross-inbox or permission-restricted) are silently excluded from the
+        update; callers detect exclusions by comparing `count` against `limit`.
+    BatchUpdateMessagesRequest:
+      title: BatchUpdateMessagesRequest
+      type: object
+      properties:
+        message_ids:
+          $ref: '#/components/schemas/BatchUpdateMessagesMessageIds'
+        add_labels:
+          $ref: '#/components/schemas/UpdateMessageLabels'
+          nullable: true
+          description: Label or labels to add to every message.
+        remove_labels:
+          $ref: '#/components/schemas/UpdateMessageLabels'
+          nullable: true
+          description: Label or labels to remove from every message.
+      required:
+        - message_ids
+    BatchUpdateMessagesResponse:
+      title: BatchUpdateMessagesResponse
+      type: object
+      properties:
+        limit:
+          $ref: '#/components/schemas/Limit'
+        count:
+          $ref: '#/components/schemas/Count'
+        updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpdateMessageResponse'
+          description: >-
+            Updated messages with their new labels. Order matches `message_ids`
+
+            in the request. Excluded ids are omitted, so `count` may be less
+            than
+
+            `limit`.
+      required:
+        - limit
+        - count
+        - updates
     RawMessageResponse:
       title: RawMessageResponse
       type: object
@@ -8009,13 +9348,16 @@ components:
       title: MetricEventType
       type: string
       enum:
+        - message.received
+        - message.received.spam
+        - message.received.blocked
+        - message.received.unauthenticated
         - message.sent
         - message.delivered
         - message.bounced
-        - message.delayed
-        - message.rejected
         - message.complained
-        - message.received
+        - message.rejected
+        - domain.verified
       description: Type of metric event.
     MetricEventTypes:
       title: MetricEventTypes
@@ -8035,8 +9377,10 @@ components:
       description: End timestamp for the query.
     Period:
       title: Period
-      type: string
-      description: Period in number of seconds for the query.
+      type: integer
+      description: >-
+        Size of each time bucket as a whole number of seconds, between 1 and
+        86400.
     MetricLimit:
       title: MetricLimit
       type: integer
@@ -8067,6 +9411,54 @@ components:
         items:
           $ref: '#/components/schemas/MetricBucket'
       description: Metrics grouped by event type.
+    UsageType:
+      title: UsageType
+      type: string
+      enum:
+        - storage_bytes
+        - message_count
+        - thread_count
+        - inbox_count
+        - pod_count
+        - domain_count
+      description: >-
+        Type of usage metric. Inbox-scoped queries carry `storage_bytes`,
+
+        `message_count`, and `thread_count`; pod-scoped queries add
+        `inbox_count`
+
+        and `domain_count`; organization-scoped queries add `pod_count`.
+    UsageTypes:
+      title: UsageTypes
+      type: array
+      items:
+        $ref: '#/components/schemas/UsageType'
+      description: >-
+        List of usage metric types to query. Omit to query every type valid for
+        the scope.
+    UsagePoint:
+      title: UsagePoint
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the point.
+        value:
+          type: integer
+          format: int64
+          description: Cumulative value of the usage metric at the timestamp.
+      required:
+        - timestamp
+        - value
+    QueryUsageResponse:
+      title: QueryUsageResponse
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          $ref: '#/components/schemas/UsagePoint'
+      description: Cumulative usage series grouped by usage type.
     Organization:
       title: Organization
       type: object
