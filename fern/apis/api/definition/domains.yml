@@ -60,6 +60,12 @@ types:
     type: boolean
     docs: Bounce and complaint notifications are sent to your inboxes.
 
+  SubdomainsEnabled:
+    type: boolean
+    docs: |
+      Allow inboxes on any subdomain of this domain. Adds a required wildcard MX
+      record (`*.<domain>`) to `records`.
+
   ClientId:
     type: string
     docs: Client ID of domain.
@@ -71,9 +77,12 @@ types:
       domain: DomainName
       status: Status
       feedback_enabled: FeedbackEnabled
+      subdomains_enabled: SubdomainsEnabled
       records:
         type: list<VerificationRecord>
-        docs: A list of DNS records required to verify the domain.
+        docs: |
+          A list of DNS records required to verify the domain. Includes a
+          wildcard MX record (`*.<domain>`) when `subdomains_enabled` is true.
       client_id: optional<ClientId>
       updated_at:
         type: datetime
@@ -88,6 +97,7 @@ types:
       domain_id: DomainId
       domain: DomainName
       feedback_enabled: FeedbackEnabled
+      subdomains_enabled: SubdomainsEnabled
       client_id: optional<ClientId>
       updated_at:
         type: datetime
@@ -108,11 +118,18 @@ types:
   CreateDomainRequest:
     properties:
       domain: DomainName
-      feedback_enabled: FeedbackEnabled
+      feedback_enabled: optional<FeedbackEnabled>
+      subdomains_enabled: optional<SubdomainsEnabled>
 
   UpdateDomainRequest:
+    docs: |
+      Provide at least one of `feedback_enabled` or `subdomains_enabled`. Omitted
+      fields are left unchanged; an empty body is rejected. Enabling
+      `subdomains_enabled` on a verified domain returns it to `PENDING` until the
+      newly-required wildcard MX record (`*.<domain>`) is published and verified.
     properties:
       feedback_enabled: optional<FeedbackEnabled>
+      subdomains_enabled: optional<SubdomainsEnabled>
 
 service:
   url: Http

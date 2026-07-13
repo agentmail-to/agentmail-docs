@@ -40,6 +40,10 @@ const inbox = await client.inboxes.create({
 
 Then add the MX, SPF, and DKIM records for `agents.yourcompany.com` at your DNS provider. These records are completely separate from your root domain's records and will not affect your existing email.
 
+## Hosting inboxes on many subdomains
+
+The setup above puts all your agents on one subdomain. If you instead want inboxes spread across **many** subdomains (for example, one per team or customer), [enable subdomains](/custom-domains#setting-up-subdomains) on the domain you registered. With them enabled on `agents.yourcompany.com`, publishing a single wildcard MX record (`*.agents.yourcompany.com`) lets you create inboxes on any nested subdomain, such as `support@team1.agents.yourcompany.com`, without registering each one. Your root domain's email is never touched.
+
 ## Can I use my root domain?
 
 Yes, but only in these scenarios:

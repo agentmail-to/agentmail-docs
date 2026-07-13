@@ -4,6 +4,7 @@ imports:
   global: ../__package__.yml
   inboxes: __package__.yml
   messages: ../messages.yml
+  drafts: ../drafts.yml
   attachments: ../attachments.yml
 
 service:
@@ -110,6 +111,27 @@ service:
       errors:
         - global.ValidationError
 
+    batchUpdate:
+      method: POST
+      path: /batch-update
+      display-name: Batch Update Messages
+      docs: |
+        Apply one label change to up to 50 messages in a single request. The
+        same add_labels and remove_labels apply to every message id, and at
+        least one of them must be provided. The update is atomic: either all
+        resolved messages are updated or none are. Missing or restricted ids
+        are silently excluded; compare `count` against `limit` to detect
+        exclusions.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:messages batch-update --inbox-id <inbox_id> --message-id <id1> --message-id <id2> --add-label read --remove-label unread
+        ```
+      request: messages.BatchUpdateMessagesRequest
+      response: messages.BatchUpdateMessagesResponse
+      errors:
+        - global.ValidationError
+
     getAttachment:
       method: GET
       path: /{message_id}/attachments/{attachment_id}
@@ -178,6 +200,7 @@ service:
       method: POST
       path: /send
       display-name: Send Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -188,12 +211,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     reply:
       method: POST
       path: /{message_id}/reply
       display-name: Reply To Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -206,12 +231,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     reply-all:
       method: POST
       path: /{message_id}/reply-all
       display-name: Reply All Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -224,12 +251,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     forward:
       method: POST
       path: /{message_id}/forward
       display-name: Forward Message
+      idempotent: true
       docs: |
         **CLI:**
         ```bash
@@ -242,4 +271,68 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
+
+    draft-reply:
+      method: POST
+      path: /{message_id}/draft-reply
+      display-name: Create Draft Reply
+      docs: |
+        Create a draft that replies to a message instead of sending it. The
+        recipients, subject, and threading are derived from the source message.
+        Send it later with `Send Draft`.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:messages draft-reply --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
+        ```
+      path-parameters:
+        message_id: messages.MessageId
+      request: drafts.CreateDraftReplyRequest
+      response: drafts.Draft
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+
+    draft-reply-all:
+      method: POST
+      path: /{message_id}/draft-reply-all
+      display-name: Create Draft Reply All
+      docs: |
+        Create a draft that replies to every recipient of a message instead of
+        sending it. Recipients, subject, and threading are derived from the
+        source message. Send it later with `Send Draft`.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:messages draft-reply-all --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
+        ```
+      path-parameters:
+        message_id: messages.MessageId
+      request: drafts.CreateDraftReplyAllRequest
+      response: drafts.Draft
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+
+    draft-forward:
+      method: POST
+      path: /{message_id}/draft-forward
+      display-name: Create Draft Forward
+      docs: |
+        Create a draft that forwards a message instead of sending it. The subject
+        and threading are derived from the source message, whose body and
+        attachments are merged in at send time. Send it later with `Send Draft`.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:messages draft-forward --inbox-id <inbox_id> --message-id <message_id> --to recipient@example.com
+        ```
+      path-parameters:
+        message_id: messages.MessageId
+      request: drafts.CreateDraftForwardRequest
+      response: drafts.Draft
+      errors:
+        - global.ValidationError
+        - global.NotFoundError

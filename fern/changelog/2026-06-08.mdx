@@ -1,0 +1,60 @@
+---
+tags: ["domains-api", "inboxes-api", "new-feature"]
+---
+
+## Summary
+
+You can now create inboxes on any subdomain of a verified domain without registering each subdomain separately. Enable `subdomains_enabled` on a domain, publish the single wildcard MX record it returns, and create inboxes on any subdomain on demand. Build agents that spin up addresses like `agent@bot.example.com` or `support@team1.example.com` the moment you need them.
+
+### What's new?
+
+**New features:**
+- **Subdomains**: Opt in per domain with `subdomains_enabled`. When enabled, the domain's verification records include a wildcard MX record (`*.<domain>`) to publish on the top-level domain. Once it is published and verified, inboxes can be created on any subdomain of that domain.
+
+**Changes:**
+- `POST /v0/domains` accepts an optional `subdomains_enabled` flag (defaults to `false`).
+- `PATCH /v0/domains/:domain_id` now accepts `subdomains_enabled` and applies partial updates: send at least one of `feedback_enabled` or `subdomains_enabled`, and omitted fields are left unchanged. Enabling subdomains on an already-verified domain returns it to `pending` until the new wildcard MX record is published; sending is not interrupted.
+- Domain responses now include the `subdomains_enabled` field.
+- Creating an inbox on a subdomain of a domain that does not have subdomains enabled returns a `422` error.
+
+### Use cases
+
+Build agents that:
+- Provision a dedicated inbox per customer or workspace under one verified domain (`support@acme.example.com`)
+- Separate agent traffic onto purpose-named subdomains (`billing.`, `outreach.`, `support.`) without registering each one
+- Stand up short-lived inboxes on fresh subdomains for one-off tasks, then tear them down
+- Keep all agent addresses under a single domain you verify and manage once
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# Enable subdomains on a verified domain
+domain = client.domains.update("example.com", subdomains_enabled=True)
+
+# Publish the new wildcard MX record, then create inboxes on any subdomain
+inbox = client.inboxes.create(username="agent", domain="bot.example.com")
+print(inbox.inbox_id)  # agent@bot.example.com
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "your-api-key" });
+
+// Enable subdomains on a verified domain
+const domain = await client.domains.update("example.com", { subdomainsEnabled: true });
+
+// Publish the new wildcard MX record, then create inboxes on any subdomain
+const inbox = await client.inboxes.create({ username: "agent", domain: "bot.example.com" });
+console.log(inbox.inboxId); // agent@bot.example.com
+```
+
+</CodeBlocks>
+
+<Note>
+  Learn more in the [Setting Up Subdomains](https://docs.agentmail.to/custom-domains#setting-up-subdomains) guide.
+</Note>

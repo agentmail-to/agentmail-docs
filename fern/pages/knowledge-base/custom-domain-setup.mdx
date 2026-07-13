@@ -87,6 +87,8 @@ console.log(`Created: ${inbox.inboxId}`);
 // support@yourcompany.com
 ```
 
+To create inboxes on **any subdomain** of your domain (e.g. `support@bot.yourcompany.com`) without registering each subdomain separately, [enable subdomains](/custom-domains#setting-up-subdomains) on the domain and publish the wildcard MX record it returns.
+
 ## Tips
 
 - **Use a subdomain** (e.g., `mail.yourcompany.com`) if you don't want to modify your root domain's MX records or risk conflicts with existing email services

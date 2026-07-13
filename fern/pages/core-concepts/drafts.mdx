@@ -52,7 +52,7 @@ const newDraft = await client.inboxes.drafts.create(
 	}
 )
 
-console.log(`Draft created successfully with ID: ${newDraft.id}`);
+console.log(`Draft created successfully with ID: ${newDraft.draftId}`);
 ````
 
 ```bash title="CLI"
@@ -127,6 +127,70 @@ agentmail inboxes:drafts send \
 </CodeBlocks>
 
 Note that now we access it by message_id now because now its a message!!
+
+## Reply and Forward Drafts
+
+Instead of building a reply or forward by hand, you can create a `Draft` directly from an existing `Message`. AgentMail derives the recipients, subject, and threading from the source message, so a human can review the prepared reply before it goes out. These create a `Draft` (they do not send) — send it later with `inboxes.drafts.send`.
+
+- `inboxes.messages.draft_reply` — reply to the original sender. Set `reply_all=True` to address the whole thread.
+- `inboxes.messages.draft_reply_all` — reply to everyone on the thread (recipients are always derived from the source message).
+- `inboxes.messages.draft_forward` — forward the message. The original body and attachments are merged in at send time.
+
+<CodeBlocks>
+```python title="Python"
+# create a draft reply to the sender of a received message
+draft = client.inboxes.messages.draft_reply(
+    inbox_id="agent@domain.com",
+    message_id="<message-id@domain.com>",
+    text="Thanks — looping in my manager for approval.",
+)
+
+# forward a message as a draft for later review
+forward = client.inboxes.messages.draft_forward(
+    inbox_id="agent@domain.com",
+    message_id="<message-id@domain.com>",
+    to=["teammate@example.com"],
+    text="See below — can you take this one?",
+)
+
+# review, then send when ready
+client.inboxes.drafts.send(inbox_id="agent@domain.com", draft_id=draft.draft_id)
+```
+
+```typescript title="TypeScript"
+// create a draft reply to the sender of a received message
+const draft = await client.inboxes.messages.draftReply(
+  "agent@domain.com",
+  "<message-id@domain.com>",
+  { text: "Thanks — looping in my manager for approval." }
+);
+
+// forward a message as a draft for later review
+const forward = await client.inboxes.messages.draftForward(
+  "agent@domain.com",
+  "<message-id@domain.com>",
+  { to: ["teammate@example.com"], text: "See below — can you take this one?" }
+);
+
+// review, then send when ready
+await client.inboxes.drafts.send("agent@domain.com", draft.draftId);
+```
+
+```bash title="CLI"
+# create a draft reply to a message
+agentmail inboxes:messages draft-reply \
+  --inbox-id agent@domain.com \
+  --message-id "<message-id@domain.com>" \
+  --text "Thanks — looping in my manager for approval."
+
+# forward a message as a draft
+agentmail inboxes:messages draft-forward \
+  --inbox-id agent@domain.com \
+  --message-id "<message-id@domain.com>" \
+  --to teammate@example.com \
+  --text "See below — can you take this one?"
+```
+</CodeBlocks>
 
 ## Scheduled Sending
 
@@ -458,6 +522,9 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
 
   API reference:
   - inboxes.drafts.create(inbox_id, to, subject?, text?, html?, cc?, bcc?, reply_to?, attachments?, send_at?)
+  - inboxes.messages.draft_reply(inbox_id, message_id, text?, html?, reply_all?, ...) — reply draft from a message
+  - inboxes.messages.draft_reply_all(inbox_id, message_id, text?, html?, ...) — reply-all draft from a message
+  - inboxes.messages.draft_forward(inbox_id, message_id, to?, text?, html?, ...) — forward draft from a message
   - inboxes.drafts.get(inbox_id, draft_id)
   - inboxes.drafts.update(inbox_id, draft_id, to?, subject?, text?, html?, send_at?, ...)
   - inboxes.drafts.send(inbox_id, draft_id) — converts to Message, deletes draft
@@ -506,6 +573,9 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
    *
    * API reference:
    * - inboxes.drafts.create(inboxId, { to, subject?, text?, html?, cc?, bcc?, replyTo?, attachments?, sendAt? })
+   * - inboxes.messages.draftReply(inboxId, messageId, { text?, html?, replyAll?, ... }) — reply draft from a message
+   * - inboxes.messages.draftReplyAll(inboxId, messageId, { text?, html?, ... }) — reply-all draft from a message
+   * - inboxes.messages.draftForward(inboxId, messageId, { to?, text?, html?, ... }) — forward draft from a message
    * - inboxes.drafts.get(inboxId, draftId)
    * - inboxes.drafts.update(inboxId, draftId, { to?, subject?, text?, html?, sendAt?, ... })
    * - inboxes.drafts.send(inboxId, draftId) — converts to Message, deletes draft

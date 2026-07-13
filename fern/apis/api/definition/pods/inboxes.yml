@@ -60,6 +60,7 @@ service:
       response: inboxes.Inbox
       errors:
         - global.ValidationError
+        - global.UnprocessableError
 
     update:
       method: PATCH

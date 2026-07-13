@@ -130,7 +130,15 @@ redirects:
   - source: /v0/pods/pod_id/threads/thread_id
     destination: /api-reference/pods/threads/list
   - source: /v0/inboxes/:inbox_id/metrics
-    destination: /api-reference/inboxes/metrics/get
+    destination: /api-reference/inboxes/metrics/query-events
+
+  # Old bare-metrics endpoint pages (replaced by /metrics/events)
+  - source: /api-reference/metrics/query
+    destination: /api-reference/metrics/query-events
+  - source: /api-reference/inboxes/metrics/query
+    destination: /api-reference/inboxes/metrics/query-events
+  - source: /api-reference/pods/metrics/query
+    destination: /api-reference/pods/metrics/query-events
   - source: /v0/pods/:pod_id/drafts/:draft_id
     destination: /api-reference/pods/drafts/get
   - source: /v0/inboxes/inbox_id/messages/send
@@ -277,6 +285,9 @@ navigation:
           - page: Google ADK
             icon: fa-brands fa-google
             path: pages/integrations/google-adk.mdx
+          - page: LangChain
+            icon: fa-solid fa-link
+            path: pages/integrations/langchain.mdx
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
@@ -397,6 +408,9 @@ navigation:
           - page: FAQ
             icon: fa-regular fa-circle-question
             path: pages/resources/faq.mdx
+          - page: Error Reference
+            icon: fa-solid fa-triangle-exclamation
+            path: pages/resources/errors.mdx
           - page: Talon Reply Extraction
             icon: fa-solid fa-scissors
             path: pages/resources/talon.mdx

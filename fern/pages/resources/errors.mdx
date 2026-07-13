@@ -1,0 +1,127 @@
+---
+title: "Error Reference"
+slug: errors
+description: "Every AgentMail API error code, what it means, and how to fix it."
+---
+
+Every error response from the AgentMail API includes a stable, machine-readable `code` you can branch on, a `message` describing what went wrong, a `fix` describing the concrete next action that resolves it, and a `docs` link pointing to the matching entry on this page.
+
+```json
+{
+  "name": "ForbiddenError",
+  "code": "missing_permission",
+  "message": "Missing required permission: message_send",
+  "fix": "This API key does not have the 'message_send' permission. Retry with an API key that includes 'message_send', or create one via POST /v0/api-keys (or at https://console.agentmail.to) with that permission enabled.",
+  "docs": "https://docs.agentmail.to/errors#missing_permission"
+}
+```
+
+Branch on `code`, not on `message`: messages may be reworded over time, but codes are stable.
+
+## Authentication (401)
+
+### missing_authorization
+
+No `Authorization` header was sent. Send your API key in the `Authorization: Bearer <api_key>` header. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+
+### invalid_token_type
+
+The endpoint requires an API key, but the request carried a console session token (JWT). Authenticate with an API key instead: keys start with `am_`. Create one at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+
+### unknown_api_key
+
+The API key was not recognized. Confirm you copied the full value (keys start with `am_`) and that the key has not been revoked. Create a new key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+
+### unauthorized
+
+Generic authentication failure. Send a valid API key in the `Authorization: Bearer <api_key>` header. Create or rotate keys at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+
+## Authorization (403)
+
+### missing_permission
+
+The authenticated API key lacks the specific permission named in the message (for example `message_send`). Retry with an API key that includes that permission, or create one via `POST /v0/api-keys` with the permission enabled.
+
+### permission_escalation
+
+A create or update API key request asked for a permission the calling key does not hold itself. A key cannot grant more than it has. Remove the extra permissions from the request, or retry with a key that already holds them.
+
+### unrestricted_key_required
+
+Clearing a key's permissions (`permissions: null`) or downgrading an unrestricted key requires an unrestricted credential: a dashboard session or an API key stored without a permissions attribute. Retry with one, or pass an explicit permissions object instead.
+
+### forbidden
+
+The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource.
+
+## Request errors (400 / 404 / 422)
+
+### validation_error
+
+One or more request fields failed validation. Inspect the `errors` array in the response: each entry has a `path` and a `message` identifying the invalid field. Correct the offending fields and resend. Two common cases carry field-specific messages: an invalid `page_token` (restart pagination by omitting `page_token`, then follow `next_page_token`) and a malformed `Idempotency-Key` header.
+
+### not_found
+
+No resource matched the given identifier. Check that the ID is correct and belongs to your organization; use the corresponding list endpoint to discover valid IDs.
+
+### unprocessable
+
+The request was well-formed but cannot be processed as-is (for example, a send with no recipients in `to`, `cc`, or `bcc`). Adjust the request per the message and retry.
+
+### query_range_too_wide
+
+A metrics query requested too wide a time range. Narrow the requested time range, or increase the period/bucket size, then retry.
+
+## Resource state (403 / 409)
+
+### already_exists
+
+A resource with these details already exists. Fetch or update the existing resource instead of creating a duplicate.
+
+### resource_taken
+
+The requested value (for example, an inbox username) is already in use. Choose a different value and retry.
+
+### limit_exceeded
+
+A resource limit has been reached (for example, the webhook endpoint limit). Remove an existing resource before adding another, or email support@agentmail.to to raise your limit.
+
+### domain_not_verified
+
+The sending domain has not completed DNS verification. Add the DNS records returned by `GET /v0/domains/{domain}`, then call `POST /v0/domains/{domain}/verify` before sending from an address on this domain.
+
+### conflict
+
+The request conflicts with another request under the same `Idempotency-Key`. Either the original send is still in progress (wait briefly and retry the identical request) or the key was already used for a different message (generate a new key for new messages). See [Idempotency](/idempotency).
+
+### race_condition
+
+A concurrent modification conflicted with your request. Re-fetch the resource to get its latest state, then retry.
+
+### resource_deleting
+
+The resource is currently being deleted and cannot be used. Wait for deletion to finish, or use a different resource.
+
+### cannot_delete
+
+The resource cannot be deleted yet, usually because dependent resources still exist. Resolve the blocker described in the message, then retry.
+
+## Sending (403)
+
+### message_rejected
+
+The message was not sent. The message names the reason: blocked recipients (remove them or unblock via `DELETE /v0/lists/send/{type}/{entry}`), a suspended account (email support@agentmail.to), or an unfetchable attachment URL (use a URL that returns 200 without authentication, or send the attachment inline as base64).
+
+## Transient errors (429 / 500 / 503)
+
+### rate_limit_exceeded
+
+You are sending requests too quickly or have hit a usage limit. Honor the `Retry-After` header when present, and retry with exponential backoff.
+
+### service_unavailable
+
+A downstream service is temporarily unavailable. Retry the request after a short delay with exponential backoff.
+
+### internal_error
+
+A server-side error, not a problem with your request. Retry with exponential backoff; if it persists, email support@agentmail.to.

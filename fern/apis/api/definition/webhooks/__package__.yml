@@ -48,20 +48,63 @@ types:
         type: list<Webhook>
         docs: Ordered by `created_at` descending.
 
-  CreateWebhookRequest:
+  # Shared event-type field docs, referenced by every create/update request below so the
+  # text lives in one place.
+  CreateWebhookEventTypes:
+    type: events.EventTypes
+    docs: |
+      Full list of event types this webhook should receive. At least one type is required. Send every type you
+      want in this array (not incremental). See [Webhooks overview](https://docs.agentmail.to/webhooks-overview)
+      for spam, blocked, and unauthenticated events and required permissions.
+
+  UpdateWebhookEventTypes:
+    type: events.EventTypes
+    docs: |
+      When you send a non-empty list, it replaces the webhook's subscribed event types in full (the same
+      "set the list" behavior as create). It is not a merge or diff: include every event type you want after
+      the update. Sending a one-element array means the webhook will only receive that one type afterward.
+      Omit this field or send an empty array to leave event types unchanged. Clearing all types with an empty
+      list is not supported. Subscribing to `message.received.spam`, `message.received.blocked`, or
+      `message.received.unauthenticated` requires the matching label permission on the API key.
+
+  # Create requests. The inbox-scoped body is the smallest shape (the inbox comes from the path);
+  # each wider scope extends the previous one, adding only the channel fields it additionally accepts
+  # (pod adds inbox_ids; organization adds pod_ids).
+  CreateInboxWebhookRequest:
+    docs: |
+      Create a webhook scoped to an inbox. The inbox comes from the path, so `inbox_ids` and `pod_ids`
+      are not accepted.
     properties:
       url: Url
-      event_types:
-        type: events.EventTypes
-        docs: |
-          Full list of event types this webhook should receive. At least one type is required. Send every type you
-          want in this array (not incremental). See [Webhooks overview](https://docs.agentmail.to/webhooks-overview)
-          for spam, blocked, and unauthenticated events and required permissions.
-      pod_ids: optional<events.PodIds>
-      inbox_ids: optional<events.InboxIds>
+      event_types: CreateWebhookEventTypes
       client_id: optional<ClientId>
 
-  UpdateWebhookRequest:
+  CreatePodWebhookRequest:
+    docs: |
+      Create a webhook scoped to a pod. The pod comes from the path, so `pod_ids` is not accepted.
+      Optionally pass `inbox_ids` to narrow the webhook to specific inboxes within the pod; omit to
+      receive events for the whole pod.
+    extends: CreateInboxWebhookRequest
+    properties:
+      inbox_ids: optional<events.InboxIds>
+
+  CreateWebhookRequest:
+    extends: CreatePodWebhookRequest
+    properties:
+      pod_ids: optional<events.PodIds>
+
+  # Update requests. `event_types` is editable at every scope; wider scopes can additionally
+  # change which channels (inboxes, then pods) the webhook is subscribed to.
+  UpdateInboxWebhookRequest:
+    docs: Update an inbox-scoped webhook. It is fixed to its inbox, so only `event_types` can change.
+    properties:
+      event_types: optional<UpdateWebhookEventTypes>
+
+  UpdatePodWebhookRequest:
+    docs: |
+      Update a pod-scoped webhook. You can adjust which inboxes within the pod it listens to and replace
+      its `event_types`, but not the pod scope itself.
+    extends: UpdateInboxWebhookRequest
     properties:
       add_inbox_ids:
         type: optional<events.InboxIds>
@@ -69,21 +112,16 @@ types:
       remove_inbox_ids:
         type: optional<events.InboxIds>
         docs: Inbox IDs to unsubscribe from the webhook.
+
+  UpdateWebhookRequest:
+    extends: UpdatePodWebhookRequest
+    properties:
       add_pod_ids:
         type: optional<events.PodIds>
         docs: Pod IDs to subscribe to the webhook.
       remove_pod_ids:
         type: optional<events.PodIds>
         docs: Pod IDs to unsubscribe from the webhook.
-      event_types:
-        type: optional<events.EventTypes>
-        docs: |
-          When you send a non-empty list, it replaces the webhook's subscribed event types in full (the same
-          "set the list" behavior as create). It is not a merge or diff: include every event type you want after
-          the update. Sending a one-element array means the webhook will only receive that one type afterward.
-          Omit this field or send an empty array to leave event types unchanged. Clearing all types with an empty
-          list is not supported. Subscribing to `message.received.spam`, `message.received.blocked`, or
-          `message.received.unauthenticated` requires the matching label permission on the API key.
 
 service:
   url: Http

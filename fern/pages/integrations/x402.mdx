@@ -9,9 +9,15 @@ description: AgentMail's x402 integration for HTTP-native payments
 
 [x402](https://www.x402.org/) is an open payment protocol that enables HTTP-native payments. By integrating x402 with AgentMail, your agents can pay for API usage directly over HTTP without managing API keys or subscriptions.
 
-### X Layer
+### Supported chains
 
-Agents on X Layer can pay for API usage directly over HTTP via x402. [X Layer](https://web3.okx.com/xlayer) is an Ethereum Layer 2 network built with Polygon CDK, offering high throughput and near-zero gas fees.
+Agents can pay for API usage directly over HTTP via x402 on any of the following chains:
+
+- **[Polygon](https://polygon.technology/):** an EVM-compatible network offering high throughput and low gas fees.
+- **[Base](https://www.base.org/):** an Ethereum Layer 2 network incubated by Coinbase.
+- **[Solana](https://solana.com/):** a high-throughput, low-fee non-EVM network.
+
+EVM chains (Polygon and Base) share the same client setup, while Solana uses the Solana-specific setup shown below.
 
 ### Base URLs
 
@@ -24,7 +30,7 @@ To authenticate with x402 instead of an API key, you must use the x402-specific 
 
 ### Prerequisites
 
-- A crypto wallet with USDC funds (EVM-compatible wallet on Base, or a Solana wallet)
+- A crypto wallet with USDC funds (EVM-compatible wallet on Polygon or Base, or a Solana wallet)
 - Node.js installed
 
 ### Install dependencies
