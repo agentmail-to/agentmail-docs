@@ -565,3 +565,115 @@ paths:
       x-fern-sdk-group-name:
       - threads
       x-fern-sdk-method-name: get-attachment
+  /v0/inboxes/{inbox_id}/messages/batch-update:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: batch-update
+  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: draft-reply
+  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply-all:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: draft-reply-all
+  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-forward:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: draft-forward
+  /v0/inboxes/{inbox_id}/metrics/events:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - metrics
+      x-fern-sdk-method-name: query-events
+  /v0/inboxes/{inbox_id}/metrics/usage:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - metrics
+      x-fern-sdk-method-name: query-usage
+  /v0/inboxes/{inbox_id}/webhooks:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      x-fern-sdk-method-name: create
+  /v0/inboxes/{inbox_id}/webhooks/{webhook_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      x-fern-sdk-method-name: delete
+  /v0/metrics/events:
+    get:
+      x-fern-sdk-group-name:
+      - metrics
+      x-fern-sdk-method-name: query-events
+  /v0/metrics/usage:
+    get:
+      x-fern-sdk-group-name:
+      - metrics
+      x-fern-sdk-method-name: query-usage
+  /v0/pods/{pod_id}/metrics/events:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - metrics
+      x-fern-sdk-method-name: query-events
+  /v0/pods/{pod_id}/metrics/usage:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - metrics
+      x-fern-sdk-method-name: query-usage
+  /v0/pods/{pod_id}/webhooks:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      x-fern-sdk-method-name: create
+  /v0/pods/{pod_id}/webhooks/{webhook_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      x-fern-sdk-method-name: delete
