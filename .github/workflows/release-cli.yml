@@ -1,0 +1,37 @@
+name: Release CLI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # a) API definition changes (source of truth)
+      - "fern/apis/api/definition/**"
+      # b) Committed OpenAPI export changes
+      - "openapi/openapi.yml"
+      # c) CLI generator config / overrides changes
+      - "fern/apis/cli/generators.yml"
+      - "fern/apis/cli/openapi-overrides.yml"
+      # d) Fern CLI version changes
+      - "fern/fern.config.json"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup Fern CLI
+        uses: fern-api/setup-fern-cli@v1
+
+      - name: Re-export OpenAPI from definition
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --api api --group openapi --local
+
+      - name: Generate CLI
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --api cli --group cli --log-level debug --version AUTO

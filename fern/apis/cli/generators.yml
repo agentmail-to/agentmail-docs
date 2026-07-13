@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://schema.buildwithfern.dev/generators-yml.json
+api:
+  specs:
+    - openapi: ../../../openapi/openapi.yml
+      overrides: ./openapi-overrides.yml
+default-group: cli
+groups:
+  cli:
+    generators:
+      - name: fern-cli-generator
+        version: 0.17.8
+        smart-casing: true
+        config:
+          binaryName: agentmail
+        output:
+          location: npm
+          package-name: "@fern-demo/agentmail-cli"
+          token: OIDC
+        github:
+          repository: fern-demo/agentmail-cli
+          mode: pull-request

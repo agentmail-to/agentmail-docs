@@ -7,7 +7,7 @@ groups:
         version: 3.60.0
         output:
           location: local-file-system
-          path: generated/typescript
+          path: ../../generated/typescript
         config:
           namespaceExport: AgentMail
           noSerdeLayer: false
@@ -18,7 +18,7 @@ groups:
         version: 4.64.1
         output:
           location: local-file-system
-          path: generated/python
+          path: ../../generated/python
         config:
           client_class_name: AgentMail
           pydantic_config:
@@ -94,7 +94,7 @@ groups:
         version: 0.3.0
         output:
           location: local-file-system
-          path: ../openapi
+          path: ../../../openapi
         smart-casing: false
   postman:
     generators:
