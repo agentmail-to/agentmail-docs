@@ -64,6 +64,39 @@ GROUPS = [
 ]
 
 
+# Docs-facing copy. The manifest descriptions are written for LLM sessions
+# (schema detail, prompt-injection warnings); these are the human-readable
+# versions. Tools without an entry fall back to the manifest description.
+DESCRIPTIONS = {
+    "list_inboxes": "List email inboxes, paginated.",
+    "get_inbox": "Get an inbox by ID.",
+    "create_inbox": "Create a new email inbox. Optionally specify username, domain, display name, and metadata.",
+    "update_inbox": "Update an inbox's display name or metadata (metadata keys merge; null removes).",
+    "delete_inbox": "Delete an inbox by ID.",
+    "list_threads": "List email threads in an inbox. Filter by labels, sender, recipient, subject, or before/after datetime, paginated.",
+    "search_threads": "Full-text search threads in an inbox, ranked by relevance (spam/trash excluded).",
+    "get_thread": "Get a thread by ID, including its messages.",
+    "update_thread": "Update a thread's labels (add or remove). System labels cannot be modified.",
+    "delete_thread": "Delete a thread from an inbox.",
+    "list_messages": "List messages in an inbox. Filter by labels, sender, recipient, subject, or before/after datetime, paginated.",
+    "search_messages": "Full-text search messages in an inbox, ranked by relevance (spam/trash excluded).",
+    "send_message": "Send an email from an inbox to one or more recipients.",
+    "reply_to_message": "Reply to a message in its thread (replyAll to include all original recipients).",
+    "forward_message": "Forward a message to new recipients.",
+    "update_message": "Update a message's labels (add or remove).",
+    "create_draft": "Create a draft email. Use `sendAt` (ISO 8601) to schedule it.",
+    "list_drafts": "List drafts in an inbox. Filter by labels (e.g. `scheduled`).",
+    "get_draft": "Get a draft by ID, including content, status, and scheduled send time.",
+    "update_draft": "Update a draft. Use `sendAt` to reschedule.",
+    "send_draft": "Send a draft immediately (converted to a sent message and deleted).",
+    "delete_draft": "Delete a draft. Also cancels a scheduled send.",
+    "get_attachment": "Get an attachment from a thread. Returns metadata and a download URL, plus extracted text for PDF/DOCX.",
+    "auth_me": "Get the identity and scope of the authenticated credential (organization, pod, inbox IDs).",
+    "list_organizations": "List the organizations you belong to and show which is currently selected.",
+    "select_organization": "Choose which organization your operations target, by name or ID. Persists across sessions.",
+}
+
+
 def group_for(name):
     for title, keyword in GROUPS:
         if keyword in name:
@@ -79,6 +112,10 @@ def render(manifest):
     tools = manifest["tools"]
     shared_count = sum(not tool["oauthOnly"] for tool in tools)
     oauth_count = len(tools) - shared_count
+    names = {tool["name"] for tool in tools}
+    stale = sorted(set(DESCRIPTIONS) - names)
+    if stale:
+        raise ValueError(f"DESCRIPTIONS has entries for unknown tools: {', '.join(stale)}")
     grouped = {}
     for tool in tools:
         grouped.setdefault(group_for(tool["name"]), []).append(tool)
@@ -92,7 +129,8 @@ def render(manifest):
             continue
         lines += ["", f"### {title}", "", "| Tool | Description |", "| --- | --- |"]
         for tool in grouped[title]:
-            lines.append(f"| `{tool['name']}` | {table_cell(tool['description'])} |")
+            description = DESCRIPTIONS.get(tool["name"], tool["description"])
+            lines.append(f"| `{tool['name']}` | {table_cell(description)} |")
     return "\n".join(lines) + "\n"
 
 

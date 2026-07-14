@@ -6,7 +6,7 @@ The "Available tools" table on the [MCP integration page](../fern/pages/integrat
 
 - [`agentmail-mcp`](https://github.com/agentmail-to/agentmail-mcp) generates `mcp-manifest.json` from the live server (`pnpm generate:manifest`) and keeps it fresh in its own CI. That file is the canonical tool contract.
 - `mcp-manifest.json` in this directory is a vendored copy of that manifest.
-- `generate_mcp_tool_catalog.py` renders the vendored manifest into `fern/snippets/mcp-tool-catalog.mdx`, which `mcp.mdx` includes.
+- `generate_mcp_tool_catalog.py` renders the vendored manifest into `fern/snippets/mcp-tool-catalog.mdx`, which `mcp.mdx` includes. Tool names, grouping, and counts come from the manifest; docs-facing descriptions live in the script's `DESCRIPTIONS` map (the manifest descriptions are written for LLM sessions and fall back in for tools without an entry).
 - CI runs `generate_mcp_tool_catalog.py --check` on every PR. It is fully offline: it only verifies the snippet matches the vendored manifest.
 
 ## Updating the catalog
