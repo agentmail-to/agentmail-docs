@@ -101,37 +101,12 @@ Add this to your MCP client configuration (Claude Code, Cursor, Codex, etc.):
 
 Clients that support remote MCP OAuth can instead use the bare `https://mcp.agentmail.to/mcp` and authenticate in-flow.
 
-### Available MCP Tools
+### Available MCP tools
 
-| Tool | Description |
-| -- | -- |
-| `list_inboxes` | List email inboxes, paginated. |
-| `get_inbox` | Get an inbox by ID. |
-| `create_inbox` | Create a new email inbox. Optionally specify username, domain, display name, and metadata. |
-| `update_inbox` | Update an inbox's display name or metadata (metadata keys merge; null removes). |
-| `delete_inbox` | Delete an inbox by ID. |
-| `list_threads` | List email threads in an inbox. Filter by labels, sender, recipient, subject, or before/after datetime, paginated. |
-| `search_threads` | Full-text search threads in an inbox, ranked by relevance (spam/trash excluded). |
-| `get_thread` | Get a thread by ID, including its messages. |
-| `get_attachment` | Get an attachment from a thread. Returns metadata and a download URL, plus extracted text for PDF/DOCX. |
-| `update_thread` | Update a thread's labels (add or remove). System labels cannot be modified. |
-| `delete_thread` | Delete a thread from an inbox. |
-| `list_messages` | List messages in an inbox. Filter by labels, sender, recipient, subject, or before/after datetime, paginated. |
-| `search_messages` | Full-text search messages in an inbox, ranked by relevance (spam/trash excluded). |
-| `send_message` | Send an email from an inbox to one or more recipients. |
-| `reply_to_message` | Reply to a message in its thread (replyAll to include all original recipients). |
-| `forward_message` | Forward a message to new recipients. |
-| `update_message` | Update a message's labels (add or remove). |
-| `create_draft` | Create a draft email. Use `sendAt` (ISO 8601) to schedule it. |
-| `list_drafts` | List drafts in an inbox. Filter by labels (e.g. `scheduled`). |
-| `get_draft` | Get a draft by ID, including content, status, and scheduled send time. |
-| `update_draft` | Update a draft. Use `sendAt` to reschedule. |
-| `send_draft` | Send a draft immediately (converted to a sent message and deleted). |
-| `delete_draft` | Delete a draft. Also cancels a scheduled send. |
-| `auth_me` | Get the identity and scope of the authenticated credential (organization, pod, inbox IDs). |
+Your MCP client discovers tools directly from the hosted runtime. See the [current MCP tool catalog](/integrations/mcp#available-tools) for their names, descriptions, and availability.
 
 <Card title="MCP Server Setup" icon="fa-brands fa-github" href="/integrations/mcp">
-  Full setup instructions for connecting the hosted AgentMail MCP server.
+  Connect to the hosted AgentMail MCP server. npm and PyPI are compatibility transports for clients that only support stdio.
 </Card>
 
 ## AgentMail Docs for Agents

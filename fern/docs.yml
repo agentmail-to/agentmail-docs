@@ -188,7 +188,7 @@ redirects:
   - source: /documentation/resources/support
     destination: /support
   - source: /integrations/smithery
-    destination: /integrations/skills
+    destination: /integrations/mcp
   - source: /core-concepts/drafts
     destination: /drafts
   - source: /webhooks
