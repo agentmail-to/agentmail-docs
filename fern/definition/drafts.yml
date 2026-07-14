@@ -176,13 +176,13 @@ types:
       unchanged; passing `null` (or `[]` for a recipient field) clears it. Pass
       `send_at` to schedule or reschedule the draft, or `null` to un-schedule it.
     properties:
-      reply_to: optional<DraftReplyTo>
-      to: optional<DraftTo>
-      cc: optional<DraftCc>
-      bcc: optional<DraftBcc>
-      subject: optional<DraftSubject>
-      text: optional<DraftText>
-      html: optional<DraftHtml>
+      reply_to: optional<nullable<DraftReplyTo>>
+      to: optional<nullable<DraftTo>>
+      cc: optional<nullable<DraftCc>>
+      bcc: optional<nullable<DraftBcc>>
+      subject: optional<nullable<DraftSubject>>
+      text: optional<nullable<DraftText>>
+      html: optional<nullable<DraftHtml>>
       add_attachments:
         type: optional<list<attachments.SendAttachment>>
         docs: Attachments to add to the draft.
@@ -195,7 +195,7 @@ types:
       remove_labels:
         type: optional<DraftLabels>
         docs: Label or labels to remove from the draft.
-      send_at: optional<DraftSendAt>
+      send_at: optional<nullable<DraftSendAt>>
 
 service:
   url: Http
