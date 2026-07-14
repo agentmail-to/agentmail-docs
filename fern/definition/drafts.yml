@@ -137,6 +137,20 @@ types:
         docs: Ordered by `updated_at` descending.
 
   CreateDraftRequest:
+    docs: |
+      Body for creating a draft. This is a superset of the reply, reply-all, and
+      forward draft endpoints:
+
+      - **Plain draft:** supply `to`, `subject`, `text`, etc.
+      - **Reply:** set `in_reply_to` to a message ID. Recipients, subject, and
+        threading are derived from that message. Set `reply_all` to address the
+        whole thread (you then cannot also pass `to`, `cc`, or `bcc`).
+      - **Forward:** set `forward_of` to a message ID. The subject and threading
+        are derived from the source message, whose body and attachments are
+        merged in at send time.
+
+      `in_reply_to` and `forward_of` are mutually exclusive, and reading the
+      referenced message requires `message_read` permission.
     properties:
       labels: optional<DraftLabels>
       reply_to: optional<DraftReplyTo>
@@ -150,10 +164,17 @@ types:
         type: optional<list<attachments.SendAttachment>>
         docs: Attachments to include in draft.
       in_reply_to: optional<DraftInReplyTo>
+      forward_of: optional<DraftForwardOf>
+      reply_all: optional<DraftReplyAll>
       send_at: optional<DraftSendAt>
       client_id: optional<DraftClientId>
 
   UpdateDraftRequest:
+    docs: |
+      Edit fields on an existing draft. A draft's kind (plain, reply, or forward)
+      is fixed at creation and cannot be changed here. Omitting a field leaves it
+      unchanged; passing `null` (or `[]` for a recipient field) clears it. Pass
+      `send_at` to schedule or reschedule the draft, or `null` to un-schedule it.
     properties:
       reply_to: optional<DraftReplyTo>
       to: optional<DraftTo>
@@ -162,67 +183,19 @@ types:
       subject: optional<DraftSubject>
       text: optional<DraftText>
       html: optional<DraftHtml>
-      send_at: optional<DraftSendAt>
-
-  CreateDraftReplyRequest:
-    docs: |
-      Body for creating a draft that replies to a message. `in_reply_to`,
-      `references`, and the subject are derived from the source message. Set
-      `reply_all` to address the whole thread (you cannot then also pass `to`,
-      `cc`, or `bcc`).
-    properties:
-      labels: optional<DraftLabels>
-      reply_to: optional<DraftReplyTo>
-      to: optional<DraftTo>
-      cc: optional<DraftCc>
-      bcc: optional<DraftBcc>
-      reply_all: optional<DraftReplyAll>
-      subject: optional<DraftSubject>
-      text: optional<DraftText>
-      html: optional<DraftHtml>
-      attachments:
+      add_attachments:
         type: optional<list<attachments.SendAttachment>>
-        docs: Attachments to include in draft.
+        docs: Attachments to add to the draft.
+      remove_attachments:
+        type: optional<list<attachments.AttachmentId>>
+        docs: IDs of attachments to remove from the draft.
+      add_labels:
+        type: optional<DraftLabels>
+        docs: Label or labels to add to the draft.
+      remove_labels:
+        type: optional<DraftLabels>
+        docs: Label or labels to remove from the draft.
       send_at: optional<DraftSendAt>
-      client_id: optional<DraftClientId>
-
-  CreateDraftReplyAllRequest:
-    docs: |
-      Body for creating a draft that replies to the whole thread. Recipients,
-      `in_reply_to`, `references`, and the subject are always derived from the
-      source message, so `to`, `cc`, and `bcc` are not accepted.
-    properties:
-      labels: optional<DraftLabels>
-      reply_to: optional<DraftReplyTo>
-      subject: optional<DraftSubject>
-      text: optional<DraftText>
-      html: optional<DraftHtml>
-      attachments:
-        type: optional<list<attachments.SendAttachment>>
-        docs: Attachments to include in draft.
-      send_at: optional<DraftSendAt>
-      client_id: optional<DraftClientId>
-
-  CreateDraftForwardRequest:
-    docs: |
-      Body for creating a draft that forwards a message. The subject and
-      threading are derived from the source message, whose body and attachments
-      are merged in at send time. Recipients are optional, so a forward draft can
-      be saved without an address and addressed later.
-    properties:
-      labels: optional<DraftLabels>
-      reply_to: optional<DraftReplyTo>
-      to: optional<DraftTo>
-      cc: optional<DraftCc>
-      bcc: optional<DraftBcc>
-      subject: optional<DraftSubject>
-      text: optional<DraftText>
-      html: optional<DraftHtml>
-      attachments:
-        type: optional<list<attachments.SendAttachment>>
-        docs: Attachments to include in draft.
-      send_at: optional<DraftSendAt>
-      client_id: optional<DraftClientId>
 
 service:
   url: Http
