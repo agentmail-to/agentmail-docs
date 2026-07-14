@@ -138,8 +138,8 @@ types:
 
   CreateDraftRequest:
     docs: |
-      Body for creating a draft. This is a superset of the reply, reply-all, and
-      forward draft endpoints:
+      Body for creating a draft. Supports plain, reply, reply-all, and forward
+      drafts:
 
       - **Plain draft:** supply `to`, `subject`, `text`, etc.
       - **Reply:** set `in_reply_to` to a message ID. Recipients, subject, and
