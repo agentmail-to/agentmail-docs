@@ -310,7 +310,7 @@ agentmail inboxes:drafts create \
 
 ### Cancel or Reschedule
 
-To reschedule, update `send_at` with a new time. To keep the draft but cancel the scheduled send, update `send_at` to `null` — this clears the schedule and the `scheduled` label, leaving a plain draft you can edit or send manually. To discard the draft entirely, delete it.
+To reschedule, update `send_at` with a new time. To keep the draft but cancel the scheduled send, update `send_at` to `null` — this clears `send_at` and the `scheduled` label, leaving an unscheduled draft you can edit or send manually. To discard the draft entirely, delete it.
 
 <CodeBlocks>
 ```python title="Python"
