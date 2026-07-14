@@ -130,25 +130,34 @@ Note that now we access it by message_id now because now its a message!!
 
 ## Reply and Forward Drafts
 
-Instead of building a reply or forward by hand, you can create a `Draft` directly from an existing `Message`. AgentMail derives the recipients, subject, and threading from the source message, so a human can review the prepared reply before it goes out. These create a `Draft` (they do not send) — send it later with `inboxes.drafts.send`.
+Instead of building a reply or forward by hand, you can create a `Draft` directly from an existing `Message`. Pass `in_reply_to` or `forward_of` to `inboxes.drafts.create` and AgentMail derives the subject and threading from the source message (for replies, the recipients too), so a human can review the prepared draft before it goes out. This creates a `Draft` (it does not send) — send it later with `inboxes.drafts.send`.
 
-- `inboxes.messages.draft_reply` — reply to the original sender. Set `reply_all=True` to address the whole thread.
-- `inboxes.messages.draft_reply_all` — reply to everyone on the thread (recipients are always derived from the source message).
-- `inboxes.messages.draft_forward` — forward the message. The original body and attachments are merged in at send time.
+- **Reply:** set `in_reply_to` to the source message ID. Add `reply_all=True` to address the whole thread (you then cannot also pass `to`, `cc`, or `bcc`).
+- **Forward:** set `forward_of` to the source message ID. The original body and attachments are merged in at send time, so recipients are optional — a forward draft can be saved now and addressed later.
+
+`in_reply_to` and `forward_of` are mutually exclusive, and reading the referenced message requires the `message_read` permission.
 
 <CodeBlocks>
 ```python title="Python"
 # create a draft reply to the sender of a received message
-draft = client.inboxes.messages.draft_reply(
+draft = client.inboxes.drafts.create(
     inbox_id="agent@domain.com",
-    message_id="<message-id@domain.com>",
+    in_reply_to="<message-id@domain.com>",
     text="Thanks — looping in my manager for approval.",
 )
 
-# forward a message as a draft for later review
-forward = client.inboxes.messages.draft_forward(
+# reply to everyone on the thread
+reply_all = client.inboxes.drafts.create(
     inbox_id="agent@domain.com",
-    message_id="<message-id@domain.com>",
+    in_reply_to="<message-id@domain.com>",
+    reply_all=True,
+    text="Thanks all — I'll follow up with the details.",
+)
+
+# forward a message as a draft for later review
+forward = client.inboxes.drafts.create(
+    inbox_id="agent@domain.com",
+    forward_of="<message-id@domain.com>",
     to=["teammate@example.com"],
     text="See below — can you take this one?",
 )
@@ -159,18 +168,24 @@ client.inboxes.drafts.send(inbox_id="agent@domain.com", draft_id=draft.draft_id)
 
 ```typescript title="TypeScript"
 // create a draft reply to the sender of a received message
-const draft = await client.inboxes.messages.draftReply(
-  "agent@domain.com",
-  "<message-id@domain.com>",
-  { text: "Thanks — looping in my manager for approval." }
-);
+const draft = await client.inboxes.drafts.create("agent@domain.com", {
+  inReplyTo: "<message-id@domain.com>",
+  text: "Thanks — looping in my manager for approval.",
+});
+
+// reply to everyone on the thread
+const replyAll = await client.inboxes.drafts.create("agent@domain.com", {
+  inReplyTo: "<message-id@domain.com>",
+  replyAll: true,
+  text: "Thanks all — I'll follow up with the details.",
+});
 
 // forward a message as a draft for later review
-const forward = await client.inboxes.messages.draftForward(
-  "agent@domain.com",
-  "<message-id@domain.com>",
-  { to: ["teammate@example.com"], text: "See below — can you take this one?" }
-);
+const forward = await client.inboxes.drafts.create("agent@domain.com", {
+  forwardOf: "<message-id@domain.com>",
+  to: ["teammate@example.com"],
+  text: "See below — can you take this one?",
+});
 
 // review, then send when ready
 await client.inboxes.drafts.send("agent@domain.com", draft.draftId);
@@ -178,17 +193,58 @@ await client.inboxes.drafts.send("agent@domain.com", draft.draftId);
 
 ```bash title="CLI"
 # create a draft reply to a message
-agentmail inboxes:messages draft-reply \
+agentmail inboxes:drafts create \
   --inbox-id agent@domain.com \
-  --message-id "<message-id@domain.com>" \
+  --in-reply-to "<message-id@domain.com>" \
   --text "Thanks — looping in my manager for approval."
 
 # forward a message as a draft
-agentmail inboxes:messages draft-forward \
+agentmail inboxes:drafts create \
   --inbox-id agent@domain.com \
-  --message-id "<message-id@domain.com>" \
+  --forward-of "<message-id@domain.com>" \
   --to teammate@example.com \
   --text "See below — can you take this one?"
+```
+</CodeBlocks>
+
+## Editing a Draft
+
+Use `inboxes.drafts.update` to edit an existing draft's `to`, `cc`, `bcc`, `reply_to`, `subject`, `text`, `html`, attachments, and labels. A draft's kind (plain, reply, or forward) is fixed at creation and cannot be changed — to "make this a reply," create a new draft.
+
+- **Omit a field** to leave it unchanged.
+- **Pass `null`** (or `[]` for a recipient field) to clear it.
+- **Add or remove attachments** with `add_attachments` / `remove_attachments` (by attachment ID).
+- **Add or remove labels** with `add_labels` / `remove_labels`.
+
+A draft that is already being sent cannot be edited, and the request returns a `409 Conflict`.
+
+<CodeBlocks>
+```python title="Python"
+# edit the body and recipients, add a label, and clear the cc list
+client.inboxes.drafts.update(
+    inbox_id="agent@domain.com",
+    draft_id="draft_id_123",
+    text="Updated body copy.",
+    cc=None,  # clear the cc field
+    add_labels=["reviewed"],
+)
+```
+
+```typescript title="TypeScript"
+// edit the body and recipients, add a label, and clear the cc list
+await client.inboxes.drafts.update("agent@domain.com", "draft_id_123", {
+  text: "Updated body copy.",
+  cc: null, // clear the cc field
+  addLabels: ["reviewed"],
+});
+```
+
+```bash title="CLI"
+# update a draft's body
+agentmail inboxes:drafts update \
+  --inbox-id agent@domain.com \
+  --draft-id draft_id_123 \
+  --text "Updated body copy."
 ```
 </CodeBlocks>
 
@@ -254,7 +310,7 @@ agentmail inboxes:drafts create \
 
 ### Cancel or Reschedule
 
-To cancel a scheduled send, delete the `Draft`. To reschedule, update `send_at` with a new time.
+To reschedule, update `send_at` with a new time. To keep the draft but cancel the scheduled send, update `send_at` to `null` — this clears `send_at` and the `scheduled` label, leaving an unscheduled draft you can edit or send manually. To discard the draft entirely, delete it.
 
 <CodeBlocks>
 ```python title="Python"
@@ -264,6 +320,13 @@ client.inboxes.drafts.update(
     inbox_id="outreach@domain.com",
     draft_id=scheduled_draft.draft_id,
     send_at=new_time.isoformat() + "Z"
+)
+
+# Or un-schedule but keep the draft (clears send_at and the 'scheduled' label)
+client.inboxes.drafts.update(
+    inbox_id="outreach@domain.com",
+    draft_id=scheduled_draft.draft_id,
+    send_at=None
 )
 
 # Or cancel by deleting the draft entirely
@@ -283,6 +346,13 @@ await client.inboxes.drafts.update(
     "outreach@domain.com",
     scheduledDraft.draftId,
     { sendAt: newTime.toISOString() }
+);
+
+// Or un-schedule but keep the draft (clears sendAt and the 'scheduled' label)
+await client.inboxes.drafts.update(
+    "outreach@domain.com",
+    scheduledDraft.draftId,
+    { sendAt: null }
 );
 
 // Or cancel by deleting the draft entirely
@@ -521,12 +591,14 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.drafts.create(inbox_id, to, subject?, text?, html?, cc?, bcc?, reply_to?, attachments?, send_at?)
-  - inboxes.messages.draft_reply(inbox_id, message_id, text?, html?, reply_all?, ...) — reply draft from a message
-  - inboxes.messages.draft_reply_all(inbox_id, message_id, text?, html?, ...) — reply-all draft from a message
-  - inboxes.messages.draft_forward(inbox_id, message_id, to?, text?, html?, ...) — forward draft from a message
+  - inboxes.drafts.create(inbox_id, to?, subject?, text?, html?, cc?, bcc?, reply_to?, attachments?, in_reply_to?, forward_of?, reply_all?, send_at?)
+      * in_reply_to=<message_id> -> reply draft (add reply_all=True for the whole thread)
+      * forward_of=<message_id> -> forward draft (body + attachments merged at send time)
+      * in_reply_to/forward_of are mutually exclusive; reading the source needs message_read permission
   - inboxes.drafts.get(inbox_id, draft_id)
-  - inboxes.drafts.update(inbox_id, draft_id, to?, subject?, text?, html?, send_at?, ...)
+  - inboxes.drafts.update(inbox_id, draft_id, to?, cc?, bcc?, reply_to?, subject?, text?, html?, add_attachments?, remove_attachments?, add_labels?, remove_labels?, send_at?)
+      * kind (plain/reply/forward) is fixed at create; omit=unchanged, null (or [] for recipients)=clear
+      * send_at=null un-schedules; a draft already 'sending' can't be edited (409)
   - inboxes.drafts.send(inbox_id, draft_id) — converts to Message, deletes draft
   - inboxes.drafts.delete(inbox_id, draft_id)
   - inboxes.drafts.list(inbox_id, limit?, page_token?, labels?)
@@ -535,7 +607,7 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
   Scheduled sending: pass send_at (ISO 8601 datetime) to create() or update().
   Draft is auto-labeled 'scheduled' and sent at the specified time.
   send_status: 'scheduled' | 'sending' | 'failed'.
-  Cancel by deleting the draft. Reschedule by updating send_at.
+  Reschedule by updating send_at, un-schedule with send_at=None, or delete the draft.
 
   Errors: SDK raises on 4xx/5xx. Rate limit: 429 with Retry-After.
   """
@@ -572,12 +644,14 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
    * API reference:
-   * - inboxes.drafts.create(inboxId, { to, subject?, text?, html?, cc?, bcc?, replyTo?, attachments?, sendAt? })
-   * - inboxes.messages.draftReply(inboxId, messageId, { text?, html?, replyAll?, ... }) — reply draft from a message
-   * - inboxes.messages.draftReplyAll(inboxId, messageId, { text?, html?, ... }) — reply-all draft from a message
-   * - inboxes.messages.draftForward(inboxId, messageId, { to?, text?, html?, ... }) — forward draft from a message
+   * - inboxes.drafts.create(inboxId, { to?, subject?, text?, html?, cc?, bcc?, replyTo?, attachments?, inReplyTo?, forwardOf?, replyAll?, sendAt? })
+   *     * inReplyTo=<messageId> -> reply draft (add replyAll: true for the whole thread)
+   *     * forwardOf=<messageId> -> forward draft (body + attachments merged at send time)
+   *     * inReplyTo/forwardOf are mutually exclusive; reading the source needs message_read permission
    * - inboxes.drafts.get(inboxId, draftId)
-   * - inboxes.drafts.update(inboxId, draftId, { to?, subject?, text?, html?, sendAt?, ... })
+   * - inboxes.drafts.update(inboxId, draftId, { to?, cc?, bcc?, replyTo?, subject?, text?, html?, addAttachments?, removeAttachments?, addLabels?, removeLabels?, sendAt? })
+   *     * kind (plain/reply/forward) is fixed at create; omit=unchanged, null (or [] for recipients)=clear
+   *     * sendAt: null un-schedules; a draft already 'sending' can't be edited (409)
    * - inboxes.drafts.send(inboxId, draftId) — converts to Message, deletes draft
    * - inboxes.drafts.delete(inboxId, draftId)
    * - inboxes.drafts.list(inboxId, { limit?, pageToken?, labels? })
@@ -586,7 +660,7 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
    * Scheduled sending: pass sendAt (ISO 8601 datetime) to create() or update().
    * Draft is auto-labeled 'scheduled' and sent at the specified time.
    * sendStatus: 'scheduled' | 'sending' | 'failed'.
-   * Cancel by deleting the draft. Reschedule by updating sendAt.
+   * Reschedule by updating sendAt, un-schedule with sendAt: null, or delete the draft.
    *
    * Errors: SDK throws on 4xx/5xx. Rate limit: 429 with Retry-After.
    */
