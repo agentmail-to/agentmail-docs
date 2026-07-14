@@ -4,7 +4,6 @@ imports:
   global: ../__package__.yml
   inboxes: __package__.yml
   messages: ../messages.yml
-  drafts: ../drafts.yml
   attachments: ../attachments.yml
 
 service:
