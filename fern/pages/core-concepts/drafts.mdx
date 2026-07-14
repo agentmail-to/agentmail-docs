@@ -130,7 +130,7 @@ Note that now we access it by message_id now because now its a message!!
 
 ## Reply and Forward Drafts
 
-Instead of building a reply or forward by hand, you can create a `Draft` directly from an existing `Message`. Pass `in_reply_to` or `forward_of` to `inboxes.drafts.create` and AgentMail derives the recipients, subject, and threading from the source message, so a human can review the prepared reply before it goes out. This creates a `Draft` (it does not send) — send it later with `inboxes.drafts.send`.
+Instead of building a reply or forward by hand, you can create a `Draft` directly from an existing `Message`. Pass `in_reply_to` or `forward_of` to `inboxes.drafts.create` and AgentMail derives the subject and threading from the source message (for replies, the recipients too), so a human can review the prepared draft before it goes out. This creates a `Draft` (it does not send) — send it later with `inboxes.drafts.send`.
 
 - **Reply:** set `in_reply_to` to the source message ID. Add `reply_all=True` to address the whole thread (you then cannot also pass `to`, `cc`, or `bcc`).
 - **Forward:** set `forward_of` to the source message ID. The original body and attachments are merged in at send time, so recipients are optional — a forward draft can be saved now and addressed later.
