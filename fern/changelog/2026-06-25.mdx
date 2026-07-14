@@ -4,18 +4,19 @@ tags: ["drafts-api", "messages-api", "new-feature"]
 
 ## Summary
 
-Agents can now create reply, reply-all, and forward drafts directly from a message, instead of rebuilding the recipients, subject, and threading by hand. The draft is saved rather than sent, so a human can review it before it goes out — then send it with `Send Draft`. This makes human-in-the-loop review and scheduled follow-ups a first-class part of the reply flow.
+Agents can now create reply, reply-all, and forward drafts directly from a message, instead of rebuilding the subject and threading (and, for replies, the recipients) by hand. The draft is saved rather than sent, so a human can review it before it goes out — then send it with `Send Draft`. This makes human-in-the-loop review and scheduled follow-ups a first-class part of the reply flow.
 
 ### What's new?
 
-**New endpoints:**
-- `POST /v0/inboxes/:inbox_id/messages/:message_id/draft-reply` - Create a draft replying to the sender. Set `reply_all` to address the whole thread.
-- `POST /v0/inboxes/:inbox_id/messages/:message_id/draft-reply-all` - Create a draft replying to everyone on the thread.
-- `POST /v0/inboxes/:inbox_id/messages/:message_id/draft-forward` - Create a draft forwarding the message.
+**Create Draft now builds replies and forwards.** Pass a source message to `inboxes.drafts.create` and AgentMail carries over the subject and threading (and, for replies, the recipients):
+- `in_reply_to` — create a draft replying to the sender. Add `reply_all` to address the whole thread.
+- `forward_of` — create a draft forwarding the message. Recipients stay caller-supplied.
+
+`in_reply_to` and `forward_of` are mutually exclusive, and reading the referenced message requires the `message_read` permission.
 
 **New features:**
-- **Derived from the source message**: recipients, subject, and threading (`in_reply_to` / `references`) are taken from the original message, so you only supply your note.
-- **Forwards**: the original body and attachments are merged in at send time; recipients are optional, so a forward draft can be saved now and addressed later.
+- **Replies**: recipients, subject, and threading (`in_reply_to` / `references`) are taken from the original message, so you only supply your note.
+- **Forwards**: the subject, threading, and forwarded body and attachments come from the source (the body and attachments are merged in at send time); recipients are caller-supplied and optional, so a forward draft can be saved now and addressed later.
 - **Composable**: pass `send_at` to schedule the draft, or review and send it later with `inboxes.drafts.send`.
 
 **Changes:**
@@ -37,9 +38,9 @@ from agentmail import AgentMail
 client = AgentMail(api_key="your-api-key")
 
 # create a reply draft from a received message
-draft = client.inboxes.messages.draft_reply(
+draft = client.inboxes.drafts.create(
     inbox_id="agent@agentmail.to",
-    message_id="<message-id@agentmail.to>",
+    in_reply_to="<message-id@agentmail.to>",
     text="Thanks — looping in my manager for approval.",
 )
 
@@ -53,11 +54,10 @@ import { AgentMailClient } from "agentmail";
 const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // create a reply draft from a received message
-const draft = await client.inboxes.messages.draftReply(
-  "agent@agentmail.to",
-  "<message-id@agentmail.to>",
-  { text: "Thanks — looping in my manager for approval." }
-);
+const draft = await client.inboxes.drafts.create("agent@agentmail.to", {
+  inReplyTo: "<message-id@agentmail.to>",
+  text: "Thanks — looping in my manager for approval.",
+});
 
 // review, then send when ready
 await client.inboxes.drafts.send("agent@agentmail.to", draft.draftId);
