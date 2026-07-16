@@ -87,19 +87,32 @@ MCP (Model Context Protocol) is an open protocol that standardizes how applicati
 
 ### Setup
 
-Add this to your MCP client configuration (Claude Code, Cursor, Codex, etc.):
+Add this to your MCP client configuration (Claude Code, Cursor, Codex, etc.). Clients that support remote MCP OAuth should use the bare URL and authenticate in-flow:
 
 ```json
 {
   "mcpServers": {
     "AgentMail": {
-      "url": "https://mcp.agentmail.to/mcp?apiKey=YOUR_API_KEY"
+      "url": "https://mcp.agentmail.to/mcp"
     }
   }
 }
 ```
 
-Clients that support remote MCP OAuth can instead use the bare `https://mcp.agentmail.to/mcp` and authenticate in-flow.
+For clients that don't implement OAuth but support custom headers, pass the key as an `x-api-key` header instead:
+
+```json
+{
+  "mcpServers": {
+    "AgentMail": {
+      "url": "https://mcp.agentmail.to/mcp",
+      "headers": {
+        "x-api-key": "${AGENTMAIL_API_KEY}"
+      }
+    }
+  }
+}
+```
 
 ### Available MCP tools
 

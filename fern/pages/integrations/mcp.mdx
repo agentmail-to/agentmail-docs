@@ -12,7 +12,7 @@ The Model Context Protocol (MCP) is an open standard that lets AI clients call e
 The server supports two authentication paths:
 
 - **OAuth** (default, recommended for Claude Desktop and Claude.ai). The client signs in through `console.agentmail.to` and the server uses your console identity for every call.
-- **API key** (for Cursor, Windsurf, and other clients that do not implement the MCP OAuth flow). Pass the key as a `?apiKey=` query parameter or an `x-api-key` header.
+- **API key** (for Cursor, Windsurf, and other clients that do not implement the MCP OAuth flow). Pass the key as an `x-api-key` header; query-string keys end up in logs and history.
 
 If you belong to more than one AgentMail organization, the OAuth consent screen will ask you to pick which one to use before completing the connection.
 
@@ -40,20 +40,17 @@ OAuth is the recommended path for Claude products. You do not need an API key; t
 ```json
 {
   "agentmail": {
-    "url": "https://mcp.agentmail.to/mcp?apiKey=YOUR_API_KEY"
+    "url": "https://mcp.agentmail.to/mcp",
+    "headers": {
+      "x-api-key": "${AGENTMAIL_API_KEY}"
+    }
   }
 }
 ```
 
-If your client supports custom headers, you can pass the key as a header instead of a query parameter:
-
-```
-x-api-key: YOUR_API_KEY
-```
-
 ### Windsurf and other MCP clients
 
-Use the same URL and API key pattern as Cursor. Most clients accept either the `?apiKey=YOUR_API_KEY` query form or the `x-api-key` header.
+Use the same URL and header pattern as Cursor. If a client cannot send custom headers, use the [stdio-based compatibility bridge](https://github.com/agentmail-to/agentmail-mcp) instead and pass `AGENTMAIL_API_KEY` through the subprocess environment.
 
 ### Claude Code
 

@@ -26,11 +26,13 @@ ADK supports AgentMail through the MCP tool interface. Connect to the hosted Age
 
 <CodeBlocks>
   ```python title="Python"
+  import os
+
   from google.adk.agents import Agent
   from google.adk.tools.mcp_tool import McpToolset
   from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
 
-  AGENTMAIL_API_KEY = "YOUR_AGENTMAIL_API_KEY"
+  AGENTMAIL_API_KEY = os.environ["AGENTMAIL_API_KEY"]
 
   root_agent = Agent(
       model="gemini-2.5-pro",
@@ -39,7 +41,8 @@ ADK supports AgentMail through the MCP tool interface. Connect to the hosted Age
       tools=[
           McpToolset(
               connection_params=StreamableHTTPConnectionParams(
-                  url="https://mcp.agentmail.to/mcp?apiKey=" + AGENTMAIL_API_KEY,
+                  url="https://mcp.agentmail.to/mcp",
+                  headers={"x-api-key": AGENTMAIL_API_KEY},
               ),
           )
       ],
@@ -49,7 +52,7 @@ ADK supports AgentMail through the MCP tool interface. Connect to the hosted Age
   ```typescript title="TypeScript"
   import { LlmAgent, MCPToolset } from "@google/adk";
 
-  const AGENTMAIL_API_KEY = "YOUR_AGENTMAIL_API_KEY";
+  const AGENTMAIL_API_KEY = process.env.AGENTMAIL_API_KEY;
 
   const rootAgent = new LlmAgent({
       model: "gemini-2.5-pro",
@@ -59,7 +62,8 @@ ADK supports AgentMail through the MCP tool interface. Connect to the hosted Age
           new MCPToolset({
               type: "StreamableHTTPConnectionParams",
               serverParams: {
-                  url: `https://mcp.agentmail.to/mcp?apiKey=${AGENTMAIL_API_KEY}`,
+                  url: "https://mcp.agentmail.to/mcp",
+                  headers: { "x-api-key": AGENTMAIL_API_KEY },
               },
           }),
       ],
