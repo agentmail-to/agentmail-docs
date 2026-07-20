@@ -20,6 +20,148 @@ types:
     type: datetime
     docs: Time at which api key was created.
 
+  PublicJwkCoordinate:
+    type: string
+    validation:
+      minLength: 43
+      maxLength: 43
+      pattern: "^[A-Za-z0-9_-]{43}$"
+    docs: A 32-byte P-256 coordinate encoded as unpadded base64url.
+
+  PublicJwk:
+    docs: |
+      A public P-256 JWK. The object accepts exactly `kty`, `crv`, `x`, and `y`.
+      Private key material such as `d`, embedded key IDs, and all other members
+      are rejected. The server also rejects coordinates that are not a point on
+      P-256.
+    properties:
+      kty: literal<"EC">
+      crv: literal<"P-256">
+      x: PublicJwkCoordinate
+      y: PublicJwkCoordinate
+
+  OrganizationPublicKeyScope:
+    docs: Organization-wide authority.
+    properties: {}
+
+  PodPublicKeyScope:
+    docs: Authority over one live pod and its inboxes.
+    properties:
+      id:
+        type: uuid
+        docs: ID of the pod.
+
+  InboxPublicKeyScope:
+    docs: Authority over one live inbox incarnation.
+    properties:
+      id:
+        type: string
+        validation:
+          format: email
+          maxLength: 254
+        docs: ID of the inbox.
+
+  PublicKeyScope:
+    docs: The immutable scope in which a public-key credential can approve AgentID sign-in.
+    union:
+      organization: OrganizationPublicKeyScope
+      pod: PodPublicKeyScope
+      inbox: InboxPublicKeyScope
+
+  PublicKeyMaterial:
+    docs: Registered public key material and its server-computed RFC 7638 thumbprint.
+    properties:
+      jwk: PublicJwk
+      fingerprint:
+        type: string
+        validation:
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
+        docs: RFC 7638 SHA-256 JWK thumbprint encoded as unpadded base64url.
+
+  PublicKeyCredential:
+    docs: |
+      An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
+      use `api_key_id` as the JWS `kid`. This response never contains a bearer
+      secret or private key.
+    properties:
+      api_key_id:
+        type: uuid
+        docs: Server-generated credential ID. Store this value as the signing key's `kid`.
+      type:
+        type: literal<"public_key">
+        docs: Server-owned credential discriminator. Callers cannot select or update it.
+      name:
+        type: Name
+        docs: Human-readable credential name.
+      public_key: PublicKeyMaterial
+      scope: PublicKeyScope
+      expires_at:
+        type: optional<datetime>
+        docs: Immutable absolute expiry. Omitted when the credential does not expire.
+      revoked_at:
+        type: optional<datetime>
+        docs: Present when organization-wide revoke-all invalidated this credential generation.
+      created_at: datetime
+      updated_at: datetime
+
+  CreatePublicKeyRequest:
+    docs: |
+      Register only a public P-256 JWK. Credential type, `api_key_id`, sign-in
+      eligibility, permissions, and generation are server-owned and are not
+      request properties.
+    properties:
+      public_key: PublicJwk
+      name:
+        type: optional<string>
+        validation:
+          minLength: 1
+          maxLength: 256
+        docs: Defaults to `AgentID key {first eight fingerprint characters}`.
+      scope:
+        type: optional<PublicKeyScope>
+        docs: |
+          Omit to inherit the registering bearer key's exact scope. An explicit
+          scope must be the caller's scope or a live descendant.
+      expires_at:
+        type: optional<datetime>
+        docs: |
+          Future absolute expiry. Omit to inherit the registering bearer key's
+          expiry. A child credential cannot outlive its creator.
+
+  UpdatePublicKeyNameRequest:
+    docs: |
+      Rename a public-key credential. Key material, ID, type, scope, sign-in
+      eligibility, permissions, generation, and expiry are immutable.
+    properties:
+      name:
+        type: string
+        validation:
+          minLength: 1
+          maxLength: 256
+
+  ListPublicKeysResponse:
+    properties:
+      count: global.Count
+      next_page_token: optional<global.PageToken>
+      public_keys:
+        type: list<PublicKeyCredential>
+        docs: Public-key credentials only, ordered by creation time descending by default.
+
+  RevokeAllAgentIdSignInKeysResponse:
+    docs: Permanent idempotency receipt for an organization-wide AgentID sign-in key revocation.
+    properties:
+      previous_generation:
+        type: integer
+        validation:
+          min: 0
+      current_generation:
+        type: integer
+        validation:
+          min: 1
+      revoked_at: datetime
+
   ApiKeyPermissions:
     docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.
     properties:
@@ -116,6 +258,9 @@ types:
       api_key_create:
         type: optional<boolean>
         docs: Create API keys.
+      api_key_update:
+        type: optional<boolean>
+        docs: Update API keys.
       api_key_delete:
         type: optional<boolean>
         docs: Delete API keys.
@@ -226,3 +371,95 @@ service:
         api_key_id: ApiKeyId
       errors:
         - global.NotFoundError
+
+    listPublicKeys:
+      method: GET
+      path: /public-keys
+      display-name: List Public-Key Credentials
+      docs: |
+        List only public-key credentials visible to the bearer caller's scope.
+        Bearer credentials are never returned, even though both credential types
+        share storage and pagination indexes. Requires `api_key_read`.
+      request:
+        name: ListPublicKeysRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: ListPublicKeysResponse
+
+    createPublicKey:
+      method: POST
+      path: /public-keys
+      display-name: Register Public-Key Credential
+      docs: |
+        Register a public P-256 JWK using an existing AgentMail bearer API key
+        with `api_key_create`. Re-registering the same JWK creates a new
+        credential ID; it does not replace or recover an earlier credential.
+        The private key must never be sent to AgentMail.
+      request: CreatePublicKeyRequest
+      response: PublicKeyCredential
+      errors:
+        - global.ValidationError
+        - global.ConflictError
+
+    updatePublicKeyName:
+      method: PATCH
+      path: /public-keys/{api_key_id}
+      display-name: Rename Public-Key Credential
+      docs: |
+        Rename the credential. All security-relevant fields are immutable.
+        Requires `api_key_update`.
+      path-parameters:
+        api_key_id:
+          type: uuid
+          docs: Public-key credential ID returned by registration.
+      request: UpdatePublicKeyNameRequest
+      response: PublicKeyCredential
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+
+    revokePublicKey:
+      method: DELETE
+      path: /public-keys/{api_key_id}
+      display-name: Revoke Public-Key Credential
+      docs: |
+        Permanently revoke one public-key credential. This hard-deletes the
+        credential; repeating the request returns not found. Requires
+        `api_key_delete`.
+      path-parameters:
+        api_key_id:
+          type: uuid
+          docs: Public-key credential ID returned by registration.
+      response:
+        status-code: 204
+      errors:
+        - global.NotFoundError
+
+    revokeAllAgentIdSignInKeys:
+      method: POST
+      path: /public-keys/agentid-sign-in/revoke-all
+      display-name: Revoke All AgentID Sign-In Keys
+      docs: |
+        Invalidate every current public-key credential in the caller's
+        organization by advancing its AgentID key generation. The caller must be
+        organization-scoped and either have `api_key_delete` or, for a verified
+        self-serve agent organization, use an unrestricted unmanaged bearer
+        credential. No request body is accepted.
+
+        `Idempotency-Key` is required and must be a UUID. Reusing the same UUID
+        returns the original permanent receipt without advancing the generation
+        again. A new UUID performs a new generation advance.
+      request:
+        name: RevokeAllAgentIdSignInKeysRequest
+        headers:
+          Idempotency-Key:
+            type: string
+            validation:
+              format: uuid
+            docs: Required UUID identifying this revoke-all operation permanently.
+      response: RevokeAllAgentIdSignInKeysResponse
+      errors:
+        - global.ValidationError
+        - global.ConflictError
