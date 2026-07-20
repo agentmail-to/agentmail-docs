@@ -18,6 +18,9 @@ and TypeScript approval helpers plus shared conformance vectors.
 - `PATCH /v0/api-keys/public-keys/{api_key_id}` - Rename a credential without mutating security-relevant fields
 - `DELETE /v0/api-keys/public-keys/{api_key_id}` - Revoke one public-key credential
 - `POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` - Idempotently invalidate every current AgentID sign-in key in an organization
+
+**New AgentID endpoint** (served by the AgentID issuer, not part of the AgentMail REST API or generated SDKs — call it directly as shown in the guide):
+
 - `POST https://auth.agentid.com/authorize/approve` - Submit one strict ES256 approval assertion without a bearer credential
 
 **New features:**

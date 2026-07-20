@@ -403,9 +403,9 @@ console.log(receipt.previousGeneration, receipt.currentGeneration);
 
 An attacker can start a valid authorization transaction in the attacker's own
 browser, induce an agent to sign that transaction's `jti`, and then continue in
-the same attacker browser session. AgentID's stable cookie binding prevents a
-different browser from continuing the flow, but it does not remove this accepted
-transaction-intent/session-swap residual.
+the same attacker browser session. AgentID's per-transaction cookie binding
+prevents a different browser from continuing the flow, but it does not remove
+this accepted transaction-intent/session-swap residual.
 
 If your product requires intent assurance, bind the displayed relying party and
 transaction to an authenticated, trusted out-of-band instruction before calling
