@@ -411,12 +411,3 @@ If your product requires intent assurance, bind the displayed relying party and
 transaction to an authenticated, trusted out-of-band instruction before calling
 the signing helper. Do not claim that signature validity alone verifies user
 intent.
-
-## Conformance vectors
-
-The repository publishes the versioned
-[`agentid-key-auth-v1.json`](https://github.com/agentmail-to/agentmail-docs/blob/main/conformance/agentid-key-auth-v1.json)
-fixture for backend and SDK suites. It includes a test-only P-256 private key,
-public JWK, RFC 7638 thumbprint, valid compact assertion, a validly signed wrong
-`typ`, a validly signed extra claim, and signature-breaking header and payload
-mutations. Never use its private key for a real credential.

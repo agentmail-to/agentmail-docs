@@ -7,7 +7,7 @@ tags: ["api-keys", "agentid", "new-feature", "sdk"]
 Build AgentID sign-in flows with a scoped P-256 credential while keeping private
 key material in your own keystore. The API reference now defines a dedicated
 public-key lifecycle for generated SDKs, and the new guide provides strict Python
-and TypeScript approval helpers plus shared conformance vectors.
+and TypeScript approval helpers.
 
 ### What's new?
 
@@ -27,7 +27,6 @@ and TypeScript approval helpers plus shared conformance vectors.
 
 - **Scoped credentials**: Register organization-, pod-, or inbox-scoped keys with inherited scope and expiry defaults.
 - **Generated SDK contract**: Generate P-256 keys, register only public coordinates, pin the approval header and claims, and keep private keys below model context once corresponding SDK releases are published.
-- **Portable conformance**: Verify RFC 7638 thumbprints and compact JWS acceptance and rejection across backend and SDK implementations.
 
 ### Use cases
 
