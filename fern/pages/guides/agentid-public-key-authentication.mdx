@@ -41,7 +41,14 @@ curves, malformed coordinates, and coordinates that are not on P-256. The
 server computes the RFC 7638 SHA-256 fingerprint and returns it; compare or log
 the public fingerprint when you need an audit handle, never the private key.
 
-Install the Python example dependencies with
+<Note title="SDK release required">
+  The generated SDK methods in this guide require an AgentMail Python and
+  TypeScript SDK release that includes the public-key credential endpoints. If
+  your installed client does not expose these methods yet, use the REST API or
+  upgrade after that release is published.
+</Note>
+
+After that SDK release, install the Python example dependencies with
 `pip install agentmail cryptography PyJWT httpx`, or the TypeScript dependencies
 with `npm install agentmail jose`.
 
@@ -306,8 +313,9 @@ committing one approval. Concurrent or repeated submissions have one winner.
 
 ## List, rename, revoke, and rotate
 
-Use the dedicated generated methods. Legacy `api_keys.list`, `api_keys.create`,
-and `api_keys.delete` remain bearer-only and have no public-key request member.
+The generated clients for this contract expose dedicated lifecycle methods.
+Legacy `api_keys.list`, `api_keys.create`, and `api_keys.delete` remain
+bearer-only and have no public-key request member.
 
 <CodeBlocks>
 
@@ -354,10 +362,13 @@ for new key material.
 For an emergency organization-wide fence, call
 `POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` with an
 organization-scoped bearer credential and a required UUID `Idempotency-Key`.
-The request has no body. Repeating the same UUID returns the original
-`{previous_generation, current_generation, revoked_at}` receipt and does not
-advance the generation twice. A new UUID advances it again. Existing rows remain
-visible with `revoked_at` for audit; individually revoked keys are deleted.
+The caller normally needs `api_key_delete`. A verified self-serve agent
+organization may instead use an unrestricted unmanaged bearer credential for
+this emergency operation. The request has no body. Repeating the same UUID
+returns the original `{previous_generation, current_generation, revoked_at}`
+receipt and does not advance the generation twice. A new UUID advances it again.
+Existing rows remain visible with `revoked_at` for audit; individually revoked
+keys are deleted.
 
 <CodeBlocks>
 

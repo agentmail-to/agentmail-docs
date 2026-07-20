@@ -258,6 +258,9 @@ types:
       api_key_create:
         type: optional<boolean>
         docs: Create API keys.
+      api_key_update:
+        type: optional<boolean>
+        docs: Update API keys.
       api_key_delete:
         type: optional<boolean>
         docs: Delete API keys.
@@ -441,8 +444,9 @@ service:
       docs: |
         Invalidate every current public-key credential in the caller's
         organization by advancing its AgentID key generation. The caller must be
-        organization-scoped and authorized to delete API keys. No request body is
-        accepted.
+        organization-scoped and either have `api_key_delete` or, for a verified
+        self-serve agent organization, use an unrestricted unmanaged bearer
+        credential. No request body is accepted.
 
         `Idempotency-Key` is required and must be a UUID. Reusing the same UUID
         returns the original permanent receipt without advancing the generation
