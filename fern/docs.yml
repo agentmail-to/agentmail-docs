@@ -314,6 +314,9 @@ navigation:
           #   path: pages/integrations/crewai.mdx
       - section: Guides
         contents:
+          - page: AgentID Public-Key Authentication
+            icon: fa-solid fa-key
+            path: pages/guides/agentid-public-key-authentication.mdx
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx

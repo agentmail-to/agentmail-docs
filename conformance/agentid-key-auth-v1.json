@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "description": "AgentID P-256 thumbprint and compact approval assertion conformance vectors. The private key is test-only and must never be used for a real credential.",
+  "key": {
+    "private_jwk_test_only": {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY",
+      "y": "T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU",
+      "d": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE"
+    },
+    "public_jwk": {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY",
+      "y": "T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU"
+    },
+    "rfc7638_sha256_thumbprint": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+  },
+  "credential": {
+    "api_key_id": "55555555-5555-4555-8555-555555555555"
+  },
+  "approval": {
+    "protected_header": {
+      "alg": "ES256",
+      "typ": "agentid-approval+jwt",
+      "kid": "55555555-5555-4555-8555-555555555555"
+    },
+    "payload": {
+      "jti": "Zm9vYmFyMTIzNDU2Nzg5MA",
+      "inbox_id": "agent@example.com"
+    },
+    "compact_assertion": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImFnZW50aWQtYXBwcm92YWwrand0Iiwia2lkIjoiNTU1NTU1NTUtNTU1NS00NTU1LTg1NTUtNTU1NTU1NTU1NTU1In0.eyJqdGkiOiJabTl2WW1GeU1USXpORFUyTnpnNU1BIiwiaW5ib3hfaWQiOiJhZ2VudEBleGFtcGxlLmNvbSJ9.fc-3ptt9xSmmmrNliySWUzOZb6SGiGYIlEjOkDFieIqcWSWqIxHDvTgkVbiMtS6Wg7949BUltOSZ54qgQWbH_A",
+    "request_body": {
+      "assertion": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImFnZW50aWQtYXBwcm92YWwrand0Iiwia2lkIjoiNTU1NTU1NTUtNTU1NS00NTU1LTg1NTUtNTU1NTU1NTU1NTU1In0.eyJqdGkiOiJabTl2WW1GeU1USXpORFUyTnpnNU1BIiwiaW5ib3hfaWQiOiJhZ2VudEBleGFtcGxlLmNvbSJ9.fc-3ptt9xSmmmrNliySWUzOZb6SGiGYIlEjOkDFieIqcWSWqIxHDvTgkVbiMtS6Wg7949BUltOSZ54qgQWbH_A",
+      "inbox_id": "agent@example.com"
+    }
+  },
+  "rejected_assertions": [
+    {
+      "name": "wrong_typ",
+      "assertion": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjU1NTU1NTU1LTU1NTUtNDU1NS04NTU1LTU1NTU1NTU1NTU1NSJ9.eyJqdGkiOiJabTl2WW1GeU1USXpORFUyTnpnNU1BIiwiaW5ib3hfaWQiOiJhZ2VudEBleGFtcGxlLmNvbSJ9.kxkutVjbyc0LC0RPxmGjBsCiUrCq-EcKJBh_hJthRFVih3pM6l-SdEg_BE_twLUdC5hLKorzl2WYRD3h1me9Zg",
+      "signature_valid": true,
+      "expected_status": 401,
+      "reason": "The protected typ is not agentid-approval+jwt."
+    },
+    {
+      "name": "extra_claim",
+      "assertion": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImFnZW50aWQtYXBwcm92YWwrand0Iiwia2lkIjoiNTU1NTU1NTUtNTU1NS00NTU1LTg1NTUtNTU1NTU1NTU1NTU1In0.eyJqdGkiOiJabTl2WW1GeU1USXpORFUyTnpnNU1BIiwiaW5ib3hfaWQiOiJhZ2VudEBleGFtcGxlLmNvbSIsImlhdCI6MTcwMDAwMDAwMH0.DcUb9BgF9eD_joB4PhT23W22mf50dKphuVrupjTpvkudsCTYODRC-oDEHCznTYNlTXt84IW1M_YQCaNIPptviQ",
+      "signature_valid": true,
+      "expected_status": 400,
+      "reason": "The signed payload contains iat in addition to jti and inbox_id."
+    },
+    {
+      "name": "tampered_header",
+      "assertion": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImFnZW50aWQtYXBwcm92YWwrand0Iiwia2lkIjoiNTU1NTU1NTUtNTU1NS00NTU1LTg1NTUtNTU1NTU1NTU1NTU1IiwiY3JpdCI6WyJleHAiXX0.eyJqdGkiOiJabTl2WW1GeU1USXpORFUyTnpnNU1BIiwiaW5ib3hfaWQiOiJhZ2VudEBleGFtcGxlLmNvbSJ9.fc-3ptt9xSmmmrNliySWUzOZb6SGiGYIlEjOkDFieIqcWSWqIxHDvTgkVbiMtS6Wg7949BUltOSZ54qgQWbH_A",
+      "signature_valid": false,
+      "expected_status": 401,
+      "reason": "The signed protected header was modified and also carries forbidden crit."
+    },
+    {
+      "name": "tampered_payload",
+      "assertion": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImFnZW50aWQtYXBwcm92YWwrand0Iiwia2lkIjoiNTU1NTU1NTUtNTU1NS00NTU1LTg1NTUtNTU1NTU1NTU1NTU1In0.eyJqdGkiOiJabTl2WW1GeU1USXpORFUyTnpnNU1BIiwiaW5ib3hfaWQiOiJvdGhlckBleGFtcGxlLmNvbSJ9.fc-3ptt9xSmmmrNliySWUzOZb6SGiGYIlEjOkDFieIqcWSWqIxHDvTgkVbiMtS6Wg7949BUltOSZ54qgQWbH_A",
+      "signature_valid": false,
+      "expected_status": 401,
+      "reason": "The signed inbox_id was modified without a new signature."
+    }
+  ]
+}
