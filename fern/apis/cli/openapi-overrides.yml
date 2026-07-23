@@ -168,12 +168,6 @@ paths:
       - inboxes
       - messages
       x-fern-sdk-method-name: forward
-  /v0/inboxes/{inbox_id}/metrics:
-    get:
-      x-fern-sdk-group-name:
-      - inboxes
-      - metrics
-      x-fern-sdk-method-name: query
   /v0/inboxes/{inbox_id}/threads:
     get:
       x-fern-sdk-group-name:
@@ -331,12 +325,6 @@ paths:
       - pods
       - lists
       x-fern-sdk-method-name: delete
-  /v0/pods/{pod_id}/metrics:
-    get:
-      x-fern-sdk-group-name:
-      - pods
-      - metrics
-      x-fern-sdk-method-name: query
   /v0/pods/{pod_id}/threads:
     get:
       x-fern-sdk-group-name:
@@ -527,11 +515,6 @@ paths:
       x-fern-sdk-group-name:
       - lists
       x-fern-sdk-method-name: delete
-  /v0/metrics:
-    get:
-      x-fern-sdk-group-name:
-      - metrics
-      x-fern-sdk-method-name: query
   /v0/organizations:
     get:
       x-fern-sdk-group-name:
