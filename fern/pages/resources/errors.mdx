@@ -4,25 +4,25 @@ slug: errors
 description: "Every AgentMail API error code, what it means, and how to fix it."
 ---
 
-Every error response from the AgentMail API includes a stable, machine-readable `code` you can branch on, a `message` describing what went wrong, a `fix` describing the concrete next action that resolves it, and a `docs` link pointing to the matching entry on this page.
+Every error response from the AgentMail API includes a stable, machine-readable `code` you can branch on, a `message` describing what went wrong, and a `docs` link pointing to the matching entry on this page. Most responses also include a `fix` describing the concrete next action that resolves it; `fix` is omitted when no generic remedy applies.
 
 ```json
 {
-  "name": "MissingPermissionError",
+  "name": "ForbiddenError",
   "code": "missing_permission",
-  "message": "Missing required permission: message_send",
-  "fix": "This API key does not have the 'message_send' permission. Retry with an API key that includes 'message_send', or create one via POST /v0/api-keys (or at https://console.agentmail.to) with that permission enabled. If a new key does not resolve this, the permission is outside your credential's scope — use a key with a broader scope (organization-scoped keys hold the widest permissions).",
+  "message": "Forbidden",
+  "fix": "This API key does not have the 'message_send' permission. Retry with an API key that includes 'message_send' — note a key cannot create a new key with permissions it lacks itself, so the new key must come from a credential that already holds 'message_send' (an unrestricted key via POST /v0/api-keys, or the console at https://console.agentmail.to). If no such key exists, the permission may be outside your credential's scope — use a key with a broader scope (organization-scoped keys hold the widest permissions).",
   "docs": "https://docs.agentmail.to/errors#missing_permission"
 }
 ```
 
-Branch on `code`, not on `message`: messages may be reworded over time, but codes are stable.
+Branch on `code`, not on `name` or `message`: the `name` and `message` fields keep their long-standing pre-`code` values for backward compatibility (a permission denial still reads `Forbidden`), so they neither identify the specific cause nor carry the remedy — `code` and `fix` do.
 
 ## Authentication (401)
 
 ### missing_authorization
 
-The `Authorization` header was missing, did not use the required case-sensitive `Bearer ` scheme, or used the scheme correctly but carried no key value after `Bearer ` — the message states which. Send your API key as `Authorization: Bearer <api_key>`. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+The `Authorization` header was missing, did not use the required case-sensitive `Bearer ` scheme, used the scheme correctly but carried no key value after `Bearer `, or carried whitespace inside the key value (no credential contains whitespace) — the message states which. Send your API key as `Authorization: Bearer <api_key>`. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
 
 ### invalid_token_type
 
@@ -40,7 +40,7 @@ Generic authentication failure. Send a valid API key in the `Authorization: Bear
 
 ### missing_permission
 
-The credential lacks the specific permission named in the message (for example `message_send`). The `fix` names the remedy for the actual cause: a restricted key may need the permission granted (retry with a key that includes it, or create one via `POST /v0/api-keys`), while other denials come from the credential's scope or the organization's state, where creating another key at the same scope cannot help — for example `organization_read` requires an organization-scoped key, some permissions (like creating API keys or send-list entries) require completing agent verification via `POST /v0/agent/verify` first, and `agent_verify` itself is only available while an unverified agent organization still needs verification.
+The credential lacks a specific required permission (for example `message_send`). For backward compatibility the `message` stays `Forbidden` (event-type permission checks on webhooks and WebSocket subscriptions keep their own legacy form, `<permission> is forbidden`); the missing permission is named in the `fix`. The `fix` also names the remedy for the actual cause: a restricted key may need the permission granted (retry with a key that includes it, or create one via `POST /v0/api-keys` from a credential that already holds it — a key cannot grant a permission it lacks), while other denials come from the credential's scope or the organization's state, where creating another key at the same scope cannot help — for example `organization_read` requires an organization-scoped key, some permissions (like creating API keys or send-list entries) require completing agent verification via `POST /v0/agent/verify` first, and `agent_verify` itself is only available while an unverified agent organization still needs verification.
 
 ### permission_escalation
 
@@ -62,7 +62,7 @@ One or more request fields failed validation. Inspect the `errors` array in the 
 
 ### not_found
 
-No resource matched the given identifier. Check that the ID is correct and belongs to your organization; use the corresponding list endpoint to discover valid IDs.
+No resource with the given identifier is visible to this credential. That can mean the ID is wrong — but the same response also deliberately hides resources outside your credential's scope (organization, pod, or inbox) and resources behind a restricted-label read permission you lack (`spam`, `blocked`, `unauthenticated`, `trash`), so a correct ID can still return `not_found`. Check the ID, your credential's scope, and your label-read permissions; list endpoints return only the IDs visible to you.
 
 ### unprocessable
 
@@ -84,7 +84,7 @@ The requested value (for example, an inbox username) is already in use. Choose a
 
 ### limit_exceeded
 
-A resource limit has been reached (for example, the webhook endpoint limit). Remove an existing resource before adding another, or email support@agentmail.to to raise your limit.
+A resource limit has been reached (for example, the webhook endpoint limit). Remove an existing resource before adding another, or email support@agentmail.to to raise your limit. For agent-verification OTP attempts, the `fix` distinguishes the two states: while the exhausted code is still live, every submission is rejected (even the correct code) until it expires 24 hours from issue, after which `POST /v0/agent/sign-up` issues a fresh code with a reset attempt count; if the code has already expired, sign up again immediately.
 
 ### domain_not_verified
 
@@ -92,7 +92,7 @@ The sending domain has not completed DNS verification. Add the DNS records retur
 
 ### conflict
 
-The request conflicts with another request under the same `Idempotency-Key`. Either the original send is still in progress (wait briefly and retry the identical request) or the key was already used for a different message (generate a new key for new messages). See [Idempotency](/idempotency).
+The request conflicts with another request under the same `Idempotency-Key`. Either the original send is still in progress — wait briefly and retry the identical request: once the first attempt completes the retry returns its send, and if the first attempt failed without completing, the key becomes retryable again after a short window — or the key was already used for a different message (generate a new key for new messages). See [Idempotency](/idempotency).
 
 ### race_condition
 
@@ -110,7 +110,12 @@ The resource cannot be deleted yet, usually because dependent resources still ex
 
 ### message_rejected
 
-The message was not sent. The message names the reason: recipients on a send block list (remove them from the request, or delete the block entry via `DELETE /v0/lists/send/block/{entry}` at the scope where it was created), recipients missing from an active send allow list (add them via `POST /v0/lists/send/allow` — there is no block entry to delete in this case), a suspended account (email support@agentmail.to), or an unfetchable attachment URL (use a URL that returns 200 without authentication, or send the attachment inline as base64). The `fix` field states which case applies.
+The message was not sent. The message names the reason, and the `fix` states which case applies:
+
+- **Recipients on a send block list** — remove them from the request, or delete the matched block entry. The `fix` names the stored entry (which may be a domain rather than the recipient address) and the exact `DELETE /v0/…/lists/send/block/{entry}` path at the scope where it lives. Deleting an entry at a broader scope than your key (an organization-level block hit by a pod- or inbox-scoped key) requires a key scoped at that level. Read-only entries — added automatically from bounces, complaints, and unsubscribes — cannot be deleted via the API; email support@agentmail.to to have one reviewed.
+- **Recipients missing from an active send allow list** — add them via `POST /v0/lists/send/allow` (there is no block entry to delete). On an agent organization that has not completed verification, sending is restricted to the human's email and list entries cannot be created yet — complete `POST /v0/agent/verify` instead.
+- **A suspended account** — email support@agentmail.to; retrying will keep failing until the suspension is resolved.
+- **An unfetchable attachment URL** — use a URL that returns 200 without authentication, or send the attachment inline as base64.
 
 ## Transient errors (429 / 500 / 503)
 
