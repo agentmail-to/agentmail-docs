@@ -6,6 +6,8 @@ slug: knowledge-base/api-403-error
 
 A `403 Forbidden` response from the AgentMail API means your request was rejected. This can happen for several reasons, and the fix depends on the cause.
 
+**Check the response body first.** Application-level 403s carry a machine-readable `code`, a `fix` describing the concrete next action, and a `docs` link into the [Error Reference](/errors) — the `fix` usually resolves the issue directly. The one exception is a bare `{"message":"Forbidden"}` with none of those fields: that response comes from the API gateway rejecting your credential before it reaches the API, which almost always means cause 1 below.
+
 ## 1. Incorrect API key
 
 The most common cause. Your API key may be missing, incomplete, or invalid.
@@ -29,9 +31,9 @@ A common mistake is copying only part of the key. API keys are long strings. Dou
 
 ## 2. Accessing a resource you do not own
 
-You will get a 403 if you try to access an inbox, message, thread, or domain that belongs to a different organization. Each API key is scoped to one organization, and you can only access resources created under that organization.
+Accessing an inbox, message, thread, or domain that belongs to a different organization — or one outside your key's pod or inbox scope — returns a `404` with `code: "not_found"`, not a 403: resources outside your credential's scope are deliberately indistinguishable from ones that don't exist. The 403 you can hit in this family is using an inbox-scoped key on a pod route.
 
-**How to fix:** Verify that the `inbox_id`, `message_id`, `thread_id`, or `domain_id` in your request actually belongs to your account.
+**How to fix:** Verify that the `inbox_id`, `message_id`, `thread_id`, or `domain_id` in your request actually belongs to your account and is within your key's scope. See [not_found](/errors#not_found) in the Error Reference.
 
 ## 3. Missing required parameters
 
@@ -41,13 +43,15 @@ Some endpoints return a 403 when required path parameters are missing or malform
 
 ## 4. Sending to a suppressed address
 
-AgentMail automatically suppresses addresses that have previously bounced, been rejected, or filed a spam complaint. If you try to send to a suppressed address, the API returns a 403.
+AgentMail automatically suppresses addresses that have previously bounced, been rejected, or filed a spam complaint. If you try to send to a suppressed address, the API returns a `403` with `code: "message_rejected"`; the `fix` names the matched block entry and the exact remedy (deletable entries get a `DELETE` path; suppression entries added from bounces or complaints are read-only and go through support review).
 
-**How to fix:** Check if the recipient address has been suppressed. See [Emails bouncing](/knowledge-base/emails-bouncing) for more details on how suppression works.
+**How to fix:** Read the `fix` field on the response. See [message_rejected](/errors#message_rejected) in the Error Reference and [Emails bouncing](/knowledge-base/emails-bouncing) for how suppression works.
 
-## We do not restrict your API key
+## 5. Your API key lacks a permission
 
-AgentMail does not place any feature restrictions on your API key. Every API key has access to all endpoints. If you are getting a 403, it is not because your key lacks permissions. It is one of the causes listed above.
+API keys can be created with granular permissions (for example, a key that can read messages but not send them). A denial from a permission gate returns `code: "missing_permission"`, and the `fix` names the exact missing permission and how to obtain it — including when a new key at the same scope *cannot* help (the permission is outside your key's scope, or the organization has not completed agent verification).
+
+**How to fix:** Read the `fix` field, then retry with a key that holds the named permission — created from a credential that already holds it, since a key cannot grant a permission it lacks. Keys created without a permissions object are unrestricted. See [missing_permission](/errors#missing_permission) in the Error Reference.
 
 ## Test your API key
 
