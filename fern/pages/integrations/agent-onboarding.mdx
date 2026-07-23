@@ -68,7 +68,7 @@ agentmail agent verify --otp-code 123456
 
 
 <Warning>
-  **Unverified accounts can only send email to the signup address.** Until you complete OTP verification, outbound emails to any other address will fail without any error message. Always call `agent.verify()` before sending to external recipients.
+  **Unverified accounts can only send email to the signup address.** Until you complete OTP verification, sends to any other address are rejected with a `403` carrying `code: "message_rejected"`, whose `fix` explains that sending is restricted until verification and points at `POST /v0/agent/verify`. Always call `agent.verify()` before sending to external recipients. See the [Error Reference](/errors#message_rejected).
 </Warning>
 
 <Warning>
