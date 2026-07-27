@@ -1,0 +1,62 @@
+---
+tags: ["pods-api", "new-feature"]
+---
+
+## Summary
+
+**Pod-scoped API keys** — create API keys that are restricted to a single pod. A pod-scoped key can only access resources within its pod, so multi-tenant platforms can issue narrower credentials per tenant instead of sharing an organization-wide key.
+
+### What's new?
+
+**New endpoints:**
+- `POST /pods/{pod_id}/api-keys` - Create an API key scoped to a pod
+- `GET /pods/{pod_id}/api-keys` - List API keys for a pod
+- `DELETE /pods/{pod_id}/api-keys/{api_key}` - Delete a pod-scoped API key
+
+**New field:**
+- `pod_id` on API key objects — indicates the pod the key is scoped to. When set, the key can only access resources within that pod.
+
+### Use cases
+
+Build agents that:
+- Issue per-tenant API keys so each customer's agent only accesses its own pod
+- Rotate credentials at the pod level without affecting other tenants
+- Enforce least-privilege access in multi-tenant platforms
+- Audit API key usage per pod
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# create an api key scoped to a pod
+response = client.pods.api_keys.create(
+    pod_id="pod_abc123",
+    name="tenant-agent-key"
+)
+
+# use the scoped key — it can only access this pod's resources
+scoped_client = AgentMail(api_key=response.api_key)
+inboxes = scoped_client.inboxes.list()
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// create an api key scoped to a pod
+const response = await client.pods.apiKeys.create("pod_abc123", {
+  name: "tenant-agent-key",
+});
+
+// use the scoped key — it can only access this pod's resources
+const scopedClient = new AgentMail({ apiKey: response.apiKey });
+const inboxes = await scopedClient.inboxes.list();
+```
+</CodeBlocks>
+
+<Note>
+  Learn more about multi-tenant isolation in the [Pods](https://docs.agentmail.to/core-concepts/pods) documentation.
+</Note>
