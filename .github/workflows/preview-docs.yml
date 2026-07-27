@@ -19,7 +19,7 @@ jobs:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
           POSTHOG_PROJECT_API_KEY: ${{ secrets.POSTHOG_PROJECT_API_KEY }}
         run: |
-          OUTPUT=$(fern generate --docs --preview --instance https://agentmail-production.docs.buildwithfern.com --log-level debug 2>&1) || true
+          OUTPUT=$(fern generate --docs --preview --instance agentmail-production.docs.buildwithfern.com --log-level debug 2>&1) || true
           echo "$OUTPUT"
           URL=$(echo "$OUTPUT" | grep -oP 'Published docs to \K.*(?= \()')
           echo "Preview URL: $URL"
