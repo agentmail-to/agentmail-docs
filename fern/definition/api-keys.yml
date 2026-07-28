@@ -80,6 +80,32 @@ types:
           pattern: "^[A-Za-z0-9_-]{43}$"
         docs: RFC 7638 SHA-256 JWK thumbprint encoded as unpadded base64url.
 
+  PublicKeyPermissionSelection:
+    docs: |
+      AgentID owner-claim permissions selected for a public-key credential.
+      These permissions authorize OAuth claim disclosure at AgentID sign-in;
+      they do not authorize AgentMail REST API operations. Omitted or false
+      fields are disabled when this object is supplied.
+    properties:
+      owner_profile:
+        type: optional<boolean>
+        docs: Allow the credential to authorize the `owner_profile` OAuth scope and its `owner_name` claim.
+      owner_email:
+        type: optional<boolean>
+        docs: Allow the credential to authorize the `owner_email` OAuth scope and its `owner_email` claim.
+
+  PublicKeyPermissions:
+    docs: |
+      Effective AgentID owner-claim permissions. Both controls are always
+      returned explicitly so callers do not need to infer false from omission.
+    properties:
+      owner_profile:
+        type: boolean
+        docs: Whether the credential may authorize the `owner_profile` OAuth scope.
+      owner_email:
+        type: boolean
+        docs: Whether the credential may authorize the `owner_email` OAuth scope.
+
   PublicKeyCredential:
     docs: |
       An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
@@ -97,6 +123,7 @@ types:
         docs: Human-readable credential name.
       public_key: PublicKeyMaterial
       scope: PublicKeyScope
+      permissions: PublicKeyPermissions
       expires_at:
         type: optional<datetime>
         docs: Immutable absolute expiry. Omitted when the credential does not expire.
@@ -109,8 +136,8 @@ types:
   CreatePublicKeyRequest:
     docs: |
       Register only a public P-256 JWK. Credential type, `api_key_id`, sign-in
-      eligibility, permissions, and generation are server-owned and are not
-      request properties.
+      eligibility, and generation are server-owned and are not request
+      properties.
     properties:
       public_key: PublicJwk
       name:
@@ -129,17 +156,31 @@ types:
         docs: |
           Future absolute expiry. Omit to inherit the registering bearer key's
           expiry. A child credential cannot outlive its creator.
+      permissions:
+        type: optional<PublicKeyPermissionSelection>
+        docs: |
+          Omit to inherit the registering bearer key's effective
+          `owner_profile` and `owner_email` permissions. Supplying an object
+          selects an exact subset: omitted or false fields are disabled, and a
+          true field is rejected if the bearer caller does not hold it.
 
   UpdatePublicKeyNameRequest:
     docs: |
-      Rename a public-key credential. Key material, ID, type, scope, sign-in
-      eligibility, permissions, generation, and expiry are immutable.
+      Update a public-key credential's name, AgentID owner-claim permissions,
+      or both. At least one field is required. Key material, ID, type, scope,
+      sign-in eligibility, generation, and expiry remain immutable.
     properties:
       name:
-        type: string
+        type: optional<string>
         validation:
           minLength: 1
           maxLength: 256
+      permissions:
+        type: optional<PublicKeyPermissionSelection>
+        docs: |
+          Per-field merge. Omitted fields preserve their current value, false
+          revokes a permission, and true is rejected if the bearer caller does
+          not currently hold that permission.
 
   ListPublicKeysResponse:
     properties:
@@ -163,7 +204,7 @@ types:
       revoked_at: datetime
 
   ApiKeyPermissions:
-    docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.
+    docs: Granular permissions for the API key. When omitted all permissions are granted. Otherwise, only permissions set to true are granted.
     properties:
       inbox_read:
         type: optional<boolean>
@@ -273,6 +314,12 @@ types:
       pod_delete:
         type: optional<boolean>
         docs: Delete pods.
+      owner_profile:
+        type: optional<boolean>
+        docs: Allow child AgentID public-key credentials to authorize the `owner_profile` OAuth scope.
+      owner_email:
+        type: optional<boolean>
+        docs: Allow child AgentID public-key credentials to authorize the `owner_email` OAuth scope.
 
   ApiKey:
     properties:
@@ -406,9 +453,12 @@ service:
     updatePublicKeyName:
       method: PATCH
       path: /public-keys/{api_key_id}
-      display-name: Rename Public-Key Credential
+      display-name: Update Public-Key Credential
       docs: |
-        Rename the credential. All security-relevant fields are immutable.
+        Update the credential's name, AgentID owner-claim permissions, or both.
+        Permission changes use per-field merge semantics and cannot grant a
+        permission the bearer caller does not currently hold. The generated SDK
+        method retains its original `updatePublicKeyName` name for compatibility.
         Requires `api_key_update`.
       path-parameters:
         api_key_id:

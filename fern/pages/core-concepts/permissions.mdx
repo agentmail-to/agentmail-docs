@@ -142,6 +142,17 @@ Threads are groupings of messages and have no permissions of their own. Every th
 | `pod_create` | Create pods |
 | `pod_delete` | Delete pods |
 
+### AgentID Owner Claims
+
+These permissions do not grant an API key a new AgentMail REST operation. They
+set the maximum owner-claim authority that the bearer key may delegate to an
+[AgentID public-key credential](/agentid-public-key-authentication).
+
+| Permission | Description |
+| --- | --- |
+| `owner_profile` | Allow a child AgentID public-key credential to authorize the `owner_profile` OAuth scope and its `owner_name` claim |
+| `owner_email` | Allow a child AgentID public-key credential to authorize the `owner_email` OAuth scope and its `owner_email` claim |
+
 ## Code Examples
 
 ### Read-only key
@@ -270,6 +281,8 @@ key = client.api_keys.create(
         "pod_read": True,
         "pod_create": True,
         "pod_delete": True,
+        "owner_profile": True,
+        "owner_email": True,
     }
 )
 ```
@@ -314,6 +327,8 @@ const key = await client.apiKeys.create({
     podRead: true,
     podCreate: true,
     podDelete: true,
+    ownerProfile: true,
+    ownerEmail: true,
   },
 });
 ```
@@ -358,7 +373,9 @@ agentmail api-keys create \
     "api_key_delete": true,
     "pod_read": true,
     "pod_create": true,
-    "pod_delete": true
+    "pod_delete": true,
+    "owner_profile": true,
+    "owner_email": true
   }'
 ```
 </CodeBlocks>
@@ -387,6 +404,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     Metrics: metrics_read
     API Keys: api_key_read, api_key_create, api_key_update, api_key_delete
     Pods: pod_read, pod_create, pod_delete
+    AgentID owner claims: owner_profile, owner_email
 
   Threads have no permissions of their own: thread reads use message_read,
   thread label updates use message_update, and thread deletes use message_delete.
@@ -424,6 +442,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *   Metrics: metricsRead
    *   API Keys: apiKeyRead, apiKeyCreate, apiKeyUpdate, apiKeyDelete
    *   Pods: podRead, podCreate, podDelete
+   *   AgentID owner claims: ownerProfile, ownerEmail
    *
    * Threads have no permissions of their own: thread reads use messageRead,
    * thread label updates use messageUpdate, and thread deletes use messageDelete.
