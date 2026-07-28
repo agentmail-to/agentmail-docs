@@ -21,7 +21,7 @@ jobs:
 
       - name: Generate OpenAPI spec
         working-directory: fern
-        run: fern generate --api api --group openapi --local
+        run: fern generate --api api --group openapi --local --force --no-prompt
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
 

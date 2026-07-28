@@ -17,5 +17,5 @@ groups:
           package-name: agentmail-cli
           token: OIDC
         github:
-          repository: agentmail-to/agentmail-cli
+          repository: agentmail-to/agentmail-cli-fern
           mode: pull-request

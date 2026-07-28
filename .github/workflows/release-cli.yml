@@ -29,7 +29,7 @@ jobs:
       - name: Re-export OpenAPI from definition
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
-        run: fern generate --api api --group openapi --local
+        run: fern generate --api api --group openapi --local --force --no-prompt
 
       - name: Generate CLI
         env:
