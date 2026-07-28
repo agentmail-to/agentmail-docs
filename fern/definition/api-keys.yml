@@ -177,27 +177,27 @@ types:
       inbox_delete:
         type: optional<boolean>
         docs: Delete inboxes.
-      thread_read:
-        type: optional<boolean>
-        docs: Read threads.
-      thread_delete:
-        type: optional<boolean>
-        docs: Delete threads.
       message_read:
         type: optional<boolean>
-        docs: Read messages.
+        docs: Read messages. Also required to read threads.
       message_send:
         type: optional<boolean>
         docs: Send messages.
       message_update:
         type: optional<boolean>
-        docs: Update message labels.
+        docs: Update message labels. Also required to update threads.
+      message_delete:
+        type: optional<boolean>
+        docs: Delete messages. Also required to delete threads.
       label_spam_read:
         type: optional<boolean>
         docs: Access messages labeled spam.
       label_blocked_read:
         type: optional<boolean>
         docs: Access messages labeled blocked.
+      label_unauthenticated_read:
+        type: optional<boolean>
+        docs: Access messages labeled unauthenticated.
       label_trash_read:
         type: optional<boolean>
         docs: Access messages labeled trash.

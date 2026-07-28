@@ -43,13 +43,6 @@ A restricted API key cannot create a child key with more permissions than itself
 | `inbox_update` | Update inbox settings |
 | `inbox_delete` | Delete inboxes |
 
-### Threads
-
-| Permission | Description |
-| --- | --- |
-| `thread_read` | Read threads |
-| `thread_delete` | Delete threads |
-
 ### Messages
 
 | Permission | Description |
@@ -57,6 +50,21 @@ A restricted API key cannot create a child key with more permissions than itself
 | `message_read` | Read messages |
 | `message_send` | Send messages |
 | `message_update` | Update message labels |
+| `message_delete` | Delete messages |
+
+### Threads
+
+Threads are groupings of messages and have no permissions of their own. Every thread operation is governed by the equivalent message permission:
+
+| Operation | Required permission |
+| --- | --- |
+| List, get, or search threads | `message_read` |
+| Update thread labels | `message_update` |
+| Delete a thread | `message_delete` |
+
+<Warning>
+  There is no `thread_read` or `thread_delete` permission. Granting `message_delete` on a key also lets that key delete whole threads. To create a key that can read and label messages but cannot delete anything, leave `message_delete` unset or `false`.
+</Warning>
 
 ### Label Visibility
 
@@ -64,6 +72,7 @@ A restricted API key cannot create a child key with more permissions than itself
 | --- | --- |
 | `label_spam_read` | Access messages labeled as spam |
 | `label_blocked_read` | Access messages labeled as blocked |
+| `label_unauthenticated_read` | Access messages labeled as unauthenticated |
 | `label_trash_read` | Access messages labeled as trash |
 
 <Info>
@@ -71,7 +80,7 @@ A restricted API key cannot create a child key with more permissions than itself
 </Info>
 
 <Callout intent="info" title="Event subscriptions">
-  Label visibility permissions also control whether an API key can subscribe to the corresponding event types on [webhooks](/events) and [WebSockets](/websockets). An API key without `label_spam_read` cannot create a webhook or WebSocket subscription for `message.received.spam` events, and an API key without `label_blocked_read` cannot subscribe to `message.received.blocked` events.
+  Label visibility permissions also control whether an API key can subscribe to the corresponding event types on [webhooks](/events) and [WebSockets](/websockets). An API key without `label_spam_read` cannot create a webhook or WebSocket subscription for `message.received.spam` events, and the same applies to `label_blocked_read` for `message.received.blocked` and `label_unauthenticated_read` for `message.received.unauthenticated`. `label_trash_read` has no corresponding event type, so it gates reads only.
 </Callout>
 
 ### Drafts
@@ -122,6 +131,7 @@ A restricted API key cannot create a child key with more permissions than itself
 | --- | --- |
 | `api_key_read` | Read API keys |
 | `api_key_create` | Create API keys |
+| `api_key_update` | Update API keys |
 | `api_key_delete` | Delete API keys |
 
 ### Pods
@@ -148,7 +158,6 @@ key = client.api_keys.create(
     name="read-only-agent",
     permissions={
         "inbox_read": True,
-        "thread_read": True,
         "message_read": True,
         "draft_read": True,
         "webhook_read": True,
@@ -159,6 +168,7 @@ key = client.api_keys.create(
         "pod_read": True,
         "label_spam_read": True,
         "label_blocked_read": True,
+        "label_unauthenticated_read": True,
         "label_trash_read": True,
     }
 )
@@ -175,7 +185,6 @@ const key = await client.apiKeys.create({
   name: "read-only-agent",
   permissions: {
     inboxRead: true,
-    threadRead: true,
     messageRead: true,
     draftRead: true,
     webhookRead: true,
@@ -186,6 +195,7 @@ const key = await client.apiKeys.create({
     podRead: true,
     labelSpamRead: true,
     labelBlockedRead: true,
+    labelUnauthenticatedRead: true,
     labelTrashRead: true,
   },
 });
@@ -199,7 +209,6 @@ agentmail api-keys create \
   --name "read-only-agent" \
   --permissions '{
     "inbox_read": true,
-    "thread_read": true,
     "message_read": true,
     "draft_read": true,
     "webhook_read": true,
@@ -210,6 +219,7 @@ agentmail api-keys create \
     "pod_read": true,
     "label_spam_read": true,
     "label_blocked_read": true,
+    "label_unauthenticated_read": true,
     "label_trash_read": true
   }'
 ```
@@ -217,7 +227,7 @@ agentmail api-keys create \
 
 ### No-spam key
 
-Create a key with full access but block visibility into spam, blocked, and trash content. This is useful for agent-facing keys where you want to prevent the agent from processing unwanted email.
+Create a key with full access but block visibility into spam, blocked, unauthenticated, and trash content. This is useful for agent-facing keys where you want to prevent the agent from processing unwanted email.
 
 <CodeBlocks>
 ```python title="Python"
@@ -228,13 +238,13 @@ key = client.api_keys.create(
         "inbox_create": True,
         "inbox_update": True,
         "inbox_delete": True,
-        "thread_read": True,
-        "thread_delete": True,
         "message_read": True,
         "message_send": True,
         "message_update": True,
+        "message_delete": True,
         "label_spam_read": False,
         "label_blocked_read": False,
+        "label_unauthenticated_read": False,
         "label_trash_read": False,
         "draft_read": True,
         "draft_create": True,
@@ -255,6 +265,7 @@ key = client.api_keys.create(
         "metrics_read": True,
         "api_key_read": True,
         "api_key_create": True,
+        "api_key_update": True,
         "api_key_delete": True,
         "pod_read": True,
         "pod_create": True,
@@ -271,13 +282,13 @@ const key = await client.apiKeys.create({
     inboxCreate: true,
     inboxUpdate: true,
     inboxDelete: true,
-    threadRead: true,
-    threadDelete: true,
     messageRead: true,
     messageSend: true,
     messageUpdate: true,
+    messageDelete: true,
     labelSpamRead: false,
     labelBlockedRead: false,
+    labelUnauthenticatedRead: false,
     labelTrashRead: false,
     draftRead: true,
     draftCreate: true,
@@ -298,6 +309,7 @@ const key = await client.apiKeys.create({
     metricsRead: true,
     apiKeyRead: true,
     apiKeyCreate: true,
+    apiKeyUpdate: true,
     apiKeyDelete: true,
     podRead: true,
     podCreate: true,
@@ -315,13 +327,13 @@ agentmail api-keys create \
     "inbox_create": true,
     "inbox_update": true,
     "inbox_delete": true,
-    "thread_read": true,
-    "thread_delete": true,
     "message_read": true,
     "message_send": true,
     "message_update": true,
+    "message_delete": true,
     "label_spam_read": false,
     "label_blocked_read": false,
+    "label_unauthenticated_read": false,
     "label_trash_read": false,
     "draft_read": true,
     "draft_create": true,
@@ -342,6 +354,7 @@ agentmail api-keys create \
     "metrics_read": true,
     "api_key_read": true,
     "api_key_create": true,
+    "api_key_update": true,
     "api_key_delete": true,
     "pod_read": true,
     "pod_create": true,
@@ -365,16 +378,18 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
 
   Permission fields (all optional<bool>, resource_action format):
     Inboxes: inbox_read, inbox_create, inbox_update, inbox_delete
-    Threads: thread_read, thread_delete
-    Messages: message_read, message_send, message_update
-    Label visibility: label_spam_read, label_blocked_read, label_trash_read
+    Messages: message_read, message_send, message_update, message_delete
+    Label visibility: label_spam_read, label_blocked_read, label_unauthenticated_read, label_trash_read
     Drafts: draft_read, draft_create, draft_update, draft_delete, draft_send
     Webhooks: webhook_read, webhook_create, webhook_update, webhook_delete
     Domains: domain_read, domain_create, domain_update, domain_delete
     Lists: list_entry_read, list_entry_create, list_entry_delete
     Metrics: metrics_read
-    API Keys: api_key_read, api_key_create, api_key_delete
+    API Keys: api_key_read, api_key_create, api_key_update, api_key_delete
     Pods: pod_read, pod_create, pod_delete
+
+  Threads have no permissions of their own: thread reads use message_read,
+  thread label updates use message_update, and thread deletes use message_delete.
 
   API: api_keys.create(name, permissions={...})
   """
@@ -385,7 +400,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
   # read-only key
   key = client.api_keys.create(
       name="read-only",
-      permissions={"inbox_read": True, "message_read": True, "thread_read": True}
+      permissions={"inbox_read": True, "message_read": True}
   )
   print(key.api_key)
   ```
@@ -400,16 +415,18 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *
    * Permission fields (all optional boolean, resourceAction format):
    *   Inboxes: inboxRead, inboxCreate, inboxUpdate, inboxDelete
-   *   Threads: threadRead, threadDelete
-   *   Messages: messageRead, messageSend, messageUpdate
-   *   Label visibility: labelSpamRead, labelBlockedRead, labelTrashRead
+   *   Messages: messageRead, messageSend, messageUpdate, messageDelete
+   *   Label visibility: labelSpamRead, labelBlockedRead, labelUnauthenticatedRead, labelTrashRead
    *   Drafts: draftRead, draftCreate, draftUpdate, draftDelete, draftSend
    *   Webhooks: webhookRead, webhookCreate, webhookUpdate, webhookDelete
    *   Domains: domainRead, domainCreate, domainUpdate, domainDelete
    *   Lists: listEntryRead, listEntryCreate, listEntryDelete
    *   Metrics: metricsRead
-   *   API Keys: apiKeyRead, apiKeyCreate, apiKeyDelete
+   *   API Keys: apiKeyRead, apiKeyCreate, apiKeyUpdate, apiKeyDelete
    *   Pods: podRead, podCreate, podDelete
+   *
+   * Threads have no permissions of their own: thread reads use messageRead,
+   * thread label updates use messageUpdate, and thread deletes use messageDelete.
    *
    * API: apiKeys.create({ name, permissions: {...} })
    */
@@ -421,7 +438,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     // read-only key
     const key = await client.apiKeys.create({
       name: "read-only",
-      permissions: { inboxRead: true, messageRead: true, threadRead: true },
+      permissions: { inboxRead: true, messageRead: true },
     });
     console.log(key.apiKey);
   }
@@ -433,4 +450,4 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
 
 - **Use the principle of least privilege.** Only grant the permissions your agent actually needs. A support agent that reads and replies to emails does not need `domain_create` or `inbox_delete`.
 - **Combine with scopes for defense in depth.** Pair permissions with [pod-scoped](/multi-tenancy#pod-scoped-keys) or [inbox-scoped](/multi-tenancy#inbox-scoped-keys) keys. Scopes limit *which* resources a key can see, while permissions limit *what* it can do.
-- **Filter unwanted content from agents.** Set `label_spam_read`, `label_blocked_read`, and `label_trash_read` to `false` on agent-facing keys. This prevents agents from seeing or processing unwanted email, keeping their context clean.
+- **Filter unwanted content from agents.** Set `label_spam_read`, `label_blocked_read`, `label_unauthenticated_read`, and `label_trash_read` to `false` on agent-facing keys. This prevents agents from seeing or processing unwanted email, keeping their context clean.
