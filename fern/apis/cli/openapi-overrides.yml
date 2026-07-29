@@ -6,6 +6,10 @@ info:
 # Rename the Send schema's generated type so it doesn't shadow Rust's
 # std::marker::Send trait in the generated CLI crate.
 components:
+  securitySchemes:
+    TokenAuth:
+      type: http
+      scheme: bearer
   schemas:
     Send:
       x-fern-type-name: SendEvent
@@ -20,407 +24,632 @@ paths:
       - inboxes
       - apiKeys
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - inboxes
       - apiKeys
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/api-keys/{api_key_id}:
     delete:
       x-fern-sdk-group-name:
       - inboxes
       - apiKeys
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/drafts:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/drafts/{draft_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/drafts/{draft_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
       x-fern-sdk-method-name: get-attachment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/drafts/{draft_id}/send:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - drafts
       x-fern-sdk-method-name: send
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/events:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - events
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/lists/{direction}/{type}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - lists
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - inboxes
       - lists
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/lists/{direction}/{type}/{entry}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - lists
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - inboxes
       - lists
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/search:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: search
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/batch-get:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: batch-get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: get-attachment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/raw:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: get-raw
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/send:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: send
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: reply
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply-all:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: reply-all
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/forward:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: forward
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/threads:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - threads
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/threads/search:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - threads
       x-fern-sdk-method-name: search
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/threads/{thread_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - threads
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - inboxes
       - threads
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - inboxes
       - threads
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/threads/{thread_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - threads
       x-fern-sdk-method-name: get-attachment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/api-keys:
     get:
       x-fern-sdk-group-name:
       - pods
       - apiKeys
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - pods
       - apiKeys
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/api-keys/{api_key_id}:
     delete:
       x-fern-sdk-group-name:
       - pods
       - apiKeys
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/domains:
     get:
       x-fern-sdk-group-name:
       - pods
       - domains
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - pods
       - domains
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/domains/{domain_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       - domains
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - pods
       - domains
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - pods
       - domains
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/domains/{domain_id}/zone-file:
     get:
       x-fern-sdk-group-name:
       - pods
       - domains
       x-fern-sdk-method-name: get-zone-file
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/domains/{domain_id}/verify:
     post:
       x-fern-sdk-group-name:
       - pods
       - domains
       x-fern-sdk-method-name: verify
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/drafts:
     get:
       x-fern-sdk-group-name:
       - pods
       - drafts
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/drafts/{draft_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       - drafts
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/drafts/{draft_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       - drafts
       x-fern-sdk-method-name: get-attachment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/inboxes:
     get:
       x-fern-sdk-group-name:
       - pods
       - inboxes
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - pods
       - inboxes
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/inboxes/{inbox_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       - inboxes
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - pods
       - inboxes
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - pods
       - inboxes
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/lists/{direction}/{type}:
     get:
       x-fern-sdk-group-name:
       - pods
       - lists
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - pods
       - lists
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/lists/{direction}/{type}/{entry}:
     get:
       x-fern-sdk-group-name:
       - pods
       - lists
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - pods
       - lists
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/threads:
     get:
       x-fern-sdk-group-name:
       - pods
       - threads
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/threads/search:
     get:
       x-fern-sdk-group-name:
       - pods
       - threads
       x-fern-sdk-method-name: search
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/threads/{thread_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       - threads
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - pods
       - threads
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - pods
       - threads
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/threads/{thread_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       - threads
       x-fern-sdk-method-name: get-attachment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes:
     get:
       x-fern-sdk-group-name:
       - inboxes
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - inboxes
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - inboxes
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - inboxes
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods:
     get:
       x-fern-sdk-group-name:
       - pods
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - pods
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - pods
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/webhooks:
     get:
       x-fern-sdk-group-name:
       - webhooks
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - webhooks
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/webhooks/{webhook_id}:
     get:
       x-fern-sdk-group-name:
       - webhooks
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - webhooks
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - webhooks
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/agent/sign-up:
     post:
       x-fern-sdk-group-name:
@@ -431,232 +660,370 @@ paths:
       x-fern-sdk-group-name:
       - agent
       x-fern-sdk-method-name: verify
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/api-keys:
     get:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/api-keys/{api_key_id}:
     delete:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/auth/me:
     get:
       x-fern-sdk-group-name:
       - auth
       x-fern-sdk-method-name: me
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/domains:
     get:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/domains/{domain_id}:
     get:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/domains/{domain_id}/zone-file:
     get:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: get-zone-file
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/domains/{domain_id}/verify:
     post:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: verify
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/drafts:
     get:
       x-fern-sdk-group-name:
       - drafts
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/drafts/{draft_id}:
     get:
       x-fern-sdk-group-name:
       - drafts
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/drafts/{draft_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - drafts
       x-fern-sdk-method-name: get-attachment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/lists/{direction}/{type}:
     get:
       x-fern-sdk-group-name:
       - lists
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - lists
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/lists/{direction}/{type}/{entry}:
     get:
       x-fern-sdk-group-name:
       - lists
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - lists
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/organizations:
     get:
       x-fern-sdk-group-name:
       - organizations
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/threads:
     get:
       x-fern-sdk-group-name:
       - threads
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/threads/search:
     get:
       x-fern-sdk-group-name:
       - threads
       x-fern-sdk-method-name: search
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/threads/{thread_id}:
     get:
       x-fern-sdk-group-name:
       - threads
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - threads
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - threads
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/threads/{thread_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:
       - threads
       x-fern-sdk-method-name: get-attachment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/batch-update:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: batch-update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: draft-reply
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply-all:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: draft-reply-all
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/{message_id}/draft-forward:
     post:
       x-fern-sdk-group-name:
       - inboxes
       - messages
       x-fern-sdk-method-name: draft-forward
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/metrics/events:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - metrics
       x-fern-sdk-method-name: query-events
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/metrics/usage:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - metrics
       x-fern-sdk-method-name: query-usage
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/webhooks:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - webhooks
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - inboxes
       - webhooks
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/inboxes/{inbox_id}/webhooks/{webhook_id}:
     get:
       x-fern-sdk-group-name:
       - inboxes
       - webhooks
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - inboxes
       - webhooks
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - inboxes
       - webhooks
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/metrics/events:
     get:
       x-fern-sdk-group-name:
       - metrics
       x-fern-sdk-method-name: query-events
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/metrics/usage:
     get:
       x-fern-sdk-group-name:
       - metrics
       x-fern-sdk-method-name: query-usage
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/metrics/events:
     get:
       x-fern-sdk-group-name:
       - pods
       - metrics
       x-fern-sdk-method-name: query-events
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/metrics/usage:
     get:
       x-fern-sdk-group-name:
       - pods
       - metrics
       x-fern-sdk-method-name: query-usage
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/webhooks:
     get:
       x-fern-sdk-group-name:
       - pods
       - webhooks
       x-fern-sdk-method-name: list
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     post:
       x-fern-sdk-group-name:
       - pods
       - webhooks
       x-fern-sdk-method-name: create
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
   /v0/pods/{pod_id}/webhooks/{webhook_id}:
     get:
       x-fern-sdk-group-name:
       - pods
       - webhooks
       x-fern-sdk-method-name: get
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     patch:
       x-fern-sdk-group-name:
       - pods
       - webhooks
       x-fern-sdk-method-name: update
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
     delete:
       x-fern-sdk-group-name:
       - pods
       - webhooks
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []

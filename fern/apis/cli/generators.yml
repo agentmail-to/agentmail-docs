@@ -3,6 +3,15 @@ api:
   specs:
     - openapi: ../../../openapi/openapi.yml
       overrides: ./openapi-overrides.yml
+  auth:
+    any: [BearerAuth, TokenAuth]
+auth-schemes:
+  BearerAuth:
+    scheme: bearer
+    token: { name: apiKey, env: AGENTMAIL_API_KEY }
+  TokenAuth:
+    scheme: bearer
+    token: { name: token, env: AGENTMAIL_TOKEN }
 default-group: cli
 groups:
   cli:
