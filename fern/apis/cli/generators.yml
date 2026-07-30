@@ -17,10 +17,18 @@ groups:
   cli:
     generators:
       - name: fern-cli-generator
-        version: 0.17.8
+        version: 0.29.1
         smart-casing: true
         config:
           binaryName: agentmail
+          packageIdentity:
+            name: agentmail-cli
+            description: Command-line interface for the AgentMail API. Send, receive, reply, and manage threaded email conversations from your terminal.
+            license: MIT
+            repository: https://github.com/agentmail-to/agentmail-cli-fern
+            homepage: https://agentmail.to
+            authors: ["AgentMail <support@agentmail.cc>"]
+            keywords: ["email", "api", "cli", "agent", "agentmail"]
         output:
           location: npm
           package-name: agentmail-cli
