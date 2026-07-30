@@ -49,6 +49,44 @@ When you [update a webhook](https://docs.agentmail.to/api-reference/webhooks/upd
 
 Subscribing to `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` on update still requires the same [label permissions](/core-concepts/permissions) as on create.
 
+## Custom delivery headers
+
+Add custom HTTP headers when you create a webhook to authenticate AgentMail deliveries with your endpoint or pass routing metadata. The values are write-only: AgentMail sends them with each delivery but never returns them in a webhook response.
+
+Use `get_headers` to list the configured header names without exposing their values. Use the separate `update_headers` method to rotate values, add keys, and remove keys atomically. An update must set at least one header or name at least one header to remove, and the same header cannot appear in both operations regardless of casing.
+
+<CodeBlocks>
+```python title="Python"
+webhook = client.webhooks.create(
+    url="https://your-server.com/webhooks",
+    event_types=["message.received"],
+    headers={"Authorization": "Bearer hook-secret", "X-Environment": "production"},
+)
+
+configured = client.webhooks.get_headers(webhook.webhook_id)
+client.webhooks.update_headers(
+    webhook.webhook_id,
+    headers={"Authorization": "Bearer rotated-secret"},
+    remove_headers=["X-Environment"],
+)
+```
+```typescript title="TypeScript"
+const webhook = await client.webhooks.create({
+  url: "https://your-server.com/webhooks",
+  eventTypes: ["message.received"],
+  headers: { Authorization: "Bearer hook-secret", "X-Environment": "production" },
+});
+
+const configured = await client.webhooks.getHeaders(webhook.webhookId);
+await client.webhooks.updateHeaders(webhook.webhookId, {
+  headers: { Authorization: "Bearer rotated-secret" },
+  removeHeaders: ["X-Environment"],
+});
+```
+</CodeBlocks>
+
+The same `headers` create field and `get_headers` / `update_headers` methods are available under `pods.webhooks` and `inboxes.webhooks`. Store header values in a secret manager and rotate them with `update_headers`; retrieving the configured names cannot recover a lost value.
+
 ## Scoping a webhook to a pod or inbox
 
 By default a webhook is registered at the organization level. You can scope it to a single [pod](/core-concepts/pods) or inbox in two equivalent ways:
@@ -248,14 +286,16 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   Return 200 immediately; process payload in background.
 
   API reference:
-  - webhooks.create(url, event_types?, inbox_ids?, pod_ids?, client_id?)
-  - webhooks.get(webhook_id), webhooks.list(limit?, page_token?)
+  - webhooks.create(url, event_types?, inbox_ids?, pod_ids?, client_id?, headers?)
+  - webhooks.get(webhook_id), webhooks.get_headers(webhook_id), webhooks.list(limit?, page_token?)
   - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?, event_types?)
+  - webhooks.update_headers(webhook_id, headers?, remove_headers?)
   - webhooks.delete(webhook_id)
   - scoped variants: pods.webhooks.* (pod_id) and inboxes.webhooks.* (inbox_id) — same CRUD, scope from the path
 
   Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
+  Custom delivery header values are write-only. get_headers returns names only; update_headers rotates or removes them.
   Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
   On update, non-empty event_types replaces the subscribed list in full (omit or [] to leave types unchanged).
   """
@@ -279,13 +319,15 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * Return 200 immediately; process payload in background.
    *
    * API reference:
-   * - webhooks.create({ url, eventTypes?, inboxIds?, podIds?, clientId? })
-   * - webhooks.get(webhookId), webhooks.list({ limit?, pageToken? })
+   * - webhooks.create({ url, eventTypes?, inboxIds?, podIds?, clientId?, headers? })
+   * - webhooks.get(webhookId), webhooks.getHeaders(webhookId), webhooks.list({ limit?, pageToken? })
    * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds?, eventTypes? })
+   * - webhooks.updateHeaders(webhookId, { headers?, removeHeaders? })
    * - webhooks.delete(webhookId)
    * - scoped variants: pods.webhooks.* (podId) and inboxes.webhooks.* (inboxId) — same CRUD, scope from the path
    *
    * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+   * Custom delivery header values are write-only. getHeaders returns names only; updateHeaders rotates or removes them.
    * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
    * On update, non-empty eventTypes replaces the subscribed list in full (omit or [] to leave types unchanged).
    * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
