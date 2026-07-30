@@ -24,19 +24,19 @@ slug: knowledge-base/dns-cloudflare
 If you already have an SPF record for your domain, do **not** create a second one. Instead, add `include:agentmail.to` to your existing SPF record. Having multiple SPF records on the same domain will cause authentication failures.
 </Warning>
 
-## Adding a DKIM Record
+## Adding a TXT Record (DKIM)
 
 | Field | Value |
 | --- | --- |
-| Type | `TXT` for new domains; `CNAME` for legacy domains if AgentMail shows CNAME |
+| Type | `TXT` |
 | Name | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
-| Content or Target | The DKIM value from AgentMail |
+| Content | The DKIM TXT value from AgentMail |
 | TTL | `Auto` |
 
 Cloudflare automatically strips your domain from the Name field. Enter only the selector host portion (e.g., `selector._domainkey`), not the full `selector._domainkey.yourdomain.com`.
 
 <Note>
-As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Add the exact type and value shown in AgentMail.
+Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
 </Note>
 
 ## Adding an MX Record (Receiving)
@@ -60,8 +60,6 @@ Cloudflare DNS typically propagates within **1 to 5 minutes**, making it one of 
 ## Common Cloudflare Issues
 
 - **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
-
-- **Legacy DKIM CNAME proxy:** If AgentMail shows a DKIM CNAME record, set the proxy status to **DNS only** (grey cloud). Proxied CNAME records will break DKIM verification.
 
 - **Duplicate TXT values:** Cloudflare lets you add TXT records with the same name, but duplicate SPF or stale DKIM selector records can make verification fail. Keep only the current values AgentMail provides for each host.
 

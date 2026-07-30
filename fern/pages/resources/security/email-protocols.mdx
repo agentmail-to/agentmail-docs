@@ -43,7 +43,7 @@ This is the kind of record we might ask you to add.
   AgentMail gives you a custom DKIM selector host and TXT value. Publishing the key directly at that selector gives receiving servers a precise public key to verify signatures from your domain.
 
 <Note>
-As of July 6, 2026, newly created domains use DKIM TXT records. Older domains may still use DKIM CNAME records, so always publish the exact record type AgentMail returns.
+Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records AgentMail returns.
 </Note>
 
 ### DMARC: Domain-based Message Authentication, Reporting, and Conformance

@@ -24,13 +24,13 @@ slug: knowledge-base/dns-godaddy
 GoDaddy automatically wraps TXT values in double quotes, so do **not** add your own quotes around the value. If you do, the record will end up double-quoted and fail validation. Also, if you already have an SPF record, add `include:agentmail.to` to the existing record rather than creating a second one.
 </Warning>
 
-## Adding a DKIM Record
+## Adding a TXT Record (DKIM)
 
 | Field | Value |
 | --- | --- |
-| Type | `TXT` for new domains; `CNAME` for legacy domains if AgentMail shows CNAME |
+| Type | `TXT` |
 | Name | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
-| Value | The DKIM value from AgentMail |
+| Value | The DKIM TXT value from AgentMail |
 | TTL | `1 Hour` |
 
 <Warning>
@@ -38,7 +38,7 @@ GoDaddy automatically appends your domain to the Name field. Enter only the sele
 </Warning>
 
 <Note>
-As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Add the exact type and value shown in AgentMail.
+Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
 </Note>
 
 ## Adding an MX Record (Receiving)

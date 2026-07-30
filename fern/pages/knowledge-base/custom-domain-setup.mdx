@@ -43,12 +43,11 @@ The response includes all the DNS records you need to add at your DNS provider.
 | --- | --- |
 | TXT (SPF) | Authorizes AgentMail to send email on behalf of your domain |
 | TXT (DKIM) | Publishes the custom DKIM selector key used to sign your email |
-| CNAME (DKIM) | Legacy DKIM record type for older domains |
 | TXT (DMARC) | Defines how receivers handle authentication failures |
 | MX | Routes incoming mail for your domain to AgentMail |
 
 <Note>
-As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Always add the exact record type, name, and value shown in the AgentMail Console or API response.
+Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in the AgentMail Console or API response.
 </Note>
 
 <Note>

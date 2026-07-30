@@ -28,13 +28,13 @@ Make sure your domain is using **Namecheap BasicDNS** or **Namecheap PremiumDNS*
 If you already have an SPF record for your domain, do **not** create a second one. Instead, add `include:agentmail.to` to your existing SPF record. Having multiple SPF records will cause validation failures.
 </Warning>
 
-## Adding a DKIM Record
+## Adding a TXT Record (DKIM)
 
 | Field | Value |
 | --- | --- |
-| Type | `TXT Record` for new domains; `CNAME Record` for legacy domains if AgentMail shows CNAME |
+| Type | `TXT Record` |
 | Host | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
-| Value | The DKIM value from AgentMail |
+| Value | The DKIM TXT value from AgentMail |
 | TTL | `Automatic` |
 
 <Warning>
@@ -42,7 +42,7 @@ If you already have an SPF record for your domain, do **not** create a second on
 </Warning>
 
 <Note>
-As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still show DKIM CNAME records. Add the exact type and value shown in AgentMail.
+Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
 </Note>
 
 ## Adding an MX Record (Receiving)

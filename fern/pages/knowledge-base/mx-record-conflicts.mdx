@@ -48,7 +48,7 @@ The setup above puts all your agents on one subdomain. If you instead want inbox
 
 Yes, but only in these scenarios:
 
-**Sending only (no receiving):** If you only need AgentMail to send emails from your root domain, you only need SPF and DMARC TXT records plus the DKIM record AgentMail provides. New domains use DKIM TXT records as of July 6, 2026, while legacy domains may still use DKIM CNAME records. These do not conflict with existing MX records, so your Gmail or Outlook inbound mail is unaffected.
+**Sending only (no receiving):** If you only need AgentMail to send emails from your root domain, you only need SPF, DKIM, and DMARC TXT records. These do not conflict with existing MX records, so your Gmail or Outlook inbound mail is unaffected.
 
 **Full AgentMail (sending and receiving):** If you want AgentMail to also receive emails on your root domain, you would need to replace your existing MX records with AgentMail's. This means all incoming mail for that domain routes to AgentMail instead of Gmail or Outlook. Only do this if you want AgentMail to handle all inbound email for that domain.
 
@@ -71,7 +71,9 @@ agents.yourcompany.com     TXT         v=spf1 include:agentmail.to ~all
 selector._domainkey.agents.yourcompany.com TXT (DKIM value from AgentMail)
 ```
 
-Older AgentMail domains may show a DKIM CNAME instead of the TXT example above. Use whichever record type AgentMail returns for your domain.
+<Note>
+Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
+</Note>
 
 Your team's email continues to flow through Gmail. Agent emails go through AgentMail. Clean separation with no conflicts.
 

@@ -36,10 +36,10 @@ v=spf1 include:_spf.google.com include:agentmail.to ~all
 
 ## DKIM (DomainKeys Identified Mail)
 
-DKIM adds a cryptographic signature to every email, proving it was sent by an authorized server and was not tampered with in transit. For newly created domains, AgentMail uses a custom TXT record under a DKIM selector host so your domain publishes the exact key used for signing.
+DKIM adds a cryptographic signature to every email, proving it was sent by an authorized server and was not tampered with in transit. AgentMail uses a custom TXT record under a DKIM selector host so your domain publishes the exact key used for signing.
 
 <Note>
-As of July 6, 2026, newly created domains authenticate DKIM with TXT selector records. Older domains may still use DKIM CNAME records. Always publish the record type shown in the AgentMail Console or API response.
+Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in the AgentMail Console or API response.
 </Note>
 
 **What AgentMail provides:**
@@ -48,7 +48,7 @@ As of July 6, 2026, newly created domains authenticate DKIM with TXT selector re
 TXT | selector._domainkey | v=DKIM1; k=rsa; p=(public key provided by AgentMail)
 ```
 
-AgentMail provides the selector name and public key value for your domain. Once you add the DKIM record, every email from your domain is signed with the matching private key. If your domain still shows a CNAME record, keep using that CNAME value until AgentMail provides a TXT replacement.
+AgentMail provides the selector name and public key value for your domain. Once you add the TXT record, every email from your domain is signed with the matching private key.
 
 <Note>
 Use the exact selector host shown in the AgentMail Console or API response. Many DNS providers append your domain automatically, so you may need to enter only the `selector._domainkey` portion.
