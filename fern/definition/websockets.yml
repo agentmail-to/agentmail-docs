@@ -43,22 +43,22 @@ channel:
       body: Subscribed
     message_received:
       origin: server
-      body: events.MessageReceivedEvent
+      body: events.MessageReceivedRealtimeEvent
     message_sent:
       origin: server
-      body: events.MessageSentEvent
+      body: events.MessageSentRealtimeEvent
     message_delivered:
       origin: server
-      body: events.MessageDeliveredEvent
+      body: events.MessageDeliveredRealtimeEvent
     message_bounced:
       origin: server
-      body: events.MessageBouncedEvent
+      body: events.MessageBouncedRealtimeEvent
     message_complained:
       origin: server
-      body: events.MessageComplainedEvent
+      body: events.MessageComplainedRealtimeEvent
     message_rejected:
       origin: server
-      body: events.MessageRejectedEvent
+      body: events.MessageRejectedRealtimeEvent
     domain_verified:
       origin: server
       body: events.DomainVerifiedEvent

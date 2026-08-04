@@ -132,6 +132,82 @@ types:
         type: string
         docs: Reject reason.
 
+  MetadataMessage:
+    docs: Content-free message metadata emitted for customer-hosted data planes. Fetch the resource through the API to read its content.
+    properties:
+      message_id: messages.MessageId
+      thread_id: optional<threads.ThreadId>
+      inbox_id: optional<inboxes.InboxId>
+      pod_id: optional<string>
+      organization_id: optional<string>
+      labels: optional<list<string>>
+      send_status: optional<string>
+      size: optional<integer>
+      attachment_count: optional<integer>
+      timestamp: optional<Timestamp>
+      created_at: optional<Timestamp>
+      updated_at: optional<Timestamp>
+
+  MetadataThread:
+    docs: Content-free thread metadata emitted for customer-hosted data planes.
+    properties:
+      thread_id: threads.ThreadId
+      inbox_id: optional<inboxes.InboxId>
+      pod_id: optional<string>
+      organization_id: optional<string>
+      labels: optional<list<string>>
+      message_count: optional<integer>
+      attachment_count: optional<integer>
+      timestamp: optional<Timestamp>
+      created_at: optional<Timestamp>
+      updated_at: optional<Timestamp>
+
+  MetadataEvent:
+    docs: A content-free event emitted for a customer-hosted data plane. The event contains identifiers and state metadata only; fetch the referenced resource through the API for content.
+    properties:
+      type: literal<"event">
+      payload_format: literal<"metadata">
+      event_type: EventType
+      event_id: EventId
+      message: optional<MetadataMessage>
+      thread: optional<MetadataThread>
+
+  MessageReceivedRealtimeEvent:
+    discriminated: false
+    union:
+      - MessageReceivedEvent
+      - MetadataEvent
+
+  MessageSentRealtimeEvent:
+    discriminated: false
+    union:
+      - MessageSentEvent
+      - MetadataEvent
+
+  MessageDeliveredRealtimeEvent:
+    discriminated: false
+    union:
+      - MessageDeliveredEvent
+      - MetadataEvent
+
+  MessageBouncedRealtimeEvent:
+    discriminated: false
+    union:
+      - MessageBouncedEvent
+      - MetadataEvent
+
+  MessageComplainedRealtimeEvent:
+    discriminated: false
+    union:
+      - MessageComplainedEvent
+      - MetadataEvent
+
+  MessageRejectedRealtimeEvent:
+    discriminated: false
+    union:
+      - MessageRejectedEvent
+      - MetadataEvent
+
   MessageReceivedEvent:
     docs: A message was received. Spam, blocked, and unauthenticated received-message events use the same payload shape with different `event_type` values.
     properties:

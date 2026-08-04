@@ -24,7 +24,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: events.MessageReceivedEvent
+    payload: events.MessageReceivedRealtimeEvent
 
   messageSent:
     display-name: Message Sent
@@ -33,7 +33,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: events.MessageSentEvent
+    payload: events.MessageSentRealtimeEvent
 
   messageDelivered:
     display-name: Message Delivered
@@ -42,7 +42,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: events.MessageDeliveredEvent
+    payload: events.MessageDeliveredRealtimeEvent
 
   messageBounced:
     display-name: Message Bounced
@@ -51,7 +51,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: events.MessageBouncedEvent
+    payload: events.MessageBouncedRealtimeEvent
 
   messageComplained:
     display-name: Message Complained
@@ -60,7 +60,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: events.MessageComplainedEvent
+    payload: events.MessageComplainedRealtimeEvent
 
   messageRejected:
     display-name: Message Rejected
@@ -69,7 +69,7 @@ webhooks:
       svix-id: SvixId
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
-    payload: events.MessageRejectedEvent
+    payload: events.MessageRejectedRealtimeEvent
 
   domainVerified:
     display-name: Domain Verified
