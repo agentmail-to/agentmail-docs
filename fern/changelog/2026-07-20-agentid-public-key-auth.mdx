@@ -15,7 +15,7 @@ and TypeScript approval helpers.
 
 - `POST /v0/api-keys/public-keys` - Register only a public P-256 JWK and receive the server-owned `api_key_id` used as `kid`
 - `GET /v0/api-keys/public-keys` - List public-key credentials without mixing in bearer credentials
-- `PATCH /v0/api-keys/public-keys/{api_key_id}` - Rename a credential without mutating security-relevant fields
+- `PATCH /v0/api-keys/public-keys/{api_key_id}` - Update a credential's name or AgentID owner-claim permissions
 - `DELETE /v0/api-keys/public-keys/{api_key_id}` - Revoke one public-key credential
 - `POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` - Idempotently invalidate every current AgentID sign-in key in an organization
 
@@ -26,6 +26,7 @@ and TypeScript approval helpers.
 **New features:**
 
 - **Scoped credentials**: Register organization-, pod-, or inbox-scoped keys with inherited scope and expiry defaults.
+- **Owner-claim controls**: Independently allow or block the `owner_profile` and `owner_email` OAuth scopes on each public-key credential.
 - **Generated SDK contract**: Generate P-256 keys, register only public coordinates, pin the approval header and claims, and keep private keys below model context once corresponding SDK releases are published.
 
 ### Use cases

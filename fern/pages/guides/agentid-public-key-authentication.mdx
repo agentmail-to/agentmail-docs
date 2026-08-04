@@ -23,6 +23,7 @@ bearer key or the private key to AgentID.
    keystore.
 2. Export only `{kty: "EC", crv: "P-256", x, y}` and register it at
    `POST /v0/api-keys/public-keys` with an existing AgentMail bearer API key.
+   Optionally select whether the key may disclose owner profile or email claims.
 3. Store the returned `api_key_id` beside the private-key handle. It is the JWS
    `kid`; do not compute or choose it yourself.
 4. For one pending authorization transaction, sign exactly `{jti, inbox_id}`
@@ -79,6 +80,11 @@ class InboxScope(TypedDict):
     id: str
 
 
+class PublicKeyPermissions(TypedDict, total=False):
+    owner_profile: bool
+    owner_email: bool
+
+
 Scope = Union[OrganizationScope, PodScope, InboxScope]
 
 
@@ -103,6 +109,7 @@ def register_agentid_key(
     scope: Optional[Scope] = None,
     name: Optional[str] = None,
     expires_at: Optional[datetime] = None,
+    permissions: Optional[PublicKeyPermissions] = None,
 ):
     request: Dict[str, Any] = {"public_key": public_jwk(private_key)}
     if scope is not None:
@@ -111,6 +118,8 @@ def register_agentid_key(
         request["name"] = name
     if expires_at is not None:
         request["expires_at"] = expires_at
+    if permissions is not None:
+        request["permissions"] = permissions
     return client.api_keys.create_public_key(**request)
 
 
@@ -123,6 +132,7 @@ credential = register_agentid_key(
     private_key,
     name="production signer",
     scope={"type": "inbox", "id": "agent@example.com"},
+    permissions={"owner_profile": True, "owner_email": True},
 )
 
 # Store this mapping in trusted application state.
@@ -153,13 +163,19 @@ function publicJwk(publicKey: KeyObject) {
 async function registerAgentIdKey(
   client: AgentMailClient,
   publicKey: KeyObject,
-  options: { scope?: Scope; name?: string; expiresAt?: Date } = {},
+  options: {
+    scope?: Scope;
+    name?: string;
+    expiresAt?: Date;
+    permissions?: { ownerProfile?: boolean; ownerEmail?: boolean };
+  } = {},
 ) {
   return client.apiKeys.createPublicKey({
     publicKey: publicJwk(publicKey),
     scope: options.scope,
     name: options.name,
     expiresAt: options.expiresAt,
+    permissions: options.permissions,
   });
 }
 
@@ -172,6 +188,7 @@ const client = new AgentMailClient({ apiKey: "YOUR_EXISTING_AGENTMAIL_API_KEY" }
 const credential = await registerAgentIdKey(client, publicKey, {
   name: "production signer",
   scope: { type: "inbox", id: "agent@example.com" },
+  permissions: { ownerProfile: true, ownerEmail: true },
 });
 
 const keyRecord = {
@@ -207,8 +224,37 @@ or sibling.
 For `expires_at`, omission inherits the registering bearer credential's expiry.
 If that bearer does not expire, the public-key credential does not expire. An
 explicit expiry must be in the future and cannot be later than the creator's
-expiry. Scope, key material, AgentID eligibility, and expiry are immutable after
-registration; only `name` can be patched.
+expiry. Scope, key material, AgentID eligibility, generation, and expiry are
+immutable after registration. The credential's `name` and owner-claim
+permissions can be patched.
+
+## Owner claim permissions
+
+Public-key credentials have two permissions that apply only during AgentID
+sign-in:
+
+| Permission | OAuth scope | Claim |
+| --- | --- | --- |
+| `owner_profile` | `owner_profile` | `owner_name` |
+| `owner_email` | `owner_email` | `owner_email` |
+
+These permissions do not grant access to AgentMail REST endpoints or expose the
+current organization owner through the AgentMail API. They only control whether
+the public-key credential may approve the corresponding scope when a registered
+AgentID client asks for it.
+
+Omitting `permissions` during registration inherits the bearer caller's
+effective owner-permission ceiling. Supplying a permissions object selects an
+exact subset: a missing or `false` field is disabled, and the API rejects a
+`true` field that the bearer caller does not hold. Create and list responses
+always return both booleans explicitly.
+
+PATCH uses per-field merge semantics. An omitted field preserves its current
+value, `false` revokes it, and `true` restores it only when the bearer caller
+currently holds that permission. Removing a permission immediately prevents
+the credential from authorizing that owner scope and invalidates existing
+UserInfo access for grants that carry it. Historical client activity keeps the
+sign-in event but suppresses the affected owner claim.
 
 ## Sign and submit one approval
 
@@ -311,7 +357,7 @@ stored public-key credential, verifies the signature, validates the transaction,
 and rechecks the key, organization, scope, inbox, generation, and expiry before
 committing one approval. Concurrent or repeated submissions have one winner.
 
-## List, rename, revoke, and rotate
+## List, update, revoke, and rotate
 
 The generated clients for this contract expose dedicated lifecycle methods.
 Legacy `api_keys.list`, `api_keys.create`, and `api_keys.delete` remain
@@ -323,10 +369,12 @@ bearer-only and have no public-key request member.
 # Public-key list results never include bearer credentials.
 page = client.api_keys.list_public_keys(limit=20)
 
-# Name is the only mutable property.
-renamed = client.api_keys.update_public_key_name(
+# The historical SDK method name is retained for compatibility. It can update
+# the name, owner permissions, or both.
+updated = client.api_keys.update_public_key_name(
     credential.api_key_id,
     name="production signer 2026-08",
+    permissions={"owner_email": False},
 )
 
 # Rotate by creating the replacement first, deploying its new kid, then deleting old.
@@ -339,9 +387,11 @@ client.api_keys.revoke_public_key(credential.api_key_id)
 // Public-key list results never include bearer credentials.
 const page = await client.apiKeys.listPublicKeys({ limit: 20 });
 
-// Name is the only mutable property.
-const renamed = await client.apiKeys.updatePublicKeyName(credential.apiKeyId, {
+// The historical SDK method name is retained for compatibility. It can update
+// the name, owner permissions, or both.
+const updated = await client.apiKeys.updatePublicKeyName(credential.apiKeyId, {
   name: "production signer 2026-08",
+  permissions: { ownerEmail: false },
 });
 
 // Rotate by creating the replacement first, deploying its new kid, then deleting old.
