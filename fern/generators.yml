@@ -40,6 +40,15 @@ groups:
           noSerdeLayer: false
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
+          # The hand-written wrapper (src/wrapper/x402.ts, src/wrapper/Client.ts)
+          # lazily imports @x402/fetch for the opt-in payments feature. Declare it
+          # as an optional peer dependency so bundlers, file tracers, and isolated
+          # installers can resolve the import (agentmail-node#24).
+          extraPeerDependencies:
+            "@x402/fetch": "^2"
+          extraPeerDependenciesMeta:
+            "@x402/fetch":
+              optional: true
           packageJson:
             description:
               "The email inbox API for AI agents. Send, receive, reply, and
