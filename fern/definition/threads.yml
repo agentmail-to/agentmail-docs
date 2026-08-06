@@ -177,6 +177,8 @@ service:
       path: ""
       display-name: List Threads
       docs: |
+        Use the AgentMail API to list threads for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Lists threads, most recent first. Pass `senders`, `recipients`, or
         `subject` to filter by substring. Filtered requests are served by
         search, which caps `limit` at 100. For relevance-ranked full-text
@@ -218,6 +220,8 @@ service:
       path: /search
       display-name: Search Threads
       docs: |
+        Use the AgentMail API to search threads for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Full-text search across threads in the organization, ranked by
         relevance. The query is matched against senders, recipients, and
         subject (substring) and the message body (tokenized full text). Spam,
@@ -241,6 +245,8 @@ service:
       path: /{thread_id}
       display-name: Get Thread
       docs: |
+        Use the AgentMail API to get a thread for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail threads get --thread-id <thread_id>
@@ -256,6 +262,8 @@ service:
       path: /{thread_id}/attachments/{attachment_id}
       display-name: Get Attachment
       docs: |
+        Use the AgentMail API to get an attachment from a thread for the authenticated organization. Review authentication, parameters, responses, and error behavior.
+
         **CLI:**
         ```bash
         agentmail threads get-attachment --thread-id <thread_id> --attachment-id <attachment_id>
@@ -271,7 +279,10 @@ service:
       method: PATCH
       path: /{thread_id}
       display-name: Update Thread
-      docs: Updates thread labels. Cannot add or remove system labels (sent, received, bounced, etc.). Rejects requests with a `422` for threads with 100 or more messages.
+      docs: |
+        Use the AgentMail API to update a thread for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
+        Updates thread labels. Cannot add or remove system labels (sent, received, bounced, etc.). Rejects requests with a `422` for threads with 100 or more messages.
       path-parameters:
         thread_id: ThreadId
       request: UpdateThreadRequest
@@ -286,6 +297,8 @@ service:
       path: /{thread_id}
       display-name: Delete Thread
       docs: |
+        Use the AgentMail API to delete a thread for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Moves the thread to trash by adding a trash label to all messages. If the thread is already in trash, it will be permanently deleted. Use `permanent=true` to force permanent deletion.
 
         **CLI:**

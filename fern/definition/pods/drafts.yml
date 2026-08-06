@@ -19,6 +19,8 @@ service:
       path: ""
       display-name: List Drafts
       docs: |
+        Use the AgentMail API to list drafts within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:drafts list --pod-id <pod_id>
@@ -41,6 +43,8 @@ service:
       path: /{draft_id}
       display-name: Get Draft
       docs: |
+        Use the AgentMail API to get a draft within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:drafts get --pod-id <pod_id> --draft-id <draft_id>
@@ -56,6 +60,8 @@ service:
       path: /{draft_id}/attachments/{attachment_id}
       display-name: Get Attachment
       docs: |
+        Use the AgentMail API to get an attachment from a draft within a specific Pod. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:drafts get-attachment --pod-id <pod_id> --draft-id <draft_id> --attachment-id <attachment_id>

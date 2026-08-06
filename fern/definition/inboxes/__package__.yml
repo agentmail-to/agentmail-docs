@@ -120,6 +120,8 @@ service:
       path: ""
       display-name: List Inboxes
       docs: |
+        Use the AgentMail API to list inboxes for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes list
@@ -137,6 +139,8 @@ service:
       path: /{inbox_id}
       display-name: Get Inbox
       docs: |
+        Use the AgentMail API to get an inbox for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes get --inbox-id <inbox_id>
@@ -152,6 +156,8 @@ service:
       path: ""
       display-name: Create Inbox
       docs: |
+        Use the AgentMail API to create an inbox for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes create --display-name "My Agent" --username myagent --domain agentmail.to
@@ -167,6 +173,8 @@ service:
       path: /{inbox_id}
       display-name: Update Inbox
       docs: |
+        Use the AgentMail API to update an inbox for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes update --inbox-id <inbox_id> --display-name "Updated Name"
@@ -187,6 +195,8 @@ service:
       path: /{inbox_id}
       display-name: Delete Inbox
       docs: |
+        Use the AgentMail API to delete an inbox for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes delete --inbox-id <inbox_id>

@@ -96,6 +96,8 @@ service:
       path: ""
       display-name: List Webhooks
       docs: |
+        Use the AgentMail API to list webhooks for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks list
@@ -113,6 +115,8 @@ service:
       path: /{webhook_id}
       display-name: Get Webhook
       docs: |
+        Use the AgentMail API to get a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks get --webhook-id <webhook_id>
@@ -128,6 +132,8 @@ service:
       path: ""
       display-name: Create Webhook
       docs: |
+        Use the AgentMail API to create a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks create --url https://example.com/webhook --event-type message.received
@@ -142,6 +148,8 @@ service:
       path: /{webhook_id}
       display-name: Update Webhook
       docs: |
+        Use the AgentMail API to update a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Update inbox or pod subscriptions, or replace the webhook's `event_types` in full when you pass a
         non-empty `event_types` array (see request field docs). Inbox and pod changes use add/remove lists.
 
@@ -162,6 +170,8 @@ service:
       path: /{webhook_id}
       display-name: Delete Webhook
       docs: |
+        Use the AgentMail API to delete a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks delete --webhook-id <webhook_id>

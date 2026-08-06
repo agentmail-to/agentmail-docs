@@ -18,6 +18,8 @@ service:
       path: ""
       display-name: List Inbox Events
       docs: |
+        Use the AgentMail API to list inbox events within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
+
         List label change events for an inbox. Returns events in reverse chronological order by default. Use for IMAP UID projection or audit logging.
 
         **CLI:**

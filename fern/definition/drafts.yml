@@ -165,6 +165,8 @@ service:
       path: ""
       display-name: List Drafts
       docs: |
+        Use the AgentMail API to list drafts for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail drafts list
@@ -187,6 +189,8 @@ service:
       path: /{draft_id}
       display-name: Get Draft
       docs: |
+        Use the AgentMail API to get a draft for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail drafts get --draft-id <draft_id>
@@ -202,6 +206,8 @@ service:
       path: /{draft_id}/attachments/{attachment_id}
       display-name: Get Attachment
       docs: |
+        Use the AgentMail API to get an attachment from a draft for the authenticated organization. Review authentication, parameters, responses, and error behavior.
+
         **CLI:**
         ```bash
         agentmail drafts get-attachment --draft-id <draft_id> --attachment-id <attachment_id>

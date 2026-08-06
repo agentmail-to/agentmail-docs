@@ -19,6 +19,7 @@ types:
 webhooks:
   messageReceived:
     display-name: Message Received
+    docs: Sent when AgentMail receives an email message. Inspect the message and thread, identify the inbox, and trigger real-time processing in your agent workflow.
     method: POST
     headers:
       svix-id: SvixId
@@ -28,6 +29,7 @@ webhooks:
 
   messageSent:
     display-name: Message Sent
+    docs: Sent after AgentMail accepts an outbound email. Inspect message identifiers, recipients, inbox context, and timestamps to track your agent send workflow.
     method: POST
     headers:
       svix-id: SvixId
@@ -37,6 +39,7 @@ webhooks:
 
   messageDelivered:
     display-name: Message Delivered
+    docs: Sent when a recipient mail server accepts an AgentMail message. Inspect delivery details, recipients, inbox context, and timestamps for reliable tracking.
     method: POST
     headers:
       svix-id: SvixId
@@ -46,6 +49,7 @@ webhooks:
 
   messageBounced:
     display-name: Message Bounced
+    docs: Sent when an AgentMail message bounces. Inspect bounce type, subtype, affected recipients, message identifiers, and timestamps to protect deliverability.
     method: POST
     headers:
       svix-id: SvixId
@@ -55,6 +59,7 @@ webhooks:
 
   messageComplained:
     display-name: Message Complained
+    docs: Sent when a recipient reports an AgentMail message as spam. Inspect complaint details, affected recipients, message identifiers, and timestamps for action.
     method: POST
     headers:
       svix-id: SvixId
@@ -64,6 +69,7 @@ webhooks:
 
   messageRejected:
     display-name: Message Rejected
+    docs: Sent when AgentMail rejects an outbound message before delivery. Inspect the rejection reason, message and thread identifiers, inbox context, and timestamp.
     method: POST
     headers:
       svix-id: SvixId
@@ -73,6 +79,7 @@ webhooks:
 
   domainVerified:
     display-name: Domain Verified
+    docs: Sent when AgentMail verifies a custom domain. Inspect the domain record and event identifier, then continue setup or enable sending from the verified domain.
     method: POST
     headers:
       svix-id: SvixId

@@ -20,6 +20,8 @@ service:
       path: ""
       display-name: List Drafts
       docs: |
+        Use the AgentMail API to list drafts within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts list --inbox-id <inbox_id>
@@ -42,6 +44,8 @@ service:
       path: /{draft_id}
       display-name: Get Draft
       docs: |
+        Use the AgentMail API to get a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts get --inbox-id <inbox_id> --draft-id <draft_id>
@@ -57,6 +61,8 @@ service:
       path: /{draft_id}/attachments/{attachment_id}
       display-name: Get Attachment
       docs: |
+        Use the AgentMail API to get an attachment from a draft within a specific inbox. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts get-attachment --inbox-id <inbox_id> --draft-id <draft_id> --attachment-id <attachment_id>
@@ -73,6 +79,8 @@ service:
       path: ""
       display-name: Create Draft
       docs: |
+        Use the AgentMail API to create a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts create --inbox-id <inbox_id> --to recipient@example.com --subject "Draft subject" --text "Draft body"
@@ -87,6 +95,8 @@ service:
       path: /{draft_id}
       display-name: Update Draft
       docs: |
+        Use the AgentMail API to update a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts update --inbox-id <inbox_id> --draft-id <draft_id> --subject "Updated subject"
@@ -103,6 +113,8 @@ service:
       path: /{draft_id}
       display-name: Delete Draft
       docs: |
+        Use the AgentMail API to delete a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts delete --inbox-id <inbox_id> --draft-id <draft_id>
@@ -117,6 +129,8 @@ service:
       path: /{draft_id}/send
       display-name: Send Draft
       docs: |
+        Use the AgentMail API to send a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts send --inbox-id <inbox_id> --draft-id <draft_id>

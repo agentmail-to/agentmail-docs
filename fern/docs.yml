@@ -22,7 +22,7 @@ title: AgentMail | Documentation
 favicon: assets/agentmail-favicon.ico
 
 metadata:
-  og:description: "AgentMail is an email API built for AI agents. Create inboxes, send and receive messages, manage threads, and handle webhooks programmatically."
+  og:description: "AgentMail is the email API for AI agents. Create inboxes, exchange messages, manage threads and attachments, and automate reliable email workflows at scale."
   canonical-host: agentmail.to/docs
 
 agents:

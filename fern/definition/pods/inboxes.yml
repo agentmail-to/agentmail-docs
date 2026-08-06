@@ -18,6 +18,8 @@ service:
       path: ""
       display-name: List Inboxes
       docs: |
+        Use the AgentMail API to list inboxes within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:inboxes list --pod-id <pod_id>
@@ -37,6 +39,8 @@ service:
       path: /{inbox_id}
       display-name: Get Inbox
       docs: |
+        Use the AgentMail API to get an inbox within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:inboxes get --pod-id <pod_id> --inbox-id <inbox_id>
@@ -52,6 +56,8 @@ service:
       path: ""
       display-name: Create Inbox
       docs: |
+        Use the AgentMail API to create an inbox within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:inboxes create --pod-id <pod_id> --username myagent --domain example.com
@@ -67,6 +73,8 @@ service:
       path: /{inbox_id}
       display-name: Update Inbox
       docs: |
+        Use the AgentMail API to update an inbox within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:inboxes update --pod-id <pod_id> --inbox-id <inbox_id>
@@ -83,6 +91,8 @@ service:
       path: /{inbox_id}
       display-name: Delete Inbox
       docs: |
+        Use the AgentMail API to delete an inbox within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:inboxes delete --pod-id <pod_id> --inbox-id <inbox_id>

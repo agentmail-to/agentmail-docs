@@ -142,6 +142,8 @@ service:
       path: ""
       display-name: List Domains
       docs: |
+        Use the AgentMail API to list domains for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail domains list
@@ -159,6 +161,8 @@ service:
       path: /{domain_id}
       display-name: Get Domain
       docs: |
+        Use the AgentMail API to get a domain for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail domains get --domain-id <domain_id>
@@ -174,6 +178,8 @@ service:
       path: /{domain_id}/zone-file
       display-name: Get Zone File
       docs: |
+        Use the AgentMail API to get a zone file for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail domains get-zone-file --domain-id <domain_id>
@@ -189,6 +195,8 @@ service:
       path: ""
       display-name: Create Domain
       docs: |
+        Use the AgentMail API to create a domain for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail domains create --domain example.com
@@ -203,6 +211,8 @@ service:
       path: /{domain_id}
       display-name: Update Domain
       docs: |
+        Use the AgentMail API to update a domain for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail domains update --domain-id <domain_id>
@@ -219,6 +229,8 @@ service:
       path: /{domain_id}
       display-name: Delete Domain
       docs: |
+        Use the AgentMail API to delete a domain for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail domains delete --domain-id <domain_id>
@@ -233,6 +245,8 @@ service:
       path: /{domain_id}/verify
       display-name: Verify Domain
       docs: |
+        Use the AgentMail API to verify a domain for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail domains verify --domain-id <domain_id>

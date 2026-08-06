@@ -96,6 +96,8 @@ service:
       path: ""
       display-name: List Entries
       docs: |
+        Use the AgentMail API to list entries for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail lists list --direction <direction> --type <type>
@@ -112,6 +114,8 @@ service:
       path: /{entry}
       display-name: Get List Entry
       docs: |
+        Use the AgentMail API to get a list entry for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail lists get --direction <direction> --type <type> --entry <entry>
@@ -129,6 +133,8 @@ service:
       path: ""
       display-name: Create List Entry
       docs: |
+        Use the AgentMail API to create a list entry for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail lists create --direction <direction> --type <type> --entry user@example.com
@@ -143,6 +149,8 @@ service:
       path: /{entry}
       display-name: Delete List Entry
       docs: |
+        Use the AgentMail API to delete a list entry for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail lists delete --direction <direction> --type <type> --entry <entry>

@@ -187,6 +187,8 @@ service:
       path: ""
       display-name: List API Keys
       docs: |
+        Use the AgentMail API to list API keys for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail api-keys list
@@ -204,6 +206,8 @@ service:
       path: ""
       display-name: Create API Key
       docs: |
+        Use the AgentMail API to create an API key for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail api-keys create --name "My Key"
@@ -218,6 +222,8 @@ service:
       path: /{api_key_id}
       display-name: Delete API Key
       docs: |
+        Use the AgentMail API to delete an API key for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail api-keys delete --api-key-id <api_key_id>
