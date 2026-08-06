@@ -18,6 +18,8 @@ service:
       path: ""
       display-name: List Webhooks
       docs: |
+        List webhooks scoped to a specific AgentMail Pod, including pagination controls, delivery configuration, event subscriptions, and webhook identifiers.
+
         **CLI:**
         ```bash
         agentmail pods:webhooks list --pod-id <pod_id>
@@ -35,6 +37,8 @@ service:
       path: /{webhook_id}
       display-name: Get Webhook
       docs: |
+        Get the delivery URL, event subscriptions, inbox filters, timestamps, and configuration for a webhook attached to a specific AgentMail Pod by identifier.
+
         **CLI:**
         ```bash
         agentmail pods:webhooks get --pod-id <pod_id> --webhook-id <webhook_id>
@@ -50,8 +54,7 @@ service:
       path: /{webhook_id}/headers
       display-name: Get Webhook Headers
       docs: |
-        List the names of custom HTTP headers included with deliveries to this pod-scoped webhook.
-        Header values are write-only and are never returned.
+        List the names of custom HTTP headers sent with deliveries to a pod-scoped webhook while keeping every sensitive header value strictly write-only by design.
       path-parameters:
         webhook_id: webhooks.WebhookId
       response: webhooks.WebhookHeaderNamesResponse
@@ -63,7 +66,7 @@ service:
       path: ""
       display-name: Create Webhook
       docs: |
-        Create a webhook scoped to this pod.
+        Create a webhook scoped to one AgentMail Pod, configure its delivery URL, event subscriptions, and inbox filters, and return the resulting configuration.
 
         **CLI:**
         ```bash
@@ -79,6 +82,8 @@ service:
       path: /{webhook_id}
       display-name: Update Webhook
       docs: |
+        Update a pod-scoped webhook URL, event subscriptions, or inbox filters while preserving its fixed Pod scope and returning the current configuration details.
+
         **CLI:**
         ```bash
         agentmail pods:webhooks update --pod-id <pod_id> --webhook-id <webhook_id> --add-inbox-id <inbox_id>
@@ -96,8 +101,7 @@ service:
       path: /{webhook_id}/headers
       display-name: Update Webhook Headers
       docs: |
-        Atomically set, replace, or remove custom HTTP headers included with deliveries to this
-        pod-scoped webhook. Header values remain write-only.
+        Set, replace, or remove custom HTTP headers atomically for a pod-scoped webhook while ensuring every sensitive header value remains write-only during updates.
       path-parameters:
         webhook_id: webhooks.WebhookId
       request: webhooks.UpdateWebhookHeadersRequest
@@ -112,6 +116,8 @@ service:
       path: /{webhook_id}
       display-name: Delete Webhook
       docs: |
+        Permanently delete a webhook scoped to one AgentMail Pod by its identifier and review the required authentication, path parameters, and possible errors.
+
         **CLI:**
         ```bash
         agentmail pods:webhooks delete --pod-id <pod_id> --webhook-id <webhook_id>

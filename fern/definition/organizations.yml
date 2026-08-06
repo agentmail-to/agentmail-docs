@@ -53,6 +53,8 @@ service:
       path: ""
       display-name: Get Organization
       docs: |
+        Use the AgentMail API to retrieve details about the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Returns the organization for the authenticated API key (usage limits, counts, and billing metadata).
 
         **CLI:**

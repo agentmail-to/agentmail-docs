@@ -20,6 +20,8 @@ service:
       path: ""
       display-name: List Drafts
       docs: |
+        Use the AgentMail API to list drafts within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts list --inbox-id <inbox_id>
@@ -42,6 +44,8 @@ service:
       path: /{draft_id}
       display-name: Get Draft
       docs: |
+        Use the AgentMail API to get a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts get --inbox-id <inbox_id> --draft-id <draft_id>
@@ -57,6 +61,8 @@ service:
       path: /{draft_id}/attachments/{attachment_id}
       display-name: Get Attachment
       docs: |
+        Use the AgentMail API to get an attachment from a draft within a specific inbox. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts get-attachment --inbox-id <inbox_id> --draft-id <draft_id> --attachment-id <attachment_id>
@@ -73,7 +79,9 @@ service:
       path: ""
       display-name: Create Draft
       docs: |
-        Create a draft. Supply `in_reply_to` to create a reply draft (with
+        Create inbox drafts for replies, reply-all, or forwards, deriving recipients and threading for replies while keeping forward recipients caller-supplied.
+
+        Supply `in_reply_to` to create a reply draft (with
         `reply_all` to address the whole thread), whose recipients, subject, and
         threading are derived from the referenced message, or `forward_of` to
         create a forward draft, which derives the subject, threading, and
@@ -94,7 +102,9 @@ service:
       path: /{draft_id}
       display-name: Update Draft
       docs: |
-        Edit fields on an existing draft. Passing `null` clears a field (or `[]`
+        Update an inbox draft, clear fields with null values or empty recipient lists, reschedule or cancel scheduled sending, and handle editing conflicts safely.
+
+        Passing `null` clears a field (or `[]`
         for a recipient field); `send_at: null` un-schedules a scheduled draft.
         A draft that is already being sent cannot be edited.
 
@@ -116,6 +126,8 @@ service:
       path: /{draft_id}
       display-name: Delete Draft
       docs: |
+        Use the AgentMail API to delete a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts delete --inbox-id <inbox_id> --draft-id <draft_id>
@@ -131,6 +143,8 @@ service:
       display-name: Send Draft
       idempotent: true
       docs: |
+        Use the AgentMail API to send a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts send --inbox-id <inbox_id> --draft-id <draft_id>

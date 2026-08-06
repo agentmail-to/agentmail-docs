@@ -20,6 +20,8 @@ service:
       path: ""
       display-name: List Entries
       docs: |
+        Use the AgentMail API to list entries within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:lists list --inbox-id <inbox_id> --direction <direction> --type <type>
@@ -36,6 +38,8 @@ service:
       path: /{entry}
       display-name: Get List Entry
       docs: |
+        Use the AgentMail API to get a list entry within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
+
         **CLI:**
         ```bash
         agentmail inboxes:lists get --inbox-id <inbox_id> --direction <direction> --type <type> --entry <entry>
@@ -53,6 +57,8 @@ service:
       path: ""
       display-name: Create List Entry
       docs: |
+        Use the AgentMail API to create a list entry within a specific inbox. Review authentication, parameters, responses, and errors. Review the endpoint schema.
+
         **CLI:**
         ```bash
         agentmail inboxes:lists create --inbox-id <inbox_id> --direction <direction> --type <type> --entry user@example.com
@@ -67,6 +73,8 @@ service:
       path: /{entry}
       display-name: Delete List Entry
       docs: |
+        Use the AgentMail API to delete a list entry within a specific inbox. Review authentication, parameters, responses, and errors. Review the endpoint schema.
+
         **CLI:**
         ```bash
         agentmail inboxes:lists delete --inbox-id <inbox_id> --direction <direction> --type <type> --entry <entry>

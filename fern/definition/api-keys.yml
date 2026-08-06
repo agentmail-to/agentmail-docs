@@ -332,6 +332,8 @@ service:
       path: ""
       display-name: List API Keys
       docs: |
+        Use the AgentMail API to list API keys for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail api-keys list
@@ -349,6 +351,8 @@ service:
       path: ""
       display-name: Create API Key
       docs: |
+        Use the AgentMail API to create an API key for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail api-keys create --name "My Key"
@@ -363,6 +367,8 @@ service:
       path: /{api_key_id}
       display-name: Delete API Key
       docs: |
+        Use the AgentMail API to delete an API key for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail api-keys delete --api-key-id <api_key_id>
@@ -377,7 +383,9 @@ service:
       path: /public-keys
       display-name: List Public-Key Credentials
       docs: |
-        List only public-key credentials visible to the bearer caller's scope.
+        List public-key credentials visible to the bearer API key scope, with pagination details, while excluding bearer credentials from every returned result.
+
+        Only public-key credentials visible to the bearer caller's scope are returned.
         Bearer credentials are never returned, even though both credential types
         share storage and pagination indexes. Requires `api_key_read`.
       request:
@@ -393,7 +401,9 @@ service:
       path: /public-keys
       display-name: Register Public-Key Credential
       docs: |
-        Register a public P-256 JWK using an existing AgentMail bearer API key
+        Register a scoped P-256 public JWK for AgentID sign-in using an authorized bearer API key, while keeping all private key material entirely outside AgentMail.
+
+        Register the JWK using an existing AgentMail bearer API key
         with `api_key_create`. Re-registering the same JWK creates a new
         credential ID; it does not replace or recover an earlier credential.
         The private key must never be sent to AgentMail.
@@ -408,7 +418,9 @@ service:
       path: /public-keys/{api_key_id}
       display-name: Rename Public-Key Credential
       docs: |
-        Rename the credential. All security-relevant fields are immutable.
+        Rename an existing public-key credential while preserving its immutable key material, identifier, scope, permissions, generation, and expiration settings.
+
+        All security-relevant fields are immutable.
         Requires `api_key_update`.
       path-parameters:
         api_key_id:
@@ -425,7 +437,9 @@ service:
       path: /public-keys/{api_key_id}
       display-name: Revoke Public-Key Credential
       docs: |
-        Permanently revoke one public-key credential. This hard-deletes the
+        Permanently revoke and delete one public-key credential by its ID, requiring API key deletion permission and returning not found if the request repeats.
+
+        This hard-deletes the
         credential; repeating the request returns not found. Requires
         `api_key_delete`.
       path-parameters:
@@ -442,6 +456,8 @@ service:
       path: /public-keys/agentid-sign-in/revoke-all
       display-name: Revoke All AgentID Sign-In Keys
       docs: |
+        Revoke every current AgentID public-key sign-in credential in an organization with a required idempotency key and a permanent generation-change receipt.
+
         Invalidate every current public-key credential in the caller's
         organization by advancing its AgentID key generation. The caller must be
         organization-scoped and either have `api_key_delete` or, for a verified

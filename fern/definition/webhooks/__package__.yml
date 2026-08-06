@@ -158,6 +158,8 @@ service:
       path: ""
       display-name: List Webhooks
       docs: |
+        Use the AgentMail API to list webhooks for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks list
@@ -175,6 +177,8 @@ service:
       path: /{webhook_id}
       display-name: Get Webhook
       docs: |
+        Use the AgentMail API to get a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks get --webhook-id <webhook_id>
@@ -190,8 +194,7 @@ service:
       path: /{webhook_id}/headers
       display-name: Get Webhook Headers
       docs: |
-        List the names of custom HTTP headers included with deliveries to this webhook. Header values are
-        write-only and are never returned.
+        List the names of custom HTTP headers sent with deliveries to an organization-level webhook while ensuring every sensitive header value remains write-only.
       path-parameters:
         webhook_id: WebhookId
       response: WebhookHeaderNamesResponse
@@ -203,6 +206,8 @@ service:
       path: ""
       display-name: Create Webhook
       docs: |
+        Use the AgentMail API to create a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks create --url https://example.com/webhook --event-type message.received
@@ -217,6 +222,8 @@ service:
       path: /{webhook_id}
       display-name: Update Webhook
       docs: |
+        Use the AgentMail API to update a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Update inbox or pod subscriptions, or replace the webhook's `event_types` in full when you pass a
         non-empty `event_types` array (see request field docs). Inbox and pod changes use add/remove lists.
 
@@ -237,8 +244,7 @@ service:
       path: /{webhook_id}/headers
       display-name: Update Webhook Headers
       docs: |
-        Atomically set, replace, or remove custom HTTP headers included with deliveries to this webhook.
-        Header values remain write-only.
+        Set, replace, or remove custom HTTP headers atomically for an organization-level webhook while ensuring all sensitive header values remain write-only.
       path-parameters:
         webhook_id: WebhookId
       request: UpdateWebhookHeadersRequest
@@ -253,6 +259,8 @@ service:
       path: /{webhook_id}
       display-name: Delete Webhook
       docs: |
+        Use the AgentMail API to delete a webhook for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail webhooks delete --webhook-id <webhook_id>
