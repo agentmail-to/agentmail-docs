@@ -1,0 +1,70 @@
+---
+tags: ["drafts-api", "messages-api", "new-feature"]
+---
+
+## Summary
+
+Agents can now create reply, reply-all, and forward drafts directly from a message, instead of rebuilding the subject and threading (and, for replies, the recipients) by hand. The draft is saved rather than sent, so a human can review it before it goes out — then send it with `Send Draft`. This makes human-in-the-loop review and scheduled follow-ups a first-class part of the reply flow.
+
+### What's new?
+
+**Create Draft now builds replies and forwards.** Pass a source message to `inboxes.drafts.create` and AgentMail carries over the subject and threading (and, for replies, the recipients):
+- `in_reply_to` — create a draft replying to the sender. Add `reply_all` to address the whole thread.
+- `forward_of` — create a draft forwarding the message. Recipients stay caller-supplied.
+
+`in_reply_to` and `forward_of` are mutually exclusive, and reading the referenced message requires the `message_read` permission.
+
+**New features:**
+- **Replies**: recipients, subject, and threading (`in_reply_to` / `references`) are taken from the original message, so you only supply your note.
+- **Forwards**: the subject, threading, and forwarded body and attachments come from the source (the body and attachments are merged in at send time); recipients are caller-supplied and optional, so a forward draft can be saved now and addressed later.
+- **Composable**: pass `send_at` to schedule the draft, or review and send it later with `inboxes.drafts.send`.
+
+**Changes:**
+- Draft responses now include `forward_of`, the ID of the message a forward draft was created from.
+
+### Use cases
+
+Build agents that:
+- Draft a reply for human approval before anything leaves the inbox
+- Forward a flagged message to a teammate, then send once reviewed
+- Schedule a reply-all for the recipient's business hours
+- Prepare a response while still gathering data, and finalize it later
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# create a reply draft from a received message
+draft = client.inboxes.drafts.create(
+    inbox_id="agent@agentmail.to",
+    in_reply_to="<message-id@agentmail.to>",
+    text="Thanks — looping in my manager for approval.",
+)
+
+# review, then send when ready
+client.inboxes.drafts.send(inbox_id="agent@agentmail.to", draft_id=draft.draft_id)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "your-api-key" });
+
+// create a reply draft from a received message
+const draft = await client.inboxes.drafts.create("agent@agentmail.to", {
+  inReplyTo: "<message-id@agentmail.to>",
+  text: "Thanks — looping in my manager for approval.",
+});
+
+// review, then send when ready
+await client.inboxes.drafts.send("agent@agentmail.to", draft.draftId);
+```
+
+</CodeBlocks>
+
+<Note>
+  See the [Drafts guide](https://docs.agentmail.to/core-concepts/drafts) for the full reply and forward flow.
+</Note>

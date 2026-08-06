@@ -4,6 +4,7 @@ navigation:
   - inboxes.yml
   - threads.yml
   - drafts.yml
+  - webhooks.yml
   - domains.yml
   - lists.yml
   - metrics.yml

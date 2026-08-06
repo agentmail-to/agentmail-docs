@@ -1,0 +1,58 @@
+---
+tags: ["webhooks", "pods-api", "new-feature"]
+---
+
+## Summary
+
+You can now create and manage webhooks scoped to a single pod or inbox from dedicated endpoints, instead of only filtering an organization-level webhook with `pod_ids` / `inbox_ids`. The scope comes from the path, so pod- and inbox-scoped API keys can manage just their own webhooks.
+
+### What's new?
+
+**New endpoints:**
+- `GET|POST /v0/pods/:pod_id/webhooks` and `GET|PATCH|DELETE /v0/pods/:pod_id/webhooks/:webhook_id` - Manage webhooks scoped to a pod.
+- `GET|POST /v0/inboxes/:inbox_id/webhooks` and `GET|PATCH|DELETE /v0/inboxes/:inbox_id/webhooks/:webhook_id` - Manage webhooks scoped to an inbox.
+
+**Behavior:**
+- A **pod-scoped** webhook receives events for the whole pod, and can be narrowed to specific inboxes in the pod with `inbox_ids`. You don't pass `pod_ids` — the pod is the path.
+- An **inbox-scoped** webhook is fixed to that inbox; only its `event_types` can be changed.
+- A scoped webhook must always keep at least one pod or inbox subscription.
+
+### Use cases
+
+Build agents that:
+- Give each tenant's pod-scoped API key its own webhook, isolated from other tenants
+- Register a webhook for a single high-volume inbox without touching org-wide delivery
+- Let an inbox-scoped key manage only its own event subscriptions
+
+<CodeBlocks>
+
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# webhook scoped to a single pod
+client.pods.webhooks.create(
+    pod_id="pod_abc123",
+    url="https://your-server.com/webhooks",
+    event_types=["message.received"],
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "your-api-key" });
+
+// webhook scoped to a single pod
+await client.pods.webhooks.create("pod_abc123", {
+  url: "https://your-server.com/webhooks",
+  eventTypes: ["message.received"],
+});
+```
+
+</CodeBlocks>
+
+<Note>
+  See [Scoping a webhook to a pod or inbox](https://docs.agentmail.to/webhooks-overview) for details.
+</Note>

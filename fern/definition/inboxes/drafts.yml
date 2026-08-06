@@ -79,7 +79,13 @@ service:
       path: ""
       display-name: Create Draft
       docs: |
-        Use the AgentMail API to create a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+        Create inbox drafts for replies, reply-all, or forwards, deriving recipients and threading for replies while keeping forward recipients caller-supplied.
+
+        Supply `in_reply_to` to create a reply draft (with
+        `reply_all` to address the whole thread), whose recipients, subject, and
+        threading are derived from the referenced message, or `forward_of` to
+        create a forward draft, which derives the subject, threading, and
+        forwarded content from the source but keeps recipients caller-supplied.
 
         **CLI:**
         ```bash
@@ -88,6 +94,7 @@ service:
       request: drafts.CreateDraftRequest
       response: drafts.Draft
       errors:
+        - global.ValidationError
         - global.NotFoundError
 
     update:
@@ -95,7 +102,11 @@ service:
       path: /{draft_id}
       display-name: Update Draft
       docs: |
-        Use the AgentMail API to update a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+        Update an inbox draft, clear fields with null values or empty recipient lists, reschedule or cancel scheduled sending, and handle editing conflicts safely.
+
+        Passing `null` clears a field (or `[]`
+        for a recipient field); `send_at: null` un-schedules a scheduled draft.
+        A draft that is already being sent cannot be edited.
 
         **CLI:**
         ```bash
@@ -106,7 +117,9 @@ service:
       request: drafts.UpdateDraftRequest
       response: drafts.Draft
       errors:
+        - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
 
     delete:
       method: DELETE
@@ -128,6 +141,7 @@ service:
       method: POST
       path: /{draft_id}/send
       display-name: Send Draft
+      idempotent: true
       docs: |
         Use the AgentMail API to send a draft within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
 
@@ -142,4 +156,5 @@ service:
       errors:
         - global.NotFoundError
         - global.ValidationError
+        - global.ConflictError
         - messages.MessageRejectedError

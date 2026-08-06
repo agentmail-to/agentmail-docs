@@ -63,17 +63,36 @@ types:
     type: string
     docs: Error message.
 
+  ErrorCode:
+    type: string
+    docs: Stable, machine-readable error code in snake_case (for example, not_found or missing_permission). Branch on this rather than the message text.
+
+  ErrorFix:
+    type: string
+    docs: The concrete next action that resolves the error.
+
+  ErrorDocs:
+    type: string
+    docs: Link to the error reference entry for this code.
+
   ErrorResponse:
     properties:
       name: ErrorName
+      code: optional<ErrorCode>
       message: ErrorMessage
+      fix: optional<ErrorFix>
+      docs: optional<ErrorDocs>
 
   ValidationErrorResponse:
     properties:
       name: ErrorName
+      code: optional<ErrorCode>
+      message: optional<ErrorMessage>
       errors:
         type: unknown
-        docs: Validation errors.
+        docs: Validation errors. Each entry has a path and a message identifying the invalid field.
+      fix: optional<ErrorFix>
+      docs: optional<ErrorDocs>
 
 errors:
   ValidationError:
@@ -90,4 +109,8 @@ errors:
 
   UnprocessableError:
     status-code: 422
+    type: ErrorResponse
+
+  ConflictError:
+    status-code: 409
     type: ErrorResponse

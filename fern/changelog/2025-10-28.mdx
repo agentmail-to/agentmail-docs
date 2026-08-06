@@ -4,7 +4,7 @@ tags: ["domains-api", "new-feature", "sdk", "custom-domains"]
 
 ## Summary
 
-Introducing **Custom Domains** – add and verify your own domains for sending and receiving email. Use DNS verification (TXT, CNAME, MX), export zone files for easy DNS setup, and control feedback (bounce and complaint) delivery. Perfect for agents that need to send from your brand's domain with full control over deliverability.
+Introducing **Custom Domains** – add and verify your own domains for sending and receiving email. Use DNS verification (TXT, MX), export zone files for easy DNS setup, and control feedback (bounce and complaint) delivery. Perfect for agents that need to send from your brand's domain with full control over deliverability.
 
 ### What's new?
 
@@ -17,7 +17,7 @@ Introducing **Custom Domains** – add and verify your own domains for sending a
 - `POST /domains/{domain_id}/verify` - Trigger domain verification
 
 **Domain features:**
-- DNS verification with TXT, CNAME, and MX records
+- DNS verification with TXT and MX records
 - Verification status: NOT_STARTED, PENDING, VERIFYING, VERIFIED, FAILED, INVALID
 - Per-record status (MISSING, INVALID, VALID) for targeted fixes
 - Zone file export for quick import at your DNS provider

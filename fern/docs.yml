@@ -188,7 +188,7 @@ redirects:
   - source: /documentation/resources/support
     destination: /support
   - source: /integrations/smithery
-    destination: /integrations/skills
+    destination: /integrations/mcp
   - source: /core-concepts/drafts
     destination: /drafts
   - source: /webhooks
@@ -314,6 +314,9 @@ navigation:
           #   path: pages/integrations/crewai.mdx
       - section: Guides
         contents:
+          - page: AgentID Public-Key Authentication
+            icon: fa-solid fa-key
+            path: pages/guides/agentid-public-key-authentication.mdx
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx
@@ -408,6 +411,9 @@ navigation:
           - page: FAQ
             icon: fa-regular fa-circle-question
             path: pages/resources/faq.mdx
+          - page: Error Reference
+            icon: fa-solid fa-triangle-exclamation
+            path: pages/resources/errors.mdx
           - page: Talon Reply Extraction
             icon: fa-solid fa-scissors
             path: pages/resources/talon.mdx

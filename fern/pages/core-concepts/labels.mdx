@@ -131,6 +131,17 @@ agentmail inboxes:messages update \
 
 </CodeBlocks>
 
+<Callout title="Moving to trash" intent="info">
+  To move a `Message` or `Thread` to trash, add the `trash` `Label` to it with
+  the update (PATCH) method — the same way you add any other `Label`. Reads and
+  searches exclude trashed items by default. To remove it from trash, remove the
+  `trash` `Label`.
+
+  Note this is distinct from the [Delete Thread](/api-reference/threads/delete)
+  and [Delete Message](/api-reference/messages/delete) endpoints, which
+  permanently delete the resource and all of its data.
+</Callout>
+
 ### 3. Filtering by `Labels`
 
 This is where `Labels` become truly powerful. You can list `Threads`, `Messages`, and `Drafts` by filtering for one or more `Labels`, allowing you to create highly targeted queries.

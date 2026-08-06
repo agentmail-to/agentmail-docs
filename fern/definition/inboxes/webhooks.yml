@@ -1,0 +1,128 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  inboxes: __package__.yml
+  webhooks: ../webhooks/__package__.yml
+
+service:
+  url: Http
+  base-path: /inboxes/{inbox_id}/webhooks
+  path-parameters:
+    inbox_id: inboxes.InboxId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Webhooks
+      docs: |
+        List webhooks scoped to a specific AgentMail inbox, including pagination controls, delivery configuration, event subscriptions, and webhook identifiers.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:webhooks list --inbox-id <inbox_id>
+        ```
+      request:
+        name: InboxListWebhooksRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: webhooks.ListWebhooksResponse
+
+    get:
+      method: GET
+      path: /{webhook_id}
+      display-name: Get Webhook
+      docs: |
+        Get the delivery URL, event subscriptions, scope, timestamps, and configuration for a webhook attached to a specific AgentMail inbox by its unique identifier.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:webhooks get --inbox-id <inbox_id> --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      response: webhooks.Webhook
+      errors:
+        - global.NotFoundError
+
+    getHeaders:
+      method: GET
+      path: /{webhook_id}/headers
+      display-name: Get Webhook Headers
+      docs: |
+        List the names of custom HTTP headers sent with deliveries to an inbox-scoped webhook while ensuring all sensitive header values always remain write-only.
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      response: webhooks.WebhookHeaderNamesResponse
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Webhook
+      docs: |
+        Create a webhook scoped to one AgentMail inbox, configure its delivery URL and event subscriptions, and receive the resulting webhook configuration details.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:webhooks create --inbox-id <inbox_id> --url https://example.com/webhook --event-type message.received
+        ```
+      request: webhooks.CreateInboxWebhookRequest
+      response: webhooks.Webhook
+      errors:
+        - global.ValidationError
+
+    update:
+      method: PATCH
+      path: /{webhook_id}
+      display-name: Update Webhook
+      docs: |
+        Update an inbox-scoped webhook URL or event subscriptions while preserving its fixed inbox scope and returning the current webhook configuration details.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:webhooks update --inbox-id <inbox_id> --webhook-id <webhook_id> --event-type message.received
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      request: webhooks.UpdateInboxWebhookRequest
+      response: webhooks.Webhook
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
+    updateHeaders:
+      method: PATCH
+      path: /{webhook_id}/headers
+      display-name: Update Webhook Headers
+      docs: |
+        Set, replace, or remove custom HTTP headers atomically for an inbox-scoped webhook while ensuring sensitive header values remain write-only during updates.
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      request: webhooks.UpdateWebhookHeadersRequest
+      response:
+        status-code: 204
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
+    delete:
+      method: DELETE
+      path: /{webhook_id}
+      display-name: Delete Webhook
+      docs: |
+        Permanently delete a webhook scoped to one AgentMail inbox by its identifier and review the required authentication, path parameters, and possible errors.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes:webhooks delete --inbox-id <inbox_id> --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      errors:
+        - global.NotFoundError

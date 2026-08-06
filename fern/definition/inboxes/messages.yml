@@ -217,6 +217,7 @@ service:
       method: POST
       path: /send
       display-name: Send Message
+      idempotent: true
       docs: |
         Use the AgentMail API to send a message within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
 
@@ -229,12 +230,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     reply:
       method: POST
       path: /{message_id}/reply
       display-name: Reply To Message
+      idempotent: true
       docs: |
         Use the AgentMail API to reply to a message within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
 
@@ -249,12 +252,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     reply-all:
       method: POST
       path: /{message_id}/reply-all
       display-name: Reply All Message
+      idempotent: true
       docs: |
         Use the AgentMail API to reply to every recipient of a message within a specific inbox. Review authentication, parameters, responses, errors, and usage details.
 
@@ -269,12 +274,14 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError
 
     forward:
       method: POST
       path: /{message_id}/forward
       display-name: Forward Message
+      idempotent: true
       docs: |
         Use the AgentMail API to forward a message within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
 
@@ -289,4 +296,5 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
         - messages.MessageRejectedError

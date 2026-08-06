@@ -297,9 +297,7 @@ service:
       path: /{thread_id}
       display-name: Delete Thread
       docs: |
-        Use the AgentMail API to delete a thread for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
-
-        Moves the thread to trash by adding a trash label to all messages. If the thread is already in trash, it will be permanently deleted. Use `permanent=true` to force permanent deletion.
+        Permanently delete a thread and every message it contains for the authenticated AgentMail organization, including required parameters and possible errors.
 
         **CLI:**
         ```bash
@@ -307,11 +305,5 @@ service:
         ```
       path-parameters:
         thread_id: ThreadId
-      request:
-        name: DeleteThreadRequest
-        query-parameters:
-          permanent:
-            type: optional<boolean>
-            docs: If true, permanently delete the thread instead of moving to trash.
       errors:
         - global.NotFoundError
