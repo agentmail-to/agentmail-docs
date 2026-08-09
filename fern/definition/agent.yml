@@ -64,6 +64,8 @@ service:
       path: /sign-up
       display-name: Sign Up
       docs: |
+        Use the AgentMail API to create an agent organization, inbox, and API key. Review authentication, parameters, response fields, errors, and usage details.
+
         Create a new agent organization with an inbox and API key. This endpoint is for signing up for the first time. If you've already signed up, you're all set — just use your existing API key.
 
         A 6-digit OTP is sent to the human's email for verification.
@@ -87,6 +89,8 @@ service:
       display-name: Verify
       auth: true
       docs: |
+        Use the AgentMail API to verify a new agent organization with its one-time passcode. Review authentication, parameters, responses, errors, and usage details.
+
         Verify an agent organization using the 6-digit OTP sent to the human's email during sign-up.
 
         On success, the organization is upgraded from `agent_unverified` to `agent_verified`, the send allowlist is removed, and free plan entitlements are applied.

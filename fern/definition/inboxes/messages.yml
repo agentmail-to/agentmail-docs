@@ -19,6 +19,8 @@ service:
       path: ""
       display-name: List Messages
       docs: |
+        Use the AgentMail API to list messages within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         Lists messages in the inbox, most recent first. Pass `from`, `to`, or
         `subject` to filter by substring. Filtered requests are served by
         search, which caps `limit` at 100. For relevance-ranked full-text
@@ -60,6 +62,8 @@ service:
       path: /search
       display-name: Search Messages
       docs: |
+        Use the AgentMail API to search messages within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         Full-text search across messages in the inbox, ranked by relevance. The
         query is matched against the sender, recipients, and subject (substring)
         and the message body (tokenized full text). Spam, trash, blocked, and
@@ -82,6 +86,8 @@ service:
       path: /{message_id}
       display-name: Get Message
       docs: |
+        Use the AgentMail API to get a message within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages get --inbox-id <inbox_id> --message-id <message_id>
@@ -97,6 +103,8 @@ service:
       path: /batch-get
       display-name: Batch Get Messages
       docs: |
+        Use the AgentMail API to retrieve multiple messages within a specific inbox. Review authentication, parameters, response fields, errors, and usage details.
+
         Fetch metadata for up to 500 messages in one request. Missing or
         restricted IDs are silently omitted; compare `count` against `limit`
         to detect misses.
@@ -115,6 +123,8 @@ service:
       path: /batch-update
       display-name: Batch Update Messages
       docs: |
+        Use the AgentMail API to update multiple messages within a specific inbox. Review authentication, parameters, response fields, errors, and usage details.
+
         Apply one label change to up to 50 messages in a single request. The
         same add_labels and remove_labels apply to every message id, and at
         least one of them must be provided. The update is atomic: either all
@@ -136,6 +146,8 @@ service:
       path: /{message_id}/attachments/{attachment_id}
       display-name: Get Attachment
       docs: |
+        Use the AgentMail API to get an attachment from a message within a specific inbox. Review authentication, parameters, responses, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages get-attachment --inbox-id <inbox_id> --message-id <message_id> --attachment-id <attachment_id>
@@ -152,6 +164,8 @@ service:
       path: /{message_id}/raw
       display-name: Get Raw Message
       docs: |
+        Use the AgentMail API to get a raw message within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages get-raw --inbox-id <inbox_id> --message-id <message_id>
@@ -167,6 +181,8 @@ service:
       path: /{message_id}
       display-name: Update Message
       docs: |
+        Use the AgentMail API to update a message within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages update --inbox-id <inbox_id> --message-id <message_id> --add-label read --remove-label unread
@@ -184,6 +200,8 @@ service:
       path: /{message_id}
       display-name: Delete Message
       docs: |
+        Use the AgentMail API to delete a message within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
+
         Permanently deletes a message.
 
         **CLI:**
@@ -201,6 +219,8 @@ service:
       display-name: Send Message
       idempotent: true
       docs: |
+        Use the AgentMail API to send a message within a specific inbox. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages send --inbox-id <inbox_id> --to recipient@example.com --subject "Hello" --text "Body"
@@ -219,6 +239,8 @@ service:
       display-name: Reply To Message
       idempotent: true
       docs: |
+        Use the AgentMail API to reply to a message within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages reply --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
@@ -239,6 +261,8 @@ service:
       display-name: Reply All Message
       idempotent: true
       docs: |
+        Use the AgentMail API to reply to every recipient of a message within a specific inbox. Review authentication, parameters, responses, errors, and usage details.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages reply-all --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
@@ -259,6 +283,8 @@ service:
       display-name: Forward Message
       idempotent: true
       docs: |
+        Use the AgentMail API to forward a message within a specific inbox. Review authentication, parameters, responses, and errors. See the complete endpoint schema.
+
         **CLI:**
         ```bash
         agentmail inboxes:messages forward --inbox-id <inbox_id> --message-id <message_id> --to recipient@example.com

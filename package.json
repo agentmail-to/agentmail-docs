@@ -7,8 +7,9 @@
   "scripts": {
     "docs:preview": "tsx bin/agentmail-docs.ts preview",
     "docs:publish": "tsx bin/agentmail-docs.ts publish",
-    "lint": "tsc --noEmit",
-    "format": "prettier --write \"bin/**/*.ts\" package.json tsconfig.json"
+    "lint": "tsc --noEmit && npm run lint:seo",
+    "lint:seo": "node bin/check-seo-metadata.mjs",
+    "format": "prettier --write \"bin/**/*.{ts,mjs}\" package.json tsconfig.json"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

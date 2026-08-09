@@ -18,6 +18,8 @@ service:
       path: /events
       display-name: Query Events
       docs: |
+        Use the AgentMail API to query event metrics within a specific inbox. Review authentication, parameters, responses, and errors. Review the endpoint schema.
+
         Counts of email events (sent, delivered, bounced, etc.) over time for
         the inbox. Defaults to the last 24 hours; `start` must be within the
         last 90 days, and a future `end` is clamped to now. Omit `period` for
@@ -46,6 +48,8 @@ service:
       path: /usage
       display-name: Query Usage
       docs: |
+        Use the AgentMail API to query usage metrics within a specific inbox. Review authentication, parameters, responses, and errors. Review the endpoint schema.
+
         Cumulative usage series for the inbox. Each point is the running total
         of the usage type at that timestamp, not the change within the bucket.
         Inbox-scoped queries carry `storage_bytes`, `message_count`, and

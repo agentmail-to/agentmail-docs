@@ -115,6 +115,8 @@ service:
       path: /events
       display-name: Query Events
       docs: |
+        Use the AgentMail API to query event metrics for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Counts of email events (sent, delivered, bounced, etc.) over time for
         the organization. Defaults to the last 24 hours; `start` must be within
         the last 90 days, and a future `end` is clamped to now. Omit `period`
@@ -143,6 +145,8 @@ service:
       path: /usage
       display-name: Query Usage
       docs: |
+        Use the AgentMail API to query usage metrics for the authenticated organization. Review authentication, parameters, response fields, errors, and usage details.
+
         Cumulative usage series for the organization. Each point is the running
         total of the usage type at that timestamp, not the change within the
         bucket. Defaults to the last 24 hours; `start` must be within the last

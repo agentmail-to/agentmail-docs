@@ -42,6 +42,8 @@ service:
       path: /me
       display-name: Who Am I
       docs: |
+        Use the AgentMail API to inspect the identity and scope of the current credential. Review authentication, parameters, responses, errors, and usage details.
+
         Returns the identity and scope of the authenticated credential. Useful when a client holds a pod-scoped or inbox-scoped API key and needs to discover the parent organization, pod, or inbox without prior knowledge.
 
         **CLI:**

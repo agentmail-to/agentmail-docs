@@ -18,6 +18,8 @@ service:
       path: ""
       display-name: List Domains
       docs: |
+        Use the AgentMail API to list domains within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:domains list --pod-id <pod_id>
@@ -37,6 +39,8 @@ service:
       path: /{domain_id}
       display-name: Get Domain
       docs: |
+        Use the AgentMail API to get a domain within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:domains get --pod-id <pod_id> --domain-id <domain_id>
@@ -52,6 +56,8 @@ service:
       path: /{domain_id}/zone-file
       display-name: Get Zone File
       docs: |
+        Use the AgentMail API to get a zone file within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:domains get-zone-file --pod-id <pod_id> --domain-id <domain_id>
@@ -67,6 +73,8 @@ service:
       path: ""
       display-name: Create Domain
       docs: |
+        Use the AgentMail API to create a domain within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:domains create --pod-id <pod_id> --domain example.com
@@ -81,6 +89,8 @@ service:
       path: /{domain_id}
       display-name: Update Domain
       docs: |
+        Use the AgentMail API to update a domain within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:domains update --pod-id <pod_id> --domain-id <domain_id>
@@ -97,6 +107,8 @@ service:
       path: /{domain_id}
       display-name: Delete Domain
       docs: |
+        Use the AgentMail API to delete a domain within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:domains delete --pod-id <pod_id> --domain-id <domain_id>
@@ -111,6 +123,8 @@ service:
       path: /{domain_id}/verify
       display-name: Verify Domain
       docs: |
+        Use the AgentMail API to verify a domain within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:domains verify --pod-id <pod_id> --domain-id <domain_id>

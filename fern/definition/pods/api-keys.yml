@@ -18,6 +18,8 @@ service:
       path: ""
       display-name: List API Keys
       docs: |
+        Use the AgentMail API to list API keys within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:api-keys list --pod-id <pod_id>
@@ -36,6 +38,8 @@ service:
       path: ""
       display-name: Create API Key
       docs: |
+        Use the AgentMail API to create an API key within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:api-keys create --pod-id <pod_id> --name "My Key"
@@ -51,6 +55,8 @@ service:
       path: /{api_key_id}
       display-name: Delete API Key
       docs: |
+        Use the AgentMail API to delete an API key within a specific Pod. Review authentication, request parameters, response fields, error behavior, and usage details.
+
         **CLI:**
         ```bash
         agentmail pods:api-keys delete --pod-id <pod_id> --api-key-id <api_key_id>
