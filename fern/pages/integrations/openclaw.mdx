@@ -1,6 +1,6 @@
 ---
 title: OpenClaw
-subtitle: Give your OpenClaw agent its own email inbox
+subtitle: AgentMail is the official email plugin for OpenClaw. Install it from ClawHub and your agent gets its own inbox to send and receive from, plus an email channel people can reach it at.
 slug: integrations/openclaw
 description: AgentMail's OpenClaw integration
 ---
@@ -9,23 +9,148 @@ description: AgentMail's OpenClaw integration
 
 OpenClaw (formerly Moltbot) is an open-source AI personal assistant that runs on your own devices and integrates with messaging platforms like WhatsApp, Telegram, Discord, and Slack. By adding AgentMail to OpenClaw, your agent gains the ability to send and receive emails, enabling two-way email conversations alongside your existing chat channels.
 
-There are two ways to integrate AgentMail with OpenClaw: using the official AgentMail skill or creating a custom skill.
+AgentMail is published on ClawHub, the OpenClaw plugin registry, as an official plugin. The plugin is the recommended integration: it ships a CLI-backed AgentMail skill and registers email as an OpenClaw channel, so your agent can both send from an inbox and be reached at one.
 
-## Option 1: Official AgentMail Skill (Recommended)
+### Requirements
 
-The easiest way to add email capabilities to OpenClaw is by installing the official AgentMail skill from [skills.sh](https://skills.sh/agentmail-to/agentmail-skills/agentmail). This skill is maintained by the AgentMail team and provides comprehensive email functionality.
+- OpenClaw 2026.7.2 (beta) or newer
+- Node.js 22.22.3 to 22.x, 24.15.0 to 24.x, or 25.9.0+
+- An AgentMail API key from the [AgentMail Console](https://console.agentmail.to)
+
+The published plugin bundles the official AgentMail CLI for macOS, Linux, and Windows. A separate global CLI install is not required.
+
+## Option 1: Official OpenClaw plugin (recommended)
+
+AgentMail is listed on ClawHub under `@agentmail` with the Official badge. One command installs both the email skill and the email channel.
 
 ### Installation
 
-Install the skill via ClawHub:
-
 ```bash
-npx clawhub@latest install agentmail
+openclaw plugins install clawhub:@agentmail/agentmail
+openclaw plugins enable agentmail
 ```
 
 ### Configuration
 
-Add your AgentMail API key to the skill configuration in `~/.openclaw/openclaw.json`:
+Set `AGENTMAIL_API_KEY` in the environment that runs the OpenClaw Gateway. For a managed Gateway, put it in `~/.openclaw/.env` so the channel and agent turns inherit the same credentials.
+
+```dotenv
+AGENTMAIL_API_KEY=am_...
+AGENTMAIL_WEBHOOK_SECRET=whsec_...
+```
+
+`AGENTMAIL_WEBHOOK_SECRET` is optional and enables Svix-signed webhook ingress for the channel. Without it, the channel falls back to WebSocket ingress.
+
+<Warning>
+The bundled CLI authenticates only with the `AGENTMAIL_API_KEY` environment variable. The channel can additionally take an inline or resolved `apiKey` under `channels.agentmail`, but a channel-only inline key leaves the CLI-backed skill unavailable. Always set `AGENTMAIL_API_KEY` in the Gateway environment so both surfaces are configured.
+</Warning>
+
+### Restart and verify
+
+```bash
+openclaw gateway restart
+openclaw plugins inspect agentmail --runtime
+```
+
+### Optional: API base URL override
+
+```json5
+{
+  plugins: {
+    entries: {
+      agentmail: {
+        config: {
+          baseUrl: "https://api.agentmail.to/v0",
+        },
+      },
+    },
+  },
+}
+```
+
+The legacy `timeoutSeconds` and `maxRetries` settings are still accepted so existing configs keep loading, but the bundled CLI does not use them.
+
+## Email as an OpenClaw channel
+
+The plugin registers email as an OpenClaw channel, alongside WhatsApp, Matrix, Discord, and Feishu. An inbound message to the agent's inbox drives an agent turn, and the agent replies inside the same AgentMail thread.
+
+Configure it under `channels.agentmail` for a single inbox, or `channels.agentmail.accounts.<id>` for several.
+
+```json5
+{
+  channels: {
+    agentmail: {
+      apiKey: { source: "env", provider: "agentmail", id: "AGENTMAIL_API_KEY" },
+      inboxId: "agent@agentmail.to",
+      webhookSecret: { source: "env", provider: "agentmail", id: "AGENTMAIL_WEBHOOK_SECRET" },
+      dmPolicy: "allowlist",
+      allowFrom: ["person@example.com"],
+      mediaMaxMb: 20,
+    },
+  },
+}
+```
+
+### Security defaults
+
+- `dmPolicy` defaults to `allowlist`. An **empty `allowFrom` denies every sender**, so an unconfigured channel does nothing rather than accepting mail from anyone.
+- `dmPolicy: "open"` requires `allowFrom` to include `"*"`. Opening the channel is explicit.
+- The channel is **reply-only**. The agent replies to the message that triggered it, with `replyAll: false`. It cannot start new threads or mail arbitrary recipients.
+- Every reply re-hydrates the triggering message and re-authorizes its `From` header, so a forged `Reply-To` cannot redirect where the response goes.
+- Inbound mail is committed durably before it is acknowledged, so a Gateway restart mid-turn does not lose the message.
+
+## The CLI-backed AgentMail skill
+
+Rather than a fixed set of tool schemas, the plugin bundles the official AgentMail CLI and the agent reads its help output at runtime. New AgentMail API resources become usable without waiting for a plugin release.
+
+The skill covers inboxes, messages, threads, drafts, webhooks, domains, pods, and API keys.
+
+The plugin also registers a passthrough command you can run yourself. Keep the `--` separator so OpenClaw forwards the following flags to AgentMail.
+
+```bash
+openclaw agentmail -- --help
+
+openclaw agentmail -- --format json inboxes list
+
+openclaw agentmail -- --format json inboxes:messages send \
+  --inbox-id agent@agentmail.to \
+  --to person@example.com \
+  --subject "Hello" \
+  --text "Hello from OpenClaw"
+```
+
+<Note>
+The CLI skill runs on the OpenClaw host, because that is where its executable and credentials live. Sandboxed agents need permission to execute this host command.
+
+For credential safety, command arguments cannot override `--api-key`, `--base-url`, or `--environment`. Inherited proxy variables (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY`, including lowercase forms) are stripped from the passthrough. If an argument value must literally begin with `--base-url` or `--environment`, use the CLI's `--option=value` form, for example `--subject=--base-url-is-restricted`.
+</Note>
+
+### Features
+
+The plugin includes:
+
+- **Email channel:** inbound mail drives an agent turn; the agent replies in-thread. Default-deny sender allowlist, reply-only.
+- **CLI-backed skill:** the agent reads the bundled AgentMail CLI's help at runtime, so new API resources work without a plugin update.
+- **Inbox management:** Create scalable inboxes on-demand with unique email addresses
+- **Message operations:** Send emails with text and HTML content for best deliverability
+- **Thread management:** Group related messages in conversations
+- **Attachments:** Send and receive attachments with Base64 encoding
+- **Drafts:** Create drafts for human-in-the-loop approval before sending
+- **Pods:** Multi-tenant isolation for SaaS platforms
+- **Idempotency:** Safe retries on create operations
+- **Real-time events:** WebSocket and webhook support for notifications
+
+## Option 2: Skill only (for non-OpenClaw agents)
+
+The standalone AgentMail skill still works and remains the right install for Claude Code, Cursor, and other skill-compatible agents. It does not include the email channel.
+
+```bash
+npx clawhub@latest install agentmail
+# or, tool-agnostic
+npx skills add agentmail-to/agentmail-skills
+```
+
+Skill configuration lives under `skills.entries.agentmail.env` in `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -44,21 +169,6 @@ Add your AgentMail API key to the skill configuration in `~/.openclaw/openclaw.j
 
 Get your API key from the [AgentMail Console](https://console.agentmail.to).
 
-### Features
-
-The official skill includes:
-
-- **Inbox management:** Create scalable inboxes on-demand with unique email addresses
-- **Message operations:** Send emails with text and HTML content for best deliverability
-- **Thread management:** Group related messages in conversations
-- **Attachments:** Send and receive attachments with Base64 encoding
-- **Drafts:** Create drafts for human-in-the-loop approval before sending
-- **Pods:** Multi-tenant isolation for SaaS platforms
-- **Idempotency:** Safe retries on create operations
-- **Real-time events:** WebSocket and webhook support for notifications
-
-### Verify installation
-
 Check that the skill is loaded:
 
 ```bash
@@ -67,9 +177,11 @@ openclaw skills list --eligible
 
 You should see `agentmail` in the list of available skills.
 
-## Option 2: Custom Skill
+## Option 3: Custom skill (advanced)
 
-For more control over the integration, you can create a custom AgentMail skill. Skills are directories containing a `SKILL.md` file with instructions for OpenClaw.
+Most people should use the plugin above. Write a custom skill only if you need behaviour the plugin does not expose.
+
+Skills are directories containing a `SKILL.md` file with instructions for OpenClaw.
 
 ### Create the skill directory
 
@@ -82,6 +194,8 @@ mkdir -p ~/.openclaw/skills/agentmail
 ### Create the skill file
 
 Create `~/.openclaw/skills/agentmail/SKILL.md` with the following content:
+
+<Accordion title="SKILL.md contents">
 
 ````markdown
 ---
@@ -158,6 +272,8 @@ curl -s -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
 ```
 ````
 
+</Accordion>
+
 ### Configure the skill
 
 Add your AgentMail API key to the skill configuration in `~/.openclaw/openclaw.json`:
@@ -189,7 +305,9 @@ You should see `agentmail` in the list of available skills.
 
 ## Example use cases
 
-Once AgentMail is integrated with OpenClaw, you can ask your agent to:
+With the email channel configured, you do not have to prompt the agent at all. Email the agent's inbox from an allowlisted address and the message drives an agent turn directly. Forward it a thread with "draft me a reply to this" and the draft comes back in the same thread.
+
+You can also ask your agent to:
 
 - "Create a new email inbox for my project"
 - "Check my inbox for new emails"
@@ -198,6 +316,8 @@ Once AgentMail is integrated with OpenClaw, you can ask your agent to:
 - "Forward the invoice email to accounting@company.com"
 
 ## Real-time email notifications
+
+If you are using the email channel, ingress is already handled: set `AGENTMAIL_WEBHOOK_SECRET` and the channel receives Svix-signed webhooks, falling back to WebSocket if the secret is absent. The manual webhook setup below is for custom handling outside the channel.
 
 For proactive email handling, you can combine AgentMail webhooks with OpenClaw's webhook support. This allows OpenClaw to notify you immediately when new emails arrive.
 
@@ -217,9 +337,49 @@ curl -X POST -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
 
 Now OpenClaw will be notified whenever a new email arrives, allowing it to proactively inform you or take action.
 
+## FAQ
+
+<AccordionGroup>
+
+<Accordion title="How do I give my OpenClaw agent its own email address?">
+Install the official AgentMail plugin with `openclaw plugins install clawhub:@agentmail/agentmail`, then `openclaw plugins enable agentmail`. Set `AGENTMAIL_API_KEY` in the Gateway environment. Your agent can then create inboxes on demand, each with a real email address, with no Google account and no OAuth consent screen.
+</Accordion>
+
+<Accordion title="Can I email my OpenClaw agent and have it reply?">
+Yes. The plugin registers email as an OpenClaw channel. A message sent to the agent's inbox drives an agent turn and the agent replies inside the same thread, the same way the WhatsApp and Discord channels work.
+</Accordion>
+
+<Accordion title="How do I let OpenClaw receive emails automatically?">
+Configure `channels.agentmail` with an `inboxId` and an `allowFrom` list. Set `AGENTMAIL_WEBHOOK_SECRET` for Svix-signed webhook ingress; without it the channel falls back to WebSocket. No polling loop is required.
+</Accordion>
+
+<Accordion title="How do I stop an OpenClaw agent from emailing the wrong people?">
+The channel is reply-only and default-deny. `dmPolicy` defaults to `allowlist` and an empty `allowFrom` rejects every sender. The agent cannot open new threads or mail addresses you have not approved, and every reply re-authorizes the original sender so a forged `Reply-To` cannot redirect delivery.
+</Accordion>
+
+<Accordion title="Is it safe to let an OpenClaw agent read my email?">
+Email is the most common prompt-injection surface for an agent, so the channel is locked down by default rather than by configuration. Senders are checked against a default-deny allowlist, replies stay bound to the triggering message, and inbound mail is committed durably before acknowledgement so a restart does not silently drop it.
+</Accordion>
+
+<Accordion title="What is the difference between an OpenClaw plugin and an OpenClaw skill?">
+A skill is a markdown instruction bundle that teaches the agent how to use tools it already has. A plugin is a code package that registers new runtime surfaces such as channels, tools, and services. The AgentMail plugin ships both: a CLI-backed skill, and an email channel that a skill alone cannot provide.
+</Accordion>
+
+<Accordion title="How do I set up a custom domain email for OpenClaw?">
+Attach a domain to your AgentMail organization or pod, then create inboxes on it. The agent addresses it through the same CLI-backed skill. See [Using Custom Domains](/custom-domains) for setup details.
+</Accordion>
+
+<Accordion title="Which OpenClaw versions does the AgentMail plugin support?">
+OpenClaw 2026.7.2 (beta) or newer, with Node.js 22.22.3 to 22.x, 24.15.0 to 24.x, or 25.9.0+.
+</Accordion>
+
+</AccordionGroup>
+
 ## Resources
 
-- [Official AgentMail Skill](https://skills.sh/agentmail-to/agentmail-skills/agentmail)
+- [AgentMail on ClawHub](https://clawhub.ai/agentmail)
+- [AgentMail Skill (all agents)](https://skills.sh/agentmail-to/agentmail-skills/agentmail)
 - [AgentMail API Reference](/api-reference)
+- [OpenClaw plugin documentation](https://docs.openclaw.ai/tools/plugin)
 - [OpenClaw Documentation](https://docs.openclaw.ai)
 - [OpenClaw Skills Guide](https://docs.openclaw.ai/tools/skills)
