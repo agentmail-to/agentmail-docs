@@ -35,6 +35,7 @@ groups:
           token: OIDC
         github:
           repository: agentmail-to/agentmail-node
+          license: MIT
         config:
           namespaceExport: AgentMail
           noSerdeLayer: false
@@ -85,6 +86,7 @@ groups:
           token: ${PYPI_TOKEN}
         github:
           repository: agentmail-to/agentmail-python
+          license: MIT
         config:
           client_class_name: AgentMail
           pydantic_config:
