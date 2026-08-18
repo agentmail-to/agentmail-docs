@@ -17,7 +17,7 @@ groups:
   cli:
     generators:
       - name: fern-cli-generator
-        version: 0.29.1
+        version: 0.31.2
         smart-casing: true
         config:
           binaryName: agentmail
@@ -31,7 +31,7 @@ groups:
             keywords: ["email", "api", "cli", "agent", "agentmail"]
         output:
           location: npm
-          package-name: agentmail-cli
+          package-name: agentmail-cli-fern
           token: OIDC
         github:
           repository: agentmail-to/agentmail-cli-fern
