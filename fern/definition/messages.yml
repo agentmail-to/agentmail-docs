@@ -278,6 +278,14 @@ types:
     type: map<string, string>
     docs: Headers to include in message.
 
+  TrackOpens:
+    type: boolean
+    docs: |
+      Track when this message is first opened. Requires a custom domain with tracking enabled and
+      an HTML body. Opens surface as the `opened` label on the message and as a `message.opened`
+      event. One pixel is injected per message, not per recipient, so a message with several
+      recipients fires once when any of them opens it, and the event does not identify which one.
+
   SendMessageRequest:
     properties:
       labels: optional<MessageLabels>
@@ -290,6 +298,7 @@ types:
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
       headers: optional<SendMessageHeaders>
+      track_opens: optional<TrackOpens>
 
   SendMessageResponse:
     properties:
@@ -317,6 +326,7 @@ types:
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
       headers: optional<SendMessageHeaders>
+      track_opens: optional<TrackOpens>
 
   ReplyAllMessageRequest:
     properties:
@@ -326,6 +336,7 @@ types:
       html: optional<MessageHtml>
       attachments: optional<SendMessageAttachments>
       headers: optional<SendMessageHeaders>
+      track_opens: optional<TrackOpens>
 
   UpdateMessageLabels:
     discriminated: false

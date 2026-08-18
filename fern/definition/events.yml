@@ -27,6 +27,8 @@ types:
         value: message.complained
       - name: MESSAGE_REJECTED
         value: message.rejected
+      - name: MESSAGE_OPENED
+        value: message.opened
       - name: DOMAIN_VERIFIED
         value: domain.verified
 
@@ -132,6 +134,13 @@ types:
         type: string
         docs: Reject reason.
 
+  Open:
+    properties:
+      inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+
   MessageReceivedEvent:
     docs: A message was received. Spam, blocked, and unauthenticated received-message events use the same payload shape with different `event_type` values.
     properties:
@@ -175,6 +184,16 @@ types:
       event_type: literal<"message.rejected">
       event_id: EventId
       reject: Reject
+
+  MessageOpenedEvent:
+    docs: |
+      A tracked message was opened for the first time. Sent once per message: repeat opens do not
+      resend it.
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.opened">
+      event_id: EventId
+      open: Open
 
   DomainVerifiedEvent:
     properties:
