@@ -559,6 +559,39 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   under 4%, otherwise we will put your account under review.
 </Warning>
 
+### `message.opened`
+
+- **Description:** Triggered the first time a tracked message is opened. Requires `track_opens` on the send, a custom domain with tracking enabled, and an HTML body.
+- **Use Case:** Time a follow up, mark a conversation as engaged, or measure reply rates against opens.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.opened",
+  "event_id": "evt_901stu",
+  "open": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "<abc123@agentmail.to>",
+    "timestamp": "2023-10-27T10:15:00Z"
+  }
+}
+```
+</CodeGroup>
+
+<Note>
+  Sent once per message, on the first open. Repeat opens do not resend it, so there are no open
+  counts. One pixel is injected per message rather than per recipient, so a message with several
+  recipients fires once when any of them opens it, and the event does not identify which one.
+</Note>
+
+<Warning>
+  Open tracking is a directional signal, not proof of reading. Mail clients that block remote images
+  suppress opens, and image proxies used by some providers and security scanners can register an open
+  within seconds of delivery without a person seeing the message.
+</Warning>
+
 ## Domain Events
 
 ### `domain.verified`
