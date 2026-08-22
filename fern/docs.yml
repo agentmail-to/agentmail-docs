@@ -291,6 +291,9 @@ navigation:
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
+          - page: Grok Bot
+            icon: fa-solid fa-bolt-lightning
+            path: pages/integrations/grokbot.mdx
           - page: Replit
             icon: fa-solid fa-laptop-code
             path: pages/integrations/replit.mdx
