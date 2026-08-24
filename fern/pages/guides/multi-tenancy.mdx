@@ -57,13 +57,13 @@ const domain = await client.pods.domains.create(pod.podId, {
 
 ```bash title="CLI"
 # create an inbox in the pod
-agentmail pods:inboxes create \
+agentmail pods inboxes create \
   --pod-id <pod-id> \
   --username support \
   --display-name "Acme Support"
 
 # add a custom domain to the pod
-agentmail pods:domains create \
+agentmail pods domains create \
   --pod-id <pod-id> \
   --domain acme.com
 ```

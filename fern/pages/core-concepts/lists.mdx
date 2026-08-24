@@ -174,14 +174,14 @@ const entries = await client.inboxes.lists.list("inbox_id", "receive", "allow");
 
 ```bash title="CLI"
 # add to an inbox-level receive allowlist
-agentmail inboxes:lists create \
+agentmail inboxes lists create \
   --inbox-id inbox_id \
   --direction receive \
   --type allow \
   --entry vip@example.com
 
 # list inbox-level entries
-agentmail inboxes:lists list \
+agentmail inboxes lists list \
   --inbox-id inbox_id \
   --direction receive \
   --type allow

@@ -127,13 +127,13 @@ await client.inboxes.webhooks.create("agent@domain.com", {
 ```
 ```bash title="CLI"
 # webhook scoped to a single pod
-agentmail pods:webhooks create \
+agentmail pods webhooks create \
   --pod-id pod_abc123 \
   --url https://your-server.com/webhooks \
   --event-type message.received
 
 # webhook scoped to a single inbox
-agentmail inboxes:webhooks create \
+agentmail inboxes webhooks create \
   --inbox-id agent@domain.com \
   --url https://your-server.com/webhooks \
   --event-type message.received
@@ -211,7 +211,7 @@ const htmlBody = message.html;
 ```
 ```bash title="CLI"
 # fetch the full message after receiving a webhook
-agentmail inboxes:messages get \
+agentmail inboxes messages get \
   --inbox-id <inbox_id> \
   --message-id <message_id>
 ```

@@ -20,7 +20,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks list --inbox-id <inbox_id>
+        agentmail inboxes webhooks list --inbox-id <inbox_id>
         ```
       request:
         name: InboxListWebhooksRequest
@@ -37,7 +37,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks get --inbox-id <inbox_id> --webhook-id <webhook_id>
+        agentmail inboxes webhooks get --inbox-id <inbox_id> --webhook-id <webhook_id>
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId
@@ -67,7 +67,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks create --inbox-id <inbox_id> --url https://example.com/webhook --event-type message.received
+        agentmail inboxes webhooks create --inbox-id <inbox_id> --url https://example.com/webhook --event-type message.received
         ```
       request: webhooks.CreateInboxWebhookRequest
       response: webhooks.Webhook
@@ -81,7 +81,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks update --inbox-id <inbox_id> --webhook-id <webhook_id> --event-type message.received
+        agentmail inboxes webhooks update --inbox-id <inbox_id> --webhook-id <webhook_id> --event-type message.received
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId
@@ -114,7 +114,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks delete --inbox-id <inbox_id> --webhook-id <webhook_id>
+        agentmail inboxes webhooks delete --inbox-id <inbox_id> --webhook-id <webhook_id>
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId

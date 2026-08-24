@@ -26,7 +26,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:threads list --inbox-id <inbox_id>
+        agentmail inboxes threads list --inbox-id <inbox_id>
         ```
       request:
         name: ListThreadsRequest
@@ -83,7 +83,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:threads get --inbox-id <inbox_id> --thread-id <thread_id>
+        agentmail inboxes threads get --inbox-id <inbox_id> --thread-id <thread_id>
         ```
       path-parameters:
         thread_id: threads.ThreadId
@@ -98,7 +98,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:threads get-attachment --inbox-id <inbox_id> --thread-id <thread_id> --attachment-id <attachment_id>
+        agentmail inboxes threads get-attachment --inbox-id <inbox_id> --thread-id <thread_id> --attachment-id <attachment_id>
         ```
       path-parameters:
         thread_id: threads.ThreadId
@@ -130,7 +130,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:threads delete --inbox-id <inbox_id> --thread-id <thread_id>
+        agentmail inboxes threads delete --inbox-id <inbox_id> --thread-id <thread_id>
         ```
       path-parameters:
         thread_id: threads.ThreadId

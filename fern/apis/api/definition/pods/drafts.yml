@@ -21,7 +21,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:drafts list --pod-id <pod_id>
+        agentmail pods drafts list --pod-id <pod_id>
         ```
       request:
         name: ListDraftsRequest
@@ -43,7 +43,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:drafts get --pod-id <pod_id> --draft-id <draft_id>
+        agentmail pods drafts get --pod-id <pod_id> --draft-id <draft_id>
         ```
       path-parameters:
         draft_id: drafts.DraftId
@@ -58,7 +58,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:drafts get-attachment --pod-id <pod_id> --draft-id <draft_id> --attachment-id <attachment_id>
+        agentmail pods drafts get-attachment --pod-id <pod_id> --draft-id <draft_id> --attachment-id <attachment_id>
         ```
       path-parameters:
         draft_id: drafts.DraftId

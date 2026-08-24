@@ -73,7 +73,7 @@ const sentMessage = await client.inboxes.messages.send(
 
 ```bash title="CLI"
 # send a message with labels
-agentmail inboxes:messages send \
+agentmail inboxes messages send \
   --inbox-id outbound@agentmail.to \
   --to test@example.com \
   --subject "Following up on our conversation" \
@@ -122,7 +122,7 @@ await client.inboxes.messages.update(
 
 ```bash title="CLI"
 # add and remove labels on an existing message
-agentmail inboxes:messages update \
+agentmail inboxes messages update \
   --inbox-id outbound@domain.com \
   --message-id "<abc123@agentmail.to>" \
   --add-label resolved \
@@ -179,7 +179,7 @@ console.log(`Found ${filteredThreads.count} threads that need a follow-up.`);
 
 ```bash title="CLI"
 # list threads filtered by labels
-agentmail inboxes:threads list \
+agentmail inboxes threads list \
   --inbox-id outbound-agent@domain.com \
   --label q4-campaign \
   --label follow_up
