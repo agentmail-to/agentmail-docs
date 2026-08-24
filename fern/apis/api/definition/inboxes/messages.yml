@@ -103,7 +103,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes messages batch-get --inbox-id <inbox_id> --message-id <id1> --message-id <id2>
+        agentmail inboxes messages batch-get --inbox-id <inbox_id> --message-ids <id1> --message-ids <id2>
         ```
       request: messages.BatchGetMessagesRequest
       response: messages.BatchGetMessagesResponse
@@ -124,7 +124,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes messages batch-update --inbox-id <inbox_id> --message-id <id1> --message-id <id2> --add-label read --remove-label unread
+        agentmail inboxes messages batch-update --inbox-id <inbox_id> --message-ids <id1> --message-ids <id2> --add-labels read --remove-labels unread
         ```
       request: messages.BatchUpdateMessagesRequest
       response: messages.BatchUpdateMessagesResponse
@@ -169,7 +169,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes messages update --inbox-id <inbox_id> --message-id <message_id> --add-label read --remove-label unread
+        agentmail inboxes messages update --inbox-id <inbox_id> --message-id <message_id> --add-labels read --remove-labels unread
         ```
       path-parameters:
         message_id: messages.MessageId

@@ -30,8 +30,8 @@ export AGENTMAIL_API_KEY=am_us_xxx
 Or store it in your OS keychain so it survives across shells:
 
 ```bash
-agentmail auth login
-agentmail auth status   # shows which credential source is active
+agentmail auth login --with-token --scheme BearerAuth   # paste your API key when prompted
+agentmail auth status                                   # shows which credential source is active
 ```
 
 Get your key from the [AgentMail Console](https://console.agentmail.to). (`AGENTMAIL_TOKEN` is also accepted; if both are set, `AGENTMAIL_API_KEY` wins.)
@@ -78,7 +78,7 @@ agentmail inboxes threads list --inbox-id inb_xxx
 
 # Create a webhook
 agentmail webhooks create \
-  --event-type message.received \
+  --event-types message.received \
   --url https://example.com/webhook
 ```
 
@@ -99,7 +99,7 @@ The CLI provides commands for:
 
 | Flag | Description |
 | --- | --- |
-| `--format` | Output format: `json` (default), `table`, `yaml`, `csv` |
+| `--format` | Output format: `json`, `table`, `yaml`, `csv`, `raw`, `jsonl`, `http`. Default: `table` on a terminal, `json` when piped |
 | `--dry-run` | Validate and print the request locally without sending it |
 | `--base-url` | Override the API base URL (or set `AGENTMAIL_BASE_URL`) |
 | `--schema` | Print a machine-readable JSON schema for the current scope |
@@ -107,7 +107,7 @@ The CLI provides commands for:
 | `--help` | Show help |
 | `--version` | Show version |
 
-Request-bearing commands additionally accept `--json <JSON|->` to supply the whole request body as JSON (or from stdin), `--params <JSON>` to merge extra parameters, and `--page-all` on list commands to auto-paginate through all results.
+Request-bearing commands additionally accept `--json <JSON|->` to supply the whole request body as JSON (or from stdin), `--params <JSON>` to merge extra parameters, `--page-all` on list commands to auto-paginate through all results, and `--query <EXPR>` to filter output with a [JMESPath](https://jmespath.org) expression.
 
 Shell completions (`agentmail completion`) and man pages (`agentmail man`) are built in.
 
@@ -120,9 +120,9 @@ Version 1.0 is a full rewrite, and some invocations changed:
 | `agentmail inboxes:messages send ...` | `agentmail inboxes messages send ...` (spaces, not colons) |
 | `agentmail inboxes retrieve ...` | `agentmail inboxes get ...` |
 | `agentmail threads retrieve-attachment ...` | `agentmail threads get-attachment ...` |
-| `--format pretty` / `jsonl` / `raw` / `explore` | `--format json` (default), `table`, `yaml`, `csv` |
-| `--transform` (GJSON) | pipe to `jq` instead |
-| `--api-key` flag | `AGENTMAIL_API_KEY` env var or `agentmail auth login` |
+| `--format pretty` / `explore` | `--format table` (default on a terminal); `raw` and `jsonl` still work, plus new `http` |
+| `--transform` (GJSON) | `--query` (JMESPath) |
+| `--api-key` flag | `AGENTMAIL_API_KEY` env var or `agentmail auth login --with-token --scheme BearerAuth` |
 
 Environment variables are unchanged: `AGENTMAIL_API_KEY` keeps working as before.
 

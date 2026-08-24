@@ -68,9 +68,7 @@ agentmail inboxes messages send \
   --to supervisor@example.com \
   --subject "Q4 Financial Report" \
   --text "Please see the attached report." \
-  --attachment.content "VGhpcyBpcyB0aGUgY29udGVudCBvZiBvdXIgcmVwb3J0Lg==" \
-  --attachment.filename "Q4-report.txt" \
-  --attachment.content-type "text/plain"
+  --attachments '[{"filename": "Q4-report.txt", "content_type": "text/plain", "content": "VGhpcyBpcyB0aGUgY29udGVudCBvZiBvdXIgcmVwb3J0Lg=="}]'
 ```
 
 </CodeBlocks>

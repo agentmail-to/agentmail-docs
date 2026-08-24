@@ -87,8 +87,8 @@ agentmail inboxes messages send \
   --subject "[YC S25] Founder Reachout " \
   --text "Hello, I'm Michael, and I'm a founder at AgentMail..." \
   --html "<div dir=\"ltr\">Hello,<br><br>I'm Michael, and I'm a founder at AgentMail..." \
-  --label outreach \
-  --label startup
+  --labels outreach \
+  --labels startup
 ```
 
 </CodeBlocks>
@@ -205,8 +205,7 @@ agentmail inboxes messages reply \
   --inbox-id my_inbox@domain.com \
   --message-id "<abc123@agentmail.to>" \
   --text "Thanks for the referral!" \
-  --attachment.content "resume" \
-  --attachment.filename "resume.pdf"
+  --attachments '[{"filename": "resume.pdf", "content": "<base64-content>"}]'
 ```
 
 </CodeBlocks>
@@ -563,13 +562,13 @@ const unread = await client.inboxes.messages.list(
 agentmail inboxes messages update \
   --inbox-id agent@agentmail.to \
   --message-id "<message_id>" \
-  --add-label read \
-  --remove-label unread
+  --add-labels read \
+  --remove-labels unread
 
 # only fetch unread messages
 agentmail inboxes messages list \
   --inbox-id agent@agentmail.to \
-  --label unread
+  --labels unread
 ```
 </CodeBlocks>
 

@@ -188,6 +188,9 @@ def add_scheme(lines):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true", help="modify the overrides file")
+    ap.add_argument("--check", action="store_true",
+                    help="CI mode: exit 1 if any secured operation still needs a "
+                         "security block (i.e. a dry run would insert something)")
     args = ap.parse_args()
 
     targets = spec_ops_with_security(SPEC)
@@ -220,6 +223,14 @@ def main():
 
     new_lines, scheme_added = add_scheme(new_lines)
     print(f"TokenAuth scheme: {'inserted' if scheme_added else 'already present'}")
+
+    if args.check:
+        if inserted or scheme_added:
+            sys.exit(f"CHECK FAILED: {inserted} op(s) missing security blocks"
+                     + (", TokenAuth scheme missing" if scheme_added else "")
+                     + ". Run bin/gen-cli-security-overrides.py --write.")
+        print("check: security blocks in sync")
+        return
 
     if not args.write:
         print("\n(dry-run) re-run with --write to apply. Preview of first inserted block:")

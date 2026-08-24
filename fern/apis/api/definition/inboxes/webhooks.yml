@@ -67,7 +67,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes webhooks create --inbox-id <inbox_id> --url https://example.com/webhook --event-type message.received
+        agentmail inboxes webhooks create --inbox-id <inbox_id> --url https://example.com/webhook --event-types message.received
         ```
       request: webhooks.CreateInboxWebhookRequest
       response: webhooks.Webhook
@@ -81,7 +81,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes webhooks update --inbox-id <inbox_id> --webhook-id <webhook_id> --event-type message.received
+        agentmail inboxes webhooks update --inbox-id <inbox_id> --webhook-id <webhook_id> --event-types message.received
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId

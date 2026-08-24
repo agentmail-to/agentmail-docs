@@ -67,7 +67,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail pods webhooks create --pod-id <pod_id> --url https://example.com/webhook --event-type message.received
+        agentmail pods webhooks create --pod-id <pod_id> --url https://example.com/webhook --event-types message.received
         ```
       request: webhooks.CreatePodWebhookRequest
       response: webhooks.Webhook
@@ -81,7 +81,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods webhooks update --pod-id <pod_id> --webhook-id <webhook_id> --add-inbox-id <inbox_id>
+        agentmail pods webhooks update --pod-id <pod_id> --webhook-id <webhook_id> --add-inbox-ids <inbox_id>
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId

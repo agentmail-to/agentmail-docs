@@ -174,6 +174,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true", help="append to the overrides file")
     ap.add_argument("--table", help="write a human-review markdown table here")
+    ap.add_argument("--check", action="store_true",
+                    help="CI mode: exit 1 if any spec operation is missing an "
+                         "annotation OR the overrides carry entries for operations "
+                         "no longer in the spec (stale/orphaned)")
     args = ap.parse_args()
 
     spec_ops = parse_spec(SPEC)
@@ -217,6 +221,28 @@ def main():
             print("  ", " ".join(key[0]), key[1], "<-", a, "AND", b)
         sys.exit(1)
     print("collisions: none")
+
+    # ---- stale / orphaned entries (override has it, spec does not) ---------
+    spec_keys = {(u, h) for u, h, _ in spec_ops}
+    stale = sorted(k for k in existing if k not in spec_keys)
+    if stale:
+        print("STALE overrides (operation gone from spec; prune these blocks):")
+        for u, h in stale:
+            print(f"  {h.upper()} {u}")
+    else:
+        print("stale entries: none")
+
+    if args.check:
+        problems = []
+        if missing:
+            problems.append(f"{len(missing)} spec operation(s) missing annotations")
+        if stale:
+            problems.append(f"{len(stale)} stale override entr(ies)")
+        if problems:
+            sys.exit("CHECK FAILED: " + "; ".join(problems) +
+                     ". Run bin/gen-cli-overrides.py --write and prune stale blocks.")
+        print("check: overrides in sync with spec")
+        return
 
     ambiguous_rows = [r for r in rows if r[5]]
     if ambiguous_rows:

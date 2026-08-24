@@ -17,9 +17,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to stamp into the generated CLI (e.g. 1.0.0). The release tag on the output repo must match it exactly — ci.yml's version guard blocks publishes when they disagree. AUTO is only safe for drift regens between releases."
-        required: false
-        default: "AUTO"
+        description: "Version to stamp into the generated CLI (e.g. 1.0.0). The release tag on the output repo must match it exactly — ci.yml's version guard blocks publishes when they disagree. Release generation must state its version explicitly; only push-triggered drift regens use AUTO."
+        required: true
 
 jobs:
   release:
@@ -35,6 +34,15 @@ jobs:
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
         run: fern generate --api api --group openapi --local --force --no-prompt
+
+      # Fail fast if the freshly exported spec and the CLI overlays have
+      # drifted: a new endpoint without annotations would silently lose its
+      # command hierarchy and AGENTMAIL_TOKEN support, and an override for a
+      # deleted endpoint would become a synthetic dead command.
+      - name: Validate CLI overlays against exported spec
+        run: |
+          python3 bin/gen-cli-overrides.py --check
+          python3 bin/gen-cli-security-overrides.py --check
 
       - name: Generate CLI
         env:

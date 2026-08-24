@@ -78,8 +78,8 @@ agentmail inboxes messages send \
   --to test@example.com \
   --subject "Following up on our conversation" \
   --text "Here is the information you requested." \
-  --label follow-up \
-  --label q4-campaign
+  --labels follow-up \
+  --labels q4-campaign
 ```
 
 </CodeBlocks>
@@ -125,8 +125,8 @@ await client.inboxes.messages.update(
 agentmail inboxes messages update \
   --inbox-id outbound@domain.com \
   --message-id "<abc123@agentmail.to>" \
-  --add-label resolved \
-  --remove-label unresolved
+  --add-labels resolved \
+  --remove-labels unresolved
 ```
 
 </CodeBlocks>
@@ -181,8 +181,8 @@ console.log(`Found ${filteredThreads.count} threads that need a follow-up.`);
 # list threads filtered by labels
 agentmail inboxes threads list \
   --inbox-id outbound-agent@domain.com \
-  --label q4-campaign \
-  --label follow_up
+  --labels q4-campaign \
+  --labels follow_up
 ```
 
 </CodeBlocks>

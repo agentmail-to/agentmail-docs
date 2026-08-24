@@ -102,9 +102,9 @@ console.log(scopedKey.apiKey);
 
 ```bash title="CLI"
 # create a key scoped to acme's pod
-agentmail api-keys create \
-  --name "acme-service-key" \
-  --pod-id <pod-id>
+agentmail pods api-keys create \
+  --pod-id <pod-id> \
+  --name "acme-service-key"
 ```
 </CodeBlocks>
 

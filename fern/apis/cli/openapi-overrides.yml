@@ -14,6 +14,13 @@ components:
     Send:
       x-fern-type-name: SendEvent
 
+# The Fern definition marks the five send operations idempotent via
+# `idempotency-headers` (api.yml), but the fern-openapi export drops that
+# declaration, so the generated CLI had no --idempotency-key flag. Those
+# operations' override blocks below declare the header explicitly. NOTE:
+# override arrays REPLACE the exported ones, so each such block restates
+# the operation's path parameters.
+
 # Nest the flattened inboxes-*/pods-* command groups (e.g. inboxes-messages ->
 # 'inboxes messages') by restoring the group structure the OpenAPI export drops.
 # Generated from operationId prefixes; method names are the remaining segments.
@@ -104,6 +111,23 @@ paths:
       security:
       - BearerAuth: []
       - TokenAuth: []
+      parameters:
+      - name: inbox_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/inboxesInboxId'
+      - name: draft_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/DraftId'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: Unique key that makes a send idempotent. A retry carrying the same key returns the original message instead of sending a second email; reusing a key with a different request returns a 409 conflict. Keys expire 24 hours after the send completes.
+        schema:
+          type: string
   /v0/inboxes/{inbox_id}/events:
     get:
       x-fern-sdk-group-name:
@@ -226,6 +250,18 @@ paths:
       security:
       - BearerAuth: []
       - TokenAuth: []
+      parameters:
+      - name: inbox_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/inboxesInboxId'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: Unique key that makes a send idempotent. A retry carrying the same key returns the original message instead of sending a second email; reusing a key with a different request returns a 409 conflict. Keys expire 24 hours after the send completes.
+        schema:
+          type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply:
     post:
       x-fern-sdk-group-name:
@@ -235,6 +271,23 @@ paths:
       security:
       - BearerAuth: []
       - TokenAuth: []
+      parameters:
+      - name: inbox_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/inboxesInboxId'
+      - name: message_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/MessageId'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: Unique key that makes a send idempotent. A retry carrying the same key returns the original message instead of sending a second email; reusing a key with a different request returns a 409 conflict. Keys expire 24 hours after the send completes.
+        schema:
+          type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply-all:
     post:
       x-fern-sdk-group-name:
@@ -244,6 +297,23 @@ paths:
       security:
       - BearerAuth: []
       - TokenAuth: []
+      parameters:
+      - name: inbox_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/inboxesInboxId'
+      - name: message_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/MessageId'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: Unique key that makes a send idempotent. A retry carrying the same key returns the original message instead of sending a second email; reusing a key with a different request returns a 409 conflict. Keys expire 24 hours after the send completes.
+        schema:
+          type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/forward:
     post:
       x-fern-sdk-group-name:
@@ -253,6 +323,23 @@ paths:
       security:
       - BearerAuth: []
       - TokenAuth: []
+      parameters:
+      - name: inbox_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/inboxesInboxId'
+      - name: message_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/MessageId'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: Unique key that makes a send idempotent. A retry carrying the same key returns the original message instead of sending a second email; reusing a key with a different request returns a 409 conflict. Keys expire 24 hours after the send completes.
+        schema:
+          type: string
   /v0/inboxes/{inbox_id}/threads:
     get:
       x-fern-sdk-group-name:

@@ -419,8 +419,8 @@ paths:
 
         ```bash
 
-        agentmail webhooks create --url https://example.com/webhook --event-type
-        message.received
+        agentmail webhooks create --url https://example.com/webhook
+        --event-types message.received
 
         ```
       operationId: webhooks_create
@@ -504,7 +504,7 @@ paths:
 
         ```bash
 
-        agentmail webhooks update --webhook-id <webhook_id> --add-inbox-id
+        agentmail webhooks update --webhook-id <webhook_id> --add-inbox-ids
         <inbox_id>
 
         ```
@@ -2640,7 +2640,7 @@ paths:
         ```bash
 
         agentmail inboxes messages update --inbox-id <inbox_id> --message-id
-        <message_id> --add-label read --remove-label unread
+        <message_id> --add-labels read --remove-labels unread
 
         ```
       operationId: inboxes_messages_update
@@ -2748,8 +2748,8 @@ paths:
 
         ```bash
 
-        agentmail inboxes messages batch-get --inbox-id <inbox_id> --message-id
-        <id1> --message-id <id2>
+        agentmail inboxes messages batch-get --inbox-id <inbox_id> --message-ids
+        <id1> --message-ids <id2>
 
         ```
       operationId: inboxes_messages_batchGet
@@ -2809,8 +2809,8 @@ paths:
         ```bash
 
         agentmail inboxes messages batch-update --inbox-id <inbox_id>
-        --message-id <id1> --message-id <id2> --add-label read --remove-label
-        unread
+        --message-ids <id1> --message-ids <id2> --add-labels read
+        --remove-labels unread
 
         ```
       operationId: inboxes_messages_batchUpdate
@@ -3232,7 +3232,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail inboxes metrics query --inbox-id <inbox_id>
+        agentmail inboxes metrics query-events --inbox-id <inbox_id>
         ```
       operationId: inboxes_metrics_queryEvents
       tags:
@@ -3841,7 +3841,7 @@ paths:
         ```bash
 
         agentmail inboxes webhooks create --inbox-id <inbox_id> --url
-        https://example.com/webhook --event-type message.received
+        https://example.com/webhook --event-types message.received
 
         ```
       operationId: inboxes_webhooks_create
@@ -3933,7 +3933,7 @@ paths:
         ```bash
 
         agentmail inboxes webhooks update --inbox-id <inbox_id> --webhook-id
-        <webhook_id> --event-type message.received
+        <webhook_id> --event-types message.received
 
         ```
       operationId: inboxes_webhooks_update
@@ -4324,7 +4324,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail metrics list
+        agentmail metrics query-events
         ```
       operationId: metrics_queryEvents
       tags:
@@ -5563,7 +5563,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail pods metrics query --pod-id <pod_id>
+        agentmail pods metrics query-events --pod-id <pod_id>
         ```
       operationId: pods_metrics_queryEvents
       tags:
@@ -6163,7 +6163,7 @@ paths:
         ```bash
 
         agentmail pods webhooks create --pod-id <pod_id> --url
-        https://example.com/webhook --event-type message.received
+        https://example.com/webhook --event-types message.received
 
         ```
       operationId: pods_webhooks_create
@@ -6251,7 +6251,7 @@ paths:
         ```bash
 
         agentmail pods webhooks update --pod-id <pod_id> --webhook-id
-        <webhook_id> --add-inbox-id <inbox_id>
+        <webhook_id> --add-inbox-ids <inbox_id>
 
         ```
       operationId: pods_webhooks_update

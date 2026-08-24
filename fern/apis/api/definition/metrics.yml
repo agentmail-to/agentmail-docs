@@ -123,7 +123,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail metrics list
+        agentmail metrics query-events
         ```
       request:
         name: QueryEventsRequest
