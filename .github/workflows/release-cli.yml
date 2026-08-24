@@ -15,6 +15,11 @@ on:
       # d) Fern CLI version changes
       - "fern/fern.config.json"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to stamp into the generated CLI (e.g. 1.0.0). The release tag on the output repo must match it exactly — ci.yml's version guard blocks publishes when they disagree. AUTO is only safe for drift regens between releases."
+        required: false
+        default: "AUTO"
 
 jobs:
   release:
@@ -34,4 +39,4 @@ jobs:
       - name: Generate CLI
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
-        run: fern generate --api cli --group cli --log-level debug --version AUTO
+        run: fern generate --api cli --group cli --log-level debug --version "${{ github.event.inputs.version || 'AUTO' }}"

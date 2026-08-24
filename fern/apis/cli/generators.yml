@@ -25,14 +25,14 @@ groups:
             name: agentmail-cli
             description: Command-line interface for the AgentMail API. Send, receive, reply, and manage threaded email conversations from your terminal.
             license: MIT
-            repository: https://github.com/agentmail-to/agentmail-cli-fern
+            repository: https://github.com/agentmail-to/agentmail-cli
             homepage: https://agentmail.to
             authors: ["AgentMail <support@agentmail.cc>"]
             keywords: ["email", "api", "cli", "agent", "agentmail"]
         output:
           location: npm
-          package-name: agentmail-cli-fern
+          package-name: agentmail-cli
           token: OIDC
         github:
-          repository: agentmail-to/agentmail-cli-fern
+          repository: agentmail-to/agentmail-cli
           mode: pull-request
