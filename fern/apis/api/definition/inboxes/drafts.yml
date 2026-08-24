@@ -73,6 +73,12 @@ service:
       path: ""
       display-name: Create Draft
       docs: |
+        Create a draft. Supply `in_reply_to` to create a reply draft (with
+        `reply_all` to address the whole thread), whose recipients, subject, and
+        threading are derived from the referenced message, or `forward_of` to
+        create a forward draft, which derives the subject, threading, and
+        forwarded content from the source but keeps recipients caller-supplied.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts create --inbox-id <inbox_id> --to recipient@example.com --subject "Draft subject" --text "Draft body"
@@ -80,6 +86,7 @@ service:
       request: drafts.CreateDraftRequest
       response: drafts.Draft
       errors:
+        - global.ValidationError
         - global.NotFoundError
 
     update:
@@ -87,6 +94,10 @@ service:
       path: /{draft_id}
       display-name: Update Draft
       docs: |
+        Edit fields on an existing draft. Passing `null` clears a field (or `[]`
+        for a recipient field); `send_at: null` un-schedules a scheduled draft.
+        A draft that is already being sent cannot be edited.
+
         **CLI:**
         ```bash
         agentmail inboxes:drafts update --inbox-id <inbox_id> --draft-id <draft_id> --subject "Updated subject"
@@ -96,7 +107,9 @@ service:
       request: drafts.UpdateDraftRequest
       response: drafts.Draft
       errors:
+        - global.ValidationError
         - global.NotFoundError
+        - global.ConflictError
 
     delete:
       method: DELETE

@@ -18,6 +18,19 @@ types:
     type: string
     docs: URL of webhook endpoint.
 
+  WebhookHeaders:
+    type: map<string, string>
+    docs: |
+      Custom HTTP headers to include with every delivery to this webhook. Header values are write-only:
+      AgentMail never returns them from webhook read endpoints. The map must contain at least one entry
+      when provided, and every name and value must be a valid HTTP header.
+
+  WebhookHeaderNamesResponse:
+    properties:
+      header_names:
+        type: list<string>
+        docs: Names of the custom delivery headers configured for this webhook. Header values are never returned.
+
   Webhook:
     properties:
       webhook_id: WebhookId
@@ -78,6 +91,7 @@ types:
       url: Url
       event_types: CreateWebhookEventTypes
       client_id: optional<ClientId>
+      headers: optional<WebhookHeaders>
 
   CreatePodWebhookRequest:
     docs: |
@@ -123,6 +137,16 @@ types:
         type: optional<events.PodIds>
         docs: Pod IDs to unsubscribe from the webhook.
 
+  UpdateWebhookHeadersRequest:
+    docs: |
+      Set, replace, or remove custom delivery headers. Provide at least one of `headers` or
+      `remove_headers`. A header cannot be set and removed in the same request, regardless of casing.
+    properties:
+      headers: optional<WebhookHeaders>
+      remove_headers:
+        type: optional<list<string>>
+        docs: Names of custom delivery headers to remove.
+
 service:
   url: Http
   base-path: /webhooks
@@ -161,6 +185,19 @@ service:
       errors:
         - global.NotFoundError
 
+    getHeaders:
+      method: GET
+      path: /{webhook_id}/headers
+      display-name: Get Webhook Headers
+      docs: |
+        List the names of custom HTTP headers included with deliveries to this webhook. Header values are
+        write-only and are never returned.
+      path-parameters:
+        webhook_id: WebhookId
+      response: WebhookHeaderNamesResponse
+      errors:
+        - global.NotFoundError
+
     create:
       method: POST
       path: ""
@@ -191,6 +228,22 @@ service:
         webhook_id: WebhookId
       request: UpdateWebhookRequest
       response: Webhook
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
+    updateHeaders:
+      method: PATCH
+      path: /{webhook_id}/headers
+      display-name: Update Webhook Headers
+      docs: |
+        Atomically set, replace, or remove custom HTTP headers included with deliveries to this webhook.
+        Header values remain write-only.
+      path-parameters:
+        webhook_id: WebhookId
+      request: UpdateWebhookHeadersRequest
+      response:
+        status-code: 204
       errors:
         - global.NotFoundError
         - global.ValidationError

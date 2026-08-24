@@ -1,0 +1,42 @@
+---
+tags: ["api-keys", "agentid", "new-feature", "sdk"]
+---
+
+## Summary
+
+Build AgentID sign-in flows with a scoped P-256 credential while keeping private
+key material in your own keystore. The API reference now defines a dedicated
+public-key lifecycle for generated SDKs, and the new guide provides strict Python
+and TypeScript approval helpers.
+
+### What's new?
+
+**New endpoints:**
+
+- `POST /v0/api-keys/public-keys` - Register only a public P-256 JWK and receive the server-owned `api_key_id` used as `kid`
+- `GET /v0/api-keys/public-keys` - List public-key credentials without mixing in bearer credentials
+- `PATCH /v0/api-keys/public-keys/{api_key_id}` - Rename a credential without mutating security-relevant fields
+- `DELETE /v0/api-keys/public-keys/{api_key_id}` - Revoke one public-key credential
+- `POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` - Idempotently invalidate every current AgentID sign-in key in an organization
+
+**New AgentID endpoint** (served by the AgentID issuer, not part of the AgentMail REST API or generated SDKs — call it directly as shown in the guide):
+
+- `POST https://auth.agentid.com/authorize/approve` - Submit one strict ES256 approval assertion without a bearer credential
+
+**New features:**
+
+- **Scoped credentials**: Register organization-, pod-, or inbox-scoped keys with inherited scope and expiry defaults.
+- **Generated SDK contract**: Generate P-256 keys, register only public coordinates, pin the approval header and claims, and keep private keys below model context once corresponding SDK releases are published.
+
+### Use cases
+
+Build agents that:
+
+- Approve AgentID sign-in while the private key stays in a keystore or HSM
+- Delegate sign-in authority to one organization, pod, or inbox
+- Rotate credentials with a create-new, deploy-new, delete-old sequence
+- Fence every active AgentID sign-in key with an idempotent emergency operation
+
+<Note>
+  Follow the [AgentID Public-Key Authentication guide](https://docs.agentmail.to/agentid-public-key-authentication) for complete Python and TypeScript helpers, lifecycle rules, and the accepted browser-session intent limitation.
+</Note>

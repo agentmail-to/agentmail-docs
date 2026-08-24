@@ -68,7 +68,7 @@ agentmail agent verify --otp-code 123456
 
 
 <Warning>
-  **Unverified accounts can only send email to the signup address.** Until you complete OTP verification, outbound emails to any other address will fail without any error message. Always call `agent.verify()` before sending to external recipients.
+  **Unverified accounts can only send email to the signup address.** Until you complete OTP verification, sends to any other address are rejected with a `403` carrying `code: "message_rejected"`, whose `fix` explains that sending is restricted until verification and points at `POST /v0/agent/verify`. Always call `agent.verify()` before sending to external recipients. See the [Error Reference](/errors#message_rejected).
 </Warning>
 
 <Warning>
@@ -87,62 +87,39 @@ MCP (Model Context Protocol) is an open protocol that standardizes how applicati
 
 ### Setup
 
-Add this to your MCP client configuration (Claude Code, Cursor, Codex, etc.):
+Add this to your MCP client configuration (Claude Code, Cursor, Codex, etc.). Clients that support remote MCP OAuth should use the bare URL and authenticate in-flow:
 
 ```json
 {
   "mcpServers": {
     "AgentMail": {
-      "command": "npx",
-      "args": ["-y", "agentmail-mcp"],
-      "env": {
-        "AGENTMAIL_API_KEY": "YOUR_API_KEY"
+      "url": "https://mcp.agentmail.to/mcp"
+    }
+  }
+}
+```
+
+For clients that don't implement OAuth but support custom headers, pass the key as an `x-api-key` header instead:
+
+```json
+{
+  "mcpServers": {
+    "AgentMail": {
+      "url": "https://mcp.agentmail.to/mcp",
+      "headers": {
+        "x-api-key": "${AGENTMAIL_API_KEY}"
       }
     }
   }
 }
 ```
 
-You can selectively enable specific tools using the `--tools` argument:
+### Available MCP tools
 
-```json
-{
-  "mcpServers": {
-    "AgentMail": {
-      "command": "npx",
-      "args": ["-y", "agentmail-mcp", "--tools", "get_message,send_message,reply_to_message"],
-      "env": {
-        "AGENTMAIL_API_KEY": "YOUR_API_KEY"
-      }
-    }
-  }
-}
-```
+Your MCP client discovers tools directly from the hosted runtime. See the [current MCP tool catalog](/integrations/mcp#available-tools) for their names, descriptions, and availability.
 
-### Available MCP Tools
-
-| Tool | Description |
-| -- | -- |
-| `create_inbox` | Create a new email inbox for an agent |
-| `list_inboxes` | List all inboxes in your account |
-| `get_inbox` | Get details of a specific inbox |
-| `delete_inbox` | Delete an inbox |
-| `send_message` | Send an email from an agent inbox |
-| `reply_to_message` | Reply to an email in a thread |
-| `forward_message` | Forward an email |
-| `update_message` | Update message labels or status |
-| `create_draft` | Create a draft email (optionally scheduled via `send_at`) |
-| `list_drafts` | List drafts in an inbox (filter by labels like `scheduled`) |
-| `get_draft` | Get a draft by ID with content and scheduled send time |
-| `update_draft` | Update a draft; use `send_at` to reschedule |
-| `send_draft` | Send a draft immediately (draft is converted to a sent message) |
-| `delete_draft` | Delete a draft; also cancels a scheduled send |
-| `list_threads` | List email threads in an inbox |
-| `get_thread` | Get a full email thread with messages |
-| `get_attachment` | Download an email attachment |
-
-<Card title="MCP Server on GitHub" icon="fa-brands fa-github" href="https://github.com/agentmail-to/agentmail-smithery-mcp">
-  View the source code, contribute, or report issues.
+<Card title="MCP Server Setup" icon="fa-brands fa-github" href="/integrations/mcp">
+  Connect to the hosted AgentMail MCP server. npm and PyPI are compatibility transports for clients that only support stdio.
 </Card>
 
 ## AgentMail Docs for Agents

@@ -59,6 +59,9 @@ channel:
     message_rejected:
       origin: server
       body: events.MessageRejectedEvent
+    message_opened:
+      origin: server
+      body: events.MessageOpenedEvent
     domain_verified:
       origin: server
       body: events.DomainVerifiedEvent

@@ -35,12 +35,43 @@ groups:
           token: OIDC
         github:
           repository: agentmail-to/agentmail-node
+          license: MIT
         config:
           namespaceExport: AgentMail
           noSerdeLayer: false
           skipResponseValidation: true
           shouldGenerateWebsocketClients: true
+          # The hand-written wrapper (src/wrapper/x402.ts, src/wrapper/Client.ts)
+          # lazily imports @x402/fetch for the opt-in payments feature. Declare it
+          # as an optional peer dependency so bundlers, file tracers, and isolated
+          # installers can resolve the import (agentmail-node#24).
+          extraPeerDependencies:
+            "@x402/fetch": "^2"
+          extraPeerDependenciesMeta:
+            "@x402/fetch":
+              optional: true
           packageJson:
+            # Dev-toolchain security pins. These live here, not in the generated
+            # repo: agentmail-node is regenerated on every SDK release, and a fix
+            # applied directly there is wiped by the next one (it happened in
+            # agentmail-node#27, reverted by Release 0.5.20).
+            #
+            # vite is declared rather than overridden because it is an
+            # auto-installed peer of vitest, and pnpm does not apply overrides to
+            # auto-installed peers.
+            #   vite     >=8.0.16  GHSA-fx2h-pf6j-xcff, GHSA-v2wj-q39q-566r,
+            #                      GHSA-p9ff-h696-f583, GHSA-v6wh-96g9-6wx3
+            #   postcss  >=8.5.23  GHSA-r28c-9q8g-f849, GHSA-6g55-p6wh-862q,
+            #                      GHSA-fxqj-rqcc-2cmp, GHSA-qx2v-qp2m-jg93
+            #   fast-uri >=3.1.5   GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc,
+            #                      GHSA-7p8r-x3mc-p8w7, GHSA-v2hh-gcrm-f6hx,
+            #                      GHSA-4c8g-83qw-93j6
+            devDependencies:
+              vite: ^8.0.16
+            pnpm:
+              overrides:
+                postcss: ">=8.5.23"
+                fast-uri: ">=3.1.5"
             description:
               "The email inbox API for AI agents. Send, receive, reply, and
               manage threaded email conversations programmatically."
@@ -76,6 +107,7 @@ groups:
           token: ${PYPI_TOKEN}
         github:
           repository: agentmail-to/agentmail-python
+          license: MIT
         config:
           client_class_name: AgentMail
           pydantic_config:

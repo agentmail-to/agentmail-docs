@@ -1,0 +1,413 @@
+---
+title: AgentID Public-Key Authentication
+subtitle: Register a scoped P-256 key and sign one AgentID approval without exposing the private key.
+slug: agentid-public-key-authentication
+description: Generate and store a P-256 key, register its public JWK, and submit a strict signed AgentID approval.
+---
+
+AgentID public-key credentials let an agent prove possession of a P-256 private
+key while approving an AgentID sign-in. Registration uses an existing AgentMail
+bearer API key. Approval uses only a compact signature and never sends that
+bearer key or the private key to AgentID.
+
+<Warning title="Keep the private key below model context">
+  Generate and use the private key in a keystore, HSM, KMS, or a small trusted
+  signing process. Give the model an opaque signing capability, not the private
+  JWK, PEM, environment variable, tool output, log entry, prompt, trace, or
+  conversation history.
+</Warning>
+
+## Protocol at a glance
+
+1. Generate a P-256 key pair in trusted code and persist the private key in your
+   keystore.
+2. Export only `{kty: "EC", crv: "P-256", x, y}` and register it at
+   `POST /v0/api-keys/public-keys` with an existing AgentMail bearer API key.
+3. Store the returned `api_key_id` beside the private-key handle. It is the JWS
+   `kid`; do not compute or choose it yourself.
+4. For one pending authorization transaction, sign exactly `{jti, inbox_id}`
+   with ES256 and protected `typ: agentid-approval+jwt`.
+5. POST exactly `{assertion, inbox_id}` to
+   `https://auth.agentid.com/authorize/approve` without bearer authorization.
+   Success is `204 No Content`.
+
+Public-key credentials are only AgentID sign-in credentials. They cannot replace
+an AgentMail bearer API key for normal REST API calls.
+
+## Generate and register a key
+
+The registration endpoint rejects private `d`, unknown JWK members, non-P-256
+curves, malformed coordinates, and coordinates that are not on P-256. The
+server computes the RFC 7638 SHA-256 fingerprint and returns it; compare or log
+the public fingerprint when you need an audit handle, never the private key.
+
+<Note title="SDK release required">
+  The generated SDK methods in this guide require an AgentMail Python and
+  TypeScript SDK release that includes the public-key credential endpoints. If
+  your installed client does not expose these methods yet, use the REST API or
+  upgrade after that release is published.
+</Note>
+
+After that SDK release, install the Python example dependencies with
+`pip install agentmail cryptography PyJWT httpx`, or the TypeScript dependencies
+with `npm install agentmail jose`.
+
+<CodeBlocks>
+
+```python title="Python"
+from __future__ import annotations
+
+import base64
+from datetime import datetime
+from typing import Any, Dict, Literal, Optional, TypedDict, Union
+
+from agentmail import AgentMail
+from cryptography.hazmat.primitives.asymmetric import ec
+
+
+class OrganizationScope(TypedDict):
+    type: Literal["organization"]
+
+
+class PodScope(TypedDict):
+    type: Literal["pod"]
+    id: str
+
+
+class InboxScope(TypedDict):
+    type: Literal["inbox"]
+    id: str
+
+
+Scope = Union[OrganizationScope, PodScope, InboxScope]
+
+
+def b64url_coordinate(value: int) -> str:
+    return base64.urlsafe_b64encode(value.to_bytes(32, "big")).rstrip(b"=").decode()
+
+
+def public_jwk(private_key: ec.EllipticCurvePrivateKey) -> Dict[str, str]:
+    numbers = private_key.public_key().public_numbers()
+    return {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": b64url_coordinate(numbers.x),
+        "y": b64url_coordinate(numbers.y),
+    }
+
+
+def register_agentid_key(
+    client: AgentMail,
+    private_key: ec.EllipticCurvePrivateKey,
+    *,
+    scope: Optional[Scope] = None,
+    name: Optional[str] = None,
+    expires_at: Optional[datetime] = None,
+):
+    request: Dict[str, Any] = {"public_key": public_jwk(private_key)}
+    if scope is not None:
+        request["scope"] = scope
+    if name is not None:
+        request["name"] = name
+    if expires_at is not None:
+        request["expires_at"] = expires_at
+    return client.api_keys.create_public_key(**request)
+
+
+# Generate inside your keystore in production. This in-process object is only a
+# minimal example; persist it before registration so a crash cannot orphan the kid.
+private_key = ec.generate_private_key(ec.SECP256R1())
+client = AgentMail(api_key="YOUR_EXISTING_AGENTMAIL_API_KEY")
+credential = register_agentid_key(
+    client,
+    private_key,
+    name="production signer",
+    scope={"type": "inbox", "id": "agent@example.com"},
+)
+
+# Store this mapping in trusted application state.
+key_record = {
+    "keystore_handle": "opaque-keystore-handle",
+    "kid": str(credential.api_key_id),
+}
+```
+
+```typescript title="TypeScript"
+import { generateKeyPairSync, type KeyObject } from "node:crypto";
+import { AgentMailClient } from "agentmail";
+
+type Scope =
+  | { type: "organization" }
+  | { type: "pod"; id: string }
+  | { type: "inbox"; id: string };
+
+function publicJwk(publicKey: KeyObject) {
+  const jwk = publicKey.export({ format: "jwk" });
+  if (jwk.kty !== "EC" || jwk.crv !== "P-256" || !jwk.x || !jwk.y) {
+    throw new Error("expected a P-256 public key");
+  }
+  // Select the four public members explicitly. Do not spread an exported JWK.
+  return { kty: "EC" as const, crv: "P-256" as const, x: jwk.x, y: jwk.y };
+}
+
+async function registerAgentIdKey(
+  client: AgentMailClient,
+  publicKey: KeyObject,
+  options: { scope?: Scope; name?: string; expiresAt?: Date } = {},
+) {
+  return client.apiKeys.createPublicKey({
+    publicKey: publicJwk(publicKey),
+    scope: options.scope,
+    name: options.name,
+    expiresAt: options.expiresAt,
+  });
+}
+
+// Generate inside your keystore in production. Persist the private-key handle
+// before registration so a crash cannot orphan the returned kid.
+const { privateKey, publicKey } = generateKeyPairSync("ec", {
+  namedCurve: "prime256v1",
+});
+const client = new AgentMailClient({ apiKey: "YOUR_EXISTING_AGENTMAIL_API_KEY" });
+const credential = await registerAgentIdKey(client, publicKey, {
+  name: "production signer",
+  scope: { type: "inbox", id: "agent@example.com" },
+});
+
+const keyRecord = {
+  keystoreHandle: "opaque-keystore-handle",
+  kid: credential.apiKeyId,
+};
+```
+
+</CodeBlocks>
+
+The examples keep a process-local private key only to show the types. In a
+production helper, make the signer accept an opaque keystore handle and return a
+signature; do not make private key bytes an application-level return value.
+
+## Scope and expiry
+
+Omitting `scope` inherits the registering bearer key's exact live scope. An
+explicit scope may be the caller's scope or a live descendant, never an ancestor
+or sibling.
+
+```json title="Organization scope"
+{ "type": "organization" }
+```
+
+```json title="Pod scope"
+{ "type": "pod", "id": "33333333-3333-4333-8333-333333333333" }
+```
+
+```json title="Inbox scope"
+{ "type": "inbox", "id": "agent@example.com" }
+```
+
+For `expires_at`, omission inherits the registering bearer credential's expiry.
+If that bearer does not expire, the public-key credential does not expire. An
+explicit expiry must be in the future and cannot be later than the creator's
+expiry. Scope, key material, AgentID eligibility, and expiry are immutable after
+registration; only `name` can be patched.
+
+## Sign and submit one approval
+
+The protected header and payload are intentionally smaller than a general JWT:
+
+```json title="Protected header"
+{
+  "alg": "ES256",
+  "typ": "agentid-approval+jwt",
+  "kid": "api_key_id returned by registration"
+}
+```
+
+```json title="Signed payload"
+{ "jti": "transaction challenge", "inbox_id": "agent@example.com" }
+```
+
+Do not add `aud`, `iat`, `exp`, `nonce`, `scope`, or any other claim. Do not add
+`jwk`, `jku`, `x5u`, `x5c`, or `crit` to the protected header. The transaction's
+server-side expiry is authoritative. The assertion must be a three-segment
+compact JWS no larger than 2 KiB; `jti` is 1–128 characters and `inbox_id` is
+1–254 characters and must identify an email inbox.
+
+<CodeBlocks>
+
+```python title="Python"
+import httpx
+import jwt
+from cryptography.hazmat.primitives.asymmetric import ec
+
+AGENTID_APPROVE_URL = "https://auth.agentid.com/authorize/approve"
+
+
+def approve_agentid_transaction(
+    *,
+    private_key: ec.EllipticCurvePrivateKey,
+    api_key_id: str,
+    jti: str,
+    inbox_id: str,
+) -> None:
+    assertion = jwt.encode(
+        {"jti": jti, "inbox_id": inbox_id},
+        private_key,
+        algorithm="ES256",
+        headers={"alg": "ES256", "typ": "agentid-approval+jwt", "kid": api_key_id},
+    )
+
+    response = httpx.post(
+        AGENTID_APPROVE_URL,
+        json={"assertion": assertion, "inbox_id": inbox_id},
+        # Deliberately no Authorization header and no browser cookies.
+        headers={"Content-Type": "application/json"},
+        timeout=10,
+    )
+    response.raise_for_status()
+    if response.status_code != 204:
+        raise RuntimeError(f"unexpected approval status {response.status_code}")
+```
+
+```typescript title="TypeScript"
+import type { KeyObject } from "node:crypto";
+import { CompactSign } from "jose";
+
+const AGENTID_APPROVE_URL = "https://auth.agentid.com/authorize/approve";
+
+async function approveAgentIdTransaction(input: {
+  privateKey: KeyObject;
+  apiKeyId: string;
+  jti: string;
+  inboxId: string;
+}): Promise<void> {
+  const payload = new TextEncoder().encode(
+    JSON.stringify({ jti: input.jti, inbox_id: input.inboxId }),
+  );
+  const assertion = await new CompactSign(payload)
+    .setProtectedHeader({
+      alg: "ES256",
+      typ: "agentid-approval+jwt",
+      kid: input.apiKeyId,
+    })
+    .sign(input.privateKey);
+
+  const response = await fetch(AGENTID_APPROVE_URL, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    // Deliberately no Authorization header, credentials option, or browser cookie.
+    body: JSON.stringify({ assertion, inbox_id: input.inboxId }),
+  });
+  if (response.status !== 204) {
+    throw new Error(`AgentID approval failed with ${response.status}`);
+  }
+}
+```
+
+</CodeBlocks>
+
+The unsigned `inbox_id` in the JSON body is an ergonomic duplicate and must be
+byte-for-byte equal to the signed claim. The server resolves `kid` only against a
+stored public-key credential, verifies the signature, validates the transaction,
+and rechecks the key, organization, scope, inbox, generation, and expiry before
+committing one approval. Concurrent or repeated submissions have one winner.
+
+## List, rename, revoke, and rotate
+
+The generated clients for this contract expose dedicated lifecycle methods.
+Legacy `api_keys.list`, `api_keys.create`, and `api_keys.delete` remain
+bearer-only and have no public-key request member.
+
+<CodeBlocks>
+
+```python title="Python"
+# Public-key list results never include bearer credentials.
+page = client.api_keys.list_public_keys(limit=20)
+
+# Name is the only mutable property.
+renamed = client.api_keys.update_public_key_name(
+    credential.api_key_id,
+    name="production signer 2026-08",
+)
+
+# Rotate by creating the replacement first, deploying its new kid, then deleting old.
+replacement = register_agentid_key(client, replacement_private_key, name="replacement")
+deploy_kid_and_keystore_handle(replacement.api_key_id, replacement_private_key_handle)
+client.api_keys.revoke_public_key(credential.api_key_id)
+```
+
+```typescript title="TypeScript"
+// Public-key list results never include bearer credentials.
+const page = await client.apiKeys.listPublicKeys({ limit: 20 });
+
+// Name is the only mutable property.
+const renamed = await client.apiKeys.updatePublicKeyName(credential.apiKeyId, {
+  name: "production signer 2026-08",
+});
+
+// Rotate by creating the replacement first, deploying its new kid, then deleting old.
+const replacement = await registerAgentIdKey(client, replacementPublicKey, {
+  name: "replacement",
+});
+await deployKidAndKeystoreHandle(replacement.apiKeyId, replacementPrivateKeyHandle);
+await client.apiKeys.revokePublicKey(credential.apiKeyId);
+```
+
+</CodeBlocks>
+
+Registration never updates in place. Even registering identical JWK coordinates
+again returns a new `api_key_id`; store and use that new value as `kid`. Rotation
+is therefore create new, deploy new, then delete old. Never reuse an old `kid`
+for new key material.
+
+For an emergency organization-wide fence, call
+`POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` with an
+organization-scoped bearer credential and a required UUID `Idempotency-Key`.
+The caller normally needs `api_key_delete`. A verified self-serve agent
+organization may instead use an unrestricted unmanaged bearer credential for
+this emergency operation. The request has no body. Repeating the same UUID
+returns the original `{previous_generation, current_generation, revoked_at}`
+receipt and does not advance the generation twice. A new UUID advances it again.
+Existing rows remain visible with `revoked_at` for audit; individually revoked
+keys are deleted.
+
+<CodeBlocks>
+
+```python title="Python"
+import uuid
+
+receipt = client.api_keys.revoke_all_agent_id_sign_in_keys(
+    idempotency_key=str(uuid.uuid4()),
+)
+print(receipt.previous_generation, receipt.current_generation)
+```
+
+```typescript title="TypeScript"
+import { randomUUID } from "node:crypto";
+
+const receipt = await client.apiKeys.revokeAllAgentIdSignInKeys({
+  idempotencyKey: randomUUID(),
+});
+console.log(receipt.previousGeneration, receipt.currentGeneration);
+```
+
+</CodeBlocks>
+
+## Intent and browser-session limitation
+
+<Warning title="A valid signature does not prove who initiated the browser transaction">
+  The approval assertion proves that the key holder approved the server-created
+  transaction identified by `jti` for one inbox. It does not prove that the key
+  holder initiated the transaction, controls the browser session, inspected the
+  relying party, or intended the relying party's action.
+</Warning>
+
+An attacker can start a valid authorization transaction in the attacker's own
+browser, induce an agent to sign that transaction's `jti`, and then continue in
+the same attacker browser session. AgentID's per-transaction cookie binding
+prevents a different browser from continuing the flow, but it does not remove
+this accepted transaction-intent/session-swap residual.
+
+If your product requires intent assurance, bind the displayed relying party and
+transaction to an authenticated, trusted out-of-band instruction before calling
+the signing helper. Do not claim that signature validity alone verifies user
+intent.

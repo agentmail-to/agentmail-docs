@@ -66,6 +66,13 @@ types:
       Allow inboxes on any subdomain of this domain. Adds a required wildcard MX
       record (`*.<domain>`) to `records`.
 
+  TrackingEnabled:
+    type: boolean
+    docs: |
+      Serve open tracking pixels from this domain. Adds a required `link.<domain>`
+      CNAME record to `records`, which must be published and verified before
+      `track_opens` can be used on a send.
+
   ClientId:
     type: string
     docs: Client ID of domain.
@@ -78,6 +85,7 @@ types:
       status: Status
       feedback_enabled: FeedbackEnabled
       subdomains_enabled: SubdomainsEnabled
+      tracking_enabled: TrackingEnabled
       records:
         type: list<VerificationRecord>
         docs: |
@@ -98,6 +106,7 @@ types:
       domain: DomainName
       feedback_enabled: FeedbackEnabled
       subdomains_enabled: SubdomainsEnabled
+      tracking_enabled: TrackingEnabled
       client_id: optional<ClientId>
       updated_at:
         type: datetime
@@ -120,16 +129,19 @@ types:
       domain: DomainName
       feedback_enabled: optional<FeedbackEnabled>
       subdomains_enabled: optional<SubdomainsEnabled>
+      tracking_enabled: optional<TrackingEnabled>
 
   UpdateDomainRequest:
     docs: |
-      Provide at least one of `feedback_enabled` or `subdomains_enabled`. Omitted
+      Provide at least one of `feedback_enabled`, `subdomains_enabled`, or
+      `tracking_enabled`. Omitted
       fields are left unchanged; an empty body is rejected. Enabling
       `subdomains_enabled` on a verified domain returns it to `PENDING` until the
       newly-required wildcard MX record (`*.<domain>`) is published and verified.
     properties:
       feedback_enabled: optional<FeedbackEnabled>
       subdomains_enabled: optional<SubdomainsEnabled>
+      tracking_enabled: optional<TrackingEnabled>
 
 service:
   url: Http

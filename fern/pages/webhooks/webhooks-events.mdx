@@ -55,6 +55,9 @@ async function handleWebhook(payload: Record<string, unknown>) {
   } else if (eventType === "message.rejected") {
     const event = await serialization.events.MessageRejectedEvent.parse(payload);
     console.log(event.reject.reason);
+  } else if (eventType === "message.opened") {
+    const event = await serialization.events.MessageOpenedEvent.parse(payload);
+    console.log(event.open.messageId, event.open.timestamp);
   } else if (eventType === "domain.verified") {
     const event = await serialization.events.DomainVerifiedEvent.parse(payload);
     console.log(event.domain.status);
@@ -69,6 +72,7 @@ from agentmail import (
     MessageDeliveredEvent,
     MessageComplainedEvent,
     MessageRejectedEvent,
+    MessageOpenedEvent,
     DomainVerifiedEvent,
 )
 
@@ -98,6 +102,9 @@ def handle_webhook(payload: dict):
     elif event_type == "message.complained":
         event = MessageComplainedEvent(**payload)
         print(event.complaint.type)
+    elif event_type == "message.opened":
+        event = MessageOpenedEvent(**payload)
+        print(event.open.message_id, event.open.timestamp)
     elif event_type == "message.rejected":
         event = MessageRejectedEvent(**payload)
         print(event.reject.reason)
@@ -118,7 +125,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 
   Parse typed events: MessageReceivedEvent (message.received, message.received.spam, message.received.blocked, message.received.unauthenticated),
   MessageSentEvent (send), MessageBouncedEvent (bounce), MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint),
-  MessageRejectedEvent (reject), DomainVerifiedEvent (domain).
+  MessageRejectedEvent (reject), MessageOpenedEvent (open), DomainVerifiedEvent (domain).
   Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
   Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
   message.received.unauthenticated must be explicitly included in event_types.
@@ -126,7 +133,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   from agentmail import (
     MessageReceivedEvent,
     MessageSentEvent, MessageBouncedEvent,
-    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent,
+    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, DomainVerifiedEvent,
   )
 
   def handle(payload: dict):
@@ -137,6 +144,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     elif t == "message.delivered": e = MessageDeliveredEvent(**payload)
     elif t == "message.complained": e = MessageComplainedEvent(**payload)
     elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
+    elif t == "message.opened": e = MessageOpenedEvent(**payload); print(e.open.message_id, e.open.timestamp)
     elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
   ```
 
@@ -175,6 +183,9 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     } else if (t === "message.complained") {
       const e = await serialization.events.MessageComplainedEvent.parse(payload);
       console.log(e.complaint);
+    } else if (t === "message.opened") {
+      const e = await serialization.events.MessageOpenedEvent.parse(payload);
+      console.log(e.open.messageId, e.open.timestamp);
     } else if (t === "message.rejected") {
       const e = await serialization.events.MessageRejectedEvent.parse(payload);
       console.log(e.reject);
@@ -546,6 +557,39 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   `complained` address we prevent you from sending to this email address ever
   again to keep bounce rates low. Make sure to keep your account bounce rate
   under 4%, otherwise we will put your account under review.
+</Warning>
+
+### `message.opened`
+
+- **Description:** Triggered the first time a tracked message is opened. Requires `track_opens` on the send, a custom domain with tracking enabled, and an HTML body.
+- **Use Case:** Time a follow up, mark a conversation as engaged, or measure reply rates against opens.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.opened",
+  "event_id": "evt_901stu",
+  "open": {
+    "inbox_id": "inbox_456def",
+    "thread_id": "thd_789ghi",
+    "message_id": "<abc123@agentmail.to>",
+    "timestamp": "2023-10-27T10:15:00Z"
+  }
+}
+```
+</CodeGroup>
+
+<Note>
+  Sent once per message, on the first open. Repeat opens do not resend it, so there are no open
+  counts. One pixel is injected per message rather than per recipient, so a message with several
+  recipients fires once when any of them opens it, and the event does not identify which one.
+</Note>
+
+<Warning>
+  Open tracking is a directional signal, not proof of reading. Mail clients that block remote images
+  suppress opens, and image proxies used by some providers and security scanners can register an open
+  within seconds of delivery without a person seeing the message.
 </Warning>
 
 ## Domain Events

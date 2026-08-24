@@ -188,7 +188,7 @@ redirects:
   - source: /documentation/resources/support
     destination: /support
   - source: /integrations/smithery
-    destination: /integrations/skills
+    destination: /integrations/mcp
   - source: /core-concepts/drafts
     destination: /drafts
   - source: /webhooks
@@ -291,6 +291,9 @@ navigation:
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
+          - page: Grok Bot
+            icon: fa-solid fa-bolt-lightning
+            path: pages/integrations/grokbot.mdx
           - page: Replit
             icon: fa-solid fa-laptop-code
             path: pages/integrations/replit.mdx
@@ -314,6 +317,9 @@ navigation:
           #   path: pages/integrations/crewai.mdx
       - section: Guides
         contents:
+          - page: AgentID Public-Key Authentication
+            icon: fa-solid fa-key
+            path: pages/guides/agentid-public-key-authentication.mdx
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx

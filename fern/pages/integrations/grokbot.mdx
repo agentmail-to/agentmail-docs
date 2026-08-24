@@ -1,0 +1,153 @@
+---
+title: Grok Bot
+subtitle: Give your Grok Bot its own email inbox.
+slug: integrations/grokbot
+description: AgentMail's Grok Bot, Grok Build, and Grok API integration
+---
+
+## Getting started
+
+[Grok Bot](https://x.ai/bot) is xAI's always-on agent product. Out of the box a bot can read the mailbox you connect via Gmail or Outlook, but the bot has no address of its own. AgentMail gives each bot a real inbox with its own address, threading, inbound webhooks, and reply-to-message. Setup takes a few minutes.
+
+**AgentMail is an official Cursor plugin.** Because Grok Bot ships with the Cursor plugin browser, AgentMail appears there natively — no custom MCP setup needed for the standard install.
+
+The same AgentMail MCP server serves all three of xAI's agent surfaces: **Grok Bot** (the UI-based always-on teammate on macOS, Windows, iOS), **Grok Build** (the CLI coding agent), and the **Grok API** (for developers building their own agents on grok-4.6).
+
+Note on naming: xAI's official product is Grok Bot (two words). Community and search engines usually spell it Grokbot (one word). This page uses both.
+
+## Install
+
+<Tabs>
+<Tab title="Grok Bot">
+
+**Recommended — install the official plugin.**
+
+1. Open Grok Bot and go to **Settings → Plugins**, or open **grok.com/connectors** in a browser.
+2. Search for **AgentMail** in the plugin browser.
+3. Click **Install**.
+4. Your browser opens an AgentMail OAuth authorization screen. It identifies the requesting app as **Cursor**, not Grok Bot, because Grok Bot uses Cursor's plugin plumbing. Click **Allow**.
+5. The connector card should now show **24 tools**.
+
+**Fallback — add as a custom MCP connector** (for accounts where the plugin browser is restricted):
+
+1. Go to **Settings → Plugins → Add Custom MCP**, or **grok.com/connectors → New Connector → Custom**.
+2. URL: `https://mcp.agentmail.to/mcp`
+3. Header name: `x-api-key`. Header value: your AgentMail API key from the [AgentMail Console](https://console.agentmail.to).
+4. Save.
+
+</Tab>
+<Tab title="Grok Build">
+
+**Recommended — one command:**
+
+```bash
+grok mcp add --transport http agentmail https://mcp.agentmail.to/mcp --header "Authorization: Bearer YOUR_API_KEY"
+```
+
+<Note>
+Grok Build's MCP HTTP client attempts OAuth negotiation when it sees an `x-api-key` header, so use `Authorization: Bearer` for API-key auth. Grok Bot accepts either.
+</Note>
+
+Verify:
+
+```bash
+grok mcp list
+```
+
+You should see `agentmail: https://mcp.agentmail.to/mcp`.
+
+**Or edit `~/.grok/config.toml` manually** (useful for teams keeping Grok config in version control):
+
+```toml
+[mcp_servers.agentmail]
+url = "https://mcp.agentmail.to/mcp"
+enabled = true
+
+[mcp_servers.agentmail.headers]
+Authorization = "Bearer YOUR_API_KEY"
+```
+
+Start a new `grok` session to pick up the change.
+
+</Tab>
+<Tab title="Grok API">
+
+**Register AgentMail as a remote MCP server** in your Grok API tool array. AgentMail's MCP server speaks Streamable HTTP with Bearer auth.
+
+```json
+{
+  "type": "remote_mcp",
+  "server_label": "agentmail",
+  "server_url": "https://mcp.agentmail.to/mcp",
+  "authorization": "Bearer YOUR_API_KEY"
+}
+```
+
+Include this object in the `tools` array on any Grok API request. See [xAI's remote MCP guide](https://docs.x.ai/developers/tools/remote-mcp) for the full request shape and streaming details.
+
+The same 24 AgentMail tools are exposed. Tool names follow xAI's remote MCP prefix convention.
+
+</Tab>
+</Tabs>
+
+## Verify installation
+
+Start a new bot (Grok Bot), Grok Build session, or Grok API request and ask:
+
+> Use the AgentMail tools to list_inboxes and tell me how many inboxes exist.
+
+<Note>
+Tool names differ across surfaces. Grok Bot exposes tools unprefixed (`list_inboxes`, `create_inbox`, `send_message`). Grok Build prefixes with the server name (`agentmail__list_inboxes`, `agentmail__create_inbox`). Grok API follows xAI's remote MCP prefix convention. Behavior is identical.
+</Note>
+
+## Use cases
+
+1. **[Process inbound](https://www.agentmail.to/build/grokbot#process-inbound):** Receive, triage, and process inbound emails
+2. **[Automate outbound](https://www.agentmail.to/build/grokbot#automate-outbound):** Draft, schedule, and send outbound emails
+3. **[Join conversations](https://www.agentmail.to/build/grokbot#join-conversations):** Address a Grok Bot directly or CC it in an existing email thread
+4. **[Identify and authenticate](https://www.agentmail.to/build/grokbot#identify-and-authenticate):** Agents can sign up, receive 2FA code, and authenticate with any application
+
+## Verticals
+
+1. **[Operations](https://www.agentmail.to/build/grokbot#operations):** Automate internal workflows, vendor communications, and cross-team coordination
+2. **[Support](https://www.agentmail.to/build/grokbot#support):** Handle customer inquiries, ticket management, and automated responses at scale
+3. **[Procurement](https://www.agentmail.to/build/grokbot#procurement):** Streamline vendor onboarding, RFP processes, and purchase order management
+4. **[Sales](https://www.agentmail.to/build/grokbot#sales):** Automate lead qualification, follow-ups, and customer outreach campaigns
+5. **[Recruiting](https://www.agentmail.to/build/grokbot#recruiting):** Automate candidate outreach, interview scheduling, and applicant communication
+
+These are just a few select verticals, but we have seen AgentMail be effective in automating any email task across every function. If a human does it with email, it can be automated with AgentMail.
+
+## FAQ
+
+<AccordionGroup>
+
+<Accordion title="What's the difference between Grok Bot, Grok Build, and Grok API for AgentMail?">
+Same MCP server, same 24 tools, different clients. Grok Bot is the UI product with persistent cloud routines. Grok Build is a CLI session that ends when you close the terminal. Grok API is the raw REST endpoint for developers wiring AgentMail into their own agent runtime. Tool names are unprefixed on Grok Bot (`send_message`), prefixed with `agentmail__` on Grok Build, and follow xAI's remote MCP prefix convention on the API. Auth headers also differ: Grok Bot accepts either `x-api-key` or OAuth, Grok Build requires `Authorization: Bearer`, and the Grok API takes the token in the `authorization` field of the tool object.
+</Accordion>
+
+<Accordion title="Does this work with SuperGrok Plus?">
+No. Grok Bot access is only included with Cursor Ultra ($200/mo), SuperGrok Heavy ($300/mo), or Cursor Premium Teams ($120/seat/mo). SuperGrok Plus does not include Grok Bot. See [x.ai/bot](https://x.ai/bot) for current tier eligibility. The Grok Build CLI and the Grok API are separate products with their own access.
+</Accordion>
+
+<Accordion title="What if a send goes through cleanly but the message never lands?">
+Check the AgentMail Console suppression list for the destination address. Any address that ever bounced, complained, or unsubscribed is on your SES suppression list and future sends fail silently. Remove it there to retry. Always test the first send to an external address (Gmail, iCloud, personal domain) rather than another AgentMail address you may have blocked yourself.
+</Accordion>
+
+<Accordion title="How do I let a bot work across multiple AgentMail organizations?">
+AgentMail's MCP server exposes `list_organizations` and `select_organization` as tools when your API key has cross-org access. Grok Bot will list the orgs available on your account and pick one for you (usually the one that owns your API key). If you need a specific org, name it in the prompt: "use the App Sumo Testing org, create an inbox called…"
+</Accordion>
+
+<Accordion title="Is AgentMail an official plugin?">
+Yes. AgentMail is an official Cursor plugin, listed in the Cursor plugin marketplace and included in the plugin browser Grok Bot ships with. AgentMail also maintains official plugins for Claude Code and Codex in the [same repo](https://github.com/agentmail-to/agentmail-plugins). Grok API integration uses the standard remote MCP contract xAI documents.
+</Accordion>
+
+</AccordionGroup>
+
+## Resources
+
+- [AgentMail plugin repo](https://github.com/agentmail-to/agentmail-plugins)
+- [AgentMail API reference](https://docs.agentmail.to/api-reference)
+- [AgentMail Console](https://console.agentmail.to)
+- [Grok Bot documentation](https://docs.x.ai/grok-bot/overview)
+- [Grok Build MCP servers](https://docs.x.ai/build/features/mcp-servers)
+- [Grok API remote MCP guide](https://docs.x.ai/developers/tools/remote-mcp)

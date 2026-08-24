@@ -278,7 +278,7 @@ socket.sendSubscribe({
 ```
 
 <Callout intent="info">
-  By default (when no `event_types` are specified), spam, blocked, and unauthenticated events are excluded from the subscription. To receive them, explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in `event_types`. Spam and blocked events also require the `label_spam_read` or `label_blocked_read` permission.
+  By default (when no `event_types` are specified), spam, blocked, and unauthenticated events are excluded from the subscription. To receive them, explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in `event_types`. These events also require the matching label visibility permission: `label_spam_read`, `label_blocked_read`, or `label_unauthenticated_read`.
 </Callout>
 
 ---
@@ -301,6 +301,7 @@ socket.sendSubscribe({
 | `message_bounced` | `MessageBouncedEvent` | `AgentMail.MessageBouncedEvent` | Email bounced |
 | `message_complained` | `MessageComplainedEvent` | `AgentMail.MessageComplainedEvent` | Email marked as spam |
 | `message_rejected` | `MessageRejectedEvent` | `AgentMail.MessageRejectedEvent` | Email was rejected |
+| `message_opened` | `MessageOpenedEvent` | `AgentMail.MessageOpenedEvent` | Tracked email was opened for the first time |
 
 ### Domain Events
 
@@ -410,8 +411,8 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
   Sync: with client.websockets.connect() as socket: socket.send_subscribe(Subscribe(inbox_ids=[...])); for event in socket: ...
   Async: async with client.websockets.connect() as socket: await socket.send_subscribe(...); async for event in socket: ...
   Subscribe(inbox_ids=[...], pod_ids=[...], event_types=[...])
-  Event types: Subscribed, MessageReceivedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, DomainVerifiedEvent
-  Spam, blocked, and unauthenticated events require explicit opt-in via event_types. Spam and blocked events require label_spam_read / label_blocked_read permissions.
+  Event types: Subscribed, MessageReceivedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, DomainVerifiedEvent
+  Spam, blocked, and unauthenticated events require explicit opt-in via event_types, plus the matching label_spam_read / label_blocked_read / label_unauthenticated_read permission.
   """
   from agentmail import AgentMail, Subscribe, Subscribed, MessageReceivedEvent
 

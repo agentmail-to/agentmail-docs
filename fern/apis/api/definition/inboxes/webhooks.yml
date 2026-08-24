@@ -45,6 +45,19 @@ service:
       errors:
         - global.NotFoundError
 
+    getHeaders:
+      method: GET
+      path: /{webhook_id}/headers
+      display-name: Get Webhook Headers
+      docs: |
+        List the names of custom HTTP headers included with deliveries to this inbox-scoped webhook.
+        Header values are write-only and are never returned.
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      response: webhooks.WebhookHeaderNamesResponse
+      errors:
+        - global.NotFoundError
+
     create:
       method: POST
       path: ""
@@ -74,6 +87,22 @@ service:
         webhook_id: webhooks.WebhookId
       request: webhooks.UpdateInboxWebhookRequest
       response: webhooks.Webhook
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
+    updateHeaders:
+      method: PATCH
+      path: /{webhook_id}/headers
+      display-name: Update Webhook Headers
+      docs: |
+        Atomically set, replace, or remove custom HTTP headers included with deliveries to this
+        inbox-scoped webhook. Header values remain write-only.
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      request: webhooks.UpdateWebhookHeadersRequest
+      response:
+        status-code: 204
       errors:
         - global.NotFoundError
         - global.ValidationError
