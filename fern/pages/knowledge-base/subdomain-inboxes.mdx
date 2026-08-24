@@ -1,0 +1,184 @@
+---
+title: "How do I create inboxes on any subdomain?"
+subtitle: Register one parent domain and use it for inboxes across its subdomains.
+slug: knowledge-base/subdomain-inboxes
+---
+
+AgentMail can create inboxes on any subdomain of a verified parent domain. You only need to register the parent once instead of adding and verifying every subdomain separately.
+
+For example, registering `example.com` with subdomains enabled lets you create:
+
+- `agent@support.example.com`
+- `sales@west.example.com`
+- `assistant@customer.eu.example.com`
+
+## How it works
+
+When you enable subdomains, AgentMail adds a wildcard MX record to the domain's required DNS records. The wildcard routes incoming mail for subdomains to AgentMail. Subdomain inboxes use the parent domain's sending identity and DKIM configuration.
+
+<Steps>
+<Step title="1. Enable subdomains on the parent domain">
+
+Enable subdomains when you create the parent domain:
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# create the parent domain with subdomains enabled
+domain = client.domains.create(
+    domain="example.com",
+    subdomains_enabled=True,
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// create the parent domain with subdomains enabled
+const domain = await client.domains.create({
+  domain: "example.com",
+  subdomainsEnabled: true,
+});
+```
+
+</CodeBlocks>
+
+If the parent domain is already registered, update it instead:
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# enable subdomains on an existing domain
+domain = client.domains.update(
+    "example.com",
+    subdomains_enabled=True,
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// enable subdomains on an existing domain
+const domain = await client.domains.update("example.com", {
+  subdomainsEnabled: true,
+});
+```
+
+</CodeBlocks>
+
+You can also update an existing domain through the API:
+
+```bash title="cURL"
+curl -X PATCH https://api.agentmail.to/v0/domains/example.com \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"subdomains_enabled": true}'
+```
+
+<Warning>
+Enabling subdomains on an already verified domain changes its status to `PENDING`. The wildcard MX record is now required, so the domain must be verified again. Existing sending is not interrupted while verification is pending.
+</Warning>
+
+</Step>
+
+<Step title="2. Publish the wildcard MX record">
+
+The domain response includes the wildcard MX record you need to publish. For a registered domain of `example.com`, it looks like this:
+
+| Field        | Value                                  |
+| ------------ | -------------------------------------- |
+| Type         | `MX`                                   |
+| Name or host | `*`                                    |
+| Value        | `inbound-smtp.us-east-1.amazonaws.com` |
+| Priority     | `10`                                   |
+
+The `*` host represents `*.example.com`. Some DNS providers expect the complete hostname instead. Use the exact name shown in the AgentMail Console or the API response if your provider formats records differently.
+
+<Note>
+If the registered parent is itself a subdomain, such as `mail.example.com`, the wildcard is `*.mail.example.com`. In the `example.com` DNS zone, this is usually entered as `*.mail`.
+</Note>
+
+</Step>
+
+<Step title="3. Wait for the parent domain to be verified">
+
+AgentMail checks the wildcard MX record with the other required DNS records. Wait until the parent domain returns to `VERIFIED` before creating inboxes on its subdomains.
+
+If the domain remains `PENDING`, open it in the [AgentMail Console](https://console.agentmail.to) and confirm that the wildcard MX record is valid. DNS changes may take time to propagate.
+
+</Step>
+
+<Step title="4. Create an inbox on a subdomain">
+
+Pass the complete subdomain in the inbox's `domain` field:
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# create agent@support.example.com
+inbox = client.inboxes.create(
+    username="agent",
+    domain="support.example.com",
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// create agent@support.example.com
+const inbox = await client.inboxes.create({
+  username: "agent",
+  domain: "support.example.com",
+});
+```
+
+</CodeBlocks>
+
+You do not need to register `support.example.com` as another domain. AgentMail authorizes it through the verified parent domain.
+
+</Step>
+</Steps>
+
+## Important behavior
+
+- The parent domain must be `VERIFIED` before you create an inbox on one of its subdomains.
+- Creating a subdomain inbox without enabling subdomains returns a `422` error.
+- Only registered domains appear in the Domains list. Subdomain addresses appear in the Inboxes list.
+- Subdomain inboxes share the parent domain's sending identity, DKIM configuration, and sending reputation.
+- Register a subdomain separately if it needs an isolated sending reputation.
+- If open tracking is enabled, `link.example.com` and domains beneath it are reserved for tracking and cannot host inboxes.
+
+## Common issues
+
+### The parent domain returned to `PENDING`
+
+This is expected after enabling subdomains. Publish the new wildcard MX record and wait for AgentMail to verify it.
+
+### The wildcard MX record is missing
+
+Check whether your DNS provider expects `*`, `*.example.com`, or another relative form. Copy the name and value shown by AgentMail whenever possible.
+
+### Inbox creation returns a `422` error
+
+Confirm that `subdomains_enabled` is `true` and that the parent domain is `VERIFIED`. If tracking is enabled, also confirm that the requested address is not on the reserved `link` subdomain.
+
+### The subdomain is not listed under Domains
+
+This is expected. Only the registered parent is a domain resource. Use the Inboxes list to find addresses created on its subdomains.
+
+For broader domain setup instructions, see [Using Custom Domains](https://docs.agentmail.to/custom-domains). If DNS verification is stuck, see [Why is my domain not verifying?](https://docs.agentmail.to/knowledge-base/domain-not-verifying).

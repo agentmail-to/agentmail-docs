@@ -504,6 +504,10 @@ navigation:
           - page: Custom domain setup
             icon: fa-solid fa-globe
             path: pages/knowledge-base/custom-domain-setup.mdx
+          - page: Inboxes on subdomains
+            hidden: true
+            icon: fa-solid fa-sitemap
+            path: pages/knowledge-base/subdomain-inboxes.mdx
           - page: SPF, DKIM, and DMARC setup
             icon: fa-solid fa-shield-halved
             path: pages/knowledge-base/spf-dkim-dmarc.mdx
