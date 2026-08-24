@@ -44,7 +44,14 @@ jobs:
           python3 bin/gen-cli-overrides.py --check
           python3 bin/gen-cli-security-overrides.py --check
 
+      # Generation is dispatch-only for now. Push events still run the export
+      # and overlay validation above (so spec/overlay drift fails loudly), but
+      # do not generate: the pinned Fern CLI (5.44.8) predates the remote
+      # AUTO-version fix (5.63.1), and a push-triggered AUTO run would race a
+      # concurrent versioned dispatch for the same generated PR. Restore
+      # push-triggered generation after upgrading the Fern pin.
       - name: Generate CLI
+        if: github.event_name == 'workflow_dispatch'
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
-        run: fern generate --api cli --group cli --log-level debug --version "${{ github.event.inputs.version || 'AUTO' }}"
+        run: fern generate --api cli --group cli --log-level debug --version "${{ github.event.inputs.version }}"

@@ -104,6 +104,7 @@ paths:
       - TokenAuth: []
   /v0/inboxes/{inbox_id}/drafts/{draft_id}/send:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - drafts
@@ -243,6 +244,7 @@ paths:
       - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/send:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
@@ -264,6 +266,7 @@ paths:
           type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
@@ -290,6 +293,7 @@ paths:
           type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply-all:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
@@ -316,6 +320,7 @@ paths:
           type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/forward:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
