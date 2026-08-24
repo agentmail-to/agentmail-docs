@@ -864,33 +864,6 @@ paths:
       security:
       - BearerAuth: []
       - TokenAuth: []
-  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply:
-    post:
-      x-fern-sdk-group-name:
-      - inboxes
-      - messages
-      x-fern-sdk-method-name: draft-reply
-      security:
-      - BearerAuth: []
-      - TokenAuth: []
-  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply-all:
-    post:
-      x-fern-sdk-group-name:
-      - inboxes
-      - messages
-      x-fern-sdk-method-name: draft-reply-all
-      security:
-      - BearerAuth: []
-      - TokenAuth: []
-  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-forward:
-    post:
-      x-fern-sdk-group-name:
-      - inboxes
-      - messages
-      x-fern-sdk-method-name: draft-forward
-      security:
-      - BearerAuth: []
-      - TokenAuth: []
   /v0/inboxes/{inbox_id}/metrics/events:
     get:
       x-fern-sdk-group-name:
@@ -1024,6 +997,93 @@ paths:
       - pods
       - webhooks
       x-fern-sdk-method-name: delete
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/webhooks/{webhook_id}/headers:
+    get:
+      x-fern-sdk-group-name:
+      - webhooks
+      x-fern-sdk-method-name: get-headers
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+    patch:
+      x-fern-sdk-group-name:
+      - webhooks
+      x-fern-sdk-method-name: update-headers
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/public-keys:
+    get:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: list-public-keys
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+    post:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: create-public-key
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/public-keys/{api_key_id}:
+    patch:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: update-public-key-name
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+    delete:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: revoke-public-key
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/public-keys/agentid-sign-in/revoke-all:
+    post:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: revoke-all-agent-id-sign-in-keys
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/inboxes/{inbox_id}/webhooks/{webhook_id}/headers:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      x-fern-sdk-method-name: get-headers
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      x-fern-sdk-method-name: update-headers
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/pods/{pod_id}/webhooks/{webhook_id}/headers:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      x-fern-sdk-method-name: get-headers
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      x-fern-sdk-method-name: update-headers
       security:
       - BearerAuth: []
       - TokenAuth: []

@@ -582,6 +582,87 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/webhooks/{webhook_id}/headers:
+    get:
+      description: >-
+        List the names of custom HTTP headers included with deliveries to this
+        webhook. Header values are
+
+        write-only and are never returned.
+      operationId: webhooks_getHeaders
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhookHeaderNamesResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Webhook Headers
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        Atomically set, replace, or remove custom HTTP headers included with
+        deliveries to this webhook.
+
+        Header values remain write-only.
+      operationId: webhooks_updateHeaders
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update Webhook Headers
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksUpdateWebhookHeadersRequest'
   /v0/agent/sign-up:
     post:
       description: >-
@@ -796,6 +877,224 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Delete API Key
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/api-keys/public-keys:
+    get:
+      description: |-
+        List only public-key credentials visible to the bearer caller's scope.
+        Bearer credentials are never returned, even though both credential types
+        share storage and pagination indexes. Requires `api_key_read`.
+      operationId: apiKeys_listPublicKeys
+      tags:
+        - ApiKeys
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+        - name: ascending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ascending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPublicKeysResponse'
+      summary: List Public-Key Credentials
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: |-
+        Register a public P-256 JWK using an existing AgentMail bearer API key
+        with `api_key_create`. Re-registering the same JWK creates a new
+        credential ID; it does not replace or recover an earlier credential.
+        The private key must never be sent to AgentMail.
+      operationId: apiKeys_createPublicKey
+      tags:
+        - ApiKeys
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicKeyCredential'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Register Public-Key Credential
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePublicKeyRequest'
+  /v0/api-keys/public-keys/{api_key_id}:
+    patch:
+      description: |-
+        Rename the credential. All security-relevant fields are immutable.
+        Requires `api_key_update`.
+      operationId: apiKeys_updatePublicKeyName
+      tags:
+        - ApiKeys
+      parameters:
+        - name: api_key_id
+          in: path
+          description: Public-key credential ID returned by registration.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicKeyCredential'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Rename Public-Key Credential
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePublicKeyNameRequest'
+    delete:
+      description: |-
+        Permanently revoke one public-key credential. This hard-deletes the
+        credential; repeating the request returns not found. Requires
+        `api_key_delete`.
+      operationId: apiKeys_revokePublicKey
+      tags:
+        - ApiKeys
+      parameters:
+        - name: api_key_id
+          in: path
+          description: Public-key credential ID returned by registration.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Revoke Public-Key Credential
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/api-keys/public-keys/agentid-sign-in/revoke-all:
+    post:
+      description: |-
+        Invalidate every current public-key credential in the caller's
+        organization by advancing its AgentID key generation. The caller must be
+        organization-scoped and either have `api_key_delete` or, for a verified
+        self-serve agent organization, use an unrestricted unmanaged bearer
+        credential. No request body is accepted.
+
+        `Idempotency-Key` is required and must be a UUID. Reusing the same UUID
+        returns the original permanent receipt without advancing the generation
+        again. A new UUID performs a new generation advance.
+      operationId: apiKeys_revokeAllAgentIdSignInKeys
+      tags:
+        - ApiKeys
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          description: Required UUID identifying this revoke-all operation permanently.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeAllAgentIdSignInKeysResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Revoke All AgentID Sign-In Keys
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -1251,7 +1550,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail inboxes:api-keys list --inbox-id <inbox_id>
+        agentmail inboxes api-keys list --inbox-id <inbox_id>
         ```
       operationId: inboxes_apiKeys_list
       tags:
@@ -1299,7 +1598,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail inboxes:api-keys create --inbox-id <inbox_id> --name "My Key"
+        agentmail inboxes api-keys create --inbox-id <inbox_id> --name "My Key"
         ```
       operationId: inboxes_apiKeys_create
       tags:
@@ -1350,7 +1649,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:api-keys delete --inbox-id <inbox_id> --api-key-id
+        agentmail inboxes api-keys delete --inbox-id <inbox_id> --api-key-id
         <api_key_id>
 
         ```
@@ -1390,7 +1689,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail inboxes:drafts list --inbox-id <inbox_id>
+        agentmail inboxes drafts list --inbox-id <inbox_id>
         ```
       operationId: inboxes_drafts_list
       tags:
@@ -1460,11 +1759,22 @@ paths:
         - BearerAuth: []
     post:
       description: >-
+        Create a draft. Supply `in_reply_to` to create a reply draft (with
+
+        `reply_all` to address the whole thread), whose recipients, subject, and
+
+        threading are derived from the referenced message, or `forward_of` to
+
+        create a forward draft, which derives the subject, threading, and
+
+        forwarded content from the source but keeps recipients caller-supplied.
+
+
         **CLI:**
 
         ```bash
 
-        agentmail inboxes:drafts create --inbox-id <inbox_id> --to
+        agentmail inboxes drafts create --inbox-id <inbox_id> --to
         recipient@example.com --subject "Draft subject" --text "Draft body"
 
         ```
@@ -1484,6 +1794,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Draft'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
         '404':
           description: ''
           content:
@@ -1509,7 +1825,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail inboxes:drafts get --inbox-id <inbox_id> --draft-id <draft_id>
+        agentmail inboxes drafts get --inbox-id <inbox_id> --draft-id <draft_id>
         ```
       operationId: inboxes_drafts_get
       tags:
@@ -1548,11 +1864,18 @@ paths:
         - BearerAuth: []
     patch:
       description: >-
+        Edit fields on an existing draft. Passing `null` clears a field (or `[]`
+
+        for a recipient field); `send_at: null` un-schedules a scheduled draft.
+
+        A draft that is already being sent cannot be edited.
+
+
         **CLI:**
 
         ```bash
 
-        agentmail inboxes:drafts update --inbox-id <inbox_id> --draft-id
+        agentmail inboxes drafts update --inbox-id <inbox_id> --draft-id
         <draft_id> --subject "Updated subject"
 
         ```
@@ -1577,7 +1900,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Draft'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
         '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
           description: ''
           content:
             application/json:
@@ -1603,7 +1938,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:drafts delete --inbox-id <inbox_id> --draft-id
+        agentmail inboxes drafts delete --inbox-id <inbox_id> --draft-id
         <draft_id>
 
         ```
@@ -1645,7 +1980,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:drafts get-attachment --inbox-id <inbox_id> --draft-id
+        agentmail inboxes drafts get-attachment --inbox-id <inbox_id> --draft-id
         <draft_id> --attachment-id <attachment_id>
 
         ```
@@ -1696,7 +2031,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:drafts send --inbox-id <inbox_id> --draft-id
+        agentmail inboxes drafts send --inbox-id <inbox_id> --draft-id
         <draft_id>
 
         ```
@@ -1771,7 +2106,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:events list --inbox-id <inbox_id>
+        agentmail inboxes events list --inbox-id <inbox_id>
 
         ```
       operationId: inboxes_events_list
@@ -1829,7 +2164,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:lists list --inbox-id <inbox_id> --direction
+        agentmail inboxes lists list --inbox-id <inbox_id> --direction
         <direction> --type <type>
 
         ```
@@ -1885,7 +2220,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:lists create --inbox-id <inbox_id> --direction
+        agentmail inboxes lists create --inbox-id <inbox_id> --direction
         <direction> --type <type> --entry user@example.com
 
         ```
@@ -1942,7 +2277,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:lists get --inbox-id <inbox_id> --direction
+        agentmail inboxes lists get --inbox-id <inbox_id> --direction
         <direction> --type <type> --entry <entry>
 
         ```
@@ -1998,7 +2333,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:lists delete --inbox-id <inbox_id> --direction
+        agentmail inboxes lists delete --inbox-id <inbox_id> --direction
         <direction> --type <type> --entry <entry>
 
         ```
@@ -2055,7 +2390,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail inboxes:messages list --inbox-id <inbox_id>
+        agentmail inboxes messages list --inbox-id <inbox_id>
         ```
       operationId: inboxes_messages_list
       tags:
@@ -2259,7 +2594,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages get --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages get --inbox-id <inbox_id> --message-id
         <message_id>
 
         ```
@@ -2304,7 +2639,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages update --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages update --inbox-id <inbox_id> --message-id
         <message_id> --add-label read --remove-label unread
 
         ```
@@ -2364,7 +2699,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages delete --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages delete --inbox-id <inbox_id> --message-id
         <message_id>
 
         ```
@@ -2413,7 +2748,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages batch-get --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages batch-get --inbox-id <inbox_id> --message-id
         <id1> --message-id <id2>
 
         ```
@@ -2473,7 +2808,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages batch-update --inbox-id <inbox_id>
+        agentmail inboxes messages batch-update --inbox-id <inbox_id>
         --message-id <id1> --message-id <id2> --add-label read --remove-label
         unread
 
@@ -2521,7 +2856,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages get-attachment --inbox-id <inbox_id>
+        agentmail inboxes messages get-attachment --inbox-id <inbox_id>
         --message-id <message_id> --attachment-id <attachment_id>
 
         ```
@@ -2572,7 +2907,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages get-raw --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages get-raw --inbox-id <inbox_id> --message-id
         <message_id>
 
         ```
@@ -2618,7 +2953,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages send --inbox-id <inbox_id> --to
+        agentmail inboxes messages send --inbox-id <inbox_id> --to
         recipient@example.com --subject "Hello" --text "Body"
 
         ```
@@ -2683,7 +3018,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages reply --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages reply --inbox-id <inbox_id> --message-id
         <message_id> --text "Reply text"
 
         ```
@@ -2753,7 +3088,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages reply-all --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages reply-all --inbox-id <inbox_id> --message-id
         <message_id> --text "Reply text"
 
         ```
@@ -2823,7 +3158,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:messages forward --inbox-id <inbox_id> --message-id
+        agentmail inboxes messages forward --inbox-id <inbox_id> --message-id
         <message_id> --to recipient@example.com
 
         ```
@@ -2886,202 +3221,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SendMessageRequest'
-  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply:
-    post:
-      description: >-
-        Create a draft that replies to a message instead of sending it. The
-
-        recipients, subject, and threading are derived from the source message.
-
-        Send it later with `Send Draft`.
-
-
-        **CLI:**
-
-        ```bash
-
-        agentmail inboxes:messages draft-reply --inbox-id <inbox_id>
-        --message-id <message_id> --text "Reply text"
-
-        ```
-      operationId: inboxes_messages_draft-reply
-      tags:
-        - InboxesMessages
-      parameters:
-        - name: inbox_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/inboxesInboxId'
-        - name: message_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/MessageId'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Draft'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create Draft Reply
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateDraftReplyRequest'
-  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-reply-all:
-    post:
-      description: >-
-        Create a draft that replies to every recipient of a message instead of
-
-        sending it. Recipients, subject, and threading are derived from the
-
-        source message. Send it later with `Send Draft`.
-
-
-        **CLI:**
-
-        ```bash
-
-        agentmail inboxes:messages draft-reply-all --inbox-id <inbox_id>
-        --message-id <message_id> --text "Reply text"
-
-        ```
-      operationId: inboxes_messages_draft-reply-all
-      tags:
-        - InboxesMessages
-      parameters:
-        - name: inbox_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/inboxesInboxId'
-        - name: message_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/MessageId'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Draft'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create Draft Reply All
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateDraftReplyAllRequest'
-  /v0/inboxes/{inbox_id}/messages/{message_id}/draft-forward:
-    post:
-      description: >-
-        Create a draft that forwards a message instead of sending it. The
-        subject
-
-        and threading are derived from the source message, whose body and
-
-        attachments are merged in at send time. Send it later with `Send Draft`.
-
-
-        **CLI:**
-
-        ```bash
-
-        agentmail inboxes:messages draft-forward --inbox-id <inbox_id>
-        --message-id <message_id> --to recipient@example.com
-
-        ```
-      operationId: inboxes_messages_draft-forward
-      tags:
-        - InboxesMessages
-      parameters:
-        - name: inbox_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/inboxesInboxId'
-        - name: message_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/MessageId'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Draft'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create Draft Forward
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateDraftForwardRequest'
   /v0/inboxes/{inbox_id}/metrics/events:
     get:
       description: |-
@@ -3093,7 +3232,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail inboxes:metrics query --inbox-id <inbox_id>
+        agentmail inboxes metrics query --inbox-id <inbox_id>
         ```
       operationId: inboxes_metrics_queryEvents
       tags:
@@ -3247,7 +3386,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail inboxes:threads list --inbox-id <inbox_id>
+        agentmail inboxes threads list --inbox-id <inbox_id>
         ```
       operationId: inboxes_threads_list
       tags:
@@ -3451,7 +3590,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:threads get --inbox-id <inbox_id> --thread-id
+        agentmail inboxes threads get --inbox-id <inbox_id> --thread-id
         <thread_id>
 
         ```
@@ -3550,16 +3689,14 @@ paths:
               $ref: '#/components/schemas/UpdateThreadRequest'
     delete:
       description: >-
-        Moves the thread to trash by adding a trash label to all messages. If
-        the thread is already in trash, it will be permanently deleted. Use
-        `permanent=true` to force permanent deletion.
+        Permanently deletes a thread and all of its messages.
 
 
         **CLI:**
 
         ```bash
 
-        agentmail inboxes:threads delete --inbox-id <inbox_id> --thread-id
+        agentmail inboxes threads delete --inbox-id <inbox_id> --thread-id
         <thread_id>
 
         ```
@@ -3577,13 +3714,6 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ThreadId'
-        - name: permanent
-          in: query
-          description: If true, permanently delete the thread instead of moving to trash.
-          required: false
-          schema:
-            type: boolean
-            nullable: true
       responses:
         '204':
           description: ''
@@ -3608,7 +3738,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:threads get-attachment --inbox-id <inbox_id>
+        agentmail inboxes threads get-attachment --inbox-id <inbox_id>
         --thread-id <thread_id> --attachment-id <attachment_id>
 
         ```
@@ -3657,7 +3787,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks list --inbox-id <inbox_id>
+        agentmail inboxes webhooks list --inbox-id <inbox_id>
         ```
       operationId: inboxes_webhooks_list
       tags:
@@ -3710,7 +3840,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:webhooks create --inbox-id <inbox_id> --url
+        agentmail inboxes webhooks create --inbox-id <inbox_id> --url
         https://example.com/webhook --event-type message.received
 
         ```
@@ -3757,7 +3887,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:webhooks get --inbox-id <inbox_id> --webhook-id
+        agentmail inboxes webhooks get --inbox-id <inbox_id> --webhook-id
         <webhook_id>
 
         ```
@@ -3802,7 +3932,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:webhooks update --inbox-id <inbox_id> --webhook-id
+        agentmail inboxes webhooks update --inbox-id <inbox_id> --webhook-id
         <webhook_id> --event-type message.received
 
         ```
@@ -3859,7 +3989,7 @@ paths:
 
         ```bash
 
-        agentmail inboxes:webhooks delete --inbox-id <inbox_id> --webhook-id
+        agentmail inboxes webhooks delete --inbox-id <inbox_id> --webhook-id
         <webhook_id>
 
         ```
@@ -3894,6 +4024,97 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/inboxes/{inbox_id}/webhooks/{webhook_id}/headers:
+    get:
+      description: >-
+        List the names of custom HTTP headers included with deliveries to this
+        inbox-scoped webhook.
+
+        Header values are write-only and are never returned.
+      operationId: inboxes_webhooks_getHeaders
+      tags:
+        - InboxesWebhooks
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhookHeaderNamesResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Webhook Headers
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        Atomically set, replace, or remove custom HTTP headers included with
+        deliveries to this
+
+        inbox-scoped webhook. Header values remain write-only.
+      operationId: inboxes_webhooks_updateHeaders
+      tags:
+        - InboxesWebhooks
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update Webhook Headers
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksUpdateWebhookHeadersRequest'
   /v0/lists/{direction}/{type}:
     get:
       description: |-
@@ -4273,7 +4494,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:api-keys list --pod-id <pod_id>
+        agentmail pods api-keys list --pod-id <pod_id>
         ```
       operationId: pods_apiKeys_list
       tags:
@@ -4321,7 +4542,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:api-keys create --pod-id <pod_id> --name "My Key"
+        agentmail pods api-keys create --pod-id <pod_id> --name "My Key"
         ```
       operationId: pods_apiKeys_create
       tags:
@@ -4372,7 +4593,7 @@ paths:
 
         ```bash
 
-        agentmail pods:api-keys delete --pod-id <pod_id> --api-key-id
+        agentmail pods api-keys delete --pod-id <pod_id> --api-key-id
         <api_key_id>
 
         ```
@@ -4412,7 +4633,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:domains list --pod-id <pod_id>
+        agentmail pods domains list --pod-id <pod_id>
         ```
       operationId: pods_domains_list
       tags:
@@ -4466,7 +4687,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:domains create --pod-id <pod_id> --domain example.com
+        agentmail pods domains create --pod-id <pod_id> --domain example.com
         ```
       operationId: pods_domains_create
       tags:
@@ -4509,7 +4730,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:domains get --pod-id <pod_id> --domain-id <domain_id>
+        agentmail pods domains get --pod-id <pod_id> --domain-id <domain_id>
         ```
       operationId: pods_domains_get
       tags:
@@ -4550,7 +4771,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:domains update --pod-id <pod_id> --domain-id <domain_id>
+        agentmail pods domains update --pod-id <pod_id> --domain-id <domain_id>
         ```
       operationId: pods_domains_update
       tags:
@@ -4597,7 +4818,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:domains delete --pod-id <pod_id> --domain-id <domain_id>
+        agentmail pods domains delete --pod-id <pod_id> --domain-id <domain_id>
         ```
       operationId: pods_domains_delete
       tags:
@@ -4637,7 +4858,7 @@ paths:
 
         ```bash
 
-        agentmail pods:domains get-zone-file --pod-id <pod_id> --domain-id
+        agentmail pods domains get-zone-file --pod-id <pod_id> --domain-id
         <domain_id>
 
         ```
@@ -4677,7 +4898,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:domains verify --pod-id <pod_id> --domain-id <domain_id>
+        agentmail pods domains verify --pod-id <pod_id> --domain-id <domain_id>
         ```
       operationId: pods_domains_verify
       tags:
@@ -4715,7 +4936,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:drafts list --pod-id <pod_id>
+        agentmail pods drafts list --pod-id <pod_id>
         ```
       operationId: pods_drafts_list
       tags:
@@ -4788,7 +5009,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:drafts get --pod-id <pod_id> --draft-id <draft_id>
+        agentmail pods drafts get --pod-id <pod_id> --draft-id <draft_id>
         ```
       operationId: pods_drafts_get
       tags:
@@ -4832,7 +5053,7 @@ paths:
 
         ```bash
 
-        agentmail pods:drafts get-attachment --pod-id <pod_id> --draft-id
+        agentmail pods drafts get-attachment --pod-id <pod_id> --draft-id
         <draft_id> --attachment-id <attachment_id>
 
         ```
@@ -4881,7 +5102,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:inboxes list --pod-id <pod_id>
+        agentmail pods inboxes list --pod-id <pod_id>
         ```
       operationId: pods_inboxes_list
       tags:
@@ -4937,7 +5158,7 @@ paths:
 
         ```bash
 
-        agentmail pods:inboxes create --pod-id <pod_id> --username myagent
+        agentmail pods inboxes create --pod-id <pod_id> --username myagent
         --domain example.com
 
         ```
@@ -4988,7 +5209,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:inboxes get --pod-id <pod_id> --inbox-id <inbox_id>
+        agentmail pods inboxes get --pod-id <pod_id> --inbox-id <inbox_id>
         ```
       operationId: pods_inboxes_get
       tags:
@@ -5029,7 +5250,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:inboxes update --pod-id <pod_id> --inbox-id <inbox_id>
+        agentmail pods inboxes update --pod-id <pod_id> --inbox-id <inbox_id>
         ```
       operationId: pods_inboxes_update
       tags:
@@ -5076,7 +5297,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:inboxes delete --pod-id <pod_id> --inbox-id <inbox_id>
+        agentmail pods inboxes delete --pod-id <pod_id> --inbox-id <inbox_id>
         ```
       operationId: pods_inboxes_delete
       tags:
@@ -5116,7 +5337,7 @@ paths:
 
         ```bash
 
-        agentmail pods:lists list --pod-id <pod_id> --direction <direction>
+        agentmail pods lists list --pod-id <pod_id> --direction <direction>
         --type <type>
 
         ```
@@ -5172,7 +5393,7 @@ paths:
 
         ```bash
 
-        agentmail pods:lists create --pod-id <pod_id> --direction <direction>
+        agentmail pods lists create --pod-id <pod_id> --direction <direction>
         --type <type> --entry user@example.com
 
         ```
@@ -5229,7 +5450,7 @@ paths:
 
         ```bash
 
-        agentmail pods:lists get --pod-id <pod_id> --direction <direction>
+        agentmail pods lists get --pod-id <pod_id> --direction <direction>
         --type <type> --entry <entry>
 
         ```
@@ -5285,7 +5506,7 @@ paths:
 
         ```bash
 
-        agentmail pods:lists delete --pod-id <pod_id> --direction <direction>
+        agentmail pods lists delete --pod-id <pod_id> --direction <direction>
         --type <type> --entry <entry>
 
         ```
@@ -5342,7 +5563,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail pods:metrics query --pod-id <pod_id>
+        agentmail pods metrics query --pod-id <pod_id>
         ```
       operationId: pods_metrics_queryEvents
       tags:
@@ -5496,7 +5717,7 @@ paths:
 
         **CLI:**
         ```bash
-        agentmail pods:threads list --pod-id <pod_id>
+        agentmail pods threads list --pod-id <pod_id>
         ```
       operationId: pods_threads_list
       tags:
@@ -5698,7 +5919,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:threads get --pod-id <pod_id> --thread-id <thread_id>
+        agentmail pods threads get --pod-id <pod_id> --thread-id <thread_id>
         ```
       operationId: pods_threads_get
       tags:
@@ -5794,18 +6015,12 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateThreadRequest'
     delete:
-      description: >-
-        Moves the thread to trash by adding a trash label to all messages. If
-        the thread is already in trash, it will be permanently deleted. Use
-        `permanent=true` to force permanent deletion.
-
+      description: |-
+        Permanently deletes a thread and all of its messages.
 
         **CLI:**
-
         ```bash
-
-        agentmail pods:threads delete --pod-id <pod_id> --thread-id <thread_id>
-
+        agentmail pods threads delete --pod-id <pod_id> --thread-id <thread_id>
         ```
       operationId: pods_threads_delete
       tags:
@@ -5821,13 +6036,6 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ThreadId'
-        - name: permanent
-          in: query
-          description: If true, permanently delete the thread instead of moving to trash.
-          required: false
-          schema:
-            type: boolean
-            nullable: true
       responses:
         '204':
           description: ''
@@ -5852,7 +6060,7 @@ paths:
 
         ```bash
 
-        agentmail pods:threads get-attachment --pod-id <pod_id> --thread-id
+        agentmail pods threads get-attachment --pod-id <pod_id> --thread-id
         <thread_id> --attachment-id <attachment_id>
 
         ```
@@ -5901,7 +6109,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:webhooks list --pod-id <pod_id>
+        agentmail pods webhooks list --pod-id <pod_id>
         ```
       operationId: pods_webhooks_list
       tags:
@@ -5954,7 +6162,7 @@ paths:
 
         ```bash
 
-        agentmail pods:webhooks create --pod-id <pod_id> --url
+        agentmail pods webhooks create --pod-id <pod_id> --url
         https://example.com/webhook --event-type message.received
 
         ```
@@ -5999,7 +6207,7 @@ paths:
       description: |-
         **CLI:**
         ```bash
-        agentmail pods:webhooks get --pod-id <pod_id> --webhook-id <webhook_id>
+        agentmail pods webhooks get --pod-id <pod_id> --webhook-id <webhook_id>
         ```
       operationId: pods_webhooks_get
       tags:
@@ -6042,7 +6250,7 @@ paths:
 
         ```bash
 
-        agentmail pods:webhooks update --pod-id <pod_id> --webhook-id
+        agentmail pods webhooks update --pod-id <pod_id> --webhook-id
         <webhook_id> --add-inbox-id <inbox_id>
 
         ```
@@ -6099,7 +6307,7 @@ paths:
 
         ```bash
 
-        agentmail pods:webhooks delete --pod-id <pod_id> --webhook-id
+        agentmail pods webhooks delete --pod-id <pod_id> --webhook-id
         <webhook_id>
 
         ```
@@ -6134,6 +6342,97 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/pods/{pod_id}/webhooks/{webhook_id}/headers:
+    get:
+      description: >-
+        List the names of custom HTTP headers included with deliveries to this
+        pod-scoped webhook.
+
+        Header values are write-only and are never returned.
+      operationId: pods_webhooks_getHeaders
+      tags:
+        - PodsWebhooks
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksWebhookHeaderNamesResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Webhook Headers
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        Atomically set, replace, or remove custom HTTP headers included with
+        deliveries to this
+
+        pod-scoped webhook. Header values remain write-only.
+      operationId: pods_webhooks_updateHeaders
+      tags:
+        - PodsWebhooks
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update Webhook Headers
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksUpdateWebhookHeadersRequest'
   /v0/threads:
     get:
       description: |-
@@ -6424,18 +6723,12 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateThreadRequest'
     delete:
-      description: >-
-        Moves the thread to trash by adding a trash label to all messages. If
-        the thread is already in trash, it will be permanently deleted. Use
-        `permanent=true` to force permanent deletion.
-
+      description: |-
+        Permanently deletes a thread and all of its messages.
 
         **CLI:**
-
         ```bash
-
         agentmail threads delete --thread-id <thread_id>
-
         ```
       operationId: threads_delete
       tags:
@@ -6446,13 +6739,6 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ThreadId'
-        - name: permanent
-          in: query
-          description: If true, permanently delete the thread instead of moving to trash.
-          required: false
-          schema:
-            type: boolean
-            nullable: true
       responses:
         '204':
           description: ''
@@ -6875,6 +7161,32 @@ components:
       title: webhooksUrl
       type: string
       description: URL of webhook endpoint.
+    webhooksWebhookHeaders:
+      title: webhooksWebhookHeaders
+      type: object
+      additionalProperties:
+        type: string
+      description: >-
+        Custom HTTP headers to include with every delivery to this webhook.
+        Header values are write-only:
+
+        AgentMail never returns them from webhook read endpoints. The map must
+        contain at least one entry
+
+        when provided, and every name and value must be a valid HTTP header.
+    webhooksWebhookHeaderNamesResponse:
+      title: webhooksWebhookHeaderNamesResponse
+      type: object
+      properties:
+        header_names:
+          type: array
+          items:
+            type: string
+          description: >-
+            Names of the custom delivery headers configured for this webhook.
+            Header values are never returned.
+      required:
+        - header_names
     webhooksWebhook:
       title: webhooksWebhook
       type: object
@@ -6984,6 +7296,9 @@ components:
         client_id:
           $ref: '#/components/schemas/webhooksClientId'
           nullable: true
+        headers:
+          $ref: '#/components/schemas/webhooksWebhookHeaders'
+          nullable: true
       required:
         - url
         - event_types
@@ -7056,6 +7371,25 @@ components:
           description: Pod IDs to unsubscribe from the webhook.
       allOf:
         - $ref: '#/components/schemas/webhooksUpdatePodWebhookRequest'
+    webhooksUpdateWebhookHeadersRequest:
+      title: webhooksUpdateWebhookHeadersRequest
+      type: object
+      description: >-
+        Set, replace, or remove custom delivery headers. Provide at least one of
+        `headers` or
+
+        `remove_headers`. A header cannot be set and removed in the same
+        request, regardless of casing.
+      properties:
+        headers:
+          $ref: '#/components/schemas/webhooksWebhookHeaders'
+          nullable: true
+        remove_headers:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Names of custom delivery headers to remove.
     AgentSignupRequest:
       title: AgentSignupRequest
       type: object
@@ -7152,6 +7486,268 @@ components:
       type: string
       format: date-time
       description: Time at which api key was created.
+    PublicJwkCoordinate:
+      title: PublicJwkCoordinate
+      type: string
+      pattern: ^[A-Za-z0-9_-]{43}$
+      minLength: 43
+      maxLength: 43
+      description: A 32-byte P-256 coordinate encoded as unpadded base64url.
+    PublicJwk:
+      title: PublicJwk
+      type: object
+      description: >-
+        A public P-256 JWK. The object accepts exactly `kty`, `crv`, `x`, and
+        `y`.
+
+        Private key material such as `d`, embedded key IDs, and all other
+        members
+
+        are rejected. The server also rejects coordinates that are not a point
+        on
+
+        P-256.
+      properties:
+        kty:
+          type: string
+          const: EC
+        crv:
+          type: string
+          const: P-256
+        x:
+          $ref: '#/components/schemas/PublicJwkCoordinate'
+        'y':
+          $ref: '#/components/schemas/PublicJwkCoordinate'
+      required:
+        - kty
+        - crv
+        - x
+        - 'y'
+    OrganizationPublicKeyScope:
+      title: OrganizationPublicKeyScope
+      type: object
+      description: Organization-wide authority.
+      properties: {}
+    PodPublicKeyScope:
+      title: PodPublicKeyScope
+      type: object
+      description: Authority over one live pod and its inboxes.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID of the pod.
+      required:
+        - id
+    InboxPublicKeyScope:
+      title: InboxPublicKeyScope
+      type: object
+      description: Authority over one live inbox incarnation.
+      properties:
+        id:
+          type: string
+          format: email
+          maxLength: 254
+          description: ID of the inbox.
+      required:
+        - id
+    PublicKeyScope:
+      title: PublicKeyScope
+      oneOf:
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - organization
+            - $ref: '#/components/schemas/OrganizationPublicKeyScope'
+          required:
+            - type
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - pod
+            - $ref: '#/components/schemas/PodPublicKeyScope'
+          required:
+            - type
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - inbox
+            - $ref: '#/components/schemas/InboxPublicKeyScope'
+          required:
+            - type
+      description: >-
+        The immutable scope in which a public-key credential can approve AgentID
+        sign-in.
+    PublicKeyMaterial:
+      title: PublicKeyMaterial
+      type: object
+      description: >-
+        Registered public key material and its server-computed RFC 7638
+        thumbprint.
+      properties:
+        jwk:
+          $ref: '#/components/schemas/PublicJwk'
+        fingerprint:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{43}$
+          minLength: 43
+          maxLength: 43
+          description: RFC 7638 SHA-256 JWK thumbprint encoded as unpadded base64url.
+      required:
+        - jwk
+        - fingerprint
+    PublicKeyCredential:
+      title: PublicKeyCredential
+      type: object
+      description: |-
+        An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
+        use `api_key_id` as the JWS `kid`. This response never contains a bearer
+        secret or private key.
+      properties:
+        api_key_id:
+          type: string
+          format: uuid
+          description: >-
+            Server-generated credential ID. Store this value as the signing
+            key's `kid`.
+        type:
+          type: string
+          const: public_key
+          description: >-
+            Server-owned credential discriminator. Callers cannot select or
+            update it.
+        name:
+          $ref: '#/components/schemas/Name'
+          description: Human-readable credential name.
+        public_key:
+          $ref: '#/components/schemas/PublicKeyMaterial'
+        scope:
+          $ref: '#/components/schemas/PublicKeyScope'
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Immutable absolute expiry. Omitted when the credential does not
+            expire.
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Present when organization-wide revoke-all invalidated this
+            credential generation.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - api_key_id
+        - type
+        - name
+        - public_key
+        - scope
+        - created_at
+        - updated_at
+    CreatePublicKeyRequest:
+      title: CreatePublicKeyRequest
+      type: object
+      description: |-
+        Register only a public P-256 JWK. Credential type, `api_key_id`, sign-in
+        eligibility, permissions, and generation are server-owned and are not
+        request properties.
+      properties:
+        public_key:
+          $ref: '#/components/schemas/PublicJwk'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+          nullable: true
+          description: Defaults to `AgentID key {first eight fingerprint characters}`.
+        scope:
+          $ref: '#/components/schemas/PublicKeyScope'
+          nullable: true
+          description: >-
+            Omit to inherit the registering bearer key's exact scope. An
+            explicit
+
+            scope must be the caller's scope or a live descendant.
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: |-
+            Future absolute expiry. Omit to inherit the registering bearer key's
+            expiry. A child credential cannot outlive its creator.
+      required:
+        - public_key
+    UpdatePublicKeyNameRequest:
+      title: UpdatePublicKeyNameRequest
+      type: object
+      description: |-
+        Rename a public-key credential. Key material, ID, type, scope, sign-in
+        eligibility, permissions, generation, and expiry are immutable.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+      required:
+        - name
+    ListPublicKeysResponse:
+      title: ListPublicKeysResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        public_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicKeyCredential'
+          description: >-
+            Public-key credentials only, ordered by creation time descending by
+            default.
+      required:
+        - count
+        - public_keys
+    RevokeAllAgentIdSignInKeysResponse:
+      title: RevokeAllAgentIdSignInKeysResponse
+      type: object
+      description: >-
+        Permanent idempotency receipt for an organization-wide AgentID sign-in
+        key revocation.
+      properties:
+        previous_generation:
+          type: integer
+          minimum: 0
+        current_generation:
+          type: integer
+          minimum: 1
+        revoked_at:
+          type: string
+          format: date-time
+      required:
+        - previous_generation
+        - current_generation
+        - revoked_at
     ApiKeyPermissions:
       title: ApiKeyPermissions
       type: object
@@ -7175,18 +7771,10 @@ components:
           type: boolean
           nullable: true
           description: Delete inboxes.
-        thread_read:
-          type: boolean
-          nullable: true
-          description: Read threads.
-        thread_delete:
-          type: boolean
-          nullable: true
-          description: Delete threads.
         message_read:
           type: boolean
           nullable: true
-          description: Read messages.
+          description: Read messages. Also required to read threads.
         message_send:
           type: boolean
           nullable: true
@@ -7194,7 +7782,11 @@ components:
         message_update:
           type: boolean
           nullable: true
-          description: Update message labels.
+          description: Update message labels. Also required to update threads.
+        message_delete:
+          type: boolean
+          nullable: true
+          description: Delete messages. Also required to delete threads.
         label_spam_read:
           type: boolean
           nullable: true
@@ -7203,6 +7795,10 @@ components:
           type: boolean
           nullable: true
           description: Access messages labeled blocked.
+        label_unauthenticated_read:
+          type: boolean
+          nullable: true
+          description: Access messages labeled unauthenticated.
         label_trash_read:
           type: boolean
           nullable: true
@@ -7283,6 +7879,10 @@ components:
           type: boolean
           nullable: true
           description: Create API keys.
+        api_key_update:
+          type: boolean
+          nullable: true
+          description: Update API keys.
         api_key_delete:
           type: boolean
           nullable: true
@@ -7620,6 +8220,16 @@ components:
         MX
 
         record (`*.<domain>`) to `records`.
+    TrackingEnabled:
+      title: TrackingEnabled
+      type: boolean
+      description: >-
+        Serve open tracking pixels from this domain. Adds a required
+        `link.<domain>`
+
+        CNAME record to `records`, which must be published and verified before
+
+        `track_opens` can be used on a send.
     ClientId:
       title: ClientId
       type: string
@@ -7641,6 +8251,8 @@ components:
           $ref: '#/components/schemas/FeedbackEnabled'
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
+        tracking_enabled:
+          $ref: '#/components/schemas/TrackingEnabled'
         records:
           type: array
           items:
@@ -7665,6 +8277,7 @@ components:
         - status
         - feedback_enabled
         - subdomains_enabled
+        - tracking_enabled
         - records
         - updated_at
         - created_at
@@ -7683,6 +8296,8 @@ components:
           $ref: '#/components/schemas/FeedbackEnabled'
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
+        tracking_enabled:
+          $ref: '#/components/schemas/TrackingEnabled'
         client_id:
           $ref: '#/components/schemas/ClientId'
           nullable: true
@@ -7699,6 +8314,7 @@ components:
         - domain
         - feedback_enabled
         - subdomains_enabled
+        - tracking_enabled
         - updated_at
         - created_at
     ListDomainsResponse:
@@ -7733,14 +8349,18 @@ components:
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
           nullable: true
+        tracking_enabled:
+          $ref: '#/components/schemas/TrackingEnabled'
+          nullable: true
       required:
         - domain
     UpdateDomainRequest:
       title: UpdateDomainRequest
       type: object
       description: >-
-        Provide at least one of `feedback_enabled` or `subdomains_enabled`.
-        Omitted
+        Provide at least one of `feedback_enabled`, `subdomains_enabled`, or
+
+        `tracking_enabled`. Omitted
 
         fields are left unchanged; an empty body is rejected. Enabling
 
@@ -7755,6 +8375,9 @@ components:
           nullable: true
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
+          nullable: true
+        tracking_enabled:
+          $ref: '#/components/schemas/TrackingEnabled'
           nullable: true
     DraftId:
       title: DraftId
@@ -7994,6 +8617,25 @@ components:
     CreateDraftRequest:
       title: CreateDraftRequest
       type: object
+      description: >-
+        Body for creating a draft. Supports plain, reply, reply-all, and forward
+
+        drafts:
+
+
+        - **Plain draft:** supply `to`, `subject`, `text`, etc.
+
+        - **Reply:** set `in_reply_to` to a message ID. Recipients, subject, and
+          threading are derived from that message. Set `reply_all` to address the
+          whole thread (you then cannot also pass `to`, `cc`, or `bcc`).
+        - **Forward:** set `forward_of` to a message ID. The subject and
+        threading
+          are derived from the source message, whose body and attachments are
+          merged in at send time.
+
+        `in_reply_to` and `forward_of` are mutually exclusive, and reading the
+
+        referenced message requires `message_read` permission.
       properties:
         labels:
           $ref: '#/components/schemas/DraftLabels'
@@ -8028,6 +8670,12 @@ components:
         in_reply_to:
           $ref: '#/components/schemas/DraftInReplyTo'
           nullable: true
+        forward_of:
+          $ref: '#/components/schemas/DraftForwardOf'
+          nullable: true
+        reply_all:
+          $ref: '#/components/schemas/DraftReplyAll'
+          nullable: true
         send_at:
           $ref: '#/components/schemas/DraftSendAt'
           nullable: true
@@ -8037,131 +8685,19 @@ components:
     UpdateDraftRequest:
       title: UpdateDraftRequest
       type: object
-      properties:
-        reply_to:
-          $ref: '#/components/schemas/DraftReplyTo'
-          nullable: true
-        to:
-          $ref: '#/components/schemas/DraftTo'
-          nullable: true
-        cc:
-          $ref: '#/components/schemas/DraftCc'
-          nullable: true
-        bcc:
-          $ref: '#/components/schemas/DraftBcc'
-          nullable: true
-        subject:
-          $ref: '#/components/schemas/DraftSubject'
-          nullable: true
-        text:
-          $ref: '#/components/schemas/DraftText'
-          nullable: true
-        html:
-          $ref: '#/components/schemas/DraftHtml'
-          nullable: true
-        send_at:
-          $ref: '#/components/schemas/DraftSendAt'
-          nullable: true
-    CreateDraftReplyRequest:
-      title: CreateDraftReplyRequest
-      type: object
-      description: |-
-        Body for creating a draft that replies to a message. `in_reply_to`,
-        `references`, and the subject are derived from the source message. Set
-        `reply_all` to address the whole thread (you cannot then also pass `to`,
-        `cc`, or `bcc`).
-      properties:
-        labels:
-          $ref: '#/components/schemas/DraftLabels'
-          nullable: true
-        reply_to:
-          $ref: '#/components/schemas/DraftReplyTo'
-          nullable: true
-        to:
-          $ref: '#/components/schemas/DraftTo'
-          nullable: true
-        cc:
-          $ref: '#/components/schemas/DraftCc'
-          nullable: true
-        bcc:
-          $ref: '#/components/schemas/DraftBcc'
-          nullable: true
-        reply_all:
-          $ref: '#/components/schemas/DraftReplyAll'
-          nullable: true
-        subject:
-          $ref: '#/components/schemas/DraftSubject'
-          nullable: true
-        text:
-          $ref: '#/components/schemas/DraftText'
-          nullable: true
-        html:
-          $ref: '#/components/schemas/DraftHtml'
-          nullable: true
-        attachments:
-          type: array
-          items:
-            $ref: '#/components/schemas/SendAttachment'
-          nullable: true
-          description: Attachments to include in draft.
-        send_at:
-          $ref: '#/components/schemas/DraftSendAt'
-          nullable: true
-        client_id:
-          $ref: '#/components/schemas/DraftClientId'
-          nullable: true
-    CreateDraftReplyAllRequest:
-      title: CreateDraftReplyAllRequest
-      type: object
-      description: |-
-        Body for creating a draft that replies to the whole thread. Recipients,
-        `in_reply_to`, `references`, and the subject are always derived from the
-        source message, so `to`, `cc`, and `bcc` are not accepted.
-      properties:
-        labels:
-          $ref: '#/components/schemas/DraftLabels'
-          nullable: true
-        reply_to:
-          $ref: '#/components/schemas/DraftReplyTo'
-          nullable: true
-        subject:
-          $ref: '#/components/schemas/DraftSubject'
-          nullable: true
-        text:
-          $ref: '#/components/schemas/DraftText'
-          nullable: true
-        html:
-          $ref: '#/components/schemas/DraftHtml'
-          nullable: true
-        attachments:
-          type: array
-          items:
-            $ref: '#/components/schemas/SendAttachment'
-          nullable: true
-          description: Attachments to include in draft.
-        send_at:
-          $ref: '#/components/schemas/DraftSendAt'
-          nullable: true
-        client_id:
-          $ref: '#/components/schemas/DraftClientId'
-          nullable: true
-    CreateDraftForwardRequest:
-      title: CreateDraftForwardRequest
-      type: object
       description: >-
-        Body for creating a draft that forwards a message. The subject and
+        Edit fields on an existing draft. A draft's kind (plain, reply, or
+        forward)
 
-        threading are derived from the source message, whose body and
-        attachments
+        is fixed at creation and cannot be changed here. Omitting a field leaves
+        it
 
-        are merged in at send time. Recipients are optional, so a forward draft
-        can
+        unchanged; passing `null` (or `[]` for a recipient field) clears it.
+        Pass
 
-        be saved without an address and addressed later.
+        `send_at` to schedule or reschedule the draft, or `null` to un-schedule
+        it.
       properties:
-        labels:
-          $ref: '#/components/schemas/DraftLabels'
-          nullable: true
         reply_to:
           $ref: '#/components/schemas/DraftReplyTo'
           nullable: true
@@ -8183,17 +8719,28 @@ components:
         html:
           $ref: '#/components/schemas/DraftHtml'
           nullable: true
-        attachments:
+        add_attachments:
           type: array
           items:
             $ref: '#/components/schemas/SendAttachment'
           nullable: true
-          description: Attachments to include in draft.
+          description: Attachments to add to the draft.
+        remove_attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachmentId'
+          nullable: true
+          description: IDs of attachments to remove from the draft.
+        add_labels:
+          $ref: '#/components/schemas/DraftLabels'
+          nullable: true
+          description: Label or labels to add to the draft.
+        remove_labels:
+          $ref: '#/components/schemas/DraftLabels'
+          nullable: true
+          description: Label or labels to remove from the draft.
         send_at:
           $ref: '#/components/schemas/DraftSendAt'
-          nullable: true
-        client_id:
-          $ref: '#/components/schemas/DraftClientId'
           nullable: true
     EventType:
       title: EventType
@@ -8208,6 +8755,7 @@ components:
         - message.bounced
         - message.complained
         - message.rejected
+        - message.opened
         - domain.verified
     EventTypes:
       title: EventTypes
@@ -8386,6 +8934,23 @@ components:
         - message_id
         - timestamp
         - reason
+    Open:
+      title: Open
+      type: object
+      properties:
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        thread_id:
+          $ref: '#/components/schemas/ThreadId'
+        message_id:
+          $ref: '#/components/schemas/MessageId'
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+      required:
+        - inbox_id
+        - thread_id
+        - message_id
+        - timestamp
     MessageReceivedEvent:
       title: MessageReceivedEvent
       type: object
@@ -8506,6 +9071,30 @@ components:
         - event_type
         - event_id
         - reject
+    MessageOpenedEvent:
+      title: MessageOpenedEvent
+      type: object
+      description: >-
+        A tracked message was opened for the first time. Sent once per message:
+        repeat opens do not
+
+        resend it.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: message.opened
+        event_id:
+          $ref: '#/components/schemas/EventId'
+        open:
+          $ref: '#/components/schemas/Open'
+      required:
+        - type
+        - event_type
+        - event_id
+        - open
     DomainVerifiedEvent:
       title: DomainVerifiedEvent
       type: object
@@ -9208,6 +9797,21 @@ components:
       additionalProperties:
         type: string
       description: Headers to include in message.
+    TrackOpens:
+      title: TrackOpens
+      type: boolean
+      description: >-
+        Track when this message is first opened. Requires a custom domain with
+        tracking enabled and
+
+        an HTML body. Opens surface as the `opened` label on the message and as
+        a `message.opened`
+
+        event. One pixel is injected per message, not per recipient, so a
+        message with several
+
+        recipients fires once when any of them opens it, and the event does not
+        identify which one.
     SendMessageRequest:
       title: SendMessageRequest
       type: object
@@ -9241,6 +9845,9 @@ components:
           nullable: true
         headers:
           $ref: '#/components/schemas/SendMessageHeaders'
+          nullable: true
+        track_opens:
+          $ref: '#/components/schemas/TrackOpens'
           nullable: true
     SendMessageResponse:
       title: SendMessageResponse
@@ -9302,6 +9909,9 @@ components:
         headers:
           $ref: '#/components/schemas/SendMessageHeaders'
           nullable: true
+        track_opens:
+          $ref: '#/components/schemas/TrackOpens'
+          nullable: true
     ReplyAllMessageRequest:
       title: ReplyAllMessageRequest
       type: object
@@ -9323,6 +9933,9 @@ components:
           nullable: true
         headers:
           $ref: '#/components/schemas/SendMessageHeaders'
+          nullable: true
+        track_opens:
+          $ref: '#/components/schemas/TrackOpens'
           nullable: true
     UpdateMessageLabels:
       title: UpdateMessageLabels

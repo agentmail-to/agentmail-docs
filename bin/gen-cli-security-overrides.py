@@ -22,7 +22,7 @@ and adds the TokenAuth definition under the overrides file's existing
 
 POST /v0/agent/sign-up is public (it declares no `security` in the source spec)
 and is skipped so new-user signup keeps working without a credential. The
-script asserts exactly 121 operations are targeted -- the 122 total minus the
+script asserts exactly 129 operations are targeted -- the 130 total minus the
 one public signup endpoint -- and aborts if that invariant does not hold.
 
 Idempotent: re-running does not duplicate the per-operation security blocks or
@@ -45,7 +45,7 @@ HTTP_METHODS = {"get", "post", "put", "patch", "delete", "head", "options"}
 
 # Signup is intentionally credential-free; adding auth would break new users.
 PUBLIC = ("/v0/agent/sign-up", "post")
-EXPECTED = 121  # 122 operations minus the one public signup endpoint
+EXPECTED = 129  # 130 operations minus the one public signup endpoint
 
 # 6-space indent matches the overrides file's convention (sequence dashes sit at
 # the same column as their parent key, e.g. x-fern-sdk-group-name above).
