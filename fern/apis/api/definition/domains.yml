@@ -93,10 +93,13 @@ types:
         type: optional<string>
         docs: >-
           Why the domain is not (yet) VERIFIED, when known. `dns_records_missing` /
-          `dns_records_invalid` point at the DNS records; `ses_dkim_pending`, `ses_dkim_failed`,
-          `ses_mail_from_pending`, `ses_mail_from_failed`, and `ses_not_verified_for_sending`
-          mean the records look right and sending-infrastructure validation has not converged.
-          Absent when VERIFIED.
+          `dns_records_invalid` point at the DNS records. The `ses_*` values mean the records
+          look right and sending-infrastructure validation has not converged: `ses_dkim_pending` /
+          `ses_mail_from_pending` (still checking), `ses_dkim_temporary_failure` /
+          `ses_mail_from_temporary_failure` (a transient error the infrastructure keeps retrying
+          on its own — usually resolves without changes), `ses_dkim_failed` /
+          `ses_mail_from_failed` (a terminal verdict; re-verify after fixing), and
+          `ses_not_verified_for_sending`. Absent when VERIFIED.
       feedback_enabled: FeedbackEnabled
       subdomains_enabled: SubdomainsEnabled
       tracking_enabled: TrackingEnabled
