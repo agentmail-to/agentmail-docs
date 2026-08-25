@@ -11,11 +11,25 @@ An `Attachment` is a file that is associated with a `Message`. This can be anyth
 
 ## Sending `Attachments`
 
-To send a file, you include it in an `Attachments` array when sending a `Message`. Each object in the array represents one file and must have a `content` property.
+To send a file, include it in the `attachments` array when sending a `Message`. Each object in the array represents one file and must provide either `content` or `url`.
 
-- **`content`** (required): The Base64 encoded content of your file.
+- **`content`**: The Base64 encoded content of your file.
+- **`url`**: A publicly accessible URL that AgentMail can use to download the file. The URL must return a `200` response without authentication.
 - **`filename`** (optional): The name of the file (e.g., `invoice.pdf`).
 - **`content_type`** (optional): The MIME type of the file (e.g., `application/pdf`).
+
+### Attachment size limits
+
+| Input | Limit | What counts toward the limit |
+| --- | --- | --- |
+| Base64 `content` | 6 MB per request | The entire request, including the message body, metadata, and all Base64 encoded attachments. |
+| Remote `url` | Approximately 30 MB of attachments per message | The combined size of the files AgentMail downloads from all attachment URLs. |
+
+Base64 encoding increases file size by about one third. For example, 4.5 MB of raw files can become about 6 MB after encoding, before the message body and other request fields are added. If the request exceeds the limit, the API returns `413 Request Entity Too Large`.
+
+<Note>
+To detect the inline limit proactively, measure the serialized request body after Base64 encoding rather than adding up the original file sizes. Leave room for the message body and metadata, or use `url` for larger attachments.
+</Note>
 
 <CodeBlocks>
 ```python
@@ -228,4 +242,3 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
   const data = await client.inboxes.messages.get_attachment("inbox@am.to", "<abc123@agentmail.to>", "att_456");
   ```
 </CodeBlocks>
-

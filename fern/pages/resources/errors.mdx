@@ -117,6 +117,14 @@ The message was not sent. The message names the reason, and the `fix` states whi
 - **A suspended account** — email support@agentmail.to; retrying will keep failing until the suspension is resolved.
 - **An unfetchable attachment URL** — use a URL that returns 200 without authentication, or send the attachment inline as base64.
 
+## Request too large (413)
+
+### request_entity_too_large
+
+Requests with inline Base64 attachments are limited to 6 MB total, including the message body, metadata, and encoded attachment content. Because Base64 encoding increases file size by about one third, 4.5 MB of raw files can reach the request limit before the rest of the message is counted.
+
+Reduce the attachment size or provide each larger attachment through its `url` field. URL-backed attachments support approximately 30 MB total per message, and each URL must return 200 without authentication.
+
 ## Transient errors (429 / 500 / 503)
 
 ### rate_limit_exceeded

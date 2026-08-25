@@ -54,6 +54,7 @@ types:
         docs: Time at which the download URL expires.
 
   SendAttachment:
+    docs: Provide either `content` or `url` for each attachment.
     properties:
       filename: optional<AttachmentFilename>
       content_type: optional<AttachmentContentType>
@@ -61,7 +62,7 @@ types:
       content_id: optional<AttachmentContentId>
       content:
         type: optional<string>
-        docs: Base64 encoded content of attachment.
+        docs: Base64 encoded content of the attachment. The entire request, including the message body and all encoded attachments, is limited to 6 MB.
       url:
         type: optional<string>
-        docs: URL to the attachment.
+        docs: Publicly accessible URL to the attachment. The URL must return 200 without authentication. URL-backed attachments support approximately 30 MB total per message.
