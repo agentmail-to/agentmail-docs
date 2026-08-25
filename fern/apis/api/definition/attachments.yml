@@ -65,4 +65,8 @@ types:
         docs: Base64 encoded content of the attachment. The entire request, including the message body and all encoded attachments, is limited to 6 MB.
       url:
         type: optional<string>
-        docs: Publicly accessible URL to the attachment. The URL must return 200 without authentication. URL-backed attachments support approximately 30 MB total per message.
+        docs: |
+          URL that AgentMail can download without custom authentication headers or cookies.
+          Redirects and pre-signed URLs are supported, and the final response must be a
+          successful 2xx response. Keep URL-backed raw attachment data around 30 MB total
+          per message. The complete encoded email must remain under 40 MB.
