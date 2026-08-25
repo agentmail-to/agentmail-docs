@@ -77,6 +77,8 @@ You can create the following resources **within** a pod:
   `organization_id`'s for your customers or segment of your business to our
   `pod_id`'s you can just set the `client_id` as your internal id so you can
   access the resource using a unique identifier determined by you!
+
+  You can pass a `client_id` anywhere a `pod_id` is accepted — for example, `GET /v0/pods/{client_id}` and `DELETE /v0/pods/{client_id}` both work.
 </Tip>
 
 These resources are automatically associated with the pod and inherit its isolation guarantees.
