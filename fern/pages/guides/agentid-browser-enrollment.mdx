@@ -10,14 +10,6 @@ non-extractable P-256 credential. An agent authorizes the enrollment with an
 existing AgentMail bearer API key, but that key is sent only to the AgentMail
 API. The browser creates the private key and never exports it.
 
-<Note title="Limited beta">
-  Creating a browser enrollment is available only to explicitly enabled
-  organizations and environments. An unavailable route returns `404`; an
-  organization outside the enabled beta receives `403` when it creates an
-  enrollment. The existing [AgentID public-key
-  flow](/agentid-public-key-authentication) remains supported during migration.
-</Note>
-
 <Warning title="Verify the browser origin before enrollment">
   An agent that submits a `transaction_jti` read from any origin other than
   `https://auth.agentid.com` can be induced to enroll an attacker's browser for
@@ -44,8 +36,9 @@ origin override: do not accept a different origin from runtime input.
    `login_hint` as the source of authority. If the action includes a
    `login_hint`, the selected inbox must match it or enrollment fails with
    `400`.
-5. Send `{inbox_id, transaction_jti}` with the bearer API key to exactly
-   `https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments`.
+5. Substitute the trusted inbox into the fixed endpoint template, then send
+   `{transaction_jti}` with the bearer API key to exactly
+   `https://api.agentmail.to/v0/inboxes/{inbox_id}/browser-credentials/enrollments`.
 6. Keep the existing AgentID page open. It observes the pending intent, creates
    a non-extractable browser key, proves possession, and continues the same
    transaction.
@@ -75,7 +68,7 @@ only after obtaining the final page URL from the browser transport:
   "type": "agentid_enrollment_required",
   "issuer": "https://auth.agentid.com",
   "browser_origin": "https://auth.agentid.com",
-  "agentmail_enrollment_endpoint": "https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments",
+  "agentmail_enrollment_endpoint": "https://api.agentmail.to/v0/inboxes/{inbox_id}/browser-credentials/enrollments",
   "transaction_jti": "AAAAAAAAAAAAAAAAAAAAAA",
   "transaction_expires_at": 1787694600,
   "login_hint": "agent@example.com",
@@ -84,21 +77,23 @@ only after obtaining the final page URL from the browser transport:
 }
 ```
 
-These examples use ordinary authenticated HTTP. They deliberately use a fixed
-AgentMail endpoint rather than following a URL supplied by the action.
+These examples use ordinary authenticated HTTP. They validate the fixed
+endpoint template from the action, then substitute an inbox selected from
+trusted AgentMail configuration. They never follow an arbitrary URL supplied
+at runtime.
 
 <CodeBlocks>
 
 ```python title="Python"
 import re
 import time
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 import httpx
 
 AGENTID_ORIGIN = "https://auth.agentid.com"
-ENROLLMENT_ENDPOINT = (
-    "https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments"
+ENROLLMENT_ENDPOINT_TEMPLATE = (
+    "https://api.agentmail.to/v0/inboxes/{inbox_id}/browser-credentials/enrollments"
 )
 INVARIANT = (
     "AgentMail API keys are sent only to https://api.agentmail.to; "
@@ -125,7 +120,8 @@ def create_browser_enrollment(
         action.get("type") != "agentid_enrollment_required"
         or action.get("issuer") != AGENTID_ORIGIN
         or action.get("browser_origin") != AGENTID_ORIGIN
-        or action.get("agentmail_enrollment_endpoint") != ENROLLMENT_ENDPOINT
+        or action.get("agentmail_enrollment_endpoint")
+        != ENROLLMENT_ENDPOINT_TEMPLATE
         or action.get("login_hint_authoritative") is not False
         or action.get("invariant") != INVARIANT
     ):
@@ -143,10 +139,14 @@ def create_browser_enrollment(
     if login_hint is not None and login_hint != inbox_id:
         raise ValueError("Trusted inbox does not match login_hint")
 
+    enrollment_endpoint = (
+        "https://api.agentmail.to/v0/inboxes/"
+        f"{quote(inbox_id, safe='')}/browser-credentials/enrollments"
+    )
     response = httpx.post(
-        ENROLLMENT_ENDPOINT,
+        enrollment_endpoint,
         headers={"Authorization": f"Bearer {agentmail_api_key}"},
-        json={"inbox_id": inbox_id, "transaction_jti": jti},
+        json={"transaction_jti": jti},
         follow_redirects=False,
         timeout=10,
     )
@@ -157,8 +157,8 @@ def create_browser_enrollment(
 
 ```typescript title="TypeScript"
 const AGENTID_ORIGIN = "https://auth.agentid.com";
-const ENROLLMENT_ENDPOINT =
-  "https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments";
+const ENROLLMENT_ENDPOINT_TEMPLATE =
+  "https://api.agentmail.to/v0/inboxes/{inbox_id}/browser-credentials/enrollments";
 const INVARIANT =
   "AgentMail API keys are sent only to https://api.agentmail.to; AgentID never requests them.";
 const JTI = /^[A-Za-z0-9_-]{22}$/;
@@ -181,7 +181,7 @@ async function createBrowserEnrollment({
     action.type !== "agentid_enrollment_required" ||
     action.issuer !== AGENTID_ORIGIN ||
     action.browser_origin !== AGENTID_ORIGIN ||
-    action.agentmail_enrollment_endpoint !== ENROLLMENT_ENDPOINT ||
+    action.agentmail_enrollment_endpoint !== ENROLLMENT_ENDPOINT_TEMPLATE ||
     action.login_hint_authoritative !== false ||
     action.invariant !== INVARIANT
   ) {
@@ -202,16 +202,16 @@ async function createBrowserEnrollment({
     throw new Error("Trusted inbox does not match login_hint");
   }
 
-  const response = await fetch(ENROLLMENT_ENDPOINT, {
+  const enrollmentEndpoint =
+    `https://api.agentmail.to/v0/inboxes/${encodeURIComponent(inboxId)}` +
+    "/browser-credentials/enrollments";
+  const response = await fetch(enrollmentEndpoint, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${agentmailApiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      inbox_id: inboxId,
-      transaction_jti: action.transaction_jti,
-    }),
+    body: JSON.stringify({ transaction_jti: action.transaction_jti }),
     redirect: "error",
   });
   if (response.status !== 200 && response.status !== 202) {
@@ -267,9 +267,8 @@ the next interactive authorization require review again.
 
 ## Persistent browser support
 
-Use a standard persistent Chromium profile for the current beta. Persistent
-Chromium supports enrollment, signing after a full browser restart, and
-re-enrollment after site data is cleared.
+Use a standard persistent Chromium profile. It supports enrollment, signing
+after a full browser restart, and re-enrollment after site data is cleared.
 
 Do not promise persistence for private or incognito sessions. Safari and Safari
 Technology Preview remain unqualified until real-browser enrollment, full
@@ -282,8 +281,6 @@ nonpersistent data stores are unsupported.
 
 ## Migration from public-key authentication
 
-Browser enrollment is the successor for persistent browser approval only after
-it is enabled for your organization. Until then, continue using [AgentID
-public-key authentication](/agentid-public-key-authentication). The public-key
-flow remains supported during the beta, and no deprecation date is being
-announced with this release.
+Browser enrollment is the current path for persistent browser approval. The
+[AgentID public-key flow](/agentid-public-key-authentication) remains supported
+during migration, and no deprecation date is being announced with this release.

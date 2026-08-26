@@ -173,16 +173,9 @@ types:
   CreateBrowserEnrollmentRequest:
     docs: |
       Attach a browser enrollment intent to one pending AgentID authorization
-      transaction. Select `inbox_id` from trusted AgentMail configuration; an
-      AgentID `login_hint` is not authoritative for selecting the inbox. When
-      the transaction includes a `login_hint`, `inbox_id` must match it.
+      transaction. The inbox is selected by the trusted path parameter, not an
+      AgentID `login_hint`.
     properties:
-      inbox_id:
-        type: string
-        validation:
-          format: email
-          maxLength: 254
-        docs: Live inbox to which the browser credential will be bound.
       transaction_jti: BrowserEnrollmentTransactionJti
 
   BrowserEnrollmentAccepted:
@@ -654,32 +647,11 @@ service:
         - global.ValidationError
         - global.ConflictError
 
-    createBrowserEnrollment:
-      method: POST
-      path: /browser-credentials/enrollments
-      display-name: Create Browser Enrollment
-      docs: |
-        Limited beta. Requires `api_key_create` and an organization enabled for
-        browser enrollment. Before submitting `transaction_jti`, independently
-        verify that the browser page's final origin is exactly
-        `https://auth.agentid.com`.
-
-        **AgentMail API keys are sent only to `https://api.agentmail.to`; AgentID never requests them.**
-
-        A new intent returns `202`; an idempotent retry for the same pending
-        transaction, inbox, and bearer key returns `200` with the same receipt.
-      request: CreateBrowserEnrollmentRequest
-      response: BrowserEnrollmentAccepted
-      errors:
-        - global.ValidationError
-        - global.NotFoundError
-        - global.ConflictError
-
     listBrowserCredentials:
       method: GET
       path: /browser-credentials
       display-name: List Browser Credentials
-      docs: Limited beta. List active browser credentials visible to the caller's scope. Requires `api_key_read`.
+      docs: List active browser credentials visible to the caller's scope. Requires `api_key_read`.
       request:
         name: ListBrowserCredentialsRequest
         query-parameters:
@@ -691,7 +663,7 @@ service:
       method: GET
       path: /browser-credentials/events
       display-name: List Browser Credential Events
-      docs: Limited beta. List owner-facing browser credential and consent lifecycle events. Requires `api_key_read`.
+      docs: List owner-facing browser credential and consent lifecycle events. Requires `api_key_read`.
       request:
         name: ListBrowserCredentialEventsRequest
         query-parameters:
@@ -705,7 +677,7 @@ service:
       method: DELETE
       path: /browser-credentials/{credential_id}
       display-name: Delete Browser Credential
-      docs: Limited beta. Permanently revoke one active browser credential. Requires `api_key_delete`.
+      docs: Permanently revoke one active browser credential. Requires `api_key_delete`.
       path-parameters:
         credential_id: uuid
       response:
@@ -717,7 +689,7 @@ service:
       method: DELETE
       path: /browser-credentials/enrollments/{enrollment_id}
       display-name: Cancel Browser Enrollment
-      docs: Limited beta. Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
+      docs: Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
       path-parameters:
         enrollment_id: uuid
       response:
@@ -729,7 +701,7 @@ service:
       method: GET
       path: /browser-consents
       display-name: List Browser Consents
-      docs: Limited beta. List remembered AgentID client approvals for one live inbox. Requires `api_key_read`.
+      docs: List remembered AgentID client approvals for one live inbox. Requires `api_key_read`.
       request:
         name: ListBrowserConsentsRequest
         query-parameters:
@@ -748,7 +720,7 @@ service:
       method: DELETE
       path: /browser-consents/{consent_id}
       display-name: Delete Browser Consent
-      docs: Limited beta. Revoke one remembered AgentID client approval. Requires `api_key_delete`.
+      docs: Revoke one remembered AgentID client approval. Requires `api_key_delete`.
       path-parameters:
         consent_id:
           type: string
