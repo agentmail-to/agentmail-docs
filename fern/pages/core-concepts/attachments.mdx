@@ -63,14 +63,12 @@ const sentMessage = await client.inboxes.messages.send("reports@agentmail.to", {
 
 ```bash title="CLI"
 # send a message with a base64-encoded attachment
-agentmail inboxes:messages send \
+agentmail inboxes messages send \
   --inbox-id reports@agentmail.to \
   --to supervisor@example.com \
   --subject "Q4 Financial Report" \
   --text "Please see the attached report." \
-  --attachment.content "VGhpcyBpcyB0aGUgY29udGVudCBvZiBvdXIgcmVwb3J0Lg==" \
-  --attachment.filename "Q4-report.txt" \
-  --attachment.content-type "text/plain"
+  --attachments '[{"filename": "Q4-report.txt", "content_type": "text/plain", "content": "VGhpcyBpcyB0aGUgY29udGVudCBvZiBvdXIgcmVwb3J0Lg=="}]'
 ```
 
 </CodeBlocks>
@@ -123,7 +121,7 @@ const fileData = await client.inboxes.messages.get_attachment(
 
 ```bash title="CLI"
 # get an attachment from a specific message
-agentmail inboxes:messages get-attachment \
+agentmail inboxes messages get-attachment \
   --inbox-id inbox_123 \
   --message-id "<def456@agentmail.to>" \
   --attachment-id attach_789
@@ -163,7 +161,7 @@ const fileData = await client.inboxes.threads.get_attachment(
 
 ```bash title="CLI"
 # get an attachment from a specific thread
-agentmail inboxes:threads get-attachment \
+agentmail inboxes threads get-attachment \
   --inbox-id inbox_123 \
   --thread-id thread_abc \
   --attachment-id attach_789

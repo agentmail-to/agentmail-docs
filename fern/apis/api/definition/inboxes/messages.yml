@@ -27,7 +27,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:messages list --inbox-id <inbox_id>
+        agentmail inboxes messages list --inbox-id <inbox_id>
         ```
       request:
         name: ListMessagesRequest
@@ -84,7 +84,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages get --inbox-id <inbox_id> --message-id <message_id>
+        agentmail inboxes messages get --inbox-id <inbox_id> --message-id <message_id>
         ```
       path-parameters:
         message_id: messages.MessageId
@@ -103,7 +103,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:messages batch-get --inbox-id <inbox_id> --message-id <id1> --message-id <id2>
+        agentmail inboxes messages batch-get --inbox-id <inbox_id> --message-ids <id1> --message-ids <id2>
         ```
       request: messages.BatchGetMessagesRequest
       response: messages.BatchGetMessagesResponse
@@ -124,7 +124,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:messages batch-update --inbox-id <inbox_id> --message-id <id1> --message-id <id2> --add-label read --remove-label unread
+        agentmail inboxes messages batch-update --inbox-id <inbox_id> --message-ids <id1> --message-ids <id2> --add-labels read --remove-labels unread
         ```
       request: messages.BatchUpdateMessagesRequest
       response: messages.BatchUpdateMessagesResponse
@@ -138,7 +138,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages get-attachment --inbox-id <inbox_id> --message-id <message_id> --attachment-id <attachment_id>
+        agentmail inboxes messages get-attachment --inbox-id <inbox_id> --message-id <message_id> --attachment-id <attachment_id>
         ```
       path-parameters:
         message_id: messages.MessageId
@@ -154,7 +154,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages get-raw --inbox-id <inbox_id> --message-id <message_id>
+        agentmail inboxes messages get-raw --inbox-id <inbox_id> --message-id <message_id>
         ```
       path-parameters:
         message_id: messages.MessageId
@@ -169,7 +169,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages update --inbox-id <inbox_id> --message-id <message_id> --add-label read --remove-label unread
+        agentmail inboxes messages update --inbox-id <inbox_id> --message-id <message_id> --add-labels read --remove-labels unread
         ```
       path-parameters:
         message_id: messages.MessageId
@@ -188,7 +188,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:messages delete --inbox-id <inbox_id> --message-id <message_id>
+        agentmail inboxes messages delete --inbox-id <inbox_id> --message-id <message_id>
         ```
       path-parameters:
         message_id: messages.MessageId
@@ -203,7 +203,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages send --inbox-id <inbox_id> --to recipient@example.com --subject "Hello" --text "Body"
+        agentmail inboxes messages send --inbox-id <inbox_id> --to recipient@example.com --subject "Hello" --text "Body"
         ```
       request: messages.SendMessageRequest
       response: messages.SendMessageResponse
@@ -221,7 +221,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages reply --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
+        agentmail inboxes messages reply --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
         ```
       path-parameters:
         message_id: messages.MessageId
@@ -241,7 +241,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages reply-all --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
+        agentmail inboxes messages reply-all --inbox-id <inbox_id> --message-id <message_id> --text "Reply text"
         ```
       path-parameters:
         message_id: messages.MessageId
@@ -261,7 +261,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:messages forward --inbox-id <inbox_id> --message-id <message_id> --to recipient@example.com
+        agentmail inboxes messages forward --inbox-id <inbox_id> --message-id <message_id> --to recipient@example.com
         ```
       path-parameters:
         message_id: messages.MessageId

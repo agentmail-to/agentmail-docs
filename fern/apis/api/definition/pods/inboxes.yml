@@ -20,7 +20,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:inboxes list --pod-id <pod_id>
+        agentmail pods inboxes list --pod-id <pod_id>
         ```
       request:
         name: ListInboxesRequest
@@ -39,7 +39,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:inboxes get --pod-id <pod_id> --inbox-id <inbox_id>
+        agentmail pods inboxes get --pod-id <pod_id> --inbox-id <inbox_id>
         ```
       path-parameters:
         inbox_id: inboxes.InboxId
@@ -54,7 +54,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:inboxes create --pod-id <pod_id> --username myagent --domain example.com
+        agentmail pods inboxes create --pod-id <pod_id> --username myagent --domain example.com
         ```
       request: inboxes.CreateInboxRequest
       response: inboxes.Inbox
@@ -69,7 +69,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:inboxes update --pod-id <pod_id> --inbox-id <inbox_id>
+        agentmail pods inboxes update --pod-id <pod_id> --inbox-id <inbox_id>
         ```
       path-parameters:
         inbox_id: inboxes.InboxId
@@ -85,7 +85,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:inboxes delete --pod-id <pod_id> --inbox-id <inbox_id>
+        agentmail pods inboxes delete --pod-id <pod_id> --inbox-id <inbox_id>
         ```
       path-parameters:
         inbox_id: inboxes.InboxId

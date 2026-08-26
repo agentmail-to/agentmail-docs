@@ -2,14 +2,14 @@
 
 imports:
   global: ../__package__.yml
-  pods: __package__.yml
+  inboxes: __package__.yml
   metrics: ../metrics.yml
 
 service:
   url: Http
-  base-path: /pods/{pod_id}/metrics
+  base-path: /inboxes/{inbox_id}/metrics
   path-parameters:
-    pod_id: pods.PodId
+    inbox_id: inboxes.InboxId
   auth: true
 
   endpoints:
@@ -19,14 +19,14 @@ service:
       display-name: Query Events
       docs: |
         Counts of email events (sent, delivered, bounced, etc.) over time for
-        the pod. Defaults to the last 24 hours; `start` must be within the last
-        90 days, and a future `end` is clamped to now. Omit `period` for
+        the inbox. Defaults to the last 24 hours; `start` must be within the
+        last 90 days, and a future `end` is clamped to now. Omit `period` for
         individual event counts, or set it to sum counts into buckets of that
         many seconds.
 
         **CLI:**
         ```bash
-        agentmail pods:metrics query --pod-id <pod_id>
+        agentmail inboxes metrics query-events --inbox-id <inbox_id>
         ```
       request:
         name: QueryEventsRequest
@@ -46,13 +46,13 @@ service:
       path: /usage
       display-name: Query Usage
       docs: |
-        Cumulative usage series for the pod. Each point is the running total of
-        the usage type at that timestamp, not the change within the bucket.
-        Pod-scoped queries carry every usage type except `pod_count`; requested
-        types that don't apply to the scope are ignored. Defaults to the last
-        24 hours; `start` must be within the last 90 days, and a future `end`
-        is clamped to now. The range divided by `period` must not exceed 1000
-        buckets.
+        Cumulative usage series for the inbox. Each point is the running total
+        of the usage type at that timestamp, not the change within the bucket.
+        Inbox-scoped queries carry `storage_bytes`, `message_count`, and
+        `thread_count`; requested types that don't apply to the scope are
+        ignored. Defaults to the last 24 hours; `start` must be within the
+        last 90 days, and a future `end` is clamped to now. The range divided
+        by `period` must not exceed 1000 buckets.
       request:
         name: QueryUsageRequest
         query-parameters:

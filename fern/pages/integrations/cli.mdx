@@ -7,7 +7,7 @@ description: AgentMail's official command-line interface
 
 ## Getting started
 
-The AgentMail CLI lets you interact with the AgentMail API directly from your terminal. Create inboxes, send messages, manage threads, and more — all without writing code.
+The AgentMail CLI lets you interact with the AgentMail API directly from your terminal. Create inboxes, send messages, manage threads, and more — all without writing code. It ships as a single native binary with no runtime dependencies.
 
 ### Installation
 
@@ -17,6 +17,8 @@ Install with npm:
 npm install -g agentmail-cli
 ```
 
+Or download a prebuilt binary for your platform from the [GitHub releases page](https://github.com/agentmail-to/agentmail-cli/releases).
+
 ### Authentication
 
 Set your API key as an environment variable:
@@ -25,23 +27,28 @@ Set your API key as an environment variable:
 export AGENTMAIL_API_KEY=am_us_xxx
 ```
 
-Or pass it directly with the `--api-key` flag. Get your key from the [AgentMail Console](https://console.agentmail.to).
+Or store it in your OS keychain so it survives across shells:
+
+```bash
+agentmail auth login --with-token --scheme BearerAuth   # paste your API key when prompted
+agentmail auth status                                   # shows which credential source is active
+```
+
+Get your key from the [AgentMail Console](https://console.agentmail.to). (`AGENTMAIL_TOKEN` is also accepted; if both are set, `AGENTMAIL_API_KEY` wins.)
 
 ## Usage
 
-Commands follow the pattern:
+Commands follow the resource structure of the API, with nested subcommands:
 
 ```bash
-agentmail [resource] <command> [flags...]
+agentmail <resource> [subresource] <command> [flags...]
 ```
-
-Resources can also use colon syntax for subresources:
 
 ```bash
-agentmail inboxes:messages send --inbox-id inb_xxx --to user@example.com --subject "Hello" --text "Hi there"
+agentmail inboxes messages send --inbox-id inb_xxx --to user@example.com --subject "Hello" --text "Hi there"
 ```
 
-Use `--help` on any command for details.
+Use `--help` on any command for details, or `--schema` for a machine-readable description of every command — useful when an AI agent is driving the CLI.
 
 ### Examples
 
@@ -53,18 +60,25 @@ agentmail inboxes list
 agentmail inboxes create --display-name "My Inbox"
 
 # Send a message
-agentmail inboxes:messages send \
+agentmail inboxes messages send \
+  --inbox-id inb_xxx \
+  --to user@example.com \
+  --subject "Hello" \
+  --text "Hi there"
+
+# Preview the request without sending it
+agentmail inboxes messages send --dry-run \
   --inbox-id inb_xxx \
   --to user@example.com \
   --subject "Hello" \
   --text "Hi there"
 
 # List threads
-agentmail inboxes:threads list --inbox-id inb_xxx
+agentmail inboxes threads list --inbox-id inb_xxx
 
 # Create a webhook
 agentmail webhooks create \
-  --event-type message.received \
+  --event-types message.received \
   --url https://example.com/webhook
 ```
 
@@ -74,7 +88,7 @@ The CLI provides commands for:
 
 - **Inbox management:** Create, list, update, and delete inboxes
 - **Message operations:** Send, reply, forward, and read emails
-- **Thread management:** List and manage email threads
+- **Thread management:** List, search, and manage email threads
 - **Drafts:** Create, update, send, and delete drafts
 - **Webhooks:** Create and manage webhook endpoints
 - **Domains:** Add and verify custom domains
@@ -85,27 +99,42 @@ The CLI provides commands for:
 
 | Flag | Description |
 | --- | --- |
-| `--api-key` | API key (or set `AGENTMAIL_API_KEY`) |
-| `--format` | Output format: `json`, `yaml`, `pretty`, `raw`, `explore` |
-| `--debug` | Enable debug logging |
+| `--format` | Output format: `json`, `table`, `yaml`, `csv`, `raw`, `jsonl`, `http`. Default: `table` on a terminal, `json` when piped |
+| `--dry-run` | Validate and print the request locally without sending it |
+| `--base-url` | Override the API base URL (or set `AGENTMAIL_BASE_URL`) |
+| `--schema` | Print a machine-readable JSON schema for the current scope |
+| `--quiet` | Suppress stdout on success (errors still go to stderr) |
 | `--help` | Show help |
 | `--version` | Show version |
 
-## Output formats
+Request-bearing commands additionally accept `--json <JSON|->` to supply the whole request body as JSON (or from stdin), `--params <JSON>` to merge extra parameters, `--page-all` on list commands to auto-paginate through all results, and `--query <EXPR>` to filter output with a [JMESPath](https://jmespath.org) expression.
 
-Control how results are displayed with the `--format` flag:
+Shell completions (`agentmail completion`) and man pages (`agentmail man`) are built in.
 
-- **`json`** — JSON output (default)
-- **`yaml`** — YAML output
-- **`pretty`** — Human-readable formatted output
-- **`raw`** — Raw API response
-- **`explore`** — Interactive explorer
+## Upgrading from 0.7.x
 
-You can also use `--transform` with [GJSON](https://github.com/tidwall/gjson) syntax to query and filter output data.
+Version 1.0 is a full rewrite, and some invocations changed:
+
+| 0.7.x | 1.0 |
+| --- | --- |
+| `agentmail inboxes:messages send ...` | `agentmail inboxes messages send ...` (spaces, not colons) |
+| `agentmail inboxes retrieve ...` | `agentmail inboxes get ...` |
+| `agentmail threads retrieve-attachment ...` | `agentmail threads get-attachment ...` |
+| `--format pretty` / `explore` | `--format table` (default on a terminal); `raw` and `jsonl` still work, plus new `http` |
+| `--transform` (GJSON) | `--query` (JMESPath) |
+| `--api-key` flag | `AGENTMAIL_API_KEY` env var or `agentmail auth login --with-token --scheme BearerAuth` |
+
+Environment variables are unchanged: `AGENTMAIL_API_KEY` keeps working as before.
 
 ## AI skill
 
-The CLI is also available as an [AgentSkills](https://skills.sh) skill, allowing AI coding assistants to use it on your behalf. Install it with:
+The CLI can generate [AgentSkills](https://skills.sh)-compatible skill files directly from its own command surface:
+
+```bash
+agentmail generate-skills --output-dir skills
+```
+
+It is also available as a prebuilt skill:
 
 ```bash
 openclaw skills install agentmail-to/agentmail-skills/agentmail-cli

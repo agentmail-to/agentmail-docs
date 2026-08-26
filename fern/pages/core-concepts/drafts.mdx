@@ -57,7 +57,7 @@ console.log(`Draft created successfully with ID: ${newDraft.draftId}`);
 
 ```bash title="CLI"
 # create a draft in an inbox
-agentmail inboxes:drafts create \
+agentmail inboxes drafts create \
   --inbox-id outbound@domain.com \
   --to review-team@example.com \
   --subject "[NEEDS REVIEW] Agent's proposed response"
@@ -88,7 +88,7 @@ const draft = await client.inboxes.drafts.get(
 
 ```bash title="CLI"
 # get a draft by id
-agentmail inboxes:drafts get \
+agentmail inboxes drafts get \
   --inbox-id my_inbox@domain.com \
   --draft-id draft_id_123
 ```
@@ -119,7 +119,7 @@ console.log(`Draft sent! New message ID: ${sentMessage.message_id}`);
 
 ```bash title="CLI"
 # send a draft
-agentmail inboxes:drafts send \
+agentmail inboxes drafts send \
   --inbox-id my_inbox@domain.com \
   --draft-id draft_id_123
 ```
@@ -193,13 +193,13 @@ await client.inboxes.drafts.send("agent@domain.com", draft.draftId);
 
 ```bash title="CLI"
 # create a draft reply to a message
-agentmail inboxes:drafts create \
+agentmail inboxes drafts create \
   --inbox-id agent@domain.com \
   --in-reply-to "<message-id@domain.com>" \
   --text "Thanks — looping in my manager for approval."
 
 # forward a message as a draft
-agentmail inboxes:drafts create \
+agentmail inboxes drafts create \
   --inbox-id agent@domain.com \
   --forward-of "<message-id@domain.com>" \
   --to teammate@example.com \
@@ -241,7 +241,7 @@ await client.inboxes.drafts.update("agent@domain.com", "draft_id_123", {
 
 ```bash title="CLI"
 # update a draft's body
-agentmail inboxes:drafts update \
+agentmail inboxes drafts update \
   --inbox-id agent@domain.com \
   --draft-id draft_id_123 \
   --text "Updated body copy."
@@ -299,7 +299,7 @@ console.log(`Draft scheduled for ${scheduledDraft.sendAt}`);
 
 ```bash title="CLI"
 # schedule a draft for tomorrow at 9:00 am utc
-agentmail inboxes:drafts create \
+agentmail inboxes drafts create \
   --inbox-id outreach@domain.com \
   --to prospect@example.com \
   --subject "Following up on our conversation" \
@@ -364,13 +364,13 @@ await client.inboxes.drafts.delete(
 
 ```bash title="CLI"
 # reschedule to a different time
-agentmail inboxes:drafts update \
+agentmail inboxes drafts update \
   --inbox-id outreach@domain.com \
   --draft-id scheduled_draft_id \
   --send-at 2026-04-02T14:00:00Z
 
 # or cancel by deleting the draft entirely
-agentmail inboxes:drafts delete \
+agentmail inboxes drafts delete \
   --inbox-id outreach@domain.com \
   --draft-id scheduled_draft_id
 ```
@@ -406,9 +406,9 @@ for (const draft of scheduled.drafts) {
 
 ```bash title="CLI"
 # list all scheduled drafts in an inbox
-agentmail inboxes:drafts list \
+agentmail inboxes drafts list \
   --inbox-id outreach@domain.com \
-  --label scheduled
+  --labels scheduled
 ```
 </CodeBlocks>
 
@@ -489,14 +489,14 @@ await client.inboxes.threads.update(inboxId, initial.threadId, {
 
 ```bash title="CLI"
 # send the initial email
-agentmail inboxes:messages send \
+agentmail inboxes messages send \
   --inbox-id outreach@domain.com \
   --to prospect@example.com \
   --subject "Quick question about your workflow" \
   --text "Hi, I noticed your team is scaling quickly..."
 
 # schedule follow-up for 3 days later
-agentmail inboxes:drafts create \
+agentmail inboxes drafts create \
   --inbox-id outreach@domain.com \
   --to prospect@example.com \
   --subject "Re: Quick question about your workflow" \

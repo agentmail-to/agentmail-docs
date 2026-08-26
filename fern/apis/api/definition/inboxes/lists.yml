@@ -2,14 +2,14 @@
 
 imports:
   global: ../__package__.yml
-  pods: __package__.yml
+  inboxes: __package__.yml
   lists: ../lists.yml
 
 service:
   url: Http
-  base-path: /pods/{pod_id}/lists/{direction}/{type}
+  base-path: /inboxes/{inbox_id}/lists/{direction}/{type}
   path-parameters:
-    pod_id: pods.PodId
+    inbox_id: inboxes.InboxId
     direction: lists.Direction
     type: lists.ListType
   auth: true
@@ -22,10 +22,10 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:lists list --pod-id <pod_id> --direction <direction> --type <type>
+        agentmail inboxes lists list --inbox-id <inbox_id> --direction <direction> --type <type>
         ```
       request:
-        name: ListListEntriesRequest
+        name: InboxListListEntriesRequest
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
@@ -38,7 +38,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:lists get --pod-id <pod_id> --direction <direction> --type <type> --entry <entry>
+        agentmail inboxes lists get --inbox-id <inbox_id> --direction <direction> --type <type> --entry <entry>
         ```
       path-parameters:
         entry:
@@ -55,7 +55,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:lists create --pod-id <pod_id> --direction <direction> --type <type> --entry user@example.com
+        agentmail inboxes lists create --inbox-id <inbox_id> --direction <direction> --type <type> --entry user@example.com
         ```
       request: lists.CreateListEntryRequest
       response: lists.PodListEntry
@@ -69,7 +69,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail pods:lists delete --pod-id <pod_id> --direction <direction> --type <type> --entry <entry>
+        agentmail inboxes lists delete --inbox-id <inbox_id> --direction <direction> --type <type> --entry <entry>
         ```
       path-parameters:
         entry:

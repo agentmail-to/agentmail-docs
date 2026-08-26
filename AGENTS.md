@@ -4,7 +4,7 @@ Instructions for creating changelog entries (e.g. when asked in #github-prs with
 
 ## When you're invoked
 
-- **API changes:** A PR that touches `fern/definition/**` triggers a GitHub Action. It posts an oasdiff (technical diff) on the PR and uploads it as the `api-changelog-diff` artifact. Someone may tag you with that PR or paste the diff.
+- **API changes:** A PR that touches `fern/apis/api/definition/**` triggers a GitHub Action. It posts an oasdiff (technical diff) on the PR and uploads it as the `api-changelog-diff` artifact. Someone may tag you with that PR or paste the diff.
 - **Manual:** For non-API changes, create `fern/changelog/YYYY-MM-DD.mdx` and follow the structure below. Use `fern/changelog/TEMPLATE.mdx` as reference.
 - **Output:** Create or edit files in `fern/changelog/`. File name: `YYYY-MM-DD.mdx` (same day = add suffix e.g. `2026-01-30-metrics.mdx`).
 
@@ -79,14 +79,14 @@ slug: knowledge-base/article-slug
 Match Resend KB quality. Articles should include:
 
 - **Tables** for DNS record fields, comparison matrices, etc.
-- **Code examples** using the actual AgentMail SDK (Python primary, verify API signatures against `fern/definition/` or existing docs)
+- **Code examples** using the actual AgentMail SDK (Python primary, verify API signatures against `fern/apis/api/definition/` or existing docs)
 - **Warnings/Notes** using `<Warning>` and `<Note>` Fern components for provider-specific gotchas
 - **Troubleshooting section** ("Common Issues") for DNS guides and similar
 - **Verification section** for setup guides (propagation times, how to confirm success)
 
 ## Code accuracy
 
-- Always verify SDK method signatures against `fern/pages/core-concepts/` docs or `fern/definition/` YAML
+- Always verify SDK method signatures against `fern/pages/core-concepts/` docs or `fern/apis/api/definition/` YAML
 - `to`, `cc`, `bcc` are `list<string>` on messages
 - Webhook payloads use `payload["message"]` for `message.received` events (not `payload["data"]`)
 - WebSocket SDK uses `client.websockets.connect()` with typed events (`Subscribe`, `Subscribed`, `MessageReceivedEvent`)

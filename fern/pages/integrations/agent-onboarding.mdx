@@ -246,7 +246,7 @@ agentmail agent verify --otp-code 123456
 agentmail inboxes create --display-name "My AI Agent"
 
 # send an email (replace <inbox_id> with the id from above)
-agentmail inboxes:messages send \
+agentmail inboxes messages send \
   --inbox-id <inbox_id> \
   --to user@example.com \
   --subject "Hello from my AI agent" \

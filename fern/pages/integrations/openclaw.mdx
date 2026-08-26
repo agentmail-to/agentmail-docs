@@ -113,7 +113,7 @@ openclaw agentmail -- --help
 
 openclaw agentmail -- --format json inboxes list
 
-openclaw agentmail -- --format json inboxes:messages send \
+openclaw agentmail -- --format json inboxes messages send \
   --inbox-id agent@agentmail.to \
   --to person@example.com \
   --subject "Hello" \
@@ -123,7 +123,7 @@ openclaw agentmail -- --format json inboxes:messages send \
 <Note>
 The CLI skill runs on the OpenClaw host, because that is where its executable and credentials live. Sandboxed agents need permission to execute this host command.
 
-For credential safety, command arguments cannot override `--api-key`, `--base-url`, or `--environment`. Inherited proxy variables (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY`, including lowercase forms) are stripped from the passthrough. If an argument value must literally begin with `--base-url` or `--environment`, use the CLI's `--option=value` form, for example `--subject=--base-url-is-restricted`.
+For credential safety, the CLI takes credentials only from the host's environment or OS keychain — there is no credential flag for arguments to override — and command arguments cannot override `--base-url`. Inherited proxy variables (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY`, including lowercase forms) are stripped from the passthrough. If an argument value must literally begin with `--base-url`, use the CLI's `--option=value` form, for example `--subject=--base-url-is-restricted`.
 </Note>
 
 ### Features

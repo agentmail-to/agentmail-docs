@@ -1,0 +1,57 @@
+name: Release CLI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # a) API definition changes (source of truth)
+      - "fern/apis/api/definition/**"
+      # b) Committed OpenAPI export changes
+      - "openapi/openapi.yml"
+      # c) CLI generator config / overrides changes
+      - "fern/apis/cli/generators.yml"
+      - "fern/apis/cli/openapi-overrides.yml"
+      # d) Fern CLI version changes
+      - "fern/fern.config.json"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to stamp into the generated CLI (e.g. 1.0.0). The release tag on the output repo must match it exactly — ci.yml's version guard blocks publishes when they disagree. Release generation must state its version explicitly; only push-triggered drift regens use AUTO."
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup Fern CLI
+        uses: fern-api/setup-fern-cli@v1
+
+      - name: Re-export OpenAPI from definition
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --api api --group openapi --local --force --no-prompt
+
+      # Fail fast if the freshly exported spec and the CLI overlays have
+      # drifted: a new endpoint without annotations would silently lose its
+      # command hierarchy and AGENTMAIL_TOKEN support, and an override for a
+      # deleted endpoint would become a synthetic dead command.
+      - name: Validate CLI overlays against exported spec
+        run: |
+          python3 bin/gen-cli-overrides.py --check
+          python3 bin/gen-cli-security-overrides.py --check
+
+      # Generation is dispatch-only for now. Push events still run the export
+      # and overlay validation above (so spec/overlay drift fails loudly), but
+      # do not generate: the pinned Fern CLI (5.44.8) predates the remote
+      # AUTO-version fix (5.63.1), and a push-triggered AUTO run would race a
+      # concurrent versioned dispatch for the same generated PR. Restore
+      # push-triggered generation after upgrading the Fern pin.
+      - name: Generate CLI
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --api cli --group cli --log-level debug --version "${{ github.event.inputs.version }}"

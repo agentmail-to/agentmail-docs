@@ -127,16 +127,16 @@ await client.inboxes.webhooks.create("agent@domain.com", {
 ```
 ```bash title="CLI"
 # webhook scoped to a single pod
-agentmail pods:webhooks create \
+agentmail pods webhooks create \
   --pod-id pod_abc123 \
   --url https://your-server.com/webhooks \
-  --event-type message.received
+  --event-types message.received
 
 # webhook scoped to a single inbox
-agentmail inboxes:webhooks create \
+agentmail inboxes webhooks create \
   --inbox-id agent@domain.com \
   --url https://your-server.com/webhooks \
-  --event-type message.received
+  --event-types message.received
 ```
 </CodeBlocks>
 
@@ -168,8 +168,8 @@ The process is straightforward:
         # register a webhook endpoint
         agentmail webhooks create \
           --url https://<your-ngrok-url>.ngrok-free.app/webhooks \
-          --event-type message.received \
-          --event-type message.sent
+          --event-types message.received \
+          --event-types message.sent
         ```
         </CodeBlocks>
         Specify which events to receive; omit `event_types` to subscribe to all standard event types. Spam, blocked, and unauthenticated events must always be explicitly included.
@@ -211,7 +211,7 @@ const htmlBody = message.html;
 ```
 ```bash title="CLI"
 # fetch the full message after receiving a webhook
-agentmail inboxes:messages get \
+agentmail inboxes messages get \
   --inbox-id <inbox_id> \
   --message-id <message_id>
 ```

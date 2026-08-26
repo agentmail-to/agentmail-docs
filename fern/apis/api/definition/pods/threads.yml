@@ -2,15 +2,15 @@
 
 imports:
   global: ../__package__.yml
-  inboxes: __package__.yml
+  pods: __package__.yml
   threads: ../threads.yml
   attachments: ../attachments.yml
 
 service:
   url: Http
-  base-path: /inboxes/{inbox_id}/threads
+  base-path: /pods/{pod_id}/threads
   path-parameters:
-    inbox_id: inboxes.InboxId
+    pod_id: pods.PodId
   auth: true
 
   endpoints:
@@ -19,14 +19,14 @@ service:
       path: ""
       display-name: List Threads
       docs: |
-        Lists threads in the inbox, most recent first. Pass `senders`,
+        Lists threads in the pod, most recent first. Pass `senders`,
         `recipients`, or `subject` to filter by substring. Filtered requests are
         served by search, which caps `limit` at 100. For relevance-ranked
         full-text search, use `Search Threads`.
 
         **CLI:**
         ```bash
-        agentmail inboxes:threads list --inbox-id <inbox_id>
+        agentmail pods threads list --pod-id <pod_id>
         ```
       request:
         name: ListThreadsRequest
@@ -59,7 +59,7 @@ service:
       path: /search
       display-name: Search Threads
       docs: |
-        Full-text search across threads in the inbox, ranked by relevance. The
+        Full-text search across threads in the pod, ranked by relevance. The
         query is matched against senders, recipients, and subject (substring)
         and the message body (tokenized full text). Spam, trash, blocked, and
         unauthenticated threads are always excluded. `limit` cannot exceed 100.
@@ -83,7 +83,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:threads get --inbox-id <inbox_id> --thread-id <thread_id>
+        agentmail pods threads get --pod-id <pod_id> --thread-id <thread_id>
         ```
       path-parameters:
         thread_id: threads.ThreadId
@@ -98,7 +98,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:threads get-attachment --inbox-id <inbox_id> --thread-id <thread_id> --attachment-id <attachment_id>
+        agentmail pods threads get-attachment --pod-id <pod_id> --thread-id <thread_id> --attachment-id <attachment_id>
         ```
       path-parameters:
         thread_id: threads.ThreadId
@@ -130,7 +130,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail inboxes:threads delete --inbox-id <inbox_id> --thread-id <thread_id>
+        agentmail pods threads delete --pod-id <pod_id> --thread-id <thread_id>
         ```
       path-parameters:
         thread_id: threads.ThreadId

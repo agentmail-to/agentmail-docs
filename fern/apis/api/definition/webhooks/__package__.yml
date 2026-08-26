@@ -205,7 +205,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail webhooks create --url https://example.com/webhook --event-type message.received
+        agentmail webhooks create --url https://example.com/webhook --event-types message.received
         ```
       request: CreateWebhookRequest
       response: Webhook
@@ -222,7 +222,7 @@ service:
 
         **CLI:**
         ```bash
-        agentmail webhooks update --webhook-id <webhook_id> --add-inbox-id <inbox_id>
+        agentmail webhooks update --webhook-id <webhook_id> --add-inbox-ids <inbox_id>
         ```
       path-parameters:
         webhook_id: WebhookId

@@ -2,14 +2,14 @@
 
 imports:
   global: ../__package__.yml
-  inboxes: __package__.yml
+  pods: __package__.yml
   webhooks: ../webhooks/__package__.yml
 
 service:
   url: Http
-  base-path: /inboxes/{inbox_id}/webhooks
+  base-path: /pods/{pod_id}/webhooks
   path-parameters:
-    inbox_id: inboxes.InboxId
+    pod_id: pods.PodId
   auth: true
 
   endpoints:
@@ -20,10 +20,10 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks list --inbox-id <inbox_id>
+        agentmail pods webhooks list --pod-id <pod_id>
         ```
       request:
-        name: InboxListWebhooksRequest
+        name: PodListWebhooksRequest
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
@@ -37,7 +37,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks get --inbox-id <inbox_id> --webhook-id <webhook_id>
+        agentmail pods webhooks get --pod-id <pod_id> --webhook-id <webhook_id>
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId
@@ -50,7 +50,7 @@ service:
       path: /{webhook_id}/headers
       display-name: Get Webhook Headers
       docs: |
-        List the names of custom HTTP headers included with deliveries to this inbox-scoped webhook.
+        List the names of custom HTTP headers included with deliveries to this pod-scoped webhook.
         Header values are write-only and are never returned.
       path-parameters:
         webhook_id: webhooks.WebhookId
@@ -63,13 +63,13 @@ service:
       path: ""
       display-name: Create Webhook
       docs: |
-        Create a webhook scoped to this inbox.
+        Create a webhook scoped to this pod.
 
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks create --inbox-id <inbox_id> --url https://example.com/webhook --event-type message.received
+        agentmail pods webhooks create --pod-id <pod_id> --url https://example.com/webhook --event-types message.received
         ```
-      request: webhooks.CreateInboxWebhookRequest
+      request: webhooks.CreatePodWebhookRequest
       response: webhooks.Webhook
       errors:
         - global.ValidationError
@@ -81,11 +81,11 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks update --inbox-id <inbox_id> --webhook-id <webhook_id> --event-type message.received
+        agentmail pods webhooks update --pod-id <pod_id> --webhook-id <webhook_id> --add-inbox-ids <inbox_id>
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId
-      request: webhooks.UpdateInboxWebhookRequest
+      request: webhooks.UpdatePodWebhookRequest
       response: webhooks.Webhook
       errors:
         - global.NotFoundError
@@ -97,7 +97,7 @@ service:
       display-name: Update Webhook Headers
       docs: |
         Atomically set, replace, or remove custom HTTP headers included with deliveries to this
-        inbox-scoped webhook. Header values remain write-only.
+        pod-scoped webhook. Header values remain write-only.
       path-parameters:
         webhook_id: webhooks.WebhookId
       request: webhooks.UpdateWebhookHeadersRequest
@@ -114,7 +114,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:webhooks delete --inbox-id <inbox_id> --webhook-id <webhook_id>
+        agentmail pods webhooks delete --pod-id <pod_id> --webhook-id <webhook_id>
         ```
       path-parameters:
         webhook_id: webhooks.WebhookId

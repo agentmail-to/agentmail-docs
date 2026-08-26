@@ -3,7 +3,7 @@ name: API Changelog Automation
 on:
   pull_request:
     paths:
-      - 'fern/definition/**/*.yml'
+      - 'fern/apis/api/definition/**/*.yml'
   workflow_dispatch:
 
 jobs:
@@ -29,13 +29,15 @@ jobs:
         
       - name: Generate current OpenAPI spec
         run: |
-          cd fern && fern export ../current-openapi.json
-        continue-on-error: true
+          cd fern && fern export --api api ../current-openapi.json
           
       - name: Generate base OpenAPI spec
         run: |
           git checkout ${{ github.event.pull_request.base.sha }}
-          cd fern && fern export ../base-openapi.json || echo '{}' > ../base-openapi.json
+          # --api api for the multi-API layout; plain export for older base commits
+          cd fern && (fern export --api api ../base-openapi.json \
+            || fern export ../base-openapi.json \
+            || echo '{}' > ../base-openapi.json)
           git checkout ${{ github.event.pull_request.head.sha }}
         continue-on-error: true
           

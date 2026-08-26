@@ -20,7 +20,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:api-keys list --inbox-id <inbox_id>
+        agentmail inboxes api-keys list --inbox-id <inbox_id>
         ```
       request:
         name: ListApiKeysRequest
@@ -38,7 +38,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:api-keys create --inbox-id <inbox_id> --name "My Key"
+        agentmail inboxes api-keys create --inbox-id <inbox_id> --name "My Key"
         ```
       request: api-keys.CreateApiKeyRequest
       response: api-keys.CreateApiKeyResponse
@@ -53,7 +53,7 @@ service:
       docs: |
         **CLI:**
         ```bash
-        agentmail inboxes:api-keys delete --inbox-id <inbox_id> --api-key-id <api_key_id>
+        agentmail inboxes api-keys delete --inbox-id <inbox_id> --api-key-id <api_key_id>
         ```
       path-parameters:
         api_key_id: api-keys.ApiKeyId
