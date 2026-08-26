@@ -11,11 +11,25 @@ An `Attachment` is a file that is associated with a `Message`. This can be anyth
 
 ## Sending `Attachments`
 
-To send a file, you include it in an `Attachments` array when sending a `Message`. Each object in the array represents one file and must have a `content` property.
+To send a file, include it in the `attachments` array when sending a `Message`. Each object in the array represents one file and must provide either `content` or `url`.
 
-- **`content`** (required): The Base64 encoded content of your file.
+- **`content`**: The Base64 encoded content of your file.
+- **`url`**: A URL that AgentMail can download without custom authentication headers or cookies. Redirects and pre-signed URLs are supported, and the final response must be a successful `2xx` response.
 - **`filename`** (optional): The name of the file (e.g., `invoice.pdf`).
 - **`content_type`** (optional): The MIME type of the file (e.g., `application/pdf`).
+
+### Attachment size limits
+
+| Input | Limit | What counts toward the limit |
+| --- | --- | --- |
+| Inline `content` | 6 MB per request | The entire request, including the message body, metadata, and all attachments. |
+| Remote `url` | Around 30 MB of attachments per message | The combined size of the files AgentMail downloads from all attachment URLs. |
+
+If an inline request exceeds 6 MB, the API returns `413 Request Entity Too Large`. For larger files, use URL-backed attachments and keep the combined attachment size around 30 MB per message.
+
+<Note>
+To detect the inline limit proactively, measure the complete serialized request and leave room for the message body and metadata. Use `url` for larger attachments.
+</Note>
 
 <CodeBlocks>
 ```python
@@ -228,4 +242,3 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
   const data = await client.inboxes.messages.get_attachment("inbox@am.to", "<abc123@agentmail.to>", "att_456");
   ```
 </CodeBlocks>
-

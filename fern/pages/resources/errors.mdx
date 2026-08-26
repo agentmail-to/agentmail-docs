@@ -115,7 +115,21 @@ The message was not sent. The message names the reason, and the `fix` states whi
 - **Recipients on a send block list** — remove them from the request, or delete the matched block entry. The `fix` names the stored entry (which may be a domain rather than the recipient address) and the exact `DELETE /v0/…/lists/send/block/{entry}` path at the scope where it lives. Deleting an entry at a broader scope than your key (an organization-level block hit by a pod- or inbox-scoped key) requires a key scoped at that level. Read-only entries — added automatically from bounces, complaints, and unsubscribes — cannot be deleted via the API; email support@agentmail.to to have one reviewed.
 - **Recipients missing from an active send allow list** — add them via `POST /v0/lists/send/allow` (there is no block entry to delete). On an agent organization that has not completed verification, sending is restricted to the human's email and list entries cannot be created yet — complete `POST /v0/agent/verify` instead.
 - **A suspended account** — email support@agentmail.to; retrying will keep failing until the suspension is resolved.
-- **An unfetchable attachment URL** — use a URL that returns 200 without authentication, or send the attachment inline as base64.
+- **An unfetchable attachment URL** — use a URL that AgentMail can download without custom authentication headers or cookies, or send the attachment inline as Base64. Redirects and pre-signed URLs are supported, and the final response must be a successful 2xx response.
+
+## Request too large (413)
+
+Oversized inline attachment requests return an infrastructure-generated response:
+
+```json
+{ "message": "Request Entity Too Large" }
+```
+
+This response is an exception to the standard `code`, `fix`, and `docs` error envelope. It only contains `message`.
+
+Requests with inline `content` attachments are limited to 6 MB total, including the message body, metadata, and attachment content.
+
+Reduce the attachment size or provide larger attachments through the `url` field. Keep URL-backed attachments around 30 MB total per message.
 
 ## Transient errors (429 / 500 / 503)
 
