@@ -1,0 +1,278 @@
+---
+title: AgentID Browser Enrollment
+subtitle: Enroll a persistent browser credential without sending an AgentMail API key to AgentID.
+slug: agentid-browser-enrollment
+description: Verify the AgentID browser origin, create an enrollment with ordinary authenticated HTTP, and manage browser credentials and consent.
+---
+
+AgentID browser enrollment lets a persistent browser create and retain its own
+non-extractable P-256 credential. An agent authorizes the enrollment with an
+existing AgentMail bearer API key, but that key is sent only to the AgentMail
+API. The browser creates the private key and never exports it.
+
+<Note title="Limited beta">
+  Browser enrollment is available only to explicitly enabled organizations and
+  environments. An unavailable route returns `404`; an organization outside the
+  enabled beta returns `403`. The existing [AgentID public-key
+  flow](/agentid-public-key-authentication) remains supported during migration.
+</Note>
+
+<Warning title="Verify the browser origin before enrollment">
+  An agent that submits a `transaction_jti` read from any origin other than
+  `https://auth.agentid.com` can be induced to enroll an attacker's browser for
+  its own inbox. Verify the final page origin through the browser or automation
+  transport itself. The origin fields inside the action are self-asserted and
+  are not sufficient on their own.
+</Warning>
+
+**AgentMail API keys are sent only to `https://api.agentmail.to`; AgentID never requests them.**
+
+The [AgentID configuration
+document](https://api.agentmail.to/v0/.well-known/agentid-configuration)
+publishes the same fixed origins and endpoints for discovery. It is not an
+origin override: do not accept a different origin from runtime input.
+
+## Enrollment flow
+
+1. Open an AgentID authorization transaction in a persistent browser.
+2. When the page reports that enrollment is required, read its machine action
+   and the browser's independently reported final URL.
+3. Verify that the final URL's origin is exactly
+   `https://auth.agentid.com`. Also verify the action's fixed fields and expiry.
+4. Select the inbox from trusted AgentMail configuration. Treat `login_hint` as
+   a hint only.
+5. Send `{inbox_id, transaction_jti}` with the bearer API key to exactly
+   `https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments`.
+6. Keep the existing AgentID page open. It observes the pending intent, creates
+   a non-extractable browser key, proves possession, and continues the same
+   transaction.
+
+The enrollment POST requires `api_key_create`. A new intent returns `202`; an
+idempotent retry for the same pending transaction, inbox, and bearer key returns
+`200` with the same body:
+
+```json
+{
+  "status": "pending",
+  "enrollment_id": "4d795cc3-ae87-4f84-85e3-4ad4ca656f44",
+  "expires_at": 1787694600
+}
+```
+
+This receipt contains no AgentID URL, token, cookie, or navigation instruction.
+Do not navigate away from the browser transaction in response to it.
+
+## Create an enrollment with HTTP
+
+The browser page exposes a machine action with the following shape. Read it
+only after obtaining the final page URL from the browser transport:
+
+```json
+{
+  "type": "agentid_enrollment_required",
+  "issuer": "https://auth.agentid.com",
+  "browser_origin": "https://auth.agentid.com",
+  "agentmail_enrollment_endpoint": "https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments",
+  "transaction_jti": "AAAAAAAAAAAAAAAAAAAAAA",
+  "transaction_expires_at": 1787694600,
+  "login_hint": "agent@example.com",
+  "login_hint_authoritative": false,
+  "invariant": "AgentMail API keys are sent only to https://api.agentmail.to; AgentID never requests them."
+}
+```
+
+These examples use ordinary authenticated HTTP. They deliberately use a fixed
+AgentMail endpoint rather than following a URL supplied by the action.
+
+<CodeBlocks>
+
+```python title="Python"
+import re
+import time
+from urllib.parse import urlsplit
+
+import httpx
+
+AGENTID_ORIGIN = "https://auth.agentid.com"
+ENROLLMENT_ENDPOINT = (
+    "https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments"
+)
+INVARIANT = (
+    "AgentMail API keys are sent only to https://api.agentmail.to; "
+    "AgentID never requests them."
+)
+JTI = re.compile(r"^[A-Za-z0-9_-]{22}$")
+
+
+def canonical_origin(url: str) -> str:
+    parsed = urlsplit(url)
+    if parsed.scheme != "https" or parsed.hostname is None:
+        raise ValueError("Browser page is not HTTPS")
+    port = "" if parsed.port in (None, 443) else f":{parsed.port}"
+    return f"{parsed.scheme}://{parsed.hostname}{port}"
+
+
+def create_browser_enrollment(
+    *, source_url: str, action: dict, inbox_id: str, agentmail_api_key: str
+) -> dict:
+    # source_url must come from the browser/automation transport, not the action.
+    if canonical_origin(source_url) != AGENTID_ORIGIN:
+        raise ValueError("Untrusted browser enrollment origin")
+    if (
+        action.get("type") != "agentid_enrollment_required"
+        or action.get("issuer") != AGENTID_ORIGIN
+        or action.get("browser_origin") != AGENTID_ORIGIN
+        or action.get("agentmail_enrollment_endpoint") != ENROLLMENT_ENDPOINT
+        or action.get("login_hint_authoritative") is not False
+        or action.get("invariant") != INVARIANT
+    ):
+        raise ValueError("Invalid browser enrollment action")
+
+    jti = action.get("transaction_jti")
+    expires_at = action.get("transaction_expires_at")
+    if not isinstance(jti, str) or JTI.fullmatch(jti) is None:
+        raise ValueError("Invalid transaction_jti")
+    if type(expires_at) is not int or expires_at <= int(time.time()):
+        raise ValueError("Expired browser enrollment action")
+
+    # inbox_id comes from trusted AgentMail configuration, not login_hint.
+    response = httpx.post(
+        ENROLLMENT_ENDPOINT,
+        headers={"Authorization": f"Bearer {agentmail_api_key}"},
+        json={"inbox_id": inbox_id, "transaction_jti": jti},
+        follow_redirects=False,
+        timeout=10,
+    )
+    if response.status_code not in (200, 202):
+        response.raise_for_status()
+    return response.json()
+```
+
+```typescript title="TypeScript"
+const AGENTID_ORIGIN = "https://auth.agentid.com";
+const ENROLLMENT_ENDPOINT =
+  "https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments";
+const INVARIANT =
+  "AgentMail API keys are sent only to https://api.agentmail.to; AgentID never requests them.";
+const JTI = /^[A-Za-z0-9_-]{22}$/;
+
+async function createBrowserEnrollment({
+  sourceUrl,
+  action,
+  inboxId,
+  agentmailApiKey,
+}: {
+  sourceUrl: string; // Supplied by the browser transport, not by action.
+  action: Record<string, unknown>;
+  inboxId: string;
+  agentmailApiKey: string;
+}) {
+  if (new URL(sourceUrl).origin !== AGENTID_ORIGIN) {
+    throw new Error("Untrusted browser enrollment origin");
+  }
+  if (
+    action.type !== "agentid_enrollment_required" ||
+    action.issuer !== AGENTID_ORIGIN ||
+    action.browser_origin !== AGENTID_ORIGIN ||
+    action.agentmail_enrollment_endpoint !== ENROLLMENT_ENDPOINT ||
+    action.login_hint_authoritative !== false ||
+    action.invariant !== INVARIANT
+  ) {
+    throw new Error("Invalid browser enrollment action");
+  }
+  if (
+    typeof action.transaction_jti !== "string" ||
+    !JTI.test(action.transaction_jti) ||
+    typeof action.transaction_expires_at !== "number" ||
+    !Number.isSafeInteger(action.transaction_expires_at) ||
+    action.transaction_expires_at <= Math.floor(Date.now() / 1000)
+  ) {
+    throw new Error("Invalid or expired browser enrollment transaction");
+  }
+
+  // inboxId comes from trusted AgentMail configuration, not login_hint.
+  const response = await fetch(ENROLLMENT_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${agentmailApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inbox_id: inboxId,
+      transaction_jti: action.transaction_jti,
+    }),
+    redirect: "error",
+  });
+  if (response.status !== 200 && response.status !== 202) {
+    throw new Error(`Enrollment failed: ${response.status}`);
+  }
+  return response.json();
+}
+```
+
+</CodeBlocks>
+
+## Manage credentials and consent
+
+Management requests use a bearer API key at `https://api.agentmail.to`. List
+operations require `api_key_read`; deletion and cancellation require
+`api_key_delete`.
+
+| Operation | Request |
+| --- | --- |
+| List active browser credentials | `GET /v0/api-keys/browser-credentials` |
+| List lifecycle events | `GET /v0/api-keys/browser-credentials/events` |
+| Revoke an active credential | `DELETE /v0/api-keys/browser-credentials/{credential_id}` |
+| Cancel a pending enrollment | `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}` |
+| List remembered consent for an inbox | `GET /v0/api-keys/browser-consents?inbox_id={inbox_id}` |
+| Revoke remembered consent | `DELETE /v0/api-keys/browser-consents/{consent_id}` |
+
+List endpoints accept `limit` from 1 through 100 and a sealed `page_token`.
+They return `count`, an optional `next_page_token`, and the corresponding
+`credentials`, `events`, or `consents` array.
+
+For rotation, enroll and verify a new browser credential, then revoke the old
+credential. There is no endpoint that extends a credential in place. A browser
+credential cannot outlive its authorizing bearer API key, and deleting or
+expiring that bearer key prevents the browser credential from authorizing new
+requests.
+
+The browser's **Forget** action deletes only local key material. It does not
+revoke the server credential or remembered application consent. Use the DELETE
+endpoints above for server-side revocation. Cancel applies only while an
+enrollment is pending and unexpired.
+
+## Consent behavior
+
+AgentID shows an explicit Allow/Deny review on first use, after a material
+change to the requested scopes, callback, or trust configuration, when
+remembered consent expires, and when the client sends `prompt=consent`. An exact
+unexpired consent can be reused. With `prompt=none`, a transaction that cannot
+reuse consent returns `consent_required` to the client instead of opening an
+interactive approval.
+
+Deleting a remembered consent does not delete the browser credential. It makes
+the next interactive authorization require review again.
+
+## Persistent browser support
+
+Use a standard persistent Chromium profile for the current beta. Persistent
+Chromium enrollment, full restart, signing, and site-data-loss recovery are
+covered by the automated browser suite.
+
+Do not promise persistence for private or incognito sessions. Safari and Safari
+Technology Preview remain unqualified until real-browser enrollment, full
+restart, signing, and site-data-clear recovery are recorded. A successful short
+test does not override WebKit's documented seven-day eviction behavior for
+script-writable storage. Playwright WebKit is not a shipping Safari
+qualification. Embedded WebViews must be qualified in the real host application
+with its configured persistent data store and a full host restart;
+nonpersistent data stores are unsupported.
+
+## Migration from public-key authentication
+
+Browser enrollment is the successor for persistent browser approval only after
+it is enabled for your organization. Until then, continue using [AgentID
+public-key authentication](/agentid-public-key-authentication). The public-key
+flow remains supported during the beta, and no deprecation date is being
+announced with this release.

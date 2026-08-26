@@ -162,6 +162,195 @@ types:
           min: 1
       revoked_at: datetime
 
+  BrowserEnrollmentTransactionJti:
+    type: string
+    validation:
+      minLength: 22
+      maxLength: 22
+      pattern: "^[A-Za-z0-9_-]{22}$"
+    docs: Transaction identifier read from an enrollment action on exactly `https://auth.agentid.com`.
+
+  CreateBrowserEnrollmentRequest:
+    docs: |
+      Attach a browser enrollment intent to one pending AgentID authorization
+      transaction. Select `inbox_id` from trusted AgentMail configuration; an
+      AgentID `login_hint` is not authoritative.
+    properties:
+      inbox_id:
+        type: string
+        validation:
+          format: email
+          maxLength: 254
+        docs: Live inbox to which the browser credential will be bound.
+      transaction_jti: BrowserEnrollmentTransactionJti
+
+  BrowserEnrollmentAccepted:
+    docs: |
+      Pending enrollment receipt. The browser completes key creation and proof
+      on the existing AgentID page. This response contains no URL, token, or
+      navigation instruction.
+    properties:
+      status: literal<"pending">
+      enrollment_id: uuid
+      expires_at:
+        type: integer
+        validation:
+          min: 1
+        docs: Unix timestamp after which the pending enrollment cannot be activated.
+
+  BrowserCredentialCreator:
+    properties:
+      kind: literal<"bearer_api_key">
+      api_key_id:
+        type: uuid
+        docs: Bearer API key that authorized creation of the browser credential.
+      created_at:
+        type: datetime
+        docs: Incarnation timestamp of the authorizing bearer API key.
+
+  BrowserCredential:
+    docs: Owner-facing metadata for an active browser credential. Private key material never leaves the browser.
+    properties:
+      credential_id: uuid
+      public_key_fingerprint_prefix:
+        type: string
+        validation:
+          minLength: 8
+          maxLength: 8
+          pattern: "^[A-Za-z0-9_-]{8}$"
+      organization_id: uuid
+      pod_id: uuid
+      inbox_id:
+        type: string
+        validation:
+          format: email
+          maxLength: 254
+      created_by: BrowserCredentialCreator
+      created_at: datetime
+      expires_at: datetime
+
+  BrowserConsent:
+    docs: Remembered approval for one closed AgentID client and inbox.
+    properties:
+      consent_id:
+        type: string
+        validation:
+          minLength: 48
+          maxLength: 48
+          pattern: "^brc1_[A-Za-z0-9_-]{43}$"
+      inbox_id:
+        type: string
+        validation:
+          format: email
+          maxLength: 254
+      client_type: literal<"closed">
+      client_id:
+        type: string
+        validation:
+          minLength: 1
+          maxLength: 2048
+      client_url:
+        type: optional<string>
+        docs: Registered client URL, when one is available.
+      approved_scopes:
+        type: list<string>
+        docs: At least one non-empty scope approved for this client.
+      created_at: datetime
+      updated_at: datetime
+      expires_at: datetime
+
+  BrowserLifecycleApiKeyActor:
+    properties:
+      api_key_id: uuid
+
+  BrowserLifecycleCredentialActor:
+    properties:
+      credential_id: uuid
+      authorizing_api_key_id: uuid
+
+  BrowserLifecycleActor:
+    union:
+      api_key: BrowserLifecycleApiKeyActor
+      browser_credential: BrowserLifecycleCredentialActor
+
+  BrowserEnrollmentLifecycleEventType:
+    enum:
+      - browser_enrollment_intent_created
+      - browser_credential_activated
+      - browser_enrollment_cancelled
+      - browser_credential_deleted
+
+  BrowserConsentLifecycleEventType:
+    enum:
+      - browser_consent_created
+      - browser_consent_updated
+      - browser_consent_reused
+      - browser_consent_revoked
+
+  BrowserEnrollmentLifecycleEvent:
+    properties:
+      type: BrowserEnrollmentLifecycleEventType
+      trace_id: uuid
+      event_id: uuid
+      occurred_at: datetime
+      organization_id: uuid
+      pod_id: uuid
+      actor: BrowserLifecycleActor
+      enrollment_id: uuid
+      credential_id: uuid
+
+  BrowserConsentLifecycleEvent:
+    properties:
+      type: BrowserConsentLifecycleEventType
+      trace_id: uuid
+      event_id: uuid
+      occurred_at: datetime
+      organization_id: uuid
+      pod_id: uuid
+      actor: BrowserLifecycleActor
+      consent_id:
+        type: string
+        validation:
+          minLength: 48
+          maxLength: 48
+          pattern: "^brc1_[A-Za-z0-9_-]{43}$"
+      client_type: literal<"closed">
+      client_id:
+        type: string
+        validation:
+          minLength: 1
+          maxLength: 2048
+
+  BrowserLifecycleEvent:
+    discriminated: false
+    union:
+      - BrowserEnrollmentLifecycleEvent
+      - BrowserConsentLifecycleEvent
+
+  BrowserAuthorizationListLimit:
+    type: integer
+    validation:
+      min: 1
+      max: 100
+
+  ListBrowserCredentialsResponse:
+    properties:
+      count: global.Count
+      next_page_token: optional<global.PageToken>
+      credentials: list<BrowserCredential>
+
+  ListBrowserConsentsResponse:
+    properties:
+      count: global.Count
+      next_page_token: optional<global.PageToken>
+      consents: list<BrowserConsent>
+
+  ListBrowserLifecycleEventsResponse:
+    properties:
+      count: global.Count
+      next_page_token: optional<global.PageToken>
+      events: list<BrowserLifecycleEvent>
+
   ApiKeyPermissions:
     docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.
     properties:
@@ -463,3 +652,108 @@ service:
       errors:
         - global.ValidationError
         - global.ConflictError
+
+    createBrowserEnrollment:
+      method: POST
+      path: /browser-credentials/enrollments
+      display-name: Create Browser Enrollment
+      docs: |
+        Limited beta. Requires `api_key_create` and an organization enabled for
+        browser enrollment. Before submitting `transaction_jti`, independently
+        verify that the browser page's final origin is exactly
+        `https://auth.agentid.com`.
+
+        **AgentMail API keys are sent only to `https://api.agentmail.to`; AgentID never requests them.**
+
+        A new intent returns `202`; an idempotent retry for the same pending
+        transaction, inbox, and bearer key returns `200` with the same receipt.
+      request: CreateBrowserEnrollmentRequest
+      response: BrowserEnrollmentAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError
+
+    listBrowserCredentials:
+      method: GET
+      path: /browser-credentials
+      display-name: List Browser Credentials
+      docs: Limited beta. List active browser credentials visible to the caller's scope. Requires `api_key_read`.
+      request:
+        name: ListBrowserCredentialsRequest
+        query-parameters:
+          limit: optional<BrowserAuthorizationListLimit>
+          page_token: optional<global.PageToken>
+      response: ListBrowserCredentialsResponse
+
+    listBrowserCredentialEvents:
+      method: GET
+      path: /browser-credentials/events
+      display-name: List Browser Credential Events
+      docs: Limited beta. List owner-facing browser credential and consent lifecycle events. Requires `api_key_read`.
+      request:
+        name: ListBrowserCredentialEventsRequest
+        query-parameters:
+          limit: optional<BrowserAuthorizationListLimit>
+          page_token: optional<global.PageToken>
+      response: ListBrowserLifecycleEventsResponse
+
+    deleteBrowserCredential:
+      method: DELETE
+      path: /browser-credentials/{credential_id}
+      display-name: Delete Browser Credential
+      docs: Limited beta. Permanently revoke one active browser credential. Requires `api_key_delete`.
+      path-parameters:
+        credential_id: uuid
+      response:
+        status-code: 204
+      errors:
+        - global.NotFoundError
+
+    cancelBrowserEnrollment:
+      method: DELETE
+      path: /browser-credentials/enrollments/{enrollment_id}
+      display-name: Cancel Browser Enrollment
+      docs: Limited beta. Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
+      path-parameters:
+        enrollment_id: uuid
+      response:
+        status-code: 204
+      errors:
+        - global.NotFoundError
+
+    listBrowserConsents:
+      method: GET
+      path: /browser-consents
+      display-name: List Browser Consents
+      docs: Limited beta. List remembered AgentID client approvals for one live inbox. Requires `api_key_read`.
+      request:
+        name: ListBrowserConsentsRequest
+        query-parameters:
+          inbox_id:
+            type: string
+            validation:
+              format: email
+              maxLength: 254
+          limit: optional<BrowserAuthorizationListLimit>
+          page_token: optional<global.PageToken>
+      response: ListBrowserConsentsResponse
+      errors:
+        - global.NotFoundError
+
+    deleteBrowserConsent:
+      method: DELETE
+      path: /browser-consents/{consent_id}
+      display-name: Delete Browser Consent
+      docs: Limited beta. Revoke one remembered AgentID client approval. Requires `api_key_delete`.
+      path-parameters:
+        consent_id:
+          type: string
+          validation:
+            minLength: 48
+            maxLength: 48
+            pattern: "^brc1_[A-Za-z0-9_-]{43}$"
+      response:
+        status-code: 204
+      errors:
+        - global.NotFoundError

@@ -10,6 +10,13 @@ key while approving an AgentID sign-in. Registration uses an existing AgentMail
 bearer API key. Approval uses only a compact signature and never sends that
 bearer key or the private key to AgentID.
 
+<Note title="Browser enrollment migration">
+  For organizations explicitly enabled for the limited beta, [AgentID browser
+  enrollment](/agentid-browser-enrollment) is the successor for persistent
+  browser approval. This public-key flow remains supported during migration;
+  no deprecation date has been announced.
+</Note>
+
 <Warning title="Keep the private key below model context">
   Generate and use the private key in a keystore, HSM, KMS, or a small trusted
   signing process. Give the model an opaque signing capability, not the private
