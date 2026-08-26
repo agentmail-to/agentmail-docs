@@ -11,9 +11,10 @@ existing AgentMail bearer API key, but that key is sent only to the AgentMail
 API. The browser creates the private key and never exports it.
 
 <Note title="Limited beta">
-  Browser enrollment is available only to explicitly enabled organizations and
-  environments. An unavailable route returns `404`; an organization outside the
-  enabled beta returns `403`. The existing [AgentID public-key
+  Creating a browser enrollment is available only to explicitly enabled
+  organizations and environments. An unavailable route returns `404`; an
+  organization outside the enabled beta receives `403` when it creates an
+  enrollment. The existing [AgentID public-key
   flow](/agentid-public-key-authentication) remains supported during migration.
 </Note>
 
@@ -39,8 +40,10 @@ origin override: do not accept a different origin from runtime input.
    and the browser's independently reported final URL.
 3. Verify that the final URL's origin is exactly
    `https://auth.agentid.com`. Also verify the action's fixed fields and expiry.
-4. Select the inbox from trusted AgentMail configuration. Treat `login_hint` as
-   a hint only.
+4. Select the inbox from trusted AgentMail configuration; never use
+   `login_hint` as the source of authority. If the action includes a
+   `login_hint`, the selected inbox must match it or enrollment fails with
+   `400`.
 5. Send `{inbox_id, transaction_jti}` with the bearer API key to exactly
    `https://api.agentmail.to/v0/api-keys/browser-credentials/enrollments`.
 6. Keep the existing AgentID page open. It observes the pending intent, creates
@@ -136,6 +139,10 @@ def create_browser_enrollment(
         raise ValueError("Expired browser enrollment action")
 
     # inbox_id comes from trusted AgentMail configuration, not login_hint.
+    login_hint = action.get("login_hint")
+    if login_hint is not None and login_hint != inbox_id:
+        raise ValueError("Trusted inbox does not match login_hint")
+
     response = httpx.post(
         ENROLLMENT_ENDPOINT,
         headers={"Authorization": f"Bearer {agentmail_api_key}"},
@@ -144,7 +151,7 @@ def create_browser_enrollment(
         timeout=10,
     )
     if response.status_code not in (200, 202):
-        response.raise_for_status()
+        raise RuntimeError(f"Enrollment failed: {response.status_code}")
     return response.json()
 ```
 
@@ -191,6 +198,10 @@ async function createBrowserEnrollment({
   }
 
   // inboxId comes from trusted AgentMail configuration, not login_hint.
+  if (action.login_hint !== undefined && action.login_hint !== inboxId) {
+    throw new Error("Trusted inbox does not match login_hint");
+  }
+
   const response = await fetch(ENROLLMENT_ENDPOINT, {
     method: "POST",
     headers: {
@@ -257,8 +268,8 @@ the next interactive authorization require review again.
 ## Persistent browser support
 
 Use a standard persistent Chromium profile for the current beta. Persistent
-Chromium enrollment, full restart, signing, and site-data-loss recovery are
-covered by the automated browser suite.
+Chromium supports enrollment, signing after a full browser restart, and
+re-enrollment after site data is cleared.
 
 Do not promise persistence for private or incognito sessions. Safari and Safari
 Technology Preview remain unqualified until real-browser enrollment, full

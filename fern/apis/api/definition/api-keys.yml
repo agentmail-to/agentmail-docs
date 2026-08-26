@@ -174,7 +174,8 @@ types:
     docs: |
       Attach a browser enrollment intent to one pending AgentID authorization
       transaction. Select `inbox_id` from trusted AgentMail configuration; an
-      AgentID `login_hint` is not authoritative.
+      AgentID `login_hint` is not authoritative for selecting the inbox. When
+      the transaction includes a `login_hint`, `inbox_id` must match it.
     properties:
       inbox_id:
         type: string
@@ -697,6 +698,8 @@ service:
           limit: optional<BrowserAuthorizationListLimit>
           page_token: optional<global.PageToken>
       response: ListBrowserLifecycleEventsResponse
+      errors:
+        - global.NotFoundError
 
     deleteBrowserCredential:
       method: DELETE
