@@ -127,9 +127,9 @@ Oversized inline attachment requests return an infrastructure-generated response
 
 This response is an exception to the standard `code`, `fix`, and `docs` error envelope. It only contains `message`.
 
-Requests with inline Base64 attachments are limited to 6 MB total, including the message body, metadata, and encoded attachment content.
+Requests with inline `content` attachments are limited to 6 MB total, including the message body, metadata, and attachment content.
 
-Reduce the attachment size or provide larger attachments through the `url` field. Keep URL-backed raw attachment data around 30 MB total per message. The complete encoded email, including attachments, body, and headers, must remain under 40 MB.
+Reduce the attachment size or provide larger attachments through the `url` field. Keep URL-backed attachments around 30 MB total per message.
 
 ## Transient errors (429 / 500 / 503)
 

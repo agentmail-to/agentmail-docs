@@ -22,15 +22,13 @@ To send a file, include it in the `attachments` array when sending a `Message`. 
 
 | Input | Limit | What counts toward the limit |
 | --- | --- | --- |
-| Base64 `content` | 6 MB per request | The entire request, including the message body, metadata, and all Base64 encoded attachments. |
-| Remote `url` | Keep raw attachments around 30 MB per message | The complete encoded email, including the attachments, body, headers, and MIME boundaries, must remain under 40 MB. |
+| Inline `content` | 6 MB per request | The entire request, including the message body, metadata, and all attachments. |
+| Remote `url` | Around 30 MB of attachments per message | The combined size of the files AgentMail downloads from all attachment URLs. |
 
-Base64 encoding increases file size by about one third. For example, 4.5 MB of raw files can become about 6 MB after encoding, before the message body and other request fields are added. If the request exceeds the limit, the API returns `413 Request Entity Too Large`.
-
-For URL-backed attachments, keep the combined raw attachment data around 30 MB. Messages with larger bodies have less capacity available for attachments because the complete encoded email must remain under 40 MB.
+If an inline request exceeds 6 MB, the API returns `413 Request Entity Too Large`. For larger files, use URL-backed attachments and keep the combined attachment size around 30 MB per message.
 
 <Note>
-To detect the inline limit proactively, measure the serialized request body after Base64 encoding rather than adding up the original file sizes. Leave room for the message body and metadata, or use `url` for larger attachments.
+To detect the inline limit proactively, measure the complete serialized request and leave room for the message body and metadata. Use `url` for larger attachments.
 </Note>
 
 <CodeBlocks>
