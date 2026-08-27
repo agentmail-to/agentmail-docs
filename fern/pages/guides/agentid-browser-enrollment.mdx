@@ -10,6 +10,12 @@ non-extractable P-256 credential. An agent authorizes the enrollment with an
 existing AgentMail bearer API key, but that key is sent only to the AgentMail
 API. The browser creates the private key and never exports it.
 
+<Note title="US production availability">
+  Browser enrollment is available to every organization using US production at
+  `https://api.agentmail.to`. It is not available in EU production at
+  `https://api.agentmail.eu`; these routes return `404` there.
+</Note>
+
 <Warning title="Verify the browser origin before enrollment">
   An agent that submits a `transaction_jti` read from any origin other than
   `https://auth.agentid.com` can be induced to enroll an attacker's browser for
@@ -28,8 +34,10 @@ origin override: do not accept a different origin from runtime input.
 ## Enrollment flow
 
 1. Open an AgentID authorization transaction in a persistent browser.
-2. When the page reports that enrollment is required, read its machine action
-   and the browser's independently reported final URL.
+2. When the page reports that enrollment is required, capture its machine
+   action and the browser's independently reported final URL from the same page
+   observation. Do not combine an action from one page or frame with the URL
+   from another.
 3. Verify that the final URL's origin is exactly
    `https://auth.agentid.com`. Also verify the action's fixed fields and expiry.
 4. Select the inbox from trusted AgentMail configuration; never use
@@ -58,6 +66,18 @@ idempotent retry for the same pending transaction, inbox, and bearer key returns
 This receipt contains no AgentID URL, token, cookie, or navigation instruction.
 Do not navigate away from the browser transaction in response to it.
 
+An enrollment intent lasts at most five minutes and may expire sooner with its
+authorization transaction. An activated browser credential lasts at most 30
+days and may expire sooner with its authorizing bearer API key. Remembered
+consent lasts 180 days. Treat every returned `expires_at` as authoritative and
+re-enroll before the browser credential expires.
+
+Enrollment creation is limited to 20 intents per bearer API key per hour, 100
+per organization per hour, and five live unused intents per bearer API key. A
+limit returns [`429`](/errors#rate_limit_exceeded); honor its `Retry-After`
+header instead of retrying before the indicated time. Cancel an unused pending
+enrollment or let it expire to release a live-intent slot.
+
 ## Create an enrollment with HTTP
 
 The browser page exposes a machine action with the following shape. Read it
@@ -71,11 +91,15 @@ only after obtaining the final page URL from the browser transport:
   "agentmail_enrollment_endpoint": "https://api.agentmail.to/v0/inboxes/{inbox_id}/browser-credentials/enrollments",
   "transaction_jti": "AAAAAAAAAAAAAAAAAAAAAA",
   "transaction_expires_at": 1787694600,
-  "login_hint": "agent@example.com",
+  "login_hint": null,
   "login_hint_authoritative": false,
   "invariant": "AgentMail API keys are sent only to https://api.agentmail.to; AgentID never requests them."
 }
 ```
+
+`login_hint` is always present in the action but may be `null`. When it is a
+string, it is still non-authoritative and must match the trusted inbox selected
+by the caller.
 
 These examples use ordinary authenticated HTTP. They validate the fixed
 endpoint template from the action, then substitute an inbox selected from
@@ -113,6 +137,7 @@ def canonical_origin(url: str) -> str:
 def create_browser_enrollment(
     *, source_url: str, action: dict, inbox_id: str, agentmail_api_key: str
 ) -> dict:
+    # Capture source_url and action together from the same browser page.
     # source_url must come from the browser/automation transport, not the action.
     if canonical_origin(source_url) != AGENTID_ORIGIN:
         raise ValueError("Untrusted browser enrollment origin")
@@ -169,6 +194,7 @@ async function createBrowserEnrollment({
   inboxId,
   agentmailApiKey,
 }: {
+  // Capture sourceUrl and action together from the same browser page.
   sourceUrl: string; // Supplied by the browser transport, not by action.
   action: Record<string, unknown>;
   inboxId: string;
@@ -198,7 +224,7 @@ async function createBrowserEnrollment({
   }
 
   // inboxId comes from trusted AgentMail configuration, not login_hint.
-  if (action.login_hint !== undefined && action.login_hint !== inboxId) {
+  if (action.login_hint != null && action.login_hint !== inboxId) {
     throw new Error("Trusted inbox does not match login_hint");
   }
 
