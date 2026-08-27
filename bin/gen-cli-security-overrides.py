@@ -22,7 +22,7 @@ and adds the TokenAuth definition under the overrides file's existing
 
 POST /v0/agent/sign-up is public (it declares no `security` in the source spec)
 and is skipped so new-user signup keeps working without a credential. The
-script asserts exactly 129 operations are targeted -- the 130 total minus the
+script asserts every operation except the public one is targeted -- derived
 one public signup endpoint -- and aborts if that invariant does not hold.
 
 Idempotent: re-running does not duplicate the per-operation security blocks or
@@ -45,7 +45,9 @@ HTTP_METHODS = {"get", "post", "put", "patch", "delete", "head", "options"}
 
 # Signup is intentionally credential-free; adding auth would break new users.
 PUBLIC = ("/v0/agent/sign-up", "post")
-EXPECTED = 129  # 130 operations minus the one public signup endpoint
+# The expected count is derived from the spec (every operation except PUBLIC),
+# not hardcoded: a hardcoded number has to be bumped by hand on every new
+# endpoint, and forgetting is indistinguishable from a real mis-scope.
 
 # 6-space indent matches the overrides file's convention (sequence dashes sit at
 # the same column as their parent key, e.g. x-fern-sdk-group-name above).
@@ -99,6 +101,15 @@ def spec_ops_with_security(path):
         if in_paths and cur_path and cur_method and re.match(r"^      security:\s*$", line):
             have.add((cur_path, cur_method))
     return have
+
+
+def spec_all_ops(path):
+    """Return {(path, method)} for every operation in the spec."""
+    ops = set()
+    for _, line, cur_path, cur_method, in_paths in _iter_path_method(list(open(path))):
+        if in_paths and cur_path and cur_method and re.match(r"^    [a-z]+:\s*$", line):
+            ops.add((cur_path, cur_method))
+    return ops
 
 
 def overrides_ops(lines):
@@ -193,6 +204,12 @@ def main():
                          "security block (i.e. a dry run would insert something)")
     args = ap.parse_args()
 
+    all_ops = spec_all_ops(SPEC)
+    if PUBLIC not in all_ops:
+        sys.exit(f"ERROR: {PUBLIC[1].upper()} {PUBLIC[0]} is not in the spec; the "
+                 "public-endpoint exemption is stale — update PUBLIC.")
+    expected = len(all_ops) - 1  # everything except the one public endpoint
+
     targets = spec_ops_with_security(SPEC)
 
     # --- invariants: signup public, exactly 121 secured ---------------------
@@ -201,9 +218,13 @@ def main():
                  "spec but must stay public; aborting.")
     print(f"spec operations declaring security: {len(targets)}")
     print(f"public (skipped): {PUBLIC[1].upper()} {PUBLIC[0]}")
-    if len(targets) != EXPECTED:
-        sys.exit(f"ERROR: expected exactly {EXPECTED} secured operations, found "
-                 f"{len(targets)}; aborting so nothing is silently mis-scoped.")
+    if len(targets) != expected:
+        missing = sorted((all_ops - targets) - {PUBLIC})
+        sys.exit(f"ERROR: expected {expected} secured operations "
+                 f"({len(all_ops)} in spec minus the public one), found "
+                 f"{len(targets)}. Operations missing `security:` in the spec: "
+                 + (", ".join(f"{m.upper()} {p}" for p, m in missing) or "none")
+                 + "; aborting so nothing is silently mis-scoped.")
 
     lines = list(open(OVERRIDES))
 
@@ -218,8 +239,8 @@ def main():
     covered = inserted + already
     print(f"security blocks now present on targeted ops: {covered} "
           f"(inserted {inserted}, already present {already})")
-    if covered != EXPECTED:
-        sys.exit(f"ERROR: expected {EXPECTED} secured overrides entries, got {covered}.")
+    if covered != expected:
+        sys.exit(f"ERROR: expected {expected} secured overrides entries, got {covered}.")
 
     new_lines, scheme_added = add_scheme(new_lines)
     print(f"TokenAuth scheme: {'inserted' if scheme_added else 'already present'}")
