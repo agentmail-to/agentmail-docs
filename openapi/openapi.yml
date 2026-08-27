@@ -1102,6 +1102,228 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/api-keys/browser-credentials:
+    get:
+      description: >-
+        List active browser credentials visible to the caller's scope. Requires
+        `api_key_read`.
+      operationId: apiKeys_listBrowserCredentials
+      tags:
+        - ApiKeys
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/BrowserAuthorizationListLimit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBrowserCredentialsResponse'
+      summary: List Browser Credentials
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/api-keys/browser-credentials/events:
+    get:
+      description: >-
+        List owner-facing browser credential and consent lifecycle events.
+        Requires `api_key_read`.
+      operationId: apiKeys_listBrowserCredentialEvents
+      tags:
+        - ApiKeys
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/BrowserAuthorizationListLimit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBrowserLifecycleEventsResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List Browser Credential Events
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/api-keys/browser-credentials/{credential_id}:
+    delete:
+      description: >-
+        Permanently revoke one active browser credential. Requires
+        `api_key_delete`.
+      operationId: apiKeys_deleteBrowserCredential
+      tags:
+        - ApiKeys
+      parameters:
+        - name: credential_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Browser Credential
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/api-keys/browser-credentials/enrollments/{enrollment_id}:
+    delete:
+      description: >-
+        Cancel one pending, unexpired browser enrollment intent. Requires
+        `api_key_delete`.
+      operationId: apiKeys_cancelBrowserEnrollment
+      tags:
+        - ApiKeys
+      parameters:
+        - name: enrollment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Cancel Browser Enrollment
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/api-keys/browser-consents:
+    get:
+      description: >-
+        List remembered AgentID client approvals for one live inbox. Requires
+        `api_key_read`.
+      operationId: apiKeys_listBrowserConsents
+      tags:
+        - ApiKeys
+      parameters:
+        - name: inbox_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+            maxLength: 254
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/BrowserAuthorizationListLimit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBrowserConsentsResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List Browser Consents
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/api-keys/browser-consents/{consent_id}:
+    delete:
+      description: >-
+        Revoke one remembered AgentID client approval. Requires
+        `api_key_delete`.
+      operationId: apiKeys_deleteBrowserConsent
+      tags:
+        - ApiKeys
+      parameters:
+        - name: consent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Browser Consent
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/auth/me:
     get:
       description: >-
@@ -1684,6 +1906,102 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/inboxes/{inbox_id}/browser-credentials/enrollments:
+    post:
+      description: >-
+        Attach a browser enrollment intent to the inbox. Requires
+
+        `api_key_create`. Before submitting `transaction_jti`, independently
+
+        verify that the browser page's final origin is exactly
+
+        `https://auth.agentid.com`.
+
+
+        This endpoint is available to every organization using US production.
+
+        It is not available in EU production.
+
+
+        Select `inbox_id` from trusted AgentMail configuration. An AgentID
+
+        `login_hint` is not authoritative for selecting the inbox; when the
+
+        transaction includes one, it must match the path inbox.
+
+
+        **AgentMail API keys are sent only to `https://api.agentmail.to`;
+        AgentID never requests them.**
+
+
+        A new intent returns `202`; an idempotent retry for the same pending
+
+        transaction, inbox, and bearer key returns `200` with the same receipt.
+
+        An intent lasts at most five minutes. An activated credential lasts at
+
+        most 30 days and cannot outlive its authorizing bearer API key.
+
+
+        Creation is limited to 20 intents per bearer API key per hour, 100 per
+
+        organization per hour, and five live unused intents per bearer API key.
+
+        Browser activation is separately limited to 20 activations per
+
+        authorizing bearer API key per UTC day. Either kind of limit can return
+
+        `429`; honor the `Retry-After` header. Cancelling an enrollment releases
+
+        its live-intent slot but does not reset the daily activation counter.
+      operationId: inboxes_browserCredentials_createEnrollment
+      tags:
+        - InboxesBrowserCredentials
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+      responses:
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrowserEnrollmentAccepted'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Browser Enrollment
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBrowserEnrollmentRequest'
   /v0/inboxes/{inbox_id}/drafts:
     get:
       description: |-
@@ -7748,6 +8066,375 @@ components:
         - previous_generation
         - current_generation
         - revoked_at
+    BrowserEnrollmentTransactionJti:
+      title: BrowserEnrollmentTransactionJti
+      type: string
+      pattern: ^[A-Za-z0-9_-]{22}$
+      minLength: 22
+      maxLength: 22
+      description: >-
+        Transaction identifier read from an enrollment action on exactly
+        `https://auth.agentid.com`.
+    CreateBrowserEnrollmentRequest:
+      title: CreateBrowserEnrollmentRequest
+      type: object
+      description: |-
+        Attach a browser enrollment intent to one pending AgentID authorization
+        transaction. The inbox is selected by the trusted path parameter, not an
+        AgentID `login_hint`.
+      properties:
+        transaction_jti:
+          $ref: '#/components/schemas/BrowserEnrollmentTransactionJti'
+      required:
+        - transaction_jti
+    BrowserEnrollmentAccepted:
+      title: BrowserEnrollmentAccepted
+      type: object
+      description: |-
+        Pending enrollment receipt. The browser completes key creation and proof
+        on the existing AgentID page. This response contains no URL, token, or
+        navigation instruction.
+      properties:
+        status:
+          type: string
+          const: pending
+        enrollment_id:
+          type: string
+          format: uuid
+        expires_at:
+          type: integer
+          minimum: 1
+          description: >-
+            Unix timestamp after which the pending enrollment cannot be
+            activated.
+      required:
+        - status
+        - enrollment_id
+        - expires_at
+    BrowserCredentialCreator:
+      title: BrowserCredentialCreator
+      type: object
+      properties:
+        kind:
+          type: string
+          const: bearer_api_key
+        api_key_id:
+          type: string
+          format: uuid
+          description: Bearer API key that authorized creation of the browser credential.
+        created_at:
+          type: string
+          format: date-time
+          description: Incarnation timestamp of the authorizing bearer API key.
+      required:
+        - kind
+        - api_key_id
+        - created_at
+    BrowserCredential:
+      title: BrowserCredential
+      type: object
+      description: >-
+        Owner-facing metadata for an active browser credential. Private key
+        material never leaves the browser.
+      properties:
+        credential_id:
+          type: string
+          format: uuid
+        public_key_fingerprint_prefix:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{8}$
+          minLength: 8
+          maxLength: 8
+        organization_id:
+          type: string
+          format: uuid
+        pod_id:
+          type: string
+          format: uuid
+        inbox_id:
+          type: string
+          format: email
+          maxLength: 254
+        created_by:
+          $ref: '#/components/schemas/BrowserCredentialCreator'
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+      required:
+        - credential_id
+        - public_key_fingerprint_prefix
+        - organization_id
+        - pod_id
+        - inbox_id
+        - created_by
+        - created_at
+        - expires_at
+    BrowserConsent:
+      title: BrowserConsent
+      type: object
+      description: Remembered approval for one closed AgentID client and inbox.
+      properties:
+        consent_id:
+          type: string
+          pattern: ^brc1_[A-Za-z0-9_-]{43}$
+          minLength: 48
+          maxLength: 48
+        inbox_id:
+          type: string
+          format: email
+          maxLength: 254
+        client_type:
+          type: string
+          const: closed
+        client_id:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        client_url:
+          type: string
+          nullable: true
+          description: Registered client URL, when one is available.
+        approved_scopes:
+          type: array
+          items:
+            type: string
+          description: At least one non-empty scope approved for this client.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+      required:
+        - consent_id
+        - inbox_id
+        - client_type
+        - client_id
+        - approved_scopes
+        - created_at
+        - updated_at
+        - expires_at
+    BrowserLifecycleApiKeyActor:
+      title: BrowserLifecycleApiKeyActor
+      type: object
+      properties:
+        api_key_id:
+          type: string
+          format: uuid
+      required:
+        - api_key_id
+    BrowserLifecycleCredentialActor:
+      title: BrowserLifecycleCredentialActor
+      type: object
+      properties:
+        credential_id:
+          type: string
+          format: uuid
+        authorizing_api_key_id:
+          type: string
+          format: uuid
+      required:
+        - credential_id
+        - authorizing_api_key_id
+    BrowserLifecycleActor:
+      title: BrowserLifecycleActor
+      oneOf:
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - api_key
+            - $ref: '#/components/schemas/BrowserLifecycleApiKeyActor'
+          required:
+            - type
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - browser_credential
+            - $ref: '#/components/schemas/BrowserLifecycleCredentialActor'
+          required:
+            - type
+    BrowserEnrollmentLifecycleEventType:
+      title: BrowserEnrollmentLifecycleEventType
+      type: string
+      enum:
+        - browser_enrollment_intent_created
+        - browser_credential_activated
+        - browser_enrollment_cancelled
+        - browser_credential_deleted
+    BrowserConsentLifecycleEventType:
+      title: BrowserConsentLifecycleEventType
+      type: string
+      enum:
+        - browser_consent_created
+        - browser_consent_updated
+        - browser_consent_reused
+        - browser_consent_revoked
+    BrowserEnrollmentLifecycleEvent:
+      title: BrowserEnrollmentLifecycleEvent
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/BrowserEnrollmentLifecycleEventType'
+        trace_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        organization_id:
+          type: string
+          format: uuid
+        pod_id:
+          type: string
+          format: uuid
+        actor:
+          $ref: '#/components/schemas/BrowserLifecycleActor'
+        enrollment_id:
+          type: string
+          format: uuid
+        credential_id:
+          type: string
+          format: uuid
+      required:
+        - type
+        - trace_id
+        - event_id
+        - occurred_at
+        - organization_id
+        - pod_id
+        - actor
+        - enrollment_id
+        - credential_id
+    BrowserConsentLifecycleEvent:
+      title: BrowserConsentLifecycleEvent
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/BrowserConsentLifecycleEventType'
+        trace_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        organization_id:
+          type: string
+          format: uuid
+        pod_id:
+          type: string
+          format: uuid
+        actor:
+          $ref: '#/components/schemas/BrowserLifecycleActor'
+        consent_id:
+          type: string
+          pattern: ^brc1_[A-Za-z0-9_-]{43}$
+          minLength: 48
+          maxLength: 48
+        client_type:
+          type: string
+          const: closed
+        client_id:
+          type: string
+          minLength: 1
+          maxLength: 2048
+      required:
+        - type
+        - trace_id
+        - event_id
+        - occurred_at
+        - organization_id
+        - pod_id
+        - actor
+        - consent_id
+        - client_type
+        - client_id
+    BrowserLifecycleEvent:
+      title: BrowserLifecycleEvent
+      oneOf:
+        - $ref: '#/components/schemas/BrowserEnrollmentLifecycleEvent'
+        - $ref: '#/components/schemas/BrowserConsentLifecycleEvent'
+    BrowserAuthorizationListLimit:
+      title: BrowserAuthorizationListLimit
+      type: integer
+      minimum: 1
+      maximum: 100
+    ListBrowserCredentialsResponse:
+      title: ListBrowserCredentialsResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/BrowserAuthorizationListLimit'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrowserCredential'
+      required:
+        - count
+        - limit
+        - credentials
+    ListBrowserConsentsResponse:
+      title: ListBrowserConsentsResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/BrowserAuthorizationListLimit'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        consents:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrowserConsent'
+      required:
+        - count
+        - limit
+        - consents
+    ListBrowserLifecycleEventsResponse:
+      title: ListBrowserLifecycleEventsResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/BrowserAuthorizationListLimit'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrowserLifecycleEvent'
+      required:
+        - count
+        - limit
+        - events
     ApiKeyPermissions:
       title: ApiKeyPermissions
       type: object
@@ -8080,6 +8767,7 @@ components:
     SendAttachment:
       title: SendAttachment
       type: object
+      description: Provide either `content` or `url` for each attachment.
       properties:
         filename:
           $ref: '#/components/schemas/AttachmentFilename'
@@ -8096,11 +8784,21 @@ components:
         content:
           type: string
           nullable: true
-          description: Base64 encoded content of attachment.
+          description: >-
+            Base64 encoded content of the attachment. The entire request,
+            including the message body and all attachments, is limited to 6 MB.
         url:
           type: string
           nullable: true
-          description: URL to the attachment.
+          description: >-
+            URL that AgentMail can download without custom authentication
+            headers or cookies.
+
+            Redirects and pre-signed URLs are supported, and the final response
+            must be a
+
+            successful 2xx response. Keep URL-backed attachments around 30 MB
+            total per message.
     ScopeType:
       title: ScopeType
       type: string
