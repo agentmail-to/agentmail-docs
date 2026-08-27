@@ -111,6 +111,15 @@ Request-bearing commands additionally accept `--json <JSON|->` to supply the who
 
 Shell completions (`agentmail completion`) and man pages (`agentmail man`) are built in.
 
+## Known limitations
+
+A few rough edges in the current release, with workarounds:
+
+- **Windows npm package** — `npm install -g agentmail-cli` does not yet install a Windows binary. Windows users should install from the [GitHub releases page](https://github.com/agentmail-to/agentmail-cli/releases) (`agentmail-cli-installer.ps1`), which ships the same binary.
+- **`--page-all` returns only the first page.** Paginate manually instead: pass `--limit`, read `next_page_token` from the response, and pass it back as `--page-token`.
+- **Retries on server errors.** Requests are retried automatically on 5xx. Sends carry an idempotency key so a retry cannot duplicate an email, but if you would rather fail fast, pass `--no-retry`.
+- **Local validation is incomplete.** Flags are checked for presence, not always for type — an invalid value may reach the API and return a 400 rather than being caught locally. `--dry-run` shows the request that would be sent, not a guarantee that the server will accept it.
+
 ## Upgrading from 0.7.x
 
 Version 1.0 is a full rewrite, and some invocations changed:
