@@ -17,12 +17,15 @@ WHY THIS EXISTS
 WHAT IT PATCHES
     1. repo assets   restore CHANGELOG.md + SECURITY.md and protect them,
                      plus cli/agentmail/custom.rs, via .fernignore
-    2. launcher      signal deaths must exit 128+signum, not 0
-    3. publishing    any SemVer prerelease gets its own dist-tag, never latest
-    4. windows       defer the win32-x64 npm package (npm has the name
+    2. windows       defer the win32-x64 npm package (npm has the name
                      spam-flagged; support ticket open). REMOVE THIS PATCH
                      once npm clears it — cargo-dist still ships the Windows
                      binary via the GitHub Release either way.
+
+    Dropped on 2026-08-27, fixed upstream in generator 0.38.6 and verified:
+      - launcher signal exit codes (128+signum) — now native
+      - prerelease dist-tags (any SemVer prerelease, never latest) — now
+        native, and handles all-numeric identifiers, which our patch did not
 
 USAGE
     python3 bin/post-regen-patch.py <path-to-agentmail-cli-checkout>
@@ -94,80 +97,33 @@ def patch_assets(root):
     )
 
 
-# ── 2. launcher exit codes ────────────────────────────────────────────────────
-LAUNCHER_OLD = """          try {
-            execFileSync(binPath, process.argv.slice(2), { stdio: "inherit" });
-          } catch (e) {
-            if (e && typeof e === "object" && "status" in e) {
-              process.exit(e.status);
-            }
-            throw e;
-          }"""
-
-LAUNCHER_NEW = """          try {
-            execFileSync(binPath, process.argv.slice(2), { stdio: "inherit" });
-          } catch (e) {
-            if (e && typeof e === "object") {
-              // Normal non-zero exit: pass the code through.
-              if (typeof e.status === "number") {
-                process.exit(e.status);
-              }
-              // Signal death (SIGTERM/SIGSEGV/...): execFileSync reports
-              // status: null + signal. Exiting with e.status here becomes
-              // process.exit(null) -> 0, turning a killed process into
-              // "success" for any caller checking $?. Use the shell
-              // convention 128+signal instead (SIGTERM -> 143).
-              if (e.signal) {
-                const signum = (os.constants && os.constants.signals && os.constants.signals[e.signal]) || 0;
-                process.exit(signum ? 128 + signum : 1);
-              }
-            }
-            throw e;
-          }"""
-
-# ── 3. prerelease dist-tags ───────────────────────────────────────────────────
-PRERELEASE_OLD = """          if [[ "${VERSION}" == *-alpha* ]]; then
-            npm publish --access public --tag alpha
-          elif [[ "${VERSION}" == *-beta* ]]; then
-            npm publish --access public --tag beta
-          else"""
-
-PRERELEASE_NEW = """          # Any SemVer prerelease (identifier after the first "-") publishes
-          # under its own dist-tag, never "latest": alpha/beta/rc/next/... A
-          # tag like v1.1.0-rc.1 previously fell through to a bare publish and
-          # would have moved "latest" to a prerelease.
-          PRERELEASE="${VERSION#*-}"
-          if [[ "${PRERELEASE}" != "${VERSION}" ]]; then
-            DIST_TAG="${PRERELEASE%%.*}"        # 1.0.0-rc.1  -> rc
-            DIST_TAG="${DIST_TAG%%+*}"          # strip build metadata
-            DIST_TAG="$(printf '%s' "${DIST_TAG}" | tr -cd '[:alnum:]-')"
-            [[ -z "${DIST_TAG}" ]] && DIST_TAG="prerelease"
-            echo "Publishing prerelease ${VERSION} with --tag ${DIST_TAG}"
-            npm publish --access public --tag "${DIST_TAG}"
-          else"""
-
-# ── 4. windows deferral ───────────────────────────────────────────────────────
+# ── 2. windows deferral ───────────────────────────────────────────────────────
+# Anchors are package-name agnostic: the same script has to work whether the
+# generator is pointed at the production package or a validation one.
 WIN_MATRIX = """          - rust-target: x86_64-pc-windows-msvc
             runner: windows-latest
             npm-platform-suffix: win32-x64
 """
-WIN_PLATFORMS = '            "win32-x64": "agentmail-cli-win32-x64",\n'
+WIN_PLATFORMS = re.compile(r'^ *"win32-x64": "[a-z0-9-]+-win32-x64",\n', re.M)
 WIN_DEPS = re.compile(
-    r'(          OPTIONAL_DEPS="\$\{OPTIONAL_DEPS\}\\"agentmail-cli-darwin-arm64\\": \\"\$\{VERSION\}\\)",("\n)'
-    r'          OPTIONAL_DEPS="\$\{OPTIONAL_DEPS\}\\"agentmail-cli-win32-x64\\": \\"\$\{VERSION\}\\""\n'
+    r'(          OPTIONAL_DEPS="\$\{OPTIONAL_DEPS\}\\"[a-z0-9-]+-darwin-arm64\\": \\"\$\{VERSION\}\\)",("\n)'
+    r'          OPTIONAL_DEPS="\$\{OPTIONAL_DEPS\}\\"[a-z0-9-]+-win32-x64\\": \\"\$\{VERSION\}\\""\n'
 )
 
 
 def patch_windows(root):
     ci = root / ".github/workflows/ci.yml"
     s = ci.read_text()
-    if "win32-x64" not in s.replace('os.platform() === "win32"', ""):
+    # The binName ternary legitimately mentions win32 and must survive.
+    if "win32" not in s.replace('os.platform() === "win32"', ""):
         SKIPPED.append("windows deferral (already applied)")
         return
-    for label, frag in (("matrix entry", WIN_MATRIX), ("PLATFORMS entry", WIN_PLATFORMS)):
-        if s.count(frag) != 1:
-            sys.exit(f"ABORT [windows]: {label} anchor matched {s.count(frag)} times.")
-        s = s.replace(frag, "", 1)
+    if s.count(WIN_MATRIX) != 1:
+        sys.exit(f"ABORT [windows]: matrix anchor matched {s.count(WIN_MATRIX)} times.")
+    s = s.replace(WIN_MATRIX, "", 1)
+    s, n = WIN_PLATFORMS.subn("", s)
+    if n != 1:
+        sys.exit(f"ABORT [windows]: PLATFORMS anchor matched {n} times.")
     s, n = WIN_DEPS.subn(r'\1"\2', s)
     if n != 1:
         sys.exit(f"ABORT [windows]: optionalDependencies anchor matched {n} times.")
@@ -179,7 +135,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("repo", help="path to an agentmail-cli checkout")
     ap.add_argument("--skip", action="append", default=[],
-                    choices=["assets", "launcher", "prerelease", "windows"],
+                    choices=["assets", "windows"],
                     help="skip a patch (e.g. --skip windows once npm unblocks the name)")
     args = ap.parse_args()
 
@@ -190,10 +146,6 @@ def main():
 
     if "assets" not in args.skip:
         patch_assets(root)
-    if "launcher" not in args.skip:
-        patch("launcher exit codes", ci, LAUNCHER_OLD, LAUNCHER_NEW)
-    if "prerelease" not in args.skip:
-        patch("prerelease dist-tags", ci, PRERELEASE_OLD, PRERELEASE_NEW, count=2)
     if "windows" not in args.skip:
         patch_windows(root)
 

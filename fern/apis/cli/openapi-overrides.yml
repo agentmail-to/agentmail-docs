@@ -17,11 +17,11 @@ components:
 # The Fern definition marks the five send operations idempotent via
 # `idempotency-headers` (api.yml), but the fern-openapi export drops that
 # declaration, so the generated CLI had no --idempotency-key flag. Those
-# operations' override blocks below declare the header explicitly. Do NOT
-# add x-fern-idempotent to them: with that marker the generator retries
-# without ensuring a key is present (verified 2026-08-26 — four bare POSTs
-# against a 500ing mock), while without it the CLI auto-generates one UUID
-# and reuses it across retries, which is the safe behavior. NOTE:
+# operations' override blocks below declare the header explicitly, and mark
+# them x-fern-idempotent so retries reuse a single key. That marker was
+# unsafe before generator 0.38.6 (retries went out carrying no key at all);
+# on 0.38.6 it is verified safe — retries reuse one auto-generated UUID, and
+# non-idempotent operations without a key no longer retry at all. NOTE:
 # override arrays REPLACE the exported ones, so each such block restates
 # the operation's path parameters.
 
@@ -108,6 +108,7 @@ paths:
       - TokenAuth: []
   /v0/inboxes/{inbox_id}/drafts/{draft_id}/send:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - drafts
@@ -247,6 +248,7 @@ paths:
       - TokenAuth: []
   /v0/inboxes/{inbox_id}/messages/send:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
@@ -268,6 +270,7 @@ paths:
           type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
@@ -294,6 +297,7 @@ paths:
           type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/reply-all:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
@@ -320,6 +324,7 @@ paths:
           type: string
   /v0/inboxes/{inbox_id}/messages/{message_id}/forward:
     post:
+      x-fern-idempotent: true
       x-fern-sdk-group-name:
       - inboxes
       - messages
