@@ -41,9 +41,10 @@ origin override: do not accept a different origin from runtime input.
 3. Verify that the final URL's origin is exactly
    `https://auth.agentid.com`. Also verify the action's fixed fields and expiry.
 4. Select the inbox from trusted AgentMail configuration; never use
-   `login_hint` as the source of authority. If the action includes a
-   `login_hint`, the selected inbox must match it or enrollment fails with
-   `400`.
+   `login_hint` as the source of authority. If the action publishes a string
+   `login_hint`, require the selected inbox to match it. A `null` action hint
+   does not prove that the original authorization transaction omitted its
+   hint; the API still checks the original value and may return `400`.
 5. Substitute the trusted inbox into the fixed endpoint template, then send
    `{transaction_jti}` with the bearer API key to exactly
    `https://api.agentmail.to/v0/inboxes/{inbox_id}/browser-credentials/enrollments`.
@@ -78,6 +79,12 @@ limit returns [`429`](/errors#rate_limit_exceeded); honor its `Retry-After`
 header instead of retrying before the indicated time. Cancel an unused pending
 enrollment or let it expire to release a live-intent slot.
 
+Browser activation is separately limited to 20 activations per authorizing
+bearer API key per UTC day. Hitting that limit can return `429` from the browser
+activation step after the enrollment POST succeeded. Honor `Retry-After` and
+wait for the daily window to reset; cancelling an enrollment does not reset the
+activation counter.
+
 ## Create an enrollment with HTTP
 
 The browser page exposes a machine action with the following shape. Read it
@@ -99,7 +106,9 @@ only after obtaining the final page URL from the browser transport:
 
 `login_hint` is always present in the action but may be `null`. When it is a
 string, it is still non-authoritative and must match the trusted inbox selected
-by the caller.
+by the caller. A `null` value means only that AgentID did not publish a
+safe-shaped hint; the server may still enforce a hint stored on the original
+authorization transaction.
 
 These examples use ordinary authenticated HTTP. They validate the fixed
 endpoint template from the action, then substitute an inbox selected from
@@ -265,8 +274,8 @@ operations require `api_key_read`; deletion and cancellation require
 | Revoke remembered consent | `DELETE /v0/api-keys/browser-consents/{consent_id}` |
 
 List endpoints accept `limit` from 1 through 100 and a sealed `page_token`.
-They return `count`, an optional `next_page_token`, and the corresponding
-`credentials`, `events`, or `consents` array.
+They return `count`, the effective `limit`, an optional `next_page_token`, and
+the corresponding `credentials`, `events`, or `consents` array.
 
 For rotation, enroll and verify a new browser credential, then revoke the old
 credential. There is no endpoint that extends a credential in place. A browser

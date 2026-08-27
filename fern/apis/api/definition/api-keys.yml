@@ -330,18 +330,21 @@ types:
   ListBrowserCredentialsResponse:
     properties:
       count: global.Count
+      limit: BrowserAuthorizationListLimit
       next_page_token: optional<global.PageToken>
       credentials: list<BrowserCredential>
 
   ListBrowserConsentsResponse:
     properties:
       count: global.Count
+      limit: BrowserAuthorizationListLimit
       next_page_token: optional<global.PageToken>
       consents: list<BrowserConsent>
 
   ListBrowserLifecycleEventsResponse:
     properties:
       count: global.Count
+      limit: BrowserAuthorizationListLimit
       next_page_token: optional<global.PageToken>
       events: list<BrowserLifecycleEvent>
 
