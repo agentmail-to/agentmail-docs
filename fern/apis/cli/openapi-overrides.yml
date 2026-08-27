@@ -1183,3 +1183,60 @@ paths:
       security:
       - BearerAuth: []
       - TokenAuth: []
+  /v0/api-keys/browser-credentials:
+    get:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: list-browser-credentials
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/browser-credentials/events:
+    get:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: list-browser-credential-events
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/browser-credentials/{credential_id}:
+    delete:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: delete-browser-credential
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/browser-credentials/enrollments/{enrollment_id}:
+    delete:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: cancel-browser-enrollment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/browser-consents:
+    get:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: list-browser-consents
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/api-keys/browser-consents/{consent_id}:
+    delete:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: delete-browser-consent
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
+  /v0/inboxes/{inbox_id}/browser-credentials/enrollments:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - browserCredentials
+      x-fern-sdk-method-name: create-enrollment
+      security:
+      - BearerAuth: []
+      - TokenAuth: []
