@@ -17,7 +17,10 @@ WHY THIS EXISTS
 WHAT IT PATCHES
     1. repo assets   restore CHANGELOG.md + SECURITY.md and protect them,
                      plus cli/agentmail/custom.rs, via .fernignore
-    2. windows       defer the win32-x64 npm package (npm has the name
+    2. npm metadata  packageIdentity reaches Cargo.toml but not the published
+                     npm package: license, keywords and README are absent and
+                     the description is a hardcoded placeholder
+    3. windows       defer the win32-x64 npm package (npm has the name
                      spam-flagged; support ticket open). REMOVE THIS PATCH
                      once npm clears it — cargo-dist still ships the Windows
                      binary via the GitHub Release either way.
@@ -97,7 +100,63 @@ def patch_assets(root):
     )
 
 
-# ── 2. windows deferral ───────────────────────────────────────────────────────
+# ── 2. npm package metadata ───────────────────────────────────────────────────
+# The launcher's package.json is written inline in ci.yml and carries only
+# name/version/bin/optionalDependencies plus a hardcoded "CLI for agentmail"
+# description. Everything set in packageIdentity — license, keywords, the real
+# description — reaches Cargo.toml and stops there, so npm renders the package
+# with "License: none", no keywords and no README. The license gap is not
+# cosmetic: dependency scanners reject unlicensed packages.
+PKGJSON_OLD = """            "description": "CLI for agentmail",
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/agentmail-to/agentmail-cli"
+            },
+            "bin": {
+              "agentmail": "bin/cli.js"
+            },
+            "optionalDependencies": {
+              ${OPTIONAL_DEPS}
+            },
+            "files": ["bin/"]"""
+
+PKGJSON_NEW = """            "description": "Command-line interface for the AgentMail API. Send, receive, reply, and manage threaded email conversations from your terminal.",
+            "license": "MIT",
+            "keywords": ["email", "api", "cli", "agent", "agentmail"],
+            "homepage": "https://agentmail.to",
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/agentmail-to/agentmail-cli"
+            },
+            "bin": {
+              "agentmail": "bin/cli.js"
+            },
+            "optionalDependencies": {
+              ${OPTIONAL_DEPS}
+            },
+            "files": ["bin/", "README.md"]"""
+
+README_COPY = '          cp README.md "${PKG_DIR}/README.md"\n'
+
+
+def patch_pkgjson(root):
+    ci = root / ".github/workflows/ci.yml"
+    patch("npm package metadata", ci, PKGJSON_OLD, PKGJSON_NEW)
+    # npm only packs a README that sits beside package.json.
+    s = ci.read_text()
+    if README_COPY in s:
+        SKIPPED.append("npm metadata README copy (already applied)")
+        return
+    anchor = '          cd "${PKG_DIR}"\n'
+    if anchor not in s:
+        sys.exit("ABORT [npm metadata]: could not find the packing step to "
+                 "insert the README copy before.")
+    idx = s.rfind(anchor)          # the launcher job is the last packer
+    ci.write_text(s[:idx] + README_COPY + s[idx:])
+    APPLIED.append("npm metadata (README copy)")
+
+
+# ── 3. windows deferral ───────────────────────────────────────────────────────
 # Anchors are package-name agnostic: the same script has to work whether the
 # generator is pointed at the production package or a validation one.
 WIN_MATRIX = """          - rust-target: x86_64-pc-windows-msvc
@@ -135,7 +194,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("repo", help="path to an agentmail-cli checkout")
     ap.add_argument("--skip", action="append", default=[],
-                    choices=["assets", "windows"],
+                    choices=["assets", "pkgjson", "windows"],
                     help="skip a patch (e.g. --skip windows once npm unblocks the name)")
     args = ap.parse_args()
 
@@ -146,6 +205,8 @@ def main():
 
     if "assets" not in args.skip:
         patch_assets(root)
+    if "pkgjson" not in args.skip:
+        patch_pkgjson(root)
     if "windows" not in args.skip:
         patch_windows(root)
 
