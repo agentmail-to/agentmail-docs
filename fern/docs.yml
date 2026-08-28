@@ -445,6 +445,11 @@ navigation:
   - tab: api
     layout:
       - api: API Reference
+        # Required: fern/apis/cli is the only OpenAPI workspace, so without an
+        # explicit api-name Fern binds this section to the CLI spec instead of
+        # the Fern definition (drops websockets + webhook events, and the
+        # oversized cli definition fails to register with FDR).
+        api-name: api
         summary: pages/apiwelcome.mdx
         snippets:
           python: agentmail
@@ -453,7 +458,6 @@ navigation:
           - agent
           - inboxes
           - threads
-          - messages
           - drafts
           - webhooks
           - websockets
