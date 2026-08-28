@@ -33,6 +33,8 @@ To authenticate with x402 instead of an API key, you must use the x402-specific 
 - A crypto wallet with USDC funds (EVM-compatible wallet on Polygon or Base, or a Solana wallet)
 - Node.js installed
 
+The x402 client applies a default spend control of $1 per payment. Inbox creation is priced at $2.00, so raise the cap with `setSpendControls` before your first request or the client will reject the payment before it is sent.
+
 ### Install dependencies
 
 <CodeBlocks>
@@ -63,6 +65,9 @@ To authenticate with x402 instead of an API key, you must use the x402-specific 
 
     const x402 = new x402Client();
     x402.register("eip155:*", new ExactEvmScheme(signer));
+
+    // inbox creation is priced at $2.00, above the client's $1 default cap
+    x402.setSpendControls({ maxAmountPerPayment: "$2" });
 
 
     // setup AgentMail client
@@ -100,7 +105,8 @@ To authenticate with x402 instead of an API key, you must use the x402-specific 
     import { createKeyPairSignerFromBytes } from "@solana/kit";
     import { base58 } from "@scure/base";
     import { x402Client } from "@x402/fetch";
-    import { ExactSvmClient, toClientSvmSigner } from "@x402/svm";
+    import { ExactSvmScheme } from "@x402/svm/exact/client";
+    import { toClientSvmSigner } from "@x402/svm";
 
     import { AgentMailClient } from "agentmail";
 
@@ -114,7 +120,10 @@ To authenticate with x402 instead of an API key, you must use the x402-specific 
     );
 
     const x402 = new x402Client();
-    x402.register("solana:*", new ExactSvmClient(toClientSvmSigner(keypair)));
+    x402.register("solana:*", new ExactSvmScheme(toClientSvmSigner(keypair)));
+
+    // inbox creation is priced at $2.00, above the client's $1 default cap
+    x402.setSpendControls({ maxAmountPerPayment: "$2" });
 
 
     // setup AgentMail client

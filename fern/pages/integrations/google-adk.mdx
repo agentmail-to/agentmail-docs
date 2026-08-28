@@ -18,7 +18,15 @@ description: AgentMail's Google Agent Development Kit (ADK) integration
 ## Prerequisites
 
 1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to)
-2. [Google ADK](https://google.github.io/adk-docs/get-started/) installed (`pip install google-adk` or `npm install @google/adk`)
+2. [Google ADK](https://google.github.io/adk-docs/get-started/) installed. The Python MCP tooling ships in an extra, so install `google-adk[mcp]` rather than bare `google-adk`:
+
+   ```bash title="Python"
+   pip install "google-adk[mcp]"
+   ```
+
+   ```bash title="TypeScript"
+   npm install @google/adk
+   ```
 
 ## Setup
 
@@ -61,9 +69,11 @@ ADK supports AgentMail through the MCP tool interface. Connect to the hosted Age
       tools: [
           new MCPToolset({
               type: "StreamableHTTPConnectionParams",
-              serverParams: {
-                  url: "https://mcp.agentmail.to/mcp",
-                  headers: { "x-api-key": AGENTMAIL_API_KEY },
+              url: "https://mcp.agentmail.to/mcp",
+              transportOptions: {
+                  requestInit: {
+                      headers: { "x-api-key": AGENTMAIL_API_KEY },
+                  },
               },
           }),
       ],
