@@ -17,7 +17,31 @@ Install with npm:
 npm install -g agentmail-cli
 ```
 
-Or download a prebuilt binary for your platform from the [GitHub releases page](https://github.com/agentmail-to/agentmail-cli/releases).
+Or install from the release script, which picks the right binary for your machine:
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/agentmail-to/agentmail-cli/releases/latest/download/agentmail-cli-installer.sh | sh
+```
+
+Both paths give you a statically linked binary with no system dependencies, on any Linux distribution. Prebuilt archives are also on the [releases page](https://github.com/agentmail-to/agentmail-cli/releases) — see [Platform support](#platform-support) before picking one by hand.
+
+#### Platform support
+
+| Platform | Requirement |
+| --- | --- |
+| macOS | 11+ (Apple Silicon and Intel) |
+| Linux — npm, or `agentmail-cli-installer.sh` | None. You get the static musl build. |
+| Linux — `*-linux-musl.tar.gz` downloaded manually | None. Runs on Alpine and on `scratch`/distroless images. |
+| Linux — `*-linux-gnu.tar.gz` downloaded manually | **glibc 2.34+ and OpenSSL 3.** Debian 12 needs `apt install libssl3`; Ubuntu 20.04, Amazon Linux 2, and other glibc < 2.34 distributions cannot run this build — use the musl archive instead. |
+| Windows | x64. On Windows ARM64 the installer currently fetches the x64 binary. |
+
+If a manually downloaded `-gnu` binary fails to start, the error names only the first thing it cannot find, which makes two different problems look alike:
+
+```
+error while loading shared libraries: libssl.so.3: cannot open shared object file
+```
+
+On Debian 12 that really is just the library — install `libssl3` and it works. On older distributions the same message hides a glibc floor you cannot install past (`GLIBC_2.34 not found` appears once OpenSSL is present). Rather than diagnosing it, switch to the musl archive, which has no such requirements.
 
 ### Authentication
 
@@ -113,7 +137,7 @@ Shell completions (`agentmail completion`) and man pages (`agentmail man`) are b
 
 ## Known limitations
 
-- **Windows npm package** — `npm install -g agentmail-cli` does not yet install a Windows binary. Windows users should install from the [GitHub releases page](https://github.com/agentmail-to/agentmail-cli/releases) (`agentmail-cli-installer.ps1`), which ships the same binary.
+- **Windows npm package** — `npm install -g agentmail-cli` does not yet install a Windows binary. Windows users should install from the [GitHub releases page](https://github.com/agentmail-to/agentmail-cli/releases) (`agentmail-cli-installer.ps1`), which ships the same binary. On Windows ARM64 that installer fetches the x64 binary, which runs under emulation.
 - **Local validation is incomplete for query parameters.** Request bodies are type-checked locally, but query flags are not — an invalid value like `--limit abc` reaches the API and returns a 400 rather than being caught locally. `--dry-run` shows the request that would be sent, not a guarantee that the server will accept it.
 - **No auto-pagination.** List commands return one page. Paginate manually: pass `--limit`, read `next_page_token` from the response, and pass it back as `--page-token`.
 
@@ -131,6 +155,10 @@ Version 1.0 is a full rewrite, and some invocations changed:
 | `--api-key` flag | `AGENTMAIL_API_KEY` env var or `agentmail auth login --with-token --scheme BearerAuth` |
 
 Environment variables are unchanged: `AGENTMAIL_API_KEY` keeps working as before.
+
+<Note>
+If you pin an older 0.7.x release, note that it installs its binary through a `postinstall` script. npm 12 blocks install scripts by default, so on npm 12 or newer a 0.7.x install completes but leaves no working binary — `agentmail` then fails with `spawnSync … bin/.agentmail ENOENT`. Version 1.0 and later ship the binary inside the package and are unaffected.
+</Note>
 
 ## AI skill
 
