@@ -305,6 +305,8 @@ service:
         domain_id: DomainId
       errors:
         - global.NotFoundError
+        - global.ConflictError
+        - global.UnprocessableError
 
     getSetupLink:
       method: GET
