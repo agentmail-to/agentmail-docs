@@ -37,12 +37,10 @@ jobs:
 
       # Fail fast if the freshly exported spec and the CLI overlays have
       # drifted: a new endpoint without annotations would silently lose its
-      # command hierarchy and AGENTMAIL_TOKEN support, and an override for a
-      # deleted endpoint would become a synthetic dead command.
+      # command hierarchy, and an override for a deleted endpoint would become
+      # a synthetic dead command.
       - name: Validate CLI overlays against exported spec
-        run: |
-          python3 bin/gen-cli-overrides.py --check
-          python3 bin/gen-cli-security-overrides.py --check
+        run: python3 bin/gen-cli-overrides.py --check
 
       # Generation is dispatch-only for now. Push events still run the export
       # and overlay validation above (so spec/overlay drift fails loudly), but
