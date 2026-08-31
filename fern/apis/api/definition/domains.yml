@@ -51,6 +51,12 @@ types:
       priority:
         type: optional<integer>
         docs: The priority of the MX record.
+      reason:
+        type: optional<string>
+        docs: >-
+          Why the record is INVALID, when known. `duplicate_records` means the expected value is
+          present but extra records coexist at the same name; `value_mismatch` means a record
+          exists but does not match the expected value.
 
   Status:
     type: VerificationStatus
@@ -83,6 +89,19 @@ types:
       domain_id: DomainId
       domain: DomainName
       status: Status
+      reason:
+        type: optional<string>
+        docs: >-
+          Why the domain is not (yet) VERIFIED, when known. `dns_records_missing` /
+          `dns_records_invalid` point at the DNS records. The `ses_*` values mean the records
+          look right and sending-infrastructure validation has not converged: `ses_dkim_pending` /
+          `ses_mail_from_pending` (still checking), `ses_dkim_temporary_failure` /
+          `ses_mail_from_temporary_failure` (a transient error the infrastructure keeps retrying
+          on its own — usually resolves without changes), `ses_dkim_failed` /
+          `ses_mail_from_failed` (a terminal verdict; re-verify after fixing),
+          `ses_dkim_not_started` / `ses_mail_from_not_started` (the attribute was never
+          configured on the identity — re-verify to push it), and
+          `ses_not_verified_for_sending`. Absent when VERIFIED.
       feedback_enabled: FeedbackEnabled
       subdomains_enabled: SubdomainsEnabled
       tracking_enabled: TrackingEnabled
@@ -123,6 +142,39 @@ types:
       domains:
         type: list<DomainItem>
         docs: Ordered by `created_at` descending.
+
+  GetSetupLinkResponse:
+    properties:
+      supported:
+        type: boolean
+        docs: >-
+          Whether one-click setup is available for this domain. `false` means the domain's DNS
+          provider does not support Domain Connect (or does not carry the AgentMail template yet)
+          — add the domain's `records` manually instead.
+      provider_name:
+        type: optional<string>
+        docs: Display name of the domain's DNS provider, for the setup button label.
+      url:
+        type: optional<string>
+        docs: >-
+          The signed Domain Connect apply URL. Open it in a browser: the domain owner signs in at
+          their DNS provider, reviews the records, and approves — the provider writes them.
+      width:
+        type: optional<integer>
+        docs: Suggested popup width from the provider, in pixels.
+      height:
+        type: optional<integer>
+        docs: Suggested popup height from the provider, in pixels.
+      state:
+        type: optional<string>
+        docs: >-
+          Opaque value echoed back on the provider's redirect. Store it before opening the URL
+          and compare on return to tie the redirect to this request.
+      conflicting_provider:
+        type: optional<string>
+        docs: >-
+          Set when the domain currently has another email provider's MX records (for example
+          Google Workspace). Applying the template would replace them — warn before proceeding.
 
   CreateDomainRequest:
     properties:
@@ -253,3 +305,24 @@ service:
         domain_id: DomainId
       errors:
         - global.NotFoundError
+        - global.ConflictError
+        - global.UnprocessableError
+
+    getSetupLink:
+      method: GET
+      path: /{domain_id}/setup-link
+      display-name: Get Setup Link
+      docs: >-
+        Build a one-click DNS setup link for the domain via the Domain Connect standard. When the
+        domain's DNS provider supports Domain Connect and carries the AgentMail template, the
+        response contains a signed URL: opening it lets the domain owner approve the required DNS
+        records at their provider, which writes them automatically — no copy-paste. When the
+        provider does not support it, `supported` is `false` and the domain's `records` should be
+        added manually instead.
+      path-parameters:
+        domain_id: DomainId
+      response: GetSetupLinkResponse
+      errors:
+        - global.NotFoundError
+        - global.ConflictError
+        - global.UnprocessableError
