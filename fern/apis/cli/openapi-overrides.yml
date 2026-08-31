@@ -828,3 +828,8 @@ paths:
       - inboxes
       - browserCredentials
       x-fern-sdk-method-name: create-enrollment
+  /v0/domains/{domain_id}/setup-link:
+    get:
+      x-fern-sdk-group-name:
+      - domains
+      x-fern-sdk-method-name: get-setup-link
