@@ -42,6 +42,12 @@ jobs:
       - name: Validate CLI overlays against exported spec
         run: python3 bin/gen-cli-overrides.py --check
 
+      # `auth-schemes.<name>.token.env` is silently ignored unless `api.auth`
+      # names the scheme, so a config that looks tidier can quietly ship a CLI
+      # reading the wrong variable. See the script for the evidence.
+      - name: Validate CLI auth config
+        run: python3 bin/check-cli-auth-config.py
+
       # Generation is dispatch-only for now. Push events still run the export
       # and overlay validation above (so spec/overlay drift fails loudly), but
       # do not generate: the pinned Fern CLI (5.44.8) predates the remote
