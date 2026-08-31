@@ -58,7 +58,7 @@ agentmail auth login --with-token --scheme BearerAuth   # paste your API key whe
 agentmail auth status                                   # shows which credential source is active
 ```
 
-Get your key from the [AgentMail Console](https://console.agentmail.to). (`AGENTMAIL_TOKEN` is also accepted; if both are set, `AGENTMAIL_API_KEY` wins.)
+Get your key from the [AgentMail Console](https://console.agentmail.to).
 
 ## Usage
 
@@ -131,15 +131,29 @@ The CLI provides commands for:
 | `--help` | Show help |
 | `--version` | Show version |
 
-Request-bearing commands additionally accept `--json <JSON|->` to supply the whole request body as JSON (or from stdin), `--params <JSON>` to merge extra parameters, `--page-all` on list commands to auto-paginate through all results, and `--query <EXPR>` to filter output with a [JMESPath](https://jmespath.org) expression.
+Request-bearing commands additionally accept `--json <JSON|->` to supply the whole request body as JSON (or from stdin), `--params <JSON>` to merge extra parameters, and `--query <EXPR>` to filter output with a [JMESPath](https://jmespath.org) expression.
 
 Shell completions (`agentmail completion`) and man pages (`agentmail man`) are built in.
 
 ## Known limitations
 
 - **Windows npm package** — `npm install -g agentmail-cli` does not yet install a Windows binary. Windows users should install from the [GitHub releases page](https://github.com/agentmail-to/agentmail-cli/releases) (`agentmail-cli-installer.ps1`), which ships the same binary. On Windows ARM64 that installer fetches the x64 binary, which runs under emulation.
-- **Local validation is incomplete for query parameters.** Request bodies are type-checked locally, but query flags are not — an invalid value like `--limit abc` reaches the API and returns a 400 rather than being caught locally. `--dry-run` shows the request that would be sent, not a guarantee that the server will accept it.
+- **`--dry-run` is not an acceptance guarantee.** Flag values are type-checked locally, so `--limit abc` fails before a request is made. `--dry-run` then shows the request that would be sent — the API can still reject it on grounds the CLI cannot check, such as an unknown ID or a permission error.
 - **No auto-pagination.** List commands return one page. Paginate manually: pass `--limit`, read `next_page_token` from the response, and pass it back as `--page-token`.
+
+## Upgrading to 1.2
+
+`AGENTMAIL_TOKEN` is no longer read. Versions 1.0 and 1.1 accepted it as an alternative to
+`AGENTMAIL_API_KEY`; no other AgentMail surface ever used it, and it has been removed. If you
+set it, switch to the standard variable:
+
+```bash
+export AGENTMAIL_API_KEY="$AGENTMAIL_TOKEN"
+```
+
+Nothing else changed — commands, flags and output formats are identical to 1.1. Query flags are
+now type-checked locally, so an invalid `--limit abc` fails before a request is made instead of
+returning a 400 from the API.
 
 ## Upgrading from 0.7.x
 

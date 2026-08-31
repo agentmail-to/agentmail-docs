@@ -15,8 +15,9 @@ WHY THIS EXISTS
     anchor no longer matches fails loudly rather than silently skipping.
 
 WHAT IT PATCHES
-    1. repo assets   restore CHANGELOG.md + SECURITY.md and protect them,
-                     plus cli/agentmail/custom.rs, via .fernignore
+    1. repo assets   restore CHANGELOG.md + SECURITY.md and protect them
+                     via .fernignore (custom.rs is the generator's own entry,
+                     preserved because this patch rewrites the whole file)
     2. npm metadata  packageIdentity reaches Cargo.toml but not the published
                      npm package: license, keywords and README are absent and
                      the description is a hardcoded placeholder
@@ -74,8 +75,9 @@ FERNIGNORE = """# Specify files that shouldn't be modified by Fern
 CHANGELOG.md
 SECURITY.md
 
-# Hand-authored custom command bindings. The scaffold and its docs say
-# this file is protected; without this entry a regeneration overwrites it.
+# Hand-authored custom command bindings. Generator 0.38.10 emits this
+# entry itself; it is repeated here because this patch replaces the whole
+# file, and dropping the line would remove protection the generator added.
 cli/agentmail/custom.rs
 """
 

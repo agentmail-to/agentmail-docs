@@ -3,21 +3,20 @@ api:
   specs:
     - openapi: ../../../openapi/openapi.yml
       overrides: ./openapi-overrides.yml
-  auth:
-    any: [BearerAuth, TokenAuth]
+  # Required. Without this key the `env` override below is silently ignored
+  # and the generated CLI reads AGENTMAIL_TOKEN instead (verified on 0.38.10).
+  # Enforced by bin/check-cli-auth-config.py -- do not remove either.
+  auth: BearerAuth
 auth-schemes:
   BearerAuth:
     scheme: bearer
     token: { name: apiKey, env: AGENTMAIL_API_KEY }
-  TokenAuth:
-    scheme: bearer
-    token: { name: token, env: AGENTMAIL_TOKEN }
 default-group: cli
 groups:
   cli:
     generators:
       - name: fern-cli-generator
-        version: 0.38.6
+        version: 0.38.10
         smart-casing: true
         config:
           binaryName: agentmail
