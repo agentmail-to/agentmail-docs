@@ -1,0 +1,132 @@
+---
+title: "How do I know when an email is opened?"
+subtitle: Track opens on the emails your agent sends, and react when a recipient reads one.
+slug: knowledge-base/open-tracking
+---
+
+<Warning>
+Open tracking is in **private beta**. It requires the **Developer plan or above** and must be enabled on your organization by our team. Email [support@agentmail.cc](mailto:support@agentmail.cc) to request access.
+</Warning>
+
+When you send with `track_opens`, AgentMail adds an invisible 1x1 pixel to your HTML body, served from your own domain. The first time a recipient's mail client loads that pixel, the message is marked as opened.
+
+You can see opens two ways: the `opened` label on the message, which you can poll or filter on, and the `message.opened` event, which is pushed to your webhook the moment it happens.
+
+## Setup
+
+Open tracking is only available on a custom domain, because the pixel is served from your domain and carries your sender reputation rather than a shared one. See [Custom domain setup](/knowledge-base/custom-domain-setup) if you do not have one yet.
+
+Enable tracking when you create the domain:
+
+```python title="Python"
+domain = client.domains.create(
+    domain="mail.yourcompany.com",
+    tracking_enabled=True,
+)
+
+for record in domain.records:
+    print(record.type, record.name, record.value)
+```
+
+Or turn it on for a domain you already have:
+
+```python title="Python"
+domain = client.domains.update(
+    domain_id="mail.yourcompany.com",
+    tracking_enabled=True,
+)
+```
+
+Either call adds a `link.<domain>` CNAME to the domain's `records`. Publish every record at your DNS provider, then wait for the domain to report `VERIFIED`:
+
+```python title="Python"
+domain = client.domains.get(domain_id="mail.yourcompany.com")
+
+print(domain.status)            # VERIFIED when ready
+print(domain.tracking_enabled)  # True
+```
+
+Certificate issuance for the `link.` subdomain usually takes a few minutes after the CNAME resolves.
+
+## Sending a tracked message
+
+Set `track_opens` on any send, reply, or reply-all:
+
+```python title="Python"
+client.inboxes.messages.send(
+    inbox_id="agent@mail.yourcompany.com",
+    to=["customer@example.com"],
+    subject="Following up",
+    html="<p>Just checking in on my last note.</p>",
+    track_opens=True,
+)
+```
+
+<Note>
+The message must have an HTML body. A pixel can only live in HTML, so a text-only message is delivered normally but is not tracked. Sending both `text` and `html` is fine.
+</Note>
+
+If the domain is not ready, the send is rejected with a `422` rather than going out untracked, so a misconfigured domain fails loudly instead of silently losing tracking.
+
+## Checking whether a message was opened
+
+On the first open we add the `opened` system label to the message and to its thread. It shows up wherever you already read messages, with no extra call:
+
+```python title="Python"
+message = client.inboxes.messages.get(
+    inbox_id="agent@mail.yourcompany.com",
+    message_id=message_id,
+)
+
+if "opened" in message.labels:
+    print("Opened")
+```
+
+Because it is a label, you can also filter on it. This is the simplest pattern for an agent that sends, goes away, and checks back later:
+
+```python title="Python"
+opened = client.inboxes.messages.list(
+    inbox_id="agent@mail.yourcompany.com",
+    labels=["opened"],
+)
+```
+
+## Reacting to an open in real time
+
+Subscribe to the `message.opened` event to be notified the moment it happens. The event payload carries the open time, which the label alone does not:
+
+```python title="Python"
+client.webhooks.create(
+    url="https://yourapp.com/hooks/agentmail",
+    event_types=["message.opened"],
+)
+```
+
+```python title="Python"
+elif event_type == "message.opened":
+    event = MessageOpenedEvent(**payload)
+    print(event.open.message_id, event.open.timestamp)
+```
+
+See [Webhook events](/webhooks/events) for the full handler pattern.
+
+## What open tracking can and cannot tell you
+
+Open tracking is a directional signal, not proof that someone read your email. This is true of every pixel-based implementation, not just ours, and it is worth designing around:
+
+- **Opens can be missed.** Many mail clients block remote images by default, and Apple Mail Privacy Protection can suppress loads. A message without the `opened` label was not necessarily unread.
+- **Opens can fire without a human.** Gmail and some security scanners pre-fetch images through a proxy, which can register an open within seconds of delivery. Treat a very fast open with suspicion.
+
+If your agent takes action on an open, such as sending a follow-up, design it to tolerate both a missed open and a machine-triggered one.
+
+## Current limits
+
+- **First open only.** The label and the event fire once per message. Repeat opens are not counted.
+- **One pixel per message, not per recipient.** A message sent to several recipients fires once when any of them opens it, and the event does not say which one. Send separate messages if you need per-recipient attribution.
+- **Immediate sends only.** `track_opens` is honored on send, reply, and reply-all. It is not yet supported on drafts or scheduled sends.
+- **Custom domains only.** Tracking is not available on shared AgentMail domains.
+- **No click tracking** yet.
+
+## Getting access
+
+Open tracking is in private beta on the Developer plan and above. Email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization and we will enable it. We are actively collecting feedback on this feature, so tell us what is missing.

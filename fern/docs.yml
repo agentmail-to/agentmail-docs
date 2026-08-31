@@ -506,6 +506,10 @@ navigation:
           - page: Using labels to track state
             icon: fa-solid fa-tags
             path: pages/knowledge-base/labels-track-state.mdx
+          - page: Knowing when an email is opened
+            icon: fa-solid fa-envelope-open
+            hidden: true
+            path: pages/knowledge-base/open-tracking.mdx
       - section: Domains & Deliverability
         contents:
           - page: Custom domain setup
