@@ -18,13 +18,18 @@ WHAT IT PATCHES
     1. repo assets   restore CHANGELOG.md + SECURITY.md and protect them
                      via .fernignore (custom.rs is the generator's own entry,
                      preserved because this patch rewrites the whole file)
-    2. npm metadata  packageIdentity reaches Cargo.toml but not the published
-                     npm package: license, keywords and README are absent and
-                     the description is a hardcoded placeholder
+    2. npm README    the launcher package lists only "bin/" in `files`, so the
+                     README never reaches npm and the package page is blank
     3. windows       defer the win32-x64 npm package (npm has the name
                      spam-flagged; support ticket open). REMOVE THIS PATCH
                      once npm clears it — cargo-dist still ships the Windows
                      binary via the GitHub Release either way.
+
+    Dropped on 2026-08-31, fixed upstream in generator 0.38.10 and verified:
+      - packageIdentity now reaches the launcher package.json (description,
+            license, keywords, homepage, author) -- only the README remains
+      - custom.rs now ships in the generated .fernignore -- the entry is kept
+            in FERNIGNORE below only because this patch rewrites the whole file
 
     Dropped on 2026-08-27, fixed upstream in generator 0.38.6 and verified:
       - launcher signal exit codes (128+signum) — now native
@@ -102,48 +107,23 @@ def patch_assets(root):
     )
 
 
-# ── 2. npm package metadata ───────────────────────────────────────────────────
-# The launcher's package.json is written inline in ci.yml and carries only
-# name/version/bin/optionalDependencies plus a hardcoded "CLI for agentmail"
-# description. Everything set in packageIdentity — license, keywords, the real
-# description — reaches Cargo.toml and stops there, so npm renders the package
-# with "License: none", no keywords and no README. The license gap is not
-# cosmetic: dependency scanners reject unlicensed packages.
-PKGJSON_OLD = """            "description": "CLI for agentmail",
-            "repository": {
-              "type": "git",
-              "url": "https://github.com/agentmail-to/agentmail-cli"
-            },
-            "bin": {
-              "agentmail": "bin/cli.js"
-            },
-            "optionalDependencies": {
-              ${OPTIONAL_DEPS}
-            },
-            "files": ["bin/"]"""
+# ── 2. npm package README ─────────────────────────────────────────────────────
+# Generator 0.38.10 routes packageIdentity into the launcher's package.json --
+# description, license, keywords, homepage and author now come through, which
+# was the part that mattered (dependency scanners reject unlicensed packages).
+# What it still does not do is ship the README: `files` lists only "bin/", and
+# npm packs a README only when it sits beside package.json, so the package
+# renders with no documentation on npmjs.com.
+PKGJSON_OLD = """            "files": ["bin/"]"""
 
-PKGJSON_NEW = """            "description": "Command-line interface for the AgentMail API. Send, receive, reply, and manage threaded email conversations from your terminal.",
-            "license": "MIT",
-            "keywords": ["email", "api", "cli", "agent", "agentmail"],
-            "homepage": "https://agentmail.to",
-            "repository": {
-              "type": "git",
-              "url": "https://github.com/agentmail-to/agentmail-cli"
-            },
-            "bin": {
-              "agentmail": "bin/cli.js"
-            },
-            "optionalDependencies": {
-              ${OPTIONAL_DEPS}
-            },
-            "files": ["bin/", "README.md"]"""
+PKGJSON_NEW = """            "files": ["bin/", "README.md"]"""
 
 README_COPY = '          cp README.md "${PKG_DIR}/README.md"\n'
 
 
 def patch_pkgjson(root):
     ci = root / ".github/workflows/ci.yml"
-    patch("npm package metadata", ci, PKGJSON_OLD, PKGJSON_NEW)
+    patch("npm package README (files)", ci, PKGJSON_OLD, PKGJSON_NEW)
     # npm only packs a README that sits beside package.json.
     s = ci.read_text()
     if README_COPY in s:
