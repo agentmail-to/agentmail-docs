@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  ProviderId:
+    type: uuid
+    docs: |
+      ID of the provider (relying party) the account is at. Addresses
+      `GET /v0/providers/{provider_id}`.
+
+  Account:
+    docs: |
+      One inbox signed in at one provider. An account's identity is the pair of
+      `provider_id` and `inbox_id`; an inbox signed in at three providers is three
+      accounts. Facts about the provider itself (`client_id`, `client_type`, `name`)
+      live on the provider, not on the account: resolve them with
+      `GET /v0/providers/{provider_id}`.
+    properties:
+      provider_id: ProviderId
+      inbox_id:
+        type: string
+        docs: Email address of the inbox that holds the account.
+      pod_id:
+        type: uuid
+        docs: ID of the pod the inbox belongs to.
+      organization_id: global.OrganizationId
+      first_signed_up_at:
+        type: datetime
+        docs: When the inbox first signed up at this provider.
+      last_signed_in_at:
+        type: datetime
+        docs: Most recent sign-in. Approximate; the AgentID grant log is the exact authority.
+      sign_in_count:
+        type: integer
+        docs: Number of sign-ins. Approximate; the AgentID grant log is the exact authority.
+
+  ListAccountsResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      accounts:
+        type: list<Account>
+        docs: Accounts the API key can see, at its own tier (organization, pod, or inbox).
+
+service:
+  url: Http
+  base-path: /accounts
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Accounts
+      docs: |
+        Lists every AgentID account the API key can see: an organization key sees
+        the whole organization, a pod key its pod, an inbox key that one inbox.
+        Requires `inbox_read`.
+
+        Each row is one inbox at one provider. To narrow the list to a single
+        provider and get that provider's details in the same response, use
+        `GET /v0/providers/{provider_id}/accounts`.
+
+        Available in US production. Not available in EU production.
+      request:
+        name: ListAccountsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: ListAccountsResponse
+      errors:
+        - global.ValidationError

@@ -1,0 +1,246 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  accounts: accounts.yml
+
+types:
+  ProviderClientId:
+    type: string
+    docs: |
+      The provider's OAuth client identifier (RFC 6749): what the provider itself
+      uses in the sign-in protocol and its own logs. For an open client this is
+      the client's HTTPS URL. Distinct from `provider_id`, which is AgentMail's.
+
+  ClientType:
+    enum:
+      - value: closed
+        docs: A registered relying party with a stored client record. Only closed clients can be listed.
+      - value: open
+        docs: An unregistered relying party identified by its HTTPS URL. Never listed.
+    docs: The provider's trust tier.
+
+  Provider:
+    docs: |
+      A relying party identity: what an inbox connects to. Listed providers come
+      from the curated catalog and carry full metadata. A provider the catalog
+      does not list resolves only for a caller whose own inboxes hold an account
+      at it, with `listed: false` and the identity fields alone.
+    properties:
+      provider_id: accounts.ProviderId
+      client_id: optional<ProviderClientId>
+      client_type: ClientType
+      listed:
+        type: boolean
+        docs: Whether the provider appears in the curated catalog. Listed providers carry `name`, `updated_at`, and metadata.
+      name:
+        type: optional<string>
+        docs: Display name. Always present on a listed provider; on an unlisted one only when the provider registered a name.
+      updated_at:
+        type: optional<datetime>
+        docs: When the catalog snapshot the caller is reading was built. Listed providers only.
+      description: optional<string>
+      logo_uri: optional<string>
+      tos_uri: optional<string>
+      policy_uri: optional<string>
+      connected:
+        type: boolean
+        docs: Whether any inbox the API key can see holds an account at this provider.
+      connectable:
+        type: boolean
+        docs: Whether `POST /v0/providers/{provider_id}/connect` can start a browser enrollment for this provider.
+      truncated:
+        type: optional<boolean>
+        docs: |
+          Present, and `true`, only when `connected: false` could not be confirmed
+          because the caller's account set exceeded the read bound. A `connected: true`
+          is always exact.
+
+  ListProvidersResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      truncated:
+        type: optional<boolean>
+        docs: Present, and `true`, only when a `connected` filter stopped at its read bound before filling the page.
+      providers:
+        type: list<Provider>
+        docs: Catalog entries, most popular first.
+
+  SearchProvidersResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      truncated:
+        type: boolean
+        docs: Whether more providers matched than were returned.
+      providers: list<Provider>
+
+  ListProviderAccountsResponse:
+    properties:
+      provider:
+        type: optional<Provider>
+        docs: |
+          The provider the accounts are at. `null` only when nothing exists under
+          the ID at all: no catalog entry and no accounts.
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      accounts:
+        type: list<accounts.Account>
+        docs: The caller's accounts at this provider, most recent sign-in first.
+
+  ConnectProviderBody:
+    properties:
+      inbox_id:
+        type: optional<string>
+        docs: |
+          Email address of the inbox to connect. Required for organization- and
+          pod-scoped keys; an inbox-scoped key may omit it.
+
+  ConnectProviderAccepted:
+    docs: |
+      A pending enrollment session. Open `magic_url` in the browser profile that
+      should hold the credential; AgentID enrolls that browser as the inbox and
+      then navigates to the provider's sign-in.
+    properties:
+      enrollment_session_id:
+        type: uuid
+        docs: ID of the pending session. Cancel it with `DELETE /v0/api-keys/browser-credentials/magic-enrollments/{enrollment_session_id}`.
+      magic_url:
+        type: string
+        docs: Single-use URL on the AgentID browser origin. Treat it as a secret; it is never returned again.
+      expires_at:
+        type: datetime
+        docs: When the URL stops working, five minutes after minting.
+
+service:
+  url: Http
+  base-path: /providers
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Providers
+      docs: |
+        Lists the curated provider catalog, most popular first, with each entry
+        annotated by whether the API key's inboxes hold an account there.
+        Requires `inbox_read`.
+
+        Only listed providers appear here. Pass `connected=true` to keep only the
+        providers the caller is connected to, or `connected=false` for the rest.
+
+        Available in US production. Not available in EU production.
+      request:
+        name: ListProvidersRequest
+        query-parameters:
+          connected:
+            type: optional<boolean>
+            docs: Keep only providers with (`true`) or without (`false`) an account from the caller's inboxes.
+          limit:
+            type: optional<integer>
+            docs: Maximum entries per page, up to 100.
+          page_token: optional<global.PageToken>
+      response: ListProvidersResponse
+      errors:
+        - global.ValidationError
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Providers
+      docs: |
+        Finds listed providers whose name starts with `q`, annotated the same way
+        as the list. Not paginated: `truncated` reports whether more matched than
+        the limit allowed. Requires `inbox_read`.
+      request:
+        name: SearchProvidersRequest
+        query-parameters:
+          q:
+            type: string
+            docs: Name prefix to match.
+          limit:
+            type: optional<integer>
+            docs: Maximum entries returned, up to 50.
+      response: SearchProvidersResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{provider_id}
+      display-name: Get Provider
+      docs: |
+        Returns one provider. A listed provider is returned to any caller with the
+        full catalog entry. A provider the catalog does not list, including an
+        open client, is returned only when an inbox the API key can see holds an
+        account at it, with `listed: false` and the identity fields alone.
+        Otherwise `404`. Requires `inbox_read`.
+      path-parameters:
+        provider_id: accounts.ProviderId
+      response: Provider
+      errors:
+        - global.NotFoundError
+
+    listAccounts:
+      method: GET
+      path: /{provider_id}/accounts
+      display-name: List Provider Accounts
+      docs: |
+        `GET /v0/accounts` narrowed to one provider, most recent sign-in first,
+        with the provider itself under `provider` so a detail view is one request.
+        Requires `inbox_read`.
+
+        This list does not depend on the catalog: an unlisted provider the caller
+        is connected to still lists its accounts, with `provider` resolved from
+        them. `provider` is `null` only when nothing exists under the ID.
+      path-parameters:
+        provider_id: accounts.ProviderId
+      request:
+        name: ListProviderAccountsRequest
+        query-parameters:
+          limit:
+            type: optional<integer>
+            docs: Maximum accounts per page, up to 100.
+          page_token: optional<global.PageToken>
+      response: ListProviderAccountsResponse
+      errors:
+        - global.ValidationError
+
+    connect:
+      method: POST
+      path: /{provider_id}/connect
+      display-name: Connect Provider
+      docs: |
+        Starts a browser enrollment that connects one inbox to a listed,
+        connectable provider. Returns `202` with a five-minute `magic_url`; open
+        it in the browser profile that should hold the credential. AgentID enrolls
+        that browser as the inbox and then navigates to the provider's sign-in,
+        where the provider's own consent flow creates the account. Requires
+        `api_key_create`.
+
+        The `Idempotency-Key` header is required. A retry with the same key and
+        the same request returns `409`; the magic URL is never returned twice.
+        Mint a new session with a new key instead, and cancel the old one with
+        `DELETE /v0/api-keys/browser-credentials/magic-enrollments/{enrollment_session_id}`
+        if its live slot is needed.
+
+        Live pending sessions are limited per API key; a `429` carries a
+        `Retry-After` header. Available in US production only, where magic
+        browser enrollment is enabled; otherwise `404`.
+      path-parameters:
+        provider_id: accounts.ProviderId
+      idempotent: true
+      request:
+        name: ConnectProviderRequest
+        body: optional<ConnectProviderBody>
+      response:
+        status-code: 202
+        type: ConnectProviderAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError

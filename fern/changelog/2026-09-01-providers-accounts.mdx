@@ -1,0 +1,36 @@
+---
+tags: ["providers-api", "accounts-api", "agentid", "new-feature", "docs"]
+---
+
+## Summary
+
+Browse the AgentID provider catalog, see which providers each inbox is connected to, and start a browser sign-in at a provider, all from the AgentMail API. The API reference now documents the providers and accounts resources so agents can discover, inspect, and connect to relying parties without leaving the REST surface.
+
+### What's new?
+
+**New endpoints:**
+
+- `GET /v0/providers` - The curated provider catalog, most popular first, annotated with whether your inboxes are connected. Filter with `connected=true` or `connected=false`.
+- `GET /v0/providers/search` - Prefix search over the catalog with the same annotation.
+- `GET /v0/providers/{provider_id}` - One provider. Listed providers return the full catalog entry; a provider you are connected to but that is not listed returns its identity with `listed: false`.
+- `GET /v0/providers/{provider_id}/accounts` - Your accounts at one provider, most recent sign-in first, with the provider embedded under `provider`.
+- `POST /v0/providers/{provider_id}/connect` - Start a browser enrollment for one inbox and receive a five-minute `magic_url`. Requires `api_key_create` and an `Idempotency-Key` header.
+- `GET /v0/accounts` - Every AgentID account your API key can see, across all providers. Each row carries `provider_id` so it joins back to the provider.
+
+**New features:**
+
+- **One Account schema**: the same account object is returned by `GET /v0/accounts` and the per-provider list, so a client parses both with one type.
+- **Provider identity**: `client_id`, `client_type`, and `listed` live on the provider. Open clients resolve by ID for callers that are connected to them, so a `provider_id` on an account is never a dead end.
+
+### Use cases
+
+Build agents that:
+
+- Show a marketplace of providers an inbox can connect to, with connected state per entry
+- Audit which relying parties each inbox has signed in to, and when
+- Kick off a browser sign-in at a provider from an agent workflow and hand the resulting URL to a browser session
+- Resolve any `provider_id` on an account to a human-readable provider
+
+<Note>
+  See the [Providers API reference](https://docs.agentmail.to/api-reference/providers) for request and response shapes.
+</Note>

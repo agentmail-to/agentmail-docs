@@ -465,6 +465,8 @@ navigation:
           - lists
           - metrics
           - api-keys
+          - providers
+          - accounts
           - pods
           - organizations
   - tab: kb
