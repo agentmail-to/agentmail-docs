@@ -26,6 +26,11 @@ types:
     properties:
       account_id: AccountId
       provider_id: ProviderId
+      provider_name:
+        type: optional<string>
+        docs: |
+          The provider's display name, refreshed on every sign-in. Absent for a
+          provider identified only by URL, which has no registered name.
       inbox_id:
         type: string
         docs: Email address of the inbox that holds the account.
