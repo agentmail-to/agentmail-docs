@@ -7,16 +7,15 @@ types:
   ProviderId:
     type: uuid
     docs: |
-      ID of the provider (relying party) the account is at. Addresses
+      ID of the provider the account is at. Addresses
       `GET /v0/providers/{provider_id}`.
 
   Account:
     docs: |
       One inbox signed in at one provider. An account's identity is the pair of
       `provider_id` and `inbox_id`; an inbox signed in at three providers is three
-      accounts. Facts about the provider itself (`client_id`, `client_type`, `name`)
-      live on the provider, not on the account: resolve them with
-      `GET /v0/providers/{provider_id}`.
+      accounts. Facts about the provider itself live on the provider: resolve them
+      with `GET /v0/providers/{provider_id}`.
     properties:
       provider_id: ProviderId
       inbox_id:
@@ -26,9 +25,9 @@ types:
         type: uuid
         docs: ID of the pod the inbox belongs to.
       organization_id: global.OrganizationId
-      first_signed_up_at:
+      first_signed_in_at:
         type: datetime
-        docs: When the inbox first signed up at this provider.
+        docs: When the inbox first signed in at this provider.
       last_signed_in_at:
         type: datetime
         docs: Most recent sign-in. Approximate; the AgentID grant log is the exact authority.
