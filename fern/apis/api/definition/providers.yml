@@ -1,0 +1,268 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+
+types:
+  ProviderId:
+    type: string
+    docs: ID of provider (UUID). Not the same identifier as the provider's OAuth `client_id`.
+
+  Provider:
+    docs: One listed provider, annotated for the calling organization.
+    properties:
+      provider_id: ProviderId
+      client_id:
+        type: optional<string>
+        docs: |
+          The provider's OAuth client_id — a different identifier than `provider_id`, published
+          for joining against account records. Absent only on listings written before this
+          field shipped; the next marketplace rebuild fills every one.
+      name:
+        type: string
+        docs: Display name of provider.
+      updated_at:
+        type: datetime
+        docs: Time at which the marketplace listing was last rebuilt.
+      connected:
+        type: boolean
+        docs: |
+          Whether the calling organization already holds an account at this provider.
+          `true` is always exact. `false` may be unverified when the response also carries
+          `truncated: true`.
+      connectable:
+        type: boolean
+        docs: Whether a provider connection (browser sign-in enrollment) can be created for this provider.
+      description:
+        type: optional<string>
+        docs: Description of provider, authored by the provider.
+      logo_uri:
+        type: optional<string>
+        docs: Logo URL of provider.
+      tos_uri:
+        type: optional<string>
+        docs: Terms of service URL of provider.
+      policy_uri:
+        type: optional<string>
+        docs: Privacy policy URL of provider.
+
+  GetProviderResponse:
+    extends: Provider
+    properties:
+      truncated:
+        type: optional<boolean>
+        docs: |
+          Present (`true`) only when `connected: false` could not be fully verified against the
+          caller's account list — the provider record itself is complete. `connected: true` is
+          always exact.
+
+  ListProvidersResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      truncated:
+        type: optional<boolean>
+        docs: |
+          Present (`true`) only when a bounded read was cut short: a `connected`-filtered scan
+          stopped early, or the per-provider `connected` annotations could not be fully verified
+          (`connected: false` entries may then be wrong). Absent results are exact.
+      providers:
+        type: list<Provider>
+        docs: Ordered by popularity, most popular first.
+
+  SearchProvidersResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      truncated:
+        type: boolean
+        docs: |
+          Whether the result may be incomplete: more providers matched than were returned, or
+          the `connected` annotations could not be fully verified (`connected: false` entries
+          may then be wrong).
+      providers:
+        type: list<Provider>
+        docs: Ordered by popularity, most popular first.
+
+  ProviderConnection:
+    docs: One of the calling organization's own inboxes holding an account at the provider.
+    properties:
+      inbox_id:
+        type: string
+        docs: ID of inbox (email address) holding the account.
+      pod_id:
+        type: string
+        docs: ID of pod.
+      first_signed_up_at:
+        type: datetime
+        docs: Time at which the inbox first signed up at the provider.
+      last_signed_in_at:
+        type: datetime
+        docs: Time at which the inbox last signed in at the provider.
+      sign_in_count:
+        type: integer
+        docs: Number of sign-ins by the inbox at the provider.
+
+  ListProviderConnectionsResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      connections:
+        type: list<ProviderConnection>
+        docs: Ordered by most recent sign-in first.
+
+  CreateProviderConnectionBody:
+    properties:
+      inbox_id:
+        type: optional<string>
+        docs: |
+          The inbox to connect — its email address, or its tenant-scoped inbox client ID alias.
+          Required unless the API key is already scoped to one inbox.
+
+  ProviderConnectionAccepted:
+    docs: A minted browser sign-in enrollment for the selected provider.
+    properties:
+      enrollment_session_id:
+        type: string
+        docs: ID of the enrollment session.
+      magic_url:
+        type: string
+        docs: |
+          Single-use sign-in URL for a human to open in a browser. It is never re-served —
+          store it before responding, or mint a new enrollment with a new `Idempotency-Key`.
+      expires_at:
+        type: datetime
+        docs: Time at which the magic URL stops working.
+
+service:
+  url: Http
+  base-path: /providers
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Providers
+      docs: |
+        List the provider marketplace: services agents can hold accounts at, most popular
+        first, each annotated with whether the calling organization is already connected.
+        Requires `inbox_read`.
+
+        The `connected` filter cannot be answered by the index alone, so a filtered request
+        reads ahead a bounded number of pages and reports `truncated: true` when the bound
+        was hit rather than silently stopping short.
+      request:
+        name: ListProvidersRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          connected:
+            type: optional<boolean>
+            docs: Return only providers the organization is (`true`) or is not (`false`) connected to.
+      response: ListProvidersResponse
+      errors:
+        - global.ValidationError
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Providers
+      docs: |
+        Search the provider marketplace by name, each result annotated with whether the
+        calling organization is already connected. Requires `inbox_read`.
+
+        Search is unpaginated: results merge several index rows per provider and re-sort by
+        popularity, so there is no stable cursor. `truncated: true` means more providers
+        matched than were returned; a caller wanting the whole catalog should page the list
+        endpoint instead.
+      request:
+        name: SearchProvidersRequest
+        query-parameters:
+          q:
+            type: string
+            docs: Name (or name prefix) to search for.
+          limit: optional<global.Limit>
+      response: SearchProvidersResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{provider_id}
+      display-name: Get Provider
+      docs: |
+        Get one provider from the marketplace, annotated with whether the calling
+        organization is already connected. Requires `inbox_read`.
+
+        A `404` means only that the provider is not currently listed — whether it does not
+        exist, is unlisted, or fell below the listing floor at the last rebuild.
+      path-parameters:
+        provider_id: ProviderId
+      response: GetProviderResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+
+    listConnections:
+      method: GET
+      path: /{provider_id}/connections
+      display-name: List Provider Connections
+      docs: |
+        List the calling organization's own inboxes holding an account at the provider, most
+        recent sign-in first. Requires `inbox_read`.
+
+        Pages may return fewer entries than `limit` — even zero — while `next_page_token` is
+        present; keep paging until `next_page_token` is absent before concluding an inbox is
+        not connected. Connections are facts about the caller's tenancy, not the catalog: an
+        unknown `provider_id` is simply an empty list, never a `404`.
+      path-parameters:
+        provider_id: ProviderId
+      request:
+        name: ListProviderConnectionsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListProviderConnectionsResponse
+      errors:
+        - global.ValidationError
+
+    createConnection:
+      method: POST
+      path: /{provider_id}/connections
+      display-name: Create Provider Connection
+      docs: |
+        Start connecting an inbox to a provider: mint a browser sign-in enrollment and return
+        a single-use magic URL for a human to open and complete the sign-in. Nothing is
+        connected until the sign-in completes. Requires an API key (not a console session)
+        with `api_key_create`; `Idempotency-Key` is required.
+
+        The magic URL is never re-served: an idempotent retry with the same `Idempotency-Key`
+        returns `409` rather than replaying the original response, so the key deduplicates
+        duplicate attempts — it does not recover a lost URL. Use a fresh key for a genuinely
+        new attempt.
+
+        Live unused enrollments are limited per bearer API key and per organization; either
+        limit returns `429` — honor the `Retry-After` header. A provider that is not listed,
+        or not connectable, returns `404`.
+      path-parameters:
+        provider_id: ProviderId
+      request:
+        name: CreateProviderConnectionRequest
+        headers:
+          Idempotency-Key:
+            type: string
+            docs: |
+              Deduplication key for this connection attempt, at most 256 characters of
+              `A-Z a-z 0-9 - . _ ~`. A repeated call with the same key conflicts instead of
+              minting a second enrollment.
+        body: CreateProviderConnectionBody
+      response:
+        status-code: 202
+        type: ProviderConnectionAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError
