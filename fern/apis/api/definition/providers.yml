@@ -190,7 +190,7 @@ service:
       path: /{provider_id}/connect
       display-name: Connect Provider
       docs: |
-        Starts signing one inbox in to a listed provider. Returns `202` with a
+        Starts signing one inbox in to a provider in the catalog. Returns `202` with a
         five-minute `magic_url`; open it in the browser that should hold the
         sign-in. AgentID signs that browser in as the inbox and then continues to
         the provider, whose own consent flow creates the account. Requires
