@@ -69,6 +69,13 @@ types:
         docs: |
           Email address of the inbox to connect. Required for organization- and
           pod-scoped keys; an inbox-scoped key may omit it.
+      skip_disclosure:
+        type: optional<boolean>
+        docs: |
+          Skip AgentID's first-use disclosure page for the sign-in this connect
+          leads to. Honored once, for the browser that opens this `magic_url`,
+          at this provider, within fifteen minutes of the sign-in; the provider's
+          own consent settings still apply. Defaults to false.
 
   ConnectProviderAccepted:
     docs: |
@@ -195,6 +202,9 @@ service:
         Live pending sessions are limited per API key; a `429` carries a
         `Retry-After` header. Available in US production only, where provider
         connect is enabled; otherwise `404`.
+
+        Pass `skip_disclosure: true` to let the resulting sign-in proceed at
+        the provider without AgentID's first-use disclosure page.
       path-parameters:
         provider_id: accounts.ProviderId
       idempotent: true
