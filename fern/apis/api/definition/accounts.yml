@@ -2,60 +2,45 @@
 
 imports:
   global: __package__.yml
+  pods: pods/__package__.yml
+  inboxes: inboxes/__package__.yml
 
 types:
   AccountId:
     type: uuid
-    docs: |
-      ID of the account. Stable for the life of the account: the same inbox
-      signing in again at the same provider is the same account and the same ID.
-      Addresses `GET /v0/accounts/{account_id}`.
+    docs: ID of account.
 
   ProviderId:
     type: uuid
-    docs: |
-      ID of the provider the account is at. Addresses
-      `GET /v0/providers/{provider_id}`.
+    docs: ID of provider.
 
   Account:
-    docs: |
-      One inbox signed in at one provider. An account's identity is the pair of
-      `provider_id` and `inbox_id`; an inbox signed in at three providers is three
-      accounts. Facts about the provider itself live on the provider: resolve them
-      with `GET /v0/providers/{provider_id}`.
+    docs: One inbox signed in at one provider.
     properties:
       account_id: AccountId
       provider_id: ProviderId
       provider_name:
         type: optional<string>
-        docs: |
-          The provider's display name, refreshed on every sign-in. Absent for a
-          provider identified only by URL, which has no registered name.
-      inbox_id:
-        type: string
-        docs: Email address of the inbox that holds the account.
-      pod_id:
-        type: uuid
-        docs: ID of the pod the inbox belongs to.
+        docs: Display name of provider.
+      inbox_id: inboxes.InboxId
+      pod_id: pods.PodId
       organization_id: global.OrganizationId
       first_signed_in_at:
         type: datetime
-        docs: When the inbox first signed in at this provider.
+        docs: Time of first sign-in at provider.
       last_signed_in_at:
         type: datetime
-        docs: Most recent sign-in. Approximate; the AgentID grant log is the exact authority.
+        docs: Time of most recent sign-in at provider.
       sign_in_count:
         type: integer
-        docs: Number of sign-ins. Approximate; the AgentID grant log is the exact authority.
+        docs: Number of sign-ins at provider.
 
   ListAccountsResponse:
     properties:
       count: global.Count
       limit: global.Limit
       next_page_token: optional<global.PageToken>
-      accounts:
-        type: list<Account>
-        docs: Accounts the API key can see, at its own tier (organization, pod, or inbox).
+      accounts: list<Account>
 
 service:
   url: Http
@@ -67,16 +52,7 @@ service:
       method: GET
       path: ""
       display-name: List Accounts
-      docs: |
-        Lists every AgentID account the API key can see: an organization key sees
-        the whole organization, a pod key its pod, an inbox key that one inbox.
-        Requires `inbox_read`.
-
-        Each row is one inbox at one provider. To narrow the list to a single
-        provider and get that provider's details in the same response, use
-        `GET /v0/providers/{provider_id}/accounts`.
-
-        Available in US production. Not available in EU production.
+      docs: Lists accounts across all providers.
       request:
         name: ListAccountsRequest
         query-parameters:
@@ -91,18 +67,6 @@ service:
       method: GET
       path: /{account_id}
       display-name: Get Account
-      docs: |
-        Returns one account by its ID. Requires `inbox_read`.
-
-        The account must be within the API key's own tier: an organization key
-        can read any account in the organization, a pod key only accounts in its
-        pod, an inbox key only that inbox's accounts. An account outside the
-        key's tier, or an unknown ID, returns `404`.
-
-        An account created moments ago can briefly return `404` by ID while its
-        index entry catches up; it already appears in the list routes.
-
-        Available in US production. Not available in EU production.
       path-parameters:
         account_id: AccountId
       response: Account

@@ -3,41 +3,28 @@
 imports:
   global: __package__.yml
   accounts: accounts.yml
+  inboxes: inboxes/__package__.yml
 
 types:
   Provider:
-    docs: |
-      A provider an inbox can sign in to. Providers in the curated catalog carry
-      full metadata. A provider the catalog does not list resolves only for a
-      caller whose own inboxes hold an account at it, and then carries its
-      `provider_id` and, when registered, its `name`.
+    docs: A provider an inbox can sign in to.
     properties:
       provider_id: accounts.ProviderId
-      name:
-        type: optional<string>
-        docs: Display name. Always present for a provider in the catalog; otherwise only when the provider registered a name.
+      name: optional<string>
       updated_at:
         type: optional<datetime>
-        docs: When the catalog entry the caller is reading was built. Present only for providers in the catalog.
+        docs: Time at which provider was last updated.
       description: optional<string>
-      logo_url:
-        type: optional<string>
-        docs: URL of the provider's logo.
-      terms_url:
-        type: optional<string>
-        docs: URL of the provider's terms of service.
-      privacy_url:
-        type: optional<string>
-        docs: URL of the provider's privacy policy.
+      logo_url: optional<string>
+      terms_url: optional<string>
+      privacy_url: optional<string>
 
   ListProvidersResponse:
     properties:
       count: global.Count
       limit: global.Limit
       next_page_token: optional<global.PageToken>
-      providers:
-        type: list<Provider>
-        docs: Catalog entries, most popular first.
+      providers: list<Provider>
 
   SearchProvidersResponse:
     properties:
@@ -47,53 +34,32 @@ types:
 
   ListProviderAccountsResponse:
     properties:
-      provider:
-        type: optional<Provider>
-        docs: |
-          The provider the accounts are at. `null` only when nothing exists under
-          the ID at all: no catalog entry and no accounts.
+      provider: optional<Provider>
       count: global.Count
       limit: global.Limit
       next_page_token: optional<global.PageToken>
-      accounts:
-        type: list<accounts.Account>
-        docs: The caller's accounts at this provider, most recent sign-in first.
+      accounts: list<accounts.Account>
 
   ConnectProviderBody:
     properties:
       inbox_id:
-        type: optional<string>
-        docs: |
-          Email address of the inbox to connect. Required for organization- and
-          pod-scoped keys; an inbox-scoped key may omit it.
+        type: optional<inboxes.InboxId>
+        docs: Inbox to connect. Required unless the API key is scoped to an inbox.
       authorize:
         type: optional<boolean>
-        docs: |
-          Authorize the selected provider on the caller's behalf. When true, the
-          browser that opens this `magic_url` is signed in and a remembered
-          consent for the provider is recorded at the same time, covering the
-          provider's current registered callbacks and its default sign-in scopes,
-          so the provider's first sign-in proceeds without AgentID's disclosure
-          page. The consent is revocable through the browser-consent endpoints
-          like any other, and a later change to the provider's callbacks or scope
-          policy falls back to the ordinary disclosure. Omit or set false to keep
-          the first-use disclosure page. Defaults to false.
+        docs: Authorize the provider for this inbox, skipping the first-use disclosure page.
 
   ConnectProviderAccepted:
-    docs: |
-      A pending session. Open `magic_url` in the browser that should hold the
-      sign-in; AgentID signs that browser in as the inbox and then continues to
-      the provider.
     properties:
       session_id:
         type: uuid
-        docs: ID of the pending session.
+        docs: ID of session.
       magic_url:
         type: string
-        docs: Single-use URL on the AgentID browser origin. Treat it as a secret; it is never returned again.
+        docs: Single-use URL to open in the browser that will hold the sign-in.
       expires_at:
         type: datetime
-        docs: When the URL stops working, five minutes after minting.
+        docs: Time at which the URL expires.
 
 service:
   url: Http
@@ -105,20 +71,11 @@ service:
       method: GET
       path: ""
       display-name: List Providers
-      docs: |
-        Lists the curated provider catalog, most popular first. Requires
-        `inbox_read`.
-
-        Only listed providers appear here. To see which providers your inboxes
-        are signed in to, use `GET /v0/accounts`.
-
-        Available in US production. Not available in EU production.
+      docs: Lists providers, most popular first.
       request:
         name: ListProvidersRequest
         query-parameters:
-          limit:
-            type: optional<integer>
-            docs: Maximum entries per page, up to 100.
+          limit: optional<global.Limit>
           page_token: optional<global.PageToken>
       response: ListProvidersResponse
       errors:
@@ -128,18 +85,14 @@ service:
       method: GET
       path: /search
       display-name: Search Providers
-      docs: |
-        Finds listed providers whose name starts with `q`. Not paginated; narrow
-        the prefix to narrow the results. Requires `inbox_read`.
+      docs: Searches providers by name prefix.
       request:
         name: SearchProvidersRequest
         query-parameters:
           q:
             type: string
-            docs: Name prefix to match.
-          limit:
-            type: optional<integer>
-            docs: Maximum entries returned, up to 50.
+            docs: Name prefix to search for.
+          limit: optional<global.Limit>
       response: SearchProvidersResponse
       errors:
         - global.ValidationError
@@ -148,12 +101,6 @@ service:
       method: GET
       path: /{provider_id}
       display-name: Get Provider
-      docs: |
-        Returns one provider. A provider in the catalog is returned to any caller
-        with the full entry. A provider the catalog does not list is returned only
-        when an inbox the API key can see holds an account at it, and then carries
-        its `provider_id` and, when registered, its `name`. Otherwise `404`.
-        Requires `inbox_read`.
       path-parameters:
         provider_id: accounts.ProviderId
       response: Provider
@@ -164,22 +111,13 @@ service:
       method: GET
       path: /{provider_id}/accounts
       display-name: List Provider Accounts
-      docs: |
-        `GET /v0/accounts` narrowed to one provider, most recent sign-in first,
-        with the provider itself under `provider` so a detail view is one request.
-        Requires `inbox_read`.
-
-        This list does not depend on the catalog: an unlisted provider the caller
-        is connected to still lists its accounts, with `provider` resolved from
-        them. `provider` is `null` only when nothing exists under the ID.
+      docs: Lists accounts at one provider, most recent sign-in first.
       path-parameters:
         provider_id: accounts.ProviderId
       request:
         name: ListProviderAccountsRequest
         query-parameters:
-          limit:
-            type: optional<integer>
-            docs: Maximum accounts per page, up to 100.
+          limit: optional<global.Limit>
           page_token: optional<global.PageToken>
       response: ListProviderAccountsResponse
       errors:
@@ -190,24 +128,9 @@ service:
       path: /{provider_id}/connect
       display-name: Connect Provider
       docs: |
-        Starts signing one inbox in to a provider in the catalog. Returns `202` with a
-        five-minute `magic_url`; open it in the browser that should hold the
-        sign-in. AgentID signs that browser in as the inbox and then continues to
-        the provider, whose own consent flow creates the account. Requires
-        `api_key_create`.
-
-        The `Idempotency-Key` header is required. A retry with the same key and
-        the same request returns `409` carrying the original `session_id`; the
-        magic URL is never returned twice. Mint a new session with a new key
-        instead.
-
-        Live pending sessions are limited per API key; a `429` carries a
-        `Retry-After` header. Available in US production only, where provider
-        connect is enabled; otherwise `404`.
-
-        Pass `authorize: true` to also record the provider consent when the
-        browser is signed in, so the provider's first sign-in proceeds without
-        AgentID's disclosure page.
+        Starts signing an inbox in to a provider. Returns a `magic_url` valid
+        for five minutes; open it in the browser that will hold the sign-in.
+        Requires `api_key_create` and an `Idempotency-Key` header.
       path-parameters:
         provider_id: accounts.ProviderId
       idempotent: true
