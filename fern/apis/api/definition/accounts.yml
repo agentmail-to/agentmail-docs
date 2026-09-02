@@ -4,6 +4,13 @@ imports:
   global: __package__.yml
 
 types:
+  AccountId:
+    type: uuid
+    docs: |
+      ID of the account. Stable for the life of the account: the same inbox
+      signing in again at the same provider is the same account and the same ID.
+      Addresses `GET /v0/accounts/{account_id}`.
+
   ProviderId:
     type: uuid
     docs: |
@@ -17,6 +24,7 @@ types:
       accounts. Facts about the provider itself live on the provider: resolve them
       with `GET /v0/providers/{provider_id}`.
     properties:
+      account_id: AccountId
       provider_id: ProviderId
       inbox_id:
         type: string
@@ -73,3 +81,25 @@ service:
       response: ListAccountsResponse
       errors:
         - global.ValidationError
+
+    get:
+      method: GET
+      path: /{account_id}
+      display-name: Get Account
+      docs: |
+        Returns one account by its ID. Requires `inbox_read`.
+
+        The account must be within the API key's own tier: an organization key
+        can read any account in the organization, a pod key only accounts in its
+        pod, an inbox key only that inbox's accounts. An account outside the
+        key's tier, or an unknown ID, returns `404`.
+
+        An account created moments ago can briefly return `404` by ID while its
+        index entry catches up; it already appears in the list routes.
+
+        Available in US production. Not available in EU production.
+      path-parameters:
+        account_id: AccountId
+      response: Account
+      errors:
+        - global.NotFoundError

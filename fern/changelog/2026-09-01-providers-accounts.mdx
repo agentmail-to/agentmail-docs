@@ -16,10 +16,12 @@ Browse the AgentID provider catalog, see which providers each inbox is signed in
 - `GET /v0/providers/{provider_id}/accounts` - Your accounts at one provider, most recent sign-in first, with the provider embedded under `provider`.
 - `POST /v0/providers/{provider_id}/connect` - Start signing an inbox in to a provider and receive a five-minute `magic_url`. Requires `api_key_create` and an `Idempotency-Key` header.
 - `GET /v0/accounts` - Every AgentID account your API key can see, across all providers. Each row carries `provider_id` so it joins back to the provider.
+- `GET /v0/accounts/{account_id}` - One account by its own ID.
 
 **New features:**
 
 - **One Account schema**: the same account object is returned by `GET /v0/accounts` and the per-provider list, so a client parses both with one type.
+- **Stable account IDs**: every account carries an `account_id` you can address it by directly, without a provider in the URL.
 - **Provider identity by ID**: any `provider_id` on an account resolves through `GET /v0/providers/{provider_id}`, so a provider ID on an account is never a dead end.
 
 ### Use cases
