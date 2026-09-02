@@ -69,16 +69,18 @@ types:
         docs: |
           Email address of the inbox to connect. Required for organization- and
           pod-scoped keys; an inbox-scoped key may omit it.
-      skip_disclosure:
+      authorize:
         type: optional<boolean>
         docs: |
-          Skip AgentID's first-use disclosure page for the sign-in this connect
-          leads to. Honored once, for the browser that opens this `magic_url`,
-          at this provider, within fifteen minutes; a provider that requests
-          `prompt=consent` still shows its page. The approval records the same
-          remembered consent an Allow click would, with the same lifetime, and it
-          is revocable through the browser-consent endpoints like any other.
-          Defaults to false.
+          Authorize the selected provider on the caller's behalf. When true, the
+          browser that opens this `magic_url` is signed in and a remembered
+          consent for the provider is recorded at the same time, covering the
+          provider's current registered callbacks and its default sign-in scopes,
+          so the provider's first sign-in proceeds without AgentID's disclosure
+          page. The consent is revocable through the browser-consent endpoints
+          like any other, and a later change to the provider's callbacks or scope
+          policy falls back to the ordinary disclosure. Omit or set false to keep
+          the first-use disclosure page. Defaults to false.
 
   ConnectProviderAccepted:
     docs: |
@@ -206,8 +208,9 @@ service:
         `Retry-After` header. Available in US production only, where provider
         connect is enabled; otherwise `404`.
 
-        Pass `skip_disclosure: true` to let the resulting sign-in proceed at
-        the provider without AgentID's first-use disclosure page.
+        Pass `authorize: true` to also record the provider consent when the
+        browser is signed in, so the provider's first sign-in proceeds without
+        AgentID's disclosure page.
       path-parameters:
         provider_id: accounts.ProviderId
       idempotent: true
