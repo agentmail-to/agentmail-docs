@@ -1,0 +1,146 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  accounts: accounts.yml
+  inboxes: inboxes/__package__.yml
+
+types:
+  Provider:
+    docs: A provider an inbox can sign in to.
+    properties:
+      provider_id: accounts.ProviderId
+      name: optional<string>
+      updated_at:
+        type: optional<datetime>
+        docs: Time at which provider was last updated.
+      description: optional<string>
+      logo_url: optional<string>
+      terms_url: optional<string>
+      privacy_url: optional<string>
+
+  ListProvidersResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      providers: list<Provider>
+
+  SearchProvidersResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      providers: list<Provider>
+
+  ListProviderAccountsResponse:
+    properties:
+      provider: optional<Provider>
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      accounts: list<accounts.Account>
+
+  ConnectProviderBody:
+    properties:
+      inbox_id:
+        type: optional<inboxes.InboxId>
+        docs: Inbox to connect. Required unless the API key is scoped to an inbox.
+      authorize:
+        type: optional<boolean>
+        docs: Authorize the provider for this inbox, skipping the first-use disclosure page.
+
+  ConnectProviderAccepted:
+    properties:
+      session_id:
+        type: uuid
+        docs: ID of session.
+      magic_url:
+        type: string
+        docs: Single-use URL to open in the browser that will hold the sign-in.
+      expires_at:
+        type: datetime
+        docs: Time at which the URL expires.
+
+service:
+  url: Http
+  base-path: /providers
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Providers
+      docs: Lists providers, most popular first.
+      request:
+        name: ListProvidersRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListProvidersResponse
+      errors:
+        - global.ValidationError
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Providers
+      docs: Searches providers by name prefix.
+      request:
+        name: SearchProvidersRequest
+        query-parameters:
+          q:
+            type: string
+            docs: Name prefix to search for.
+          limit: optional<global.Limit>
+      response: SearchProvidersResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{provider_id}
+      display-name: Get Provider
+      path-parameters:
+        provider_id: accounts.ProviderId
+      response: Provider
+      errors:
+        - global.NotFoundError
+
+    listAccounts:
+      method: GET
+      path: /{provider_id}/accounts
+      display-name: List Provider Accounts
+      docs: Lists accounts at one provider, most recent sign-in first.
+      path-parameters:
+        provider_id: accounts.ProviderId
+      request:
+        name: ListProviderAccountsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListProviderAccountsResponse
+      errors:
+        - global.ValidationError
+
+    connect:
+      method: POST
+      path: /{provider_id}/connect
+      display-name: Connect Provider
+      docs: |
+        Starts signing an inbox in to a provider. Returns a `magic_url` valid
+        for five minutes; open it in the browser that will hold the sign-in.
+        Requires `api_key_create` and an `Idempotency-Key` header.
+      path-parameters:
+        provider_id: accounts.ProviderId
+      idempotent: true
+      request:
+        name: ConnectProviderRequest
+        body: optional<ConnectProviderBody>
+      response:
+        status-code: 202
+        type: ConnectProviderAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError

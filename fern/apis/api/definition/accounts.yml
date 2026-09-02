@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  pods: pods/__package__.yml
+  inboxes: inboxes/__package__.yml
+
+types:
+  AccountId:
+    type: uuid
+    docs: ID of account.
+
+  ProviderId:
+    type: uuid
+    docs: ID of provider.
+
+  Account:
+    docs: One inbox signed in at one provider.
+    properties:
+      account_id: AccountId
+      provider_id: ProviderId
+      provider_name:
+        type: optional<string>
+        docs: Display name of provider.
+      inbox_id: inboxes.InboxId
+      pod_id: pods.PodId
+      organization_id: global.OrganizationId
+      first_signed_in_at:
+        type: datetime
+        docs: Time of first sign-in at provider.
+      last_signed_in_at:
+        type: datetime
+        docs: Time of most recent sign-in at provider.
+      sign_in_count:
+        type: integer
+        docs: Number of sign-ins at provider.
+
+  ListAccountsResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      accounts: list<Account>
+
+service:
+  url: Http
+  base-path: /accounts
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Accounts
+      docs: Lists accounts across all providers.
+      request:
+        name: ListAccountsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: ListAccountsResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{account_id}
+      display-name: Get Account
+      path-parameters:
+        account_id: AccountId
+      response: Account
+      errors:
+        - global.NotFoundError
