@@ -74,8 +74,11 @@ types:
         docs: |
           Skip AgentID's first-use disclosure page for the sign-in this connect
           leads to. Honored once, for the browser that opens this `magic_url`,
-          at this provider, within fifteen minutes of the sign-in; the provider's
-          own consent settings still apply. Defaults to false.
+          at this provider, within fifteen minutes; a provider that requests
+          `prompt=consent` still shows its page. The approval records the same
+          remembered consent an Allow click would, with the same lifetime, and it
+          is revocable through the browser-consent endpoints like any other.
+          Defaults to false.
 
   ConnectProviderAccepted:
     docs: |
