@@ -833,3 +833,51 @@ paths:
       x-fern-sdk-group-name:
       - domains
       x-fern-sdk-method-name: get-setup-link
+  /v0/accounts/{account_id}:
+    get:
+      x-fern-sdk-group-name:
+      - accounts
+      x-fern-sdk-method-name: get
+  /v0/accounts:
+    get:
+      x-fern-sdk-group-name:
+      - accounts
+      x-fern-sdk-method-name: list
+  /v0/providers/{provider_id}/connect:
+    post:
+      x-fern-idempotent: true
+      x-fern-sdk-group-name:
+      - providers
+      x-fern-sdk-method-name: connect
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProviderId'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        description: Unique key that makes the connect idempotent. A retry carrying the same key returns a 409 with the original session id; the magic URL is never returned twice.
+        schema:
+          type: string
+  /v0/providers/{provider_id}/accounts:
+    get:
+      x-fern-sdk-group-name:
+      - providers
+      x-fern-sdk-method-name: list-accounts
+  /v0/providers/{provider_id}:
+    get:
+      x-fern-sdk-group-name:
+      - providers
+      x-fern-sdk-method-name: get
+  /v0/providers/search:
+    get:
+      x-fern-sdk-group-name:
+      - providers
+      x-fern-sdk-method-name: search
+  /v0/providers:
+    get:
+      x-fern-sdk-group-name:
+      - providers
+      x-fern-sdk-method-name: list
