@@ -12,7 +12,7 @@ Browse the AgentID provider catalog, see which providers each inbox is signed in
 
 - `GET /v0/providers` - The curated provider catalog, most popular first.
 - `GET /v0/providers/search` - Prefix search over the catalog.
-- `GET /v0/providers/{provider_id}` - One provider. Listed providers return the full catalog entry; a provider you are signed in to but that is not listed returns its identity with `listed: false`.
+- `GET /v0/providers/{provider_id}` - One provider. Providers in the catalog return the full entry; a provider you are signed in to but that is not in the catalog returns its ID and name.
 - `GET /v0/providers/{provider_id}/accounts` - Your accounts at one provider, most recent sign-in first, with the provider embedded under `provider`.
 - `POST /v0/providers/{provider_id}/connect` - Start signing an inbox in to a provider and receive a five-minute `magic_url`. Requires `api_key_create` and an `Idempotency-Key` header.
 - `GET /v0/accounts` - Every AgentID account your API key can see, across all providers. Each row carries `provider_id` so it joins back to the provider.

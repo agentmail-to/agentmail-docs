@@ -7,21 +7,18 @@ imports:
 types:
   Provider:
     docs: |
-      A provider an inbox can sign in to. Listed providers come from the curated
-      catalog and carry full metadata. A provider the catalog does not list
-      resolves only for a caller whose own inboxes hold an account at it, with
-      `listed: false` and the identity fields alone.
+      A provider an inbox can sign in to. Providers in the curated catalog carry
+      full metadata. A provider the catalog does not list resolves only for a
+      caller whose own inboxes hold an account at it, and then carries its
+      `provider_id` and, when registered, its `name`.
     properties:
       provider_id: accounts.ProviderId
-      listed:
-        type: boolean
-        docs: Whether the provider appears in the curated catalog. Listed providers carry `name`, `updated_at`, and metadata.
       name:
         type: optional<string>
-        docs: Display name. Always present on a listed provider; on an unlisted one only when the provider registered a name.
+        docs: Display name. Always present for a provider in the catalog; otherwise only when the provider registered a name.
       updated_at:
         type: optional<datetime>
-        docs: When the catalog snapshot the caller is reading was built. Listed providers only.
+        docs: When the catalog entry the caller is reading was built. Present only for providers in the catalog.
       description: optional<string>
       logo_url:
         type: optional<string>
@@ -152,11 +149,11 @@ service:
       path: /{provider_id}
       display-name: Get Provider
       docs: |
-        Returns one provider. A listed provider is returned to any caller with the
-        full catalog entry. A provider the catalog does not list is returned only
-        when an inbox the API key can see holds an account at it, with
-        `listed: false` and the identity fields alone. Otherwise `404`. Requires
-        `inbox_read`.
+        Returns one provider. A provider in the catalog is returned to any caller
+        with the full entry. A provider the catalog does not list is returned only
+        when an inbox the API key can see holds an account at it, and then carries
+        its `provider_id` and, when registered, its `name`. Otherwise `404`.
+        Requires `inbox_read`.
       path-parameters:
         provider_id: accounts.ProviderId
       response: Provider
