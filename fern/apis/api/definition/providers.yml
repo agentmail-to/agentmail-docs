@@ -105,9 +105,9 @@ types:
       should hold the credential; AgentID enrolls that browser as the inbox and
       then navigates to the provider's sign-in.
     properties:
-      enrollment_session_id:
+      session_id:
         type: uuid
-        docs: ID of the pending session. Cancel it with `DELETE /v0/api-keys/browser-credentials/magic-enrollments/{enrollment_session_id}`.
+        docs: ID of the pending session.
       magic_url:
         type: string
         docs: Single-use URL on the AgentID browser origin. Treat it as a secret; it is never returned again.
@@ -223,10 +223,9 @@ service:
         `api_key_create`.
 
         The `Idempotency-Key` header is required. A retry with the same key and
-        the same request returns `409`; the magic URL is never returned twice.
-        Mint a new session with a new key instead, and cancel the old one with
-        `DELETE /v0/api-keys/browser-credentials/magic-enrollments/{enrollment_session_id}`
-        if its live slot is needed.
+        the same request returns `409` carrying the original `session_id`; the
+        magic URL is never returned twice. Mint a new session with a new key
+        instead.
 
         Live pending sessions are limited per API key; a `429` carries a
         `Retry-After` header. Available in US production only, where magic
