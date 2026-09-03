@@ -46,15 +46,15 @@ To start a new conversation, you can send a `Message` from one of your inboxes. 
 # Let's assume we have one:
 
 sent_message = client.inboxes.messages.send(
-inbox_id = 'my_inbox@domain.com',
-to = 'recipient@domain.com',
-labels=[
-"outreach",
-"startup"
-],
-subject="[YC S25] Founder Reachout ",
-text="Hello, I'm Michael, and I'm a founder at AgentMail...",
-html="<div dir=\"ltr\">Hello,<br><br>I'm Michael, and I'm a founder at AgentMail..."
+    inbox_id = 'my_inbox@domain.com',
+    to = 'recipient@domain.com',
+    labels=[
+        "outreach",
+        "startup"
+    ],
+    subject="[YC S25] Founder Reachout ",
+    text="Hello, I'm Michael, and I'm a founder at AgentMail...",
+    html="<div dir=\"ltr\">Hello,<br><br>I'm Michael, and I'm a founder at AgentMail..."
 )
 print(f"Message sent successfully with ID: {sent_message.message_id}")
 
