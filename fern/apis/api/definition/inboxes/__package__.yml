@@ -81,6 +81,15 @@ types:
         type: list<Inbox>
         docs: Ordered by `created_at` descending.
 
+  SearchInboxesResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      inboxes:
+        type: list<Inbox>
+        docs: Ordered by relevance, best match first.
+
   CreateInboxRequest:
     properties:
       username:
@@ -133,6 +142,29 @@ service:
           page_token: optional<global.PageToken>
           ascending: optional<global.Ascending>
       response: ListInboxesResponse
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Inboxes
+      docs: |
+        Searches inboxes in the organization by address or display name, ranked
+        by relevance. Each word in the query matches the start of a word in the
+        address or display name, so `sup` matches `support@example.com` but
+        `port` does not. An exact address match always ranks first. `limit`
+        cannot exceed 100. A page can be empty and still carry a
+        `next_page_token`; keep paging until the token is absent.
+      request:
+        name: SearchInboxesRequest
+        query-parameters:
+          q:
+            type: string
+            docs: Address or display name to search for. Matches word prefixes. Must be 2 to 256 characters.
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: SearchInboxesResponse
+      errors:
+        - global.ValidationError
 
     get:
       method: GET

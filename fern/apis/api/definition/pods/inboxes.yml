@@ -32,6 +32,30 @@ service:
       errors:
         - global.NotFoundError
 
+    search:
+      method: GET
+      path: /search
+      display-name: Search Inboxes
+      docs: |
+        Searches inboxes in the pod by address or display name, ranked by
+        relevance. Each word in the query matches the start of a word in the
+        address or display name, so `sup` matches `support@example.com` but
+        `port` does not. An exact address match always ranks first. `limit`
+        cannot exceed 100. A page can be empty and still carry a
+        `next_page_token`; keep paging until the token is absent.
+      request:
+        name: SearchInboxesRequest
+        query-parameters:
+          q:
+            type: string
+            docs: Address or display name to search for. Matches word prefixes. Must be 2 to 256 characters.
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: inboxes.SearchInboxesResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+
     get:
       method: GET
       path: /{inbox_id}
