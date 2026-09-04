@@ -212,6 +212,7 @@ service:
         - global.NotFoundError
         - global.ConflictError
         - messages.MessageRejectedError
+        - inboxes.InboxInactiveError
 
     reply:
       method: POST
@@ -232,6 +233,7 @@ service:
         - global.NotFoundError
         - global.ConflictError
         - messages.MessageRejectedError
+        - inboxes.InboxInactiveError
 
     reply-all:
       method: POST
@@ -252,6 +254,7 @@ service:
         - global.NotFoundError
         - global.ConflictError
         - messages.MessageRejectedError
+        - inboxes.InboxInactiveError
 
     forward:
       method: POST
@@ -272,3 +275,4 @@ service:
         - global.NotFoundError
         - global.ConflictError
         - messages.MessageRejectedError
+        - inboxes.InboxInactiveError
