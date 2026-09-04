@@ -132,9 +132,9 @@ types:
       status:
         type: optional<InboxStatus>
         docs: |
-          `inactive` pauses the inbox; `active` resumes it. Sending from,
-          drafting into, or delivering to an inactive inbox fails with the
-          `inbox_inactive` error.
+          `inactive` pauses the inbox; `active` resumes it. Sending from or
+          drafting into an inactive inbox fails with the `inbox_inactive`
+          error; inbound mail to it is dropped, not bounced.
       metadata:
         type: optional<nullable<UpdateMetadata>>
         docs: |
@@ -254,3 +254,11 @@ service:
         inbox_id: InboxId
       errors:
         - global.NotFoundError
+
+errors:
+  InboxInactiveError:
+    status-code: 403
+    type: global.ErrorResponse
+    docs: |
+      The inbox's `status` is `inactive` (code `inbox_inactive`). Sending from it and creating or
+      updating its drafts are refused until it is set back to `active`.
