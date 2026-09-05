@@ -3,57 +3,8 @@
 imports:
   global: ../__package__.yml
   inboxes: __package__.yml
+  sessions: ../sessions.yml
   api-keys: ../api-keys.yml
-
-types:
-  SessionId:
-    type: uuid
-    docs: ID of the session. The same handle before and after the browser activates it.
-
-  PendingSession:
-    docs: |
-      A session minted by Connect Provider or Connect Without Provider that
-      the browser has not activated yet. Open the returned `magic_url` in the
-      browser, then poll Get Session until the status is `active`.
-    properties:
-      session_id: SessionId
-      status: literal<"pending">
-      expires_at:
-        type: datetime
-        docs: Time after which the pending session can no longer be activated.
-
-  ActiveSession:
-    docs: |
-      A browser session that can authenticate as the inbox at every AgentID
-      relying party until it expires or is deleted. Private key material never
-      leaves the browser and is never returned.
-    properties:
-      session_id: SessionId
-      inbox_id: inboxes.InboxId
-      status: literal<"active">
-      created_at:
-        type: datetime
-        docs: Time at which the browser activated the session.
-      expires_at:
-        type: datetime
-        docs: |
-          Time at which the session expires. At most 30 days after activation,
-          and never later than the authorizing API key's own expiry.
-
-  Session:
-    discriminated: false
-    union:
-      - PendingSession
-      - ActiveSession
-
-  ListSessionsResponse:
-    properties:
-      count: global.Count
-      limit: optional<global.Limit>
-      next_page_token: optional<global.PageToken>
-      sessions:
-        type: list<ActiveSession>
-        docs: Active sessions only, most recently activated first.
 
 service:
   url: Http
@@ -68,21 +19,15 @@ service:
       path: ""
       display-name: List Sessions
       docs: |
-        List the inbox's active sessions. Requires `api_key_read`.
-
-        Sessions are created by [Connect Provider](/api-reference/providers/connect)
-        or [Connect Without Provider](/api-reference/providers/connect-without-provider),
-        which return a magic URL to open in the browser that should hold the
-        session. Once the browser activates it, the session lasts at most 30
-        days and cannot outlive the API key that created it.
-
-        Available on US production only; EU production returns `404`.
+        List the inbox's active sessions. The same rows as
+        [List Sessions](/api-reference/sessions/list), limited to one inbox.
+        Requires `api_key_read`.
       request:
-        name: ListSessionsRequest
+        name: ListInboxSessionsRequest
         query-parameters:
           limit: optional<api-keys.BrowserAuthorizationListLimit>
           page_token: optional<global.PageToken>
-      response: ListSessionsResponse
+      response: sessions.ListSessionsResponse
       errors:
         - global.NotFoundError
 
@@ -91,18 +36,12 @@ service:
       path: /{session_id}
       display-name: Get Session
       docs: |
-        Get one session by ID, whether it is still pending or already active.
-        Requires `api_key_read`.
-
-        Poll this with the `session_id` from Connect Provider or Connect
-        Without Provider to learn when the browser has finished. A pending session lasts at most five
-        minutes. A session that expired, was deleted, or was never activated
-        returns `404`. If the browser reused a session it already held for
-        this inbox, the `session_id` in the response is the one to keep; it is
-        the handle List Sessions returns and Delete Session accepts.
+        Get one of the inbox's sessions by ID, pending or active. A session
+        that belongs to another inbox returns `404`. Otherwise identical to
+        [Get Session](/api-reference/sessions/get). Requires `api_key_read`.
       path-parameters:
-        session_id: SessionId
-      response: Session
+        session_id: sessions.SessionId
+      response: sessions.Session
       errors:
         - global.NotFoundError
 
@@ -111,11 +50,11 @@ service:
       path: /{session_id}
       display-name: Delete Session
       docs: |
-        Delete one session. A pending session is cancelled and its magic URL
-        can no longer be used; an active session is revoked and can no longer
-        authenticate. Requires `api_key_delete`.
+        Delete one of the inbox's sessions. A pending session is cancelled and
+        its magic URL can no longer be used; an active session is revoked and
+        can no longer authenticate. Requires `api_key_delete`.
       path-parameters:
-        session_id: SessionId
+        session_id: sessions.SessionId
       response:
         status-code: 204
       errors:

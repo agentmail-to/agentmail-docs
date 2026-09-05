@@ -467,6 +467,7 @@ navigation:
           - api-keys
           - providers
           - accounts
+          - sessions
           - pods
           - organizations
   - tab: kb

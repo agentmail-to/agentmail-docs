@@ -1,0 +1,137 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  inboxes: inboxes/__package__.yml
+  api-keys: api-keys.yml
+
+types:
+  SessionId:
+    type: uuid
+    docs: ID of the session. The same handle before and after the browser activates it.
+
+  PendingSession:
+    docs: |
+      A session minted by Connect Provider or Connect Without Provider that
+      the browser has not activated yet. Open the returned `magic_url` in the
+      browser, then poll Get Session until the status is `active`.
+    properties:
+      session_id: SessionId
+      status: literal<"pending">
+      expires_at:
+        type: datetime
+        docs: Time after which the pending session can no longer be activated.
+
+  ActiveSession:
+    docs: |
+      A browser session that can authenticate as the inbox at every AgentID
+      relying party until it expires or is deleted. Private key material never
+      leaves the browser and is never returned.
+    properties:
+      session_id: SessionId
+      inbox_id: inboxes.InboxId
+      status: literal<"active">
+      created_at:
+        type: datetime
+        docs: Time at which the browser activated the session.
+      expires_at:
+        type: datetime
+        docs: |
+          Time at which the session expires. At most 30 days after activation,
+          and never later than the authorizing API key's own expiry.
+
+  Session:
+    discriminated: false
+    union:
+      - PendingSession
+      - ActiveSession
+
+  ListSessionsResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      sessions:
+        type: list<ActiveSession>
+        docs: Active sessions only, most recently activated first.
+
+service:
+  url: Http
+  base-path: /sessions
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Sessions
+      docs: |
+        List every active session the API key can see, across all of its
+        inboxes. Each row carries `inbox_id`. Requires `api_key_read`.
+
+        Sessions are created by [Connect Provider](/api-reference/providers/connect)
+        or [Connect Without Provider](/api-reference/providers/connect-without-provider),
+        which return a magic URL to open in the browser that should hold the
+        session. Once the browser activates it, the session lasts at most 30
+        days and cannot outlive the API key that created it.
+
+        Available on US production only; EU production returns `404`.
+      request:
+        name: ListSessionsRequest
+        query-parameters:
+          limit: optional<api-keys.BrowserAuthorizationListLimit>
+          page_token: optional<global.PageToken>
+      response: ListSessionsResponse
+
+    listEvents:
+      method: GET
+      path: /events
+      display-name: List Session Events
+      docs: |
+        List session and consent lifecycle events across the API key's scope,
+        newest first: minted, activated, deleted, expired, and consent
+        changes. Requires `api_key_read`.
+      request:
+        name: ListSessionEventsRequest
+        query-parameters:
+          limit: optional<api-keys.BrowserAuthorizationListLimit>
+          page_token: optional<global.PageToken>
+      response: api-keys.ListBrowserLifecycleEventsResponse
+      errors:
+        - global.NotFoundError
+
+    get:
+      method: GET
+      path: /{session_id}
+      display-name: Get Session
+      docs: |
+        Get one session by ID, whether it is still pending or already active.
+        Requires `api_key_read`.
+
+        Poll this with the `session_id` from Connect Provider or Connect
+        Without Provider to learn when the browser has finished. A pending
+        session lasts at most five minutes. A session that expired, was
+        deleted, or was never activated returns `404`. If the browser reused a
+        session it already held for the inbox, the `session_id` in the
+        response is the one to keep; it is the handle List Sessions returns
+        and Delete Session accepts.
+      path-parameters:
+        session_id: SessionId
+      response: Session
+      errors:
+        - global.NotFoundError
+
+    delete:
+      method: DELETE
+      path: /{session_id}
+      display-name: Delete Session
+      docs: |
+        Delete one session. A pending session is cancelled and its magic URL
+        can no longer be used; an active session is revoked and can no longer
+        authenticate. Requires `api_key_delete`.
+      path-parameters:
+        session_id: SessionId
+      response:
+        status-code: 204
+      errors:
+        - global.NotFoundError
