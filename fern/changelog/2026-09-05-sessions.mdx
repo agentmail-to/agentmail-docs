@@ -1,0 +1,75 @@
+---
+tags: ["inboxes-api", "providers-api", "agentid", "new-feature", "docs"]
+---
+
+## Summary
+
+Manage the browser sessions your inboxes hold at AgentID from one sessions resource. Start a session with provider connect, or attach one to a sign-in the browser is already in, then poll it until the browser finishes, list what is active across every inbox or filtered to one, and revoke what is not needed, without handling keys or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
+
+### What's new?
+
+**New endpoints:**
+
+- `POST /v0/providers/connect` - Enroll a browser as an inbox with no provider handoff. Open the returned `magic_url` in the browser that should hold the session and it stops on AgentID once active.
+- `POST /v0/sessions` - Create a session for a browser that is already on an AgentID sign-in page, from the `transaction_jti` the page reports. Pass `decision: "allow"` to approve the relying party on the agent's behalf.
+- `GET /v0/sessions` - List every active session the API key can see, across all inboxes, or one inbox's with `inbox_id`.
+- `GET /v0/sessions/{session_id}` - Get one session, pending or active. Poll it with the `session_id` from either connect call to learn when the browser has finished.
+- `DELETE /v0/sessions/{session_id}` - Cancel a pending session or revoke an active one.
+
+**Changes:**
+
+- `GET /v0/api-keys/browser-credentials` and `DELETE /v0/api-keys/browser-credentials/{credential_id}` are deprecated in favor of List and Delete Session. `POST /v0/inboxes/{inbox_id}/browser-credentials/enrollments` and `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}` are deprecated in favor of Create and Delete Session. All keep working; the session endpoints return the same browsers without key material.
+
+**New features:**
+
+- **One handle for the whole lifecycle**: the `session_id` from Create Session or either connect call is the same ID Get, List, and Delete use, before and after activation.
+
+### Use cases
+
+Build agents that:
+
+- Prepare a persistent browser profile as an inbox before any sign-in, then sign in silently at every AgentID relying party
+- Start a provider sign-in from a workflow and hand the browser one URL to finish it
+- Drive a browser through a relying party's sign-in and complete the AgentID step with one API call
+- Wait on a session by polling one endpoint instead of diffing the session list
+- Audit and revoke the browsers that can act as each inbox
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# enroll a browser with no provider handoff
+connect = client.providers.connect_without_provider(
+    inbox_id="agent@example.com",
+    request_options={"additional_headers": {"Idempotency-Key": "enroll-profile-1"}},
+)
+print(connect.magic_url)  # open in the browser that should hold the session
+
+# poll until the browser finishes
+session = client.sessions.get(session_id=connect.session_id)
+print(session.status)
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// enroll a browser with no provider handoff
+const connect = await client.providers.connectWithoutProvider(
+  { inboxId: "agent@example.com" },
+  { idempotencyKey: "enroll-profile-1" },
+);
+console.log(connect.magicUrl); // open in the browser that should hold the session
+
+// poll until the browser finishes
+const session = await client.sessions.get(connect.sessionId);
+console.log(session.status);
+```
+</CodeBlocks>
+
+<Note>
+  See the [Sessions API reference](https://docs.agentmail.to/api-reference/sessions/create) and the [AgentID Browser Enrollment guide](https://docs.agentmail.to/agentid-browser-enrollment) for the full flow.
+</Note>

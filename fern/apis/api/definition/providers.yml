@@ -49,11 +49,21 @@ types:
         type: optional<boolean>
         docs: Authorize the provider for this inbox, skipping the first-use disclosure page.
 
+  ConnectWithoutProviderBody:
+    properties:
+      inbox_id:
+        type: optional<inboxes.InboxId>
+        docs: Inbox to enroll. Required unless the API key is scoped to an inbox.
+
   ConnectProviderAccepted:
     properties:
       session_id:
         type: uuid
-        docs: ID of session.
+        docs: |
+          ID of the session the browser will activate. Poll
+          [Get Session](/api-reference/sessions/get) with it to learn when the
+          browser has finished; the same ID lists and deletes the session
+          afterward.
       magic_url:
         type: string
         docs: Single-use URL to open in the browser that will hold the sign-in.
@@ -131,12 +141,55 @@ service:
         Starts signing an inbox in to a provider. Returns a `magic_url` valid
         for five minutes; open it in the browser that will hold the sign-in.
         Requires `api_key_create` and an `Idempotency-Key` header.
+
+        Opening the URL enrolls the browser as the inbox, creating a
+        [session](/api-reference/sessions/get) or reusing one the browser
+        already holds, then continues to the provider's sign-in. The sessions
+        resource lists, reads, and deletes the sessions this creates.
+        To enroll a browser without continuing to any provider, use
+        [Connect Without Provider](/api-reference/providers/connect-without-provider).
+
+        Creation is limited to 20 pending sessions per API key per hour, 100
+        per organization per hour, and five live unactivated sessions per API
+        key. Browser activation is separately limited to 20 per API key per
+        UTC day. Either limit returns `429`; honor the `Retry-After` header.
+
+        The `magic_url` is returned exactly once. Replaying the same
+        `Idempotency-Key` returns `409` with the `session_id` and no URL; mint
+        another with a new key if the response was lost.
       path-parameters:
         provider_id: accounts.ProviderId
       idempotent: true
       request:
         name: ConnectProviderRequest
         body: optional<ConnectProviderBody>
+      response:
+        status-code: 202
+        type: ConnectProviderAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError
+
+    connectWithoutProvider:
+      method: POST
+      path: /connect
+      display-name: Connect Without Provider
+      docs: |
+        Enrolls a browser as an inbox without signing in to any provider.
+        Returns a `magic_url` valid for five minutes; open it in the browser
+        that should hold the session. The browser creates a
+        [session](/api-reference/sessions/get), or reuses one it already
+        holds, and stops on AgentID once it is active. Requires
+        `api_key_create` and an `Idempotency-Key` header.
+
+        Use this to prepare a browser profile ahead of any sign-in, or when
+        the relying party is not in the provider catalog. The same limits and
+        replay behavior as Connect Provider apply.
+      idempotent: true
+      request:
+        name: ConnectWithoutProviderRequest
+        body: optional<ConnectWithoutProviderBody>
       response:
         status-code: 202
         type: ConnectProviderAccepted

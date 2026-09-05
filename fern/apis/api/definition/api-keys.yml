@@ -654,7 +654,12 @@ service:
       method: GET
       path: /browser-credentials
       display-name: List Browser Credentials
-      docs: List active browser credentials visible to the caller's scope. Requires `api_key_read`.
+      availability: deprecated
+      docs: |
+        Deprecated: use [List Sessions](/api-reference/sessions/list), which
+        returns the same browsers as sessions without key material.
+
+        List active browser credentials visible to the caller's scope. Requires `api_key_read`.
       request:
         name: ListBrowserCredentialsRequest
         query-parameters:
@@ -680,7 +685,12 @@ service:
       method: DELETE
       path: /browser-credentials/{credential_id}
       display-name: Delete Browser Credential
-      docs: Permanently revoke one active browser credential. Requires `api_key_delete`.
+      availability: deprecated
+      docs: |
+        Deprecated: use [Delete Session](/api-reference/sessions/delete) with
+        the same ID.
+
+        Permanently revoke one active browser credential. Requires `api_key_delete`.
       path-parameters:
         credential_id: uuid
       response:
@@ -692,7 +702,12 @@ service:
       method: DELETE
       path: /browser-credentials/enrollments/{enrollment_id}
       display-name: Cancel Browser Enrollment
-      docs: Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
+      availability: deprecated
+      docs: |
+        Deprecated: use [Delete Session](/api-reference/sessions/delete) with
+        the pending session's `session_id`.
+
+        Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
       path-parameters:
         enrollment_id: uuid
       response:
