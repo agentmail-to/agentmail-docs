@@ -53,7 +53,11 @@ types:
     properties:
       session_id:
         type: uuid
-        docs: ID of session.
+        docs: |
+          ID of the session the browser will activate. Poll
+          [Get Session](/api-reference/inboxes/sessions/get) with it to learn
+          when the browser has finished; the same ID lists and deletes the
+          session afterward.
       magic_url:
         type: string
         docs: Single-use URL to open in the browser that will hold the sign-in.
@@ -131,6 +135,18 @@ service:
         Starts signing an inbox in to a provider. Returns a `magic_url` valid
         for five minutes; open it in the browser that will hold the sign-in.
         Requires `api_key_create` and an `Idempotency-Key` header.
+
+        Opening the URL enrolls the browser as the inbox, creating a
+        [session](/api-reference/inboxes/sessions/get) or reusing one the
+        browser already holds, then continues to the provider's sign-in. To
+        enroll a browser without continuing to any provider, connect to the
+        AgentID provider, `00000000-0000-4000-8000-000000000000`: the browser
+        stops on AgentID once the session is active, and `authorize` is not
+        accepted.
+
+        The `magic_url` is returned exactly once. Replaying the same
+        `Idempotency-Key` returns `409` with the `session_id` and no URL; mint
+        another with a new key if the response was lost.
       path-parameters:
         provider_id: accounts.ProviderId
       idempotent: true

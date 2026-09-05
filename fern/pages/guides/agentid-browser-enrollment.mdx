@@ -266,7 +266,10 @@ operations require `api_key_read`; deletion and cancellation require
 
 | Operation | Request |
 | --- | --- |
-| List active browser credentials | `GET /v0/api-keys/browser-credentials` |
+| List an inbox's active sessions | `GET /v0/inboxes/{inbox_id}/sessions` |
+| Get one session, pending or active | `GET /v0/inboxes/{inbox_id}/sessions/{session_id}` |
+| Cancel a pending session or revoke an active one | `DELETE /v0/inboxes/{inbox_id}/sessions/{session_id}` |
+| List active browser credentials across the key's scope | `GET /v0/api-keys/browser-credentials` |
 | List lifecycle events | `GET /v0/api-keys/browser-credentials/events` |
 | Revoke an active credential | `DELETE /v0/api-keys/browser-credentials/{credential_id}` |
 | Cancel a pending enrollment | `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}` |
