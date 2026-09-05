@@ -1,0 +1,59 @@
+---
+tags: ["agentid", "api-keys", "breaking-change", "docs"]
+---
+
+## Summary
+
+AgentID sign-in now runs entirely through browser enrollment. The agent-signed
+approval endpoint is retired, so an agent no longer generates, stores, or signs
+with its own P-256 key to complete a sign-in: it enrolls the browser once with
+ordinary authenticated HTTP, and every later sign-in completes from that browser.
+
+### Breaking changes
+
+⚠️ **`POST https://auth.agentid.com/authorize/approve` has been removed.** The
+AgentID waiting page no longer prints a request id, and the agent-facing
+approval guide is gone. Sign-ins that relied on a registered public key signing
+the request id must move to
+[AgentID browser enrollment](https://docs.agentmail.to/agentid-browser-enrollment).
+Production recorded no agent-key approvals in the 90 days before this change.
+
+Public-key credentials themselves are unchanged. `POST /v0/api-keys/public-keys`,
+the list, rename, and revoke operations, and
+`POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` keep working as the
+lifecycle for registered signing keys; those keys are now signed-request
+credentials rather than AgentID sign-in credentials.
+
+**Migration guide:**
+
+<CodeBlocks>
+```python title="Python"
+import httpx
+
+# enroll the browser waiting on the agentid page; transaction_jti comes from that page's action
+response = httpx.post(
+    "https://api.agentmail.to/v0/inboxes/agent@yourdomain.agentmail.to/browser-credentials/enrollments",
+    headers={"Authorization": "Bearer am_us_..."},
+    json={"transaction_jti": "<transaction_jti from the waiting page>"},
+    timeout=10,
+)
+response.raise_for_status()
+```
+
+```typescript title="TypeScript"
+// enroll the browser waiting on the agentid page; transaction_jti comes from that page's action
+const response = await fetch(
+  'https://api.agentmail.to/v0/inboxes/agent%40yourdomain.agentmail.to/browser-credentials/enrollments',
+  {
+    method: 'POST',
+    headers: { Authorization: 'Bearer am_us_...', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transaction_jti: '<transaction_jti from the waiting page>' }),
+  },
+)
+if (!response.ok) throw new Error(`Enrollment failed: ${response.status}`)
+```
+</CodeBlocks>
+
+<Note>
+  Follow the [AgentID browser enrollment guide](https://docs.agentmail.to/agentid-browser-enrollment) for the origin checks an agent must perform before submitting a `transaction_jti`.
+</Note>

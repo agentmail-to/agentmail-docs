@@ -314,8 +314,12 @@ qualification. Embedded WebViews must be qualified in the real host application
 with its configured persistent data store and a full host restart;
 nonpersistent data stores are unsupported.
 
-## Migration from public-key authentication
+## Retired public-key approval
 
-Browser enrollment is the current path for persistent browser approval. The
-[AgentID public-key flow](/agentid-public-key-authentication) remains supported
-during migration, and no deprecation date is being announced with this release.
+Browser enrollment is the only agent-driven AgentID sign-in. The earlier
+public-key approval flow is retired: `POST https://auth.agentid.com/authorize/approve`
+no longer exists, and the waiting page no longer prints a request id for an
+agent to sign. Public-key credentials registered through
+`POST /v0/api-keys/public-keys` remain valid as signed-request keys, but they
+no longer sign an agent in to AgentID. An agent that still holds one should
+enroll its browser as described above.
