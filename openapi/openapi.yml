@@ -8352,9 +8352,9 @@ components:
       title: PublicKeyCredential
       type: object
       description: |-
-        An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
-        use `api_key_id` as the JWS `kid`. This response never contains a bearer
-        secret or private key.
+        A registered public-key credential for signed requests. `type` and
+        `api_key_id` are server-owned; `api_key_id` is the credential's JWS `kid`.
+        This response never contains a bearer secret or private key.
       properties:
         api_key_id:
           type: string
@@ -8407,9 +8407,9 @@ components:
       title: CreatePublicKeyRequest
       type: object
       description: |-
-        Register only a public P-256 JWK. Credential type, `api_key_id`, sign-in
-        eligibility, permissions, and generation are server-owned and are not
-        request properties.
+        Register only a public P-256 JWK. Credential type, `api_key_id`,
+        permissions, and generation are server-owned and are not request
+        properties.
       properties:
         public_key:
           $ref: '#/components/schemas/PublicJwk'
@@ -8440,8 +8440,8 @@ components:
       title: UpdatePublicKeyNameRequest
       type: object
       description: |-
-        Rename a public-key credential. Key material, ID, type, scope, sign-in
-        eligibility, permissions, generation, and expiry are immutable.
+        Rename a public-key credential. Key material, ID, type, scope,
+        permissions, generation, and expiry are immutable.
       properties:
         name:
           type: string
@@ -8472,8 +8472,8 @@ components:
       title: RevokeAllAgentIdSignInKeysResponse
       type: object
       description: >-
-        Permanent idempotency receipt for an organization-wide AgentID sign-in
-        key revocation.
+        Permanent idempotency receipt for an organization-wide public-key
+        credential revocation.
       properties:
         previous_generation:
           type: integer

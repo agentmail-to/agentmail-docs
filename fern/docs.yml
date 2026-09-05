@@ -102,6 +102,9 @@ redirects:
   - source: /integrations/moltbot
     destination: /integrations/openclaw
     permanent: true
+  - source: /agentid-public-key-authentication
+    destination: /agentid-browser-enrollment
+    permanent: true
   - source: /integrations/ai-onboarding
     destination: /integrations/agent-onboarding
     permanent: true
@@ -320,9 +323,6 @@ navigation:
           - page: AgentID Browser Enrollment
             icon: fa-solid fa-shield-halved
             path: pages/guides/agentid-browser-enrollment.mdx
-          - page: AgentID Public-Key Authentication
-            icon: fa-solid fa-key
-            path: pages/guides/agentid-public-key-authentication.mdx
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx

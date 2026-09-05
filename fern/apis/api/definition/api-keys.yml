@@ -62,7 +62,7 @@ types:
         docs: ID of the inbox.
 
   PublicKeyScope:
-    docs: The immutable scope in which a public-key credential can approve AgentID sign-in.
+    docs: The immutable scope of a public-key credential.
     union:
       organization: OrganizationPublicKeyScope
       pod: PodPublicKeyScope
@@ -82,9 +82,9 @@ types:
 
   PublicKeyCredential:
     docs: |
-      An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
-      use `api_key_id` as the JWS `kid`. This response never contains a bearer
-      secret or private key.
+      A registered public-key credential for signed requests. `type` and
+      `api_key_id` are server-owned; `api_key_id` is the credential's JWS `kid`.
+      This response never contains a bearer secret or private key.
     properties:
       api_key_id:
         type: uuid
@@ -108,9 +108,9 @@ types:
 
   CreatePublicKeyRequest:
     docs: |
-      Register only a public P-256 JWK. Credential type, `api_key_id`, sign-in
-      eligibility, permissions, and generation are server-owned and are not
-      request properties.
+      Register only a public P-256 JWK. Credential type, `api_key_id`,
+      permissions, and generation are server-owned and are not request
+      properties.
     properties:
       public_key: PublicJwk
       name:
@@ -132,8 +132,8 @@ types:
 
   UpdatePublicKeyNameRequest:
     docs: |
-      Rename a public-key credential. Key material, ID, type, scope, sign-in
-      eligibility, permissions, generation, and expiry are immutable.
+      Rename a public-key credential. Key material, ID, type, scope,
+      permissions, generation, and expiry are immutable.
     properties:
       name:
         type: string
@@ -150,7 +150,7 @@ types:
         docs: Public-key credentials only, ordered by creation time descending by default.
 
   RevokeAllAgentIdSignInKeysResponse:
-    docs: Permanent idempotency receipt for an organization-wide AgentID sign-in key revocation.
+    docs: Permanent idempotency receipt for an organization-wide public-key credential revocation.
     properties:
       previous_generation:
         type: integer
