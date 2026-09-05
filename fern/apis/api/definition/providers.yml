@@ -49,6 +49,12 @@ types:
         type: optional<boolean>
         docs: Authorize the provider for this inbox, skipping the first-use disclosure page.
 
+  ConnectWithoutProviderBody:
+    properties:
+      inbox_id:
+        type: optional<inboxes.InboxId>
+        docs: Inbox to enroll. Required unless the API key is scoped to an inbox.
+
   ConnectProviderAccepted:
     properties:
       session_id:
@@ -138,12 +144,10 @@ service:
 
         Opening the URL enrolls the browser as the inbox, creating a
         [session](/api-reference/inboxes/sessions/get) or reusing one the
-        browser already holds, then continues to the provider's sign-in. This
-        is the only way to create a session; the sessions resource lists,
-        reads, and deletes them. To enroll a browser without continuing to any
-        provider, connect to the AgentID provider,
-        `00000000-0000-4000-8000-000000000000`: the browser stops on AgentID
-        once the session is active, and `authorize` is not accepted.
+        browser already holds, then continues to the provider's sign-in. The
+        sessions resource lists, reads, and deletes the sessions this creates.
+        To enroll a browser without continuing to any provider, use
+        [Connect Without Provider](/api-reference/providers/connect-without-provider).
 
         Creation is limited to 20 pending sessions per API key per hour, 100
         per organization per hour, and five live unactivated sessions per API
@@ -159,6 +163,33 @@ service:
       request:
         name: ConnectProviderRequest
         body: optional<ConnectProviderBody>
+      response:
+        status-code: 202
+        type: ConnectProviderAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError
+
+    connectWithoutProvider:
+      method: POST
+      path: /connect
+      display-name: Connect Without Provider
+      docs: |
+        Enrolls a browser as an inbox without signing in to any provider.
+        Returns a `magic_url` valid for five minutes; open it in the browser
+        that should hold the session. The browser creates a
+        [session](/api-reference/inboxes/sessions/get), or reuses one it
+        already holds, and stops on AgentID once it is active. Requires
+        `api_key_create` and an `Idempotency-Key` header.
+
+        Use this to prepare a browser profile ahead of any sign-in, or when
+        the relying party is not in the provider catalog. The same limits and
+        replay behavior as Connect Provider apply.
+      idempotent: true
+      request:
+        name: ConnectWithoutProviderRequest
+        body: optional<ConnectWithoutProviderBody>
       response:
         status-code: 202
         type: ConnectProviderAccepted
