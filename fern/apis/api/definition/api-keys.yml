@@ -702,7 +702,12 @@ service:
       method: DELETE
       path: /browser-credentials/enrollments/{enrollment_id}
       display-name: Cancel Browser Enrollment
-      docs: Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
+      availability: deprecated
+      docs: |
+        Deprecated: use [Delete Session](/api-reference/sessions/delete) with
+        the pending session's `session_id`.
+
+        Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
       path-parameters:
         enrollment_id: uuid
       response:
