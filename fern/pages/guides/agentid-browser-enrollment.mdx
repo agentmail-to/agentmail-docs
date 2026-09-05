@@ -267,17 +267,16 @@ operations require `api_key_read`; deletion and cancellation require
 | Operation | Request |
 | --- | --- |
 | List active sessions across the key's scope | `GET /v0/sessions` |
-| List an inbox's active sessions | `GET /v0/inboxes/{inbox_id}/sessions` |
+| List an inbox's active sessions | `GET /v0/sessions?inbox_id={inbox_id}` |
 | Get one session, pending or active | `GET /v0/sessions/{session_id}` |
 | Cancel a pending session or revoke an active one | `DELETE /v0/sessions/{session_id}` |
-| List session and consent lifecycle events | `GET /v0/sessions/events` |
+| List lifecycle events | `GET /v0/api-keys/browser-credentials/events` |
 | Cancel a pending enrollment | `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}` |
 | List remembered consent for an inbox | `GET /v0/api-keys/browser-consents?inbox_id={inbox_id}` |
 | Revoke remembered consent | `DELETE /v0/api-keys/browser-consents/{consent_id}` |
 
-The inbox-scoped session routes accept the same IDs and are limited to one
-inbox. The older `/v0/api-keys/browser-credentials` list, events, and delete
-endpoints are deprecated aliases of the session endpoints above.
+The older `/v0/api-keys/browser-credentials` list and delete endpoints are
+deprecated aliases of the session endpoints above.
 
 List endpoints accept `limit` from 1 through 100 and a sealed `page_token`.
 They return `count`, the effective `limit`, an optional `next_page_token`, and

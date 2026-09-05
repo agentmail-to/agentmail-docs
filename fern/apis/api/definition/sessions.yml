@@ -67,7 +67,8 @@ service:
       display-name: List Sessions
       docs: |
         List every active session the API key can see, across all of its
-        inboxes. Each row carries `inbox_id`. Requires `api_key_read`.
+        inboxes, or one inbox's sessions with `inbox_id`. Each row carries
+        `inbox_id`. Requires `api_key_read`.
 
         Sessions are created by [Connect Provider](/api-reference/providers/connect)
         or [Connect Without Provider](/api-reference/providers/connect-without-provider),
@@ -79,24 +80,12 @@ service:
       request:
         name: ListSessionsRequest
         query-parameters:
+          inbox_id:
+            type: optional<inboxes.InboxId>
+            docs: Return only this inbox's sessions.
           limit: optional<api-keys.BrowserAuthorizationListLimit>
           page_token: optional<global.PageToken>
       response: ListSessionsResponse
-
-    listEvents:
-      method: GET
-      path: /events
-      display-name: List Session Events
-      docs: |
-        List session and consent lifecycle events across the API key's scope,
-        newest first: minted, activated, deleted, expired, and consent
-        changes. Requires `api_key_read`.
-      request:
-        name: ListSessionEventsRequest
-        query-parameters:
-          limit: optional<api-keys.BrowserAuthorizationListLimit>
-          page_token: optional<global.PageToken>
-      response: api-keys.ListBrowserLifecycleEventsResponse
       errors:
         - global.NotFoundError
 

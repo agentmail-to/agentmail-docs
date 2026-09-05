@@ -671,11 +671,7 @@ service:
       method: GET
       path: /browser-credentials/events
       display-name: List Browser Credential Events
-      availability: deprecated
-      docs: |
-        Deprecated: use [List Session Events](/api-reference/sessions/list-events).
-
-        List owner-facing browser credential and consent lifecycle events. Requires `api_key_read`.
+      docs: List owner-facing browser credential and consent lifecycle events. Requires `api_key_read`.
       request:
         name: ListBrowserCredentialEventsRequest
         query-parameters:

@@ -4,26 +4,24 @@ tags: ["inboxes-api", "providers-api", "agentid", "new-feature", "docs"]
 
 ## Summary
 
-Manage the browser sessions your inboxes hold at AgentID from one sessions resource. Start a session with provider connect, poll it until the browser finishes, list what is active across every inbox or one inbox, and revoke what is not needed, without handling keys or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
+Manage the browser sessions your inboxes hold at AgentID from one sessions resource. Start a session with provider connect, poll it until the browser finishes, list what is active across every inbox or filtered to one, and revoke what is not needed, without handling keys or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
 
 ### What's new?
 
 **New endpoints:**
 
 - `POST /v0/providers/connect` - Enroll a browser as an inbox with no provider handoff. Open the returned `magic_url` in the browser that should hold the session and it stops on AgentID once active.
-- `GET /v0/sessions` - List every active session the API key can see, across all inboxes.
+- `GET /v0/sessions` - List every active session the API key can see, across all inboxes, or one inbox's with `inbox_id`.
 - `GET /v0/sessions/{session_id}` - Get one session, pending or active. Poll it with the `session_id` from either connect call to learn when the browser has finished.
 - `DELETE /v0/sessions/{session_id}` - Cancel a pending session or revoke an active one.
-- `GET /v0/sessions/events` - Session and consent lifecycle events across the key's scope.
-- `GET /v0/inboxes/{inbox_id}/sessions`, `GET /v0/inboxes/{inbox_id}/sessions/{session_id}`, `DELETE /v0/inboxes/{inbox_id}/sessions/{session_id}` - The same operations limited to one inbox.
 
 **Changes:**
 
-- `GET /v0/api-keys/browser-credentials`, `GET /v0/api-keys/browser-credentials/events`, and `DELETE /v0/api-keys/browser-credentials/{credential_id}` are deprecated. They keep working; the session endpoints return the same browsers without key material.
+- `GET /v0/api-keys/browser-credentials` and `DELETE /v0/api-keys/browser-credentials/{credential_id}` are deprecated. They keep working; the session endpoints return the same browsers without key material.
 
 **New features:**
 
-- **One handle for the whole lifecycle**: the `session_id` from either connect call is the same ID Get, List, and Delete use, before and after activation, at the root and under the inbox.
+- **One handle for the whole lifecycle**: the `session_id` from either connect call is the same ID Get, List, and Delete use, before and after activation.
 
 ### Use cases
 
