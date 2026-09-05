@@ -317,7 +317,7 @@ navigation:
           #   path: pages/integrations/crewai.mdx
       - section: Guides
         contents:
-          - page: AgentID Browser Enrollment
+          - page: AgentID Browser Sessions
             icon: fa-solid fa-shield-halved
             path: pages/guides/agentid-browser-enrollment.mdx
           - page: AgentID Public-Key Authentication
