@@ -4,20 +4,20 @@ tags: ["inboxes-api", "providers-api", "agentid", "new-feature", "docs"]
 
 ## Summary
 
-Manage the browser sessions an inbox holds at AgentID from one inbox-scoped resource. Start a session with provider connect, poll it until the browser finishes, list what is active, and revoke what is not needed, without handling keys or enrollment internals. Provider connect now also enrolls a browser with no provider handoff, so agents can prepare a browser profile ahead of any sign-in.
+Manage the browser sessions an inbox holds at AgentID from one inbox-scoped resource. Start a session with provider connect, poll it until the browser finishes, list what is active, and revoke what is not needed, without handling keys or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
 
 ### What's new?
 
 **New endpoints:**
 
+- `POST /v0/providers/connect` - Enroll a browser as an inbox with no provider handoff. Open the returned `magic_url` in the browser that should hold the session and it stops on AgentID once active.
 - `GET /v0/inboxes/{inbox_id}/sessions` - List the inbox's active sessions.
-- `GET /v0/inboxes/{inbox_id}/sessions/{session_id}` - Get one session, pending or active. Poll it with the `session_id` from Connect Provider to learn when the browser has finished.
+- `GET /v0/inboxes/{inbox_id}/sessions/{session_id}` - Get one session, pending or active. Poll it with the `session_id` from either connect call to learn when the browser has finished.
 - `DELETE /v0/inboxes/{inbox_id}/sessions/{session_id}` - Cancel a pending session or revoke an active one.
 
 **New features:**
 
-- **Enroll without a provider**: `POST /v0/providers/{provider_id}/connect` accepts the AgentID provider, `00000000-0000-4000-8000-000000000000`. Open the returned `magic_url` in the browser that should hold the session and it stops on AgentID once active, with no redirect to a provider.
-- **One handle for the whole lifecycle**: the `session_id` from Connect Provider is the same ID Get, List, and Delete use, before and after activation.
+- **One handle for the whole lifecycle**: the `session_id` from either connect call is the same ID Get, List, and Delete use, before and after activation.
 
 ### Use cases
 
@@ -35,8 +35,7 @@ from agentmail import AgentMail
 client = AgentMail(api_key="your-api-key")
 
 # enroll a browser with no provider handoff
-connect = client.providers.connect(
-    provider_id="00000000-0000-4000-8000-000000000000",
+connect = client.providers.connect_without_provider(
     inbox_id="agent@example.com",
     request_options={"additional_headers": {"Idempotency-Key": "enroll-profile-1"}},
 )
@@ -53,8 +52,7 @@ import { AgentMail } from "agentmail";
 const client = new AgentMail({ apiKey: "your-api-key" });
 
 // enroll a browser with no provider handoff
-const connect = await client.providers.connect(
-  "00000000-0000-4000-8000-000000000000",
+const connect = await client.providers.connectWithoutProvider(
   { inboxId: "agent@example.com" },
   { idempotencyKey: "enroll-profile-1" },
 );

@@ -12,9 +12,9 @@ types:
 
   PendingSession:
     docs: |
-      A session minted by Connect Provider that the browser has not activated
-      yet. Open the `magic_url` from Connect Provider in the browser, then poll
-      Get Session until the status is `active`.
+      A session minted by Connect Provider or Connect Without Provider that
+      the browser has not activated yet. Open the returned `magic_url` in the
+      browser, then poll Get Session until the status is `active`.
     properties:
       session_id: SessionId
       status: literal<"pending">
@@ -70,8 +70,9 @@ service:
       docs: |
         List the inbox's active sessions. Requires `api_key_read`.
 
-        Sessions are created by [Connect Provider](/api-reference/providers/connect),
-        which returns a magic URL to open in the browser that should hold the
+        Sessions are created by [Connect Provider](/api-reference/providers/connect)
+        or [Connect Without Provider](/api-reference/providers/connect-without-provider),
+        which return a magic URL to open in the browser that should hold the
         session. Once the browser activates it, the session lasts at most 30
         days and cannot outlive the API key that created it.
 
@@ -93,8 +94,8 @@ service:
         Get one session by ID, whether it is still pending or already active.
         Requires `api_key_read`.
 
-        Poll this with the `session_id` from Connect Provider to learn when
-        the browser has finished. A pending session lasts at most five
+        Poll this with the `session_id` from Connect Provider or Connect
+        Without Provider to learn when the browser has finished. A pending session lasts at most five
         minutes. A session that expired, was deleted, or was never activated
         returns `404`. If the browser reused a session it already held for
         this inbox, the `session_id` in the response is the one to keep; it is
