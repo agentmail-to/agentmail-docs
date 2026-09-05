@@ -138,11 +138,17 @@ service:
 
         Opening the URL enrolls the browser as the inbox, creating a
         [session](/api-reference/inboxes/sessions/get) or reusing one the
-        browser already holds, then continues to the provider's sign-in. To
-        enroll a browser without continuing to any provider, connect to the
-        AgentID provider, `00000000-0000-4000-8000-000000000000`: the browser
-        stops on AgentID once the session is active, and `authorize` is not
-        accepted.
+        browser already holds, then continues to the provider's sign-in. This
+        is the only way to create a session; the sessions resource lists,
+        reads, and deletes them. To enroll a browser without continuing to any
+        provider, connect to the AgentID provider,
+        `00000000-0000-4000-8000-000000000000`: the browser stops on AgentID
+        once the session is active, and `authorize` is not accepted.
+
+        Creation is limited to 20 pending sessions per API key per hour, 100
+        per organization per hour, and five live unactivated sessions per API
+        key. Browser activation is separately limited to 20 per API key per
+        UTC day. Either limit returns `429`; honor the `Retry-After` header.
 
         The `magic_url` is returned exactly once. Replaying the same
         `Idempotency-Key` returns `409` with the `session_id` and no URL; mint

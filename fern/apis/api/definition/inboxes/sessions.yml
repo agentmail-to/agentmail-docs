@@ -12,9 +12,9 @@ types:
 
   PendingSession:
     docs: |
-      A session the browser has not activated yet. The browser finishes key
-      creation and proof on the AgentID page; poll Get Session until the status
-      is `active`.
+      A session minted by Connect Provider that the browser has not activated
+      yet. Open the `magic_url` from Connect Provider in the browser, then poll
+      Get Session until the status is `active`.
     properties:
       session_id: SessionId
       status: literal<"pending">
@@ -55,20 +55,6 @@ types:
         type: list<ActiveSession>
         docs: Active sessions only, most recently activated first.
 
-  CreateSessionRequest:
-    docs: |
-      Attach a session to one pending AgentID authorization transaction. The
-      inbox is selected by the trusted path parameter, not an AgentID
-      `login_hint`.
-    properties:
-      transaction_jti: api-keys.BrowserEnrollmentTransactionJti
-      decision:
-        type: optional<literal<"allow">>
-        docs: |
-          Approve the relying party on the agent's behalf so no human has to
-          click through the disclosure page. Requires the API key permission
-          for every owner scope the transaction requests.
-
 service:
   url: Http
   base-path: /inboxes/{inbox_id}/sessions
@@ -77,50 +63,19 @@ service:
   auth: true
 
   endpoints:
-    create:
-      method: POST
-      path: ""
-      display-name: Create Session
-      docs: |
-        Create a session for a browser that is already on an AgentID sign-in
-        page. Read `transaction_jti` from the page's enrollment action, and
-        independently verify that the page's final origin is exactly
-        `https://auth.agentid.com` before submitting it. Requires
-        `api_key_create`.
-
-        To enroll a browser that is not on an AgentID page yet, use
-        [Connect Provider](/api-reference/providers/connect) instead. It
-        returns a magic URL to open in the browser, and the session it creates
-        is managed through this resource.
-
-        A new session returns `202`; an idempotent retry for the same pending
-        transaction, inbox, and API key returns `200` with the same body. The
-        pending session lasts at most five minutes. Once the browser activates
-        it, the session lasts at most 30 days and cannot outlive the API key
-        that created it.
-
-        Creation is limited to 20 pending sessions per API key per hour, 100
-        per organization per hour, and five live unactivated sessions per API
-        key. Browser activation is separately limited to 20 per API key per
-        UTC day. Either limit returns `429`; honor the `Retry-After` header.
-
-        **AgentMail API keys are sent only to `https://api.agentmail.to`; AgentID never requests them.**
-
-        Available on US production only; EU production returns `404`.
-      request: CreateSessionRequest
-      response:
-        status-code: 202
-        type: PendingSession
-      errors:
-        - global.ValidationError
-        - global.NotFoundError
-        - global.ConflictError
-
     list:
       method: GET
       path: ""
       display-name: List Sessions
-      docs: List the inbox's active sessions. Requires `api_key_read`.
+      docs: |
+        List the inbox's active sessions. Requires `api_key_read`.
+
+        Sessions are created by [Connect Provider](/api-reference/providers/connect),
+        which returns a magic URL to open in the browser that should hold the
+        session. Once the browser activates it, the session lasts at most 30
+        days and cannot outlive the API key that created it.
+
+        Available on US production only; EU production returns `404`.
       request:
         name: ListSessionsRequest
         query-parameters:
@@ -138,12 +93,12 @@ service:
         Get one session by ID, whether it is still pending or already active.
         Requires `api_key_read`.
 
-        Poll this after Create Session or Connect Provider to learn when the
-        browser has finished. A session that expired, was deleted, or was
-        never activated returns `404`. If the browser reused a session it
-        already held for this inbox, the `session_id` in the response is the
-        one to keep; it is the handle List Sessions returns and Delete Session
-        accepts.
+        Poll this with the `session_id` from Connect Provider to learn when
+        the browser has finished. A pending session lasts at most five
+        minutes. A session that expired, was deleted, or was never activated
+        returns `404`. If the browser reused a session it already held for
+        this inbox, the `session_id` in the response is the one to keep; it is
+        the handle List Sessions returns and Delete Session accepts.
       path-parameters:
         session_id: SessionId
       response: Session
@@ -155,8 +110,8 @@ service:
       path: /{session_id}
       display-name: Delete Session
       docs: |
-        Delete one session. A pending session is cancelled and can no longer
-        be activated; an active session is revoked and can no longer
+        Delete one session. A pending session is cancelled and its magic URL
+        can no longer be used; an active session is revoked and can no longer
         authenticate. Requires `api_key_delete`.
       path-parameters:
         session_id: SessionId

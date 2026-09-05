@@ -4,29 +4,27 @@ tags: ["inboxes-api", "providers-api", "agentid", "new-feature", "docs"]
 
 ## Summary
 
-Manage the browser sessions an inbox holds at AgentID from one inbox-scoped resource. Create a session for a browser that is already on an AgentID page, poll it until the browser finishes, list what is active, and revoke what is not needed, without handling keys or enrollment internals. Provider connect now also enrolls a browser with no provider handoff, so agents can prepare a browser profile ahead of any sign-in.
+Manage the browser sessions an inbox holds at AgentID from one inbox-scoped resource. Start a session with provider connect, poll it until the browser finishes, list what is active, and revoke what is not needed, without handling keys or enrollment internals. Provider connect now also enrolls a browser with no provider handoff, so agents can prepare a browser profile ahead of any sign-in.
 
 ### What's new?
 
 **New endpoints:**
 
-- `POST /v0/inboxes/{inbox_id}/sessions` - Create a session from the `transaction_jti` an AgentID page reports. Returns a pending session; the browser activates it in place.
 - `GET /v0/inboxes/{inbox_id}/sessions` - List the inbox's active sessions.
-- `GET /v0/inboxes/{inbox_id}/sessions/{session_id}` - Get one session, pending or active. Poll it after Create Session or Connect Provider to learn when the browser has finished.
+- `GET /v0/inboxes/{inbox_id}/sessions/{session_id}` - Get one session, pending or active. Poll it with the `session_id` from Connect Provider to learn when the browser has finished.
 - `DELETE /v0/inboxes/{inbox_id}/sessions/{session_id}` - Cancel a pending session or revoke an active one.
 
 **New features:**
 
 - **Enroll without a provider**: `POST /v0/providers/{provider_id}/connect` accepts the AgentID provider, `00000000-0000-4000-8000-000000000000`. Open the returned `magic_url` in the browser that should hold the session and it stops on AgentID once active, with no redirect to a provider.
-- **One handle for the whole lifecycle**: the `session_id` from Create Session or Connect Provider is the same ID Get, List, and Delete use, before and after activation.
-- **API-carried approval**: pass `decision: "allow"` on Create Session so the agent approves the relying party and no human has to click through the disclosure page.
+- **One handle for the whole lifecycle**: the `session_id` from Connect Provider is the same ID Get, List, and Delete use, before and after activation.
 
 ### Use cases
 
 Build agents that:
 
 - Prepare a persistent browser profile as an inbox before any sign-in, then sign in silently at every AgentID relying party
-- Drive a browser through a relying party's sign-in and complete the AgentID step with one API call
+- Start a provider sign-in from a workflow and hand the browser one URL to finish it
 - Wait on a session by polling one endpoint instead of diffing the session list
 - Audit and revoke the browsers that can act as each inbox
 
@@ -69,5 +67,5 @@ console.log(session.status);
 </CodeBlocks>
 
 <Note>
-  See the [Sessions API reference](https://docs.agentmail.to/api-reference/inboxes/sessions/create) and the [AgentID Browser Enrollment guide](https://docs.agentmail.to/agentid-browser-enrollment) for the full flow.
+  See the [Sessions API reference](https://docs.agentmail.to/api-reference/inboxes/sessions/list) and the [AgentID Browser Enrollment guide](https://docs.agentmail.to/agentid-browser-enrollment) for the full flow.
 </Note>
