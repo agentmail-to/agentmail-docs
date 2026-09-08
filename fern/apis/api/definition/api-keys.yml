@@ -574,10 +574,41 @@ types:
           bearer keys by default, registered public keys with `type=public_key`,
           browser sessions with `type=public_key&purpose=browser_session`.
 
-  CreateApiKeyRequest:
+  CreateBearerApiKeyRequest:
     properties:
       name: optional<Name>
       permissions: optional<ApiKeyPermissions>
+
+  CreateApiKeyRequest:
+    docs: |
+      A body with `public_key` registers a public-key credential; any other
+      body mints a bearer key.
+    discriminated: false
+    union:
+      - CreateBearerApiKeyRequest
+      - CreatePublicKeyRequest
+
+  CreateApiKeyResult:
+    discriminated: false
+    union:
+      - CreateApiKeyResponse
+      - PublicKeyCredential
+
+  UpdateApiKeyRequest:
+    docs: |
+      Rename a credential or change its permissions. `allowed_scopes` applies
+      to public-key credentials only. Key material, type, scope, and expiry
+      are immutable.
+    properties:
+      name:
+        type: optional<string>
+        validation:
+          minLength: 1
+          maxLength: 256
+      permissions: optional<ApiKeyPermissions>
+      allowed_scopes:
+        type: optional<list<string>>
+        docs: Public keys only. The exact maximum sign-in scope set; omit to leave unchanged.
 
 service:
   url: Http
@@ -636,14 +667,39 @@ service:
       path: ""
       display-name: Create API Key
       docs: |
+        Create one credential of either family. A body without `public_key`
+        mints a bearer key and returns its secret once. A body with a public
+        JWK registers a public-key credential, optionally under a caller-chosen
+        `client_id`, and returns the credential without any secret. Browser
+        sessions are created by the connect calls, never here. Requires
+        `api_key_create`.
+
         **CLI:**
         ```bash
         agentmail api-keys create --name "My Key"
         ```
       request: CreateApiKeyRequest
-      response: CreateApiKeyResponse
+      response: CreateApiKeyResult
       errors:
         - global.ValidationError
+        - global.ConflictError
+
+    update:
+      method: PATCH
+      path: /{api_key_id}
+      display-name: Update API Key
+      docs: |
+        Rename a bearer key or a public-key credential, or change its
+        permissions. Public keys also resolve by `client_id` and accept
+        `allowed_scopes`. Browser sessions cannot be updated. Requires
+        `api_key_update`.
+      path-parameters:
+        api_key_id: ApiKeyId
+      request: UpdateApiKeyRequest
+      response: ApiKey
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
 
     delete:
       method: DELETE
@@ -669,7 +725,10 @@ service:
       method: GET
       path: /public-keys
       display-name: List Public-Key Credentials
+      availability: deprecated
       docs: |
+        Deprecated: use [List API Keys](/api-reference/api-keys/list) with `type=public_key`.
+
         List only public-key credentials visible to the bearer caller's scope.
         Bearer credentials are never returned, even though both credential types
         share storage and pagination indexes. Requires `api_key_read`.
@@ -685,7 +744,10 @@ service:
       method: POST
       path: /public-keys
       display-name: Register Public-Key Credential
+      availability: deprecated
       docs: |
+        Deprecated: use [Create API Key](/api-reference/api-keys/create) with a `public_key` body.
+
         Register a public P-256 JWK using an existing AgentMail bearer API key
         with `api_key_create`. Re-registering the same JWK creates a new
         credential ID; it does not replace or recover an earlier credential.
@@ -700,7 +762,10 @@ service:
       method: PATCH
       path: /public-keys/{api_key_id}
       display-name: Rename Public-Key Credential
+      availability: deprecated
       docs: |
+        Deprecated: use [Update API Key](/api-reference/api-keys/update).
+
         Rename the credential. All security-relevant fields are immutable.
         Requires `api_key_update`.
       path-parameters:
@@ -717,7 +782,10 @@ service:
       method: DELETE
       path: /public-keys/{api_key_id}
       display-name: Revoke Public-Key Credential
+      availability: deprecated
       docs: |
+        Deprecated: use [Delete API Key](/api-reference/api-keys/delete).
+
         Permanently revoke one public-key credential. This hard-deletes the
         credential; repeating the request returns not found. Requires
         `api_key_delete`.
