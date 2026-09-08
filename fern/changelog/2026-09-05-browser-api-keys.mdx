@@ -1,51 +1,24 @@
 ---
-tags: ["api-keys", "providers-api", "agentid", "new-feature", "breaking-change", "docs"]
+tags: ["api-keys", "providers-api", "agentid", "new-feature", "docs"]
 ---
 
 ## Summary
 
-A browser that signs in as an inbox at AgentID is now an API key of type `browser`, managed with the same list, get, and delete calls as every other API key. Start one with provider connect, or attach one to a sign-in the browser is already in, then poll it until the browser finishes, list it alongside your bearer keys, and revoke it when it is no longer needed, without handling key material or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
+A browser that signs in as an inbox at AgentID is now an API key, a public-key credential with purpose `browser_session`, managed with the same list, get, and delete calls as every other API key. Start one with provider connect, or attach one to a sign-in the browser is already in, then poll it until the browser finishes, list it alongside your bearer keys, and revoke it when it is no longer needed, without handling key material or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
 
 ### What's new?
 
 **New endpoints:**
 
-- `POST /v0/providers/connect` - Enroll a browser as an inbox with no provider handoff. Without `transaction_jti` it returns a `magic_url` to open in the browser, which stops on AgentID once the key is active. With `transaction_jti` it attaches to the AgentID sign-in the browser is already on, and no URL is returned. Pass `decision: "allow"` to approve the relying party on the agent's behalf.
-- `GET /v0/api-keys/{api_key_id}` - Get one API key, bearer or browser. For a browser key, poll it to watch `status` go from `pending` to `active`.
+- `POST /v0/providers/connect` - Connect a browser by provider domain, with no provider at all, or by attaching to the AgentID sign-in the browser is already on with `transaction_jti`. The no-provider mode returns a `magic_url` and the browser stops on AgentID once the session is active; attach mode returns no URL. Pass `decision: "allow"` in attach mode to approve the relying party on the agent's behalf.
+- `GET /v0/api-keys/{api_key_id}` - Get one credential of any family. For a browser session, poll it to watch `status` go from `pending` to `active`.
 
 **New features:**
 
-- **Browser API keys**: `GET /v0/api-keys` now includes keys of type `browser` with `inbox_id`, `status`, `authorized_by`, and `expires_at`. Filter with `type=browser` or `type=bearer`, and by `inbox_id`.
-- **One handle for the whole lifecycle**: the `api_key_id` a connect call returns is the same ID Get, List, and Delete use, before and after activation.
-- **Delete covers both kinds**: `DELETE /v0/api-keys/{api_key_id}` cancels a pending browser key or revokes an active one. Deleting a bearer key still revokes every browser key it authorized.
-
-### Breaking changes
-
-⚠️ **Provider connect returns `api_key_id` instead of `session_id`.** The value is the same handle; only the field name changes. Code reading `session_id` from the connect response must read `api_key_id`.
-
-<CodeBlocks>
-```python title="Python"
-# before
-connect = client.providers.connect(provider_id="d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", inbox_id="agent@example.com")
-print(connect.session_id)
-
-# after
-connect = client.providers.connect(provider_id="d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", inbox_id="agent@example.com")
-print(connect.api_key_id)
-```
-
-```typescript title="TypeScript"
-// before
-const connect = await client.providers.connect("d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", { inboxId: "agent@example.com" });
-console.log(connect.sessionId);
-
-// after
-const connect = await client.providers.connect("d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", { inboxId: "agent@example.com" });
-console.log(connect.apiKeyId);
-```
-</CodeBlocks>
-
-⚠️ **API key lists include browser keys.** Every item now carries `type`, and browser items have no `prefix`, `name`, or `permissions`. Code that assumes every item is a bearer key should pass `type=bearer` or check `type` before reading bearer fields. In the SDKs, `ApiKey` becomes a union discriminated on `type`.
+- **One list for every credential family**: `GET /v0/api-keys` lists bearer keys by default, registered public keys with `type=public_key`, and browser sessions with `type=public_key&purpose=browser_session`, filterable by `inbox_id`. Every item carries `type`; browser sessions carry `purpose`, `inbox_id`, `status`, `authorized_by`, and `expires_at`.
+- **One handle for the whole lifecycle**: connect responses now carry `api_key_id`, the same ID Get, List, and Delete use before and after activation. `session_id` stays as a deprecated alias with the same value.
+- **Delete covers every family**: `DELETE /v0/api-keys/{api_key_id}` deletes a bearer key, revokes a registered public key, cancels a pending browser session, or revokes an active one. Deleting a bearer key still revokes every browser session it authorized.
+- **Client IDs for public keys**: register a public key with a caller-chosen `client_id`, unique within the organization, and use it in place of `api_key_id` on get, rename, and revoke. Registration is idempotent on the alias.
 
 **Changes:**
 
@@ -66,8 +39,8 @@ from agentmail import AgentMail
 
 client = AgentMail(api_key="your-api-key")
 
-# enroll a browser with no provider handoff
-connect = client.providers.connect_without_provider(
+# enroll a browser with no provider handoff (omit provider)
+connect = client.providers.connect_browser(
     inbox_id="agent@example.com",
     request_options={"additional_headers": {"Idempotency-Key": "enroll-profile-1"}},
 )
@@ -83,8 +56,8 @@ import { AgentMail } from "agentmail";
 
 const client = new AgentMail({ apiKey: "your-api-key" });
 
-// enroll a browser with no provider handoff
-const connect = await client.providers.connectWithoutProvider(
+// enroll a browser with no provider handoff (omit provider)
+const connect = await client.providers.connectBrowser(
   { inboxId: "agent@example.com" },
   { idempotencyKey: "enroll-profile-1" },
 );

@@ -14,10 +14,9 @@ never exports it.
 
 There are two ways to create one. If the browser is already on an AgentID
 sign-in page, attach to that page's transaction with
-[Connect Without Provider](/api-reference/providers/connect-without-provider),
+[Connect Browser](/api-reference/providers/connect-browser),
 as this guide shows. If the agent is choosing the browser itself, call
-[Connect Provider](/api-reference/providers/connect) or Connect Without
-Provider with no transaction and open the returned `magic_url` in it. Both
+[Connect Provider](/api-reference/providers/connect) or Connect Browser with no transaction and open the returned `magic_url` in it. Both
 paths produce the same [browser API key](/api-reference/api-keys/get).
 
 <Note title="US production availability">
@@ -64,16 +63,19 @@ origin override: do not accept a different origin from runtime input.
    a non-extractable browser key, proves possession, and continues the same
    transaction.
 
-[Connect Without Provider](/api-reference/providers/connect-without-provider)
+[Connect Browser](/api-reference/providers/connect-browser)
 requires `api_key_create`. A new key returns `202`; an idempotent retry for
 the same pending transaction, inbox, and bearer key returns the same body:
 
 ```json
 {
   "api_key_id": "4d795cc3-ae87-4f84-85e3-4ad4ca656f44",
+  "session_id": "4d795cc3-ae87-4f84-85e3-4ad4ca656f44",
   "expires_at": "2026-09-05T20:05:00.000Z"
 }
 ```
+
+`session_id` is a deprecated alias of `api_key_id` with the same value.
 
 There is no `magic_url` in attach mode: the receipt contains no AgentID URL,
 token, cookie, or navigation instruction. Do not navigate away from the
@@ -106,10 +108,10 @@ only after obtaining the final page URL from the browser transport:
 
 ```json
 {
-  "type": "agentid_enrollment_required",
+  "type": "agentid_session_required",
   "issuer": "https://auth.agentid.com",
   "browser_origin": "https://auth.agentid.com",
-  "agentmail_enrollment_endpoint": "https://api.agentmail.to/v0/providers/connect",
+  "agentmail_connect_endpoint": "https://api.agentmail.to/v0/providers/connect",
   "transaction_jti": "AAAAAAAAAAAAAAAAAAAAAA",
   "transaction_expires_at": 1787694600,
   "login_hint": null,
@@ -162,10 +164,10 @@ def create_browser_api_key(
     if canonical_origin(source_url) != AGENTID_ORIGIN:
         raise ValueError("Untrusted AgentID origin")
     if (
-        action.get("type") != "agentid_enrollment_required"
+        action.get("type") != "agentid_session_required"
         or action.get("issuer") != AGENTID_ORIGIN
         or action.get("browser_origin") != AGENTID_ORIGIN
-        or action.get("agentmail_enrollment_endpoint") != CONNECT_ENDPOINT
+        or action.get("agentmail_connect_endpoint") != CONNECT_ENDPOINT
         or action.get("login_hint_authoritative") is not False
         or action.get("invariant") != INVARIANT
     ):
@@ -221,10 +223,10 @@ async function createBrowserApiKey({
     throw new Error("Untrusted AgentID origin");
   }
   if (
-    action.type !== "agentid_enrollment_required" ||
+    action.type !== "agentid_session_required" ||
     action.issuer !== AGENTID_ORIGIN ||
     action.browser_origin !== AGENTID_ORIGIN ||
-    action.agentmail_enrollment_endpoint !== CONNECT_ENDPOINT ||
+    action.agentmail_connect_endpoint !== CONNECT_ENDPOINT ||
     action.login_hint_authoritative !== false ||
     action.invariant !== INVARIANT
   ) {
@@ -274,8 +276,8 @@ operations require `api_key_read`; deletion and cancellation require
 | --- | --- |
 | Attach a browser already on an AgentID page | `POST /v0/providers/connect` with `transaction_jti` |
 | Enroll a browser by magic URL | `POST /v0/providers/connect` or `POST /v0/providers/{provider_id}/connect` |
-| List browser API keys across the key's scope | `GET /v0/api-keys?type=browser` |
-| List an inbox's browser API keys | `GET /v0/api-keys?type=browser&inbox_id={inbox_id}` |
+| List browser sessions across the key's scope | `GET /v0/api-keys?type=public_key&purpose=browser_session` |
+| List an inbox's browser sessions | `GET /v0/api-keys?type=public_key&purpose=browser_session&inbox_id={inbox_id}` |
 | Get one, pending or active | `GET /v0/api-keys/{api_key_id}` |
 | Cancel a pending key or revoke an active one | `DELETE /v0/api-keys/{api_key_id}` |
 | List lifecycle events | `GET /v0/api-keys/browser-credentials/events` |

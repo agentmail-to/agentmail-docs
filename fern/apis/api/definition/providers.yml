@@ -50,11 +50,20 @@ types:
         type: optional<boolean>
         docs: Authorize the provider for this inbox, skipping the first-use disclosure page.
 
-  ConnectWithoutProviderBody:
+  ConnectBrowserBody:
     properties:
+      provider:
+        type: optional<string>
+        docs: |
+          Provider to continue to after enrollment, as an approved domain or
+          HTTPS URL such as `smolmachines.com`. Matching is exact; an unknown
+          domain returns `404`. Omit to stop on AgentID once the key is active.
       inbox_id:
         type: optional<inboxes.InboxId>
         docs: Inbox to enroll. Required unless the API key is scoped to an inbox.
+      authorize:
+        type: optional<boolean>
+        docs: With `provider`, authorize it for this inbox, skipping the first-use disclosure page.
       transaction_jti:
         type: optional<api-keys.BrowserEnrollmentTransactionJti>
         docs: |
@@ -74,10 +83,13 @@ types:
       api_key_id:
         type: api-keys.ApiKeyId
         docs: |
-          ID of the browser API key the browser will activate. Poll
+          ID of the browser session the browser will activate. Poll
           [Get API Key](/api-reference/api-keys/get) with it to learn when the
-          browser has finished; the same ID lists and deletes the key
+          browser has finished; the same ID lists and deletes the session
           afterward.
+      session_id:
+        type: api-keys.ApiKeyId
+        docs: Deprecated alias of `api_key_id`, carrying the same value.
       magic_url:
         type: string
         docs: Single-use URL to open in the browser that will hold the sign-in.
@@ -90,10 +102,13 @@ types:
       api_key_id:
         type: api-keys.ApiKeyId
         docs: |
-          ID of the browser API key the browser will activate. Poll
+          ID of the browser session the browser will activate. Poll
           [Get API Key](/api-reference/api-keys/get) with it to learn when the
-          browser has finished; the same ID lists and deletes the key
+          browser has finished; the same ID lists and deletes the session
           afterward.
+      session_id:
+        type: api-keys.ApiKeyId
+        docs: Deprecated alias of `api_key_id`, carrying the same value.
       magic_url:
         type: optional<string>
         docs: |
@@ -176,12 +191,12 @@ service:
         Requires `api_key_create` and an `Idempotency-Key` header.
 
         Opening the URL enrolls the browser as the inbox, creating a
-        [browser API key](/api-reference/api-keys/get) or reusing one the
+        [browser session](/api-reference/api-keys/get) or reusing one the
         browser already holds, then continues to the provider's sign-in. The
-        api-keys resource lists, reads, and deletes the keys this creates. To
-        enroll a browser without continuing to any provider, or to attach to
-        a sign-in the browser is already in, use
-        [Connect Without Provider](/api-reference/providers/connect-without-provider).
+        api-keys resource lists, reads, and deletes the sessions this creates.
+        To connect by provider domain instead of ID, enroll without continuing
+        to any provider, or attach to a sign-in the browser is already in, use
+        [Connect Browser](/api-reference/providers/connect-browser).
 
         Creation is limited to 20 pending browser API keys per bearer key per
         hour, 100 per organization per hour, and five live unactivated keys
@@ -206,35 +221,36 @@ service:
         - global.NotFoundError
         - global.ConflictError
 
-    connectWithoutProvider:
+    connectBrowser:
       method: POST
       path: /connect
-      display-name: Connect Without Provider
+      display-name: Connect Browser
       docs: |
-        Enrolls a browser as an inbox without signing in to any provider. The
-        browser creates a [browser API key](/api-reference/api-keys/get), or
-        reuses one it already holds. Requires `api_key_create` and an
-        `Idempotency-Key` header.
+        Enrolls a browser as an inbox. The browser creates a
+        [browser session](/api-reference/api-keys/get), or reuses one it
+        already holds. Requires `api_key_create` and an `Idempotency-Key`
+        header. Three modes, chosen by the body:
 
-        Two modes, chosen by the body:
-
-        - **No `transaction_jti`**: returns a `magic_url` valid for five
-          minutes. Open it in the browser that should hold the key; the
-          browser stops on AgentID once the key is active. Use this to prepare
-          a browser profile ahead of any sign-in, or when the relying party is
-          not in the provider catalog.
-        - **With `transaction_jti`**: the browser is already on an AgentID
-          sign-in page. No URL is returned; the page observes the pending key,
-          creates it, and continues the same sign-in. An idempotent retry for
-          the same pending transaction, inbox, and bearer key returns the same
-          body. Add `decision: "allow"` to approve the relying party on the
-          agent's behalf.
+        - **`provider` set to a domain or URL**: same as Connect Provider
+          without a catalog lookup. Returns a `magic_url`; after enrollment
+          the browser continues to that provider's sign-in.
+        - **No `provider`**: returns a `magic_url` valid for five minutes. Open
+          it in the browser that should hold the session; the browser stops on
+          AgentID once it is active. Use this to prepare a browser profile
+          ahead of any sign-in, or when the relying party is not in the
+          provider catalog.
+        - **`transaction_jti` set**: the browser is already on an AgentID
+          sign-in page. No URL is returned; the page observes the pending
+          session, creates the key, and continues the same sign-in. An
+          idempotent retry for the same pending transaction, inbox, and bearer
+          key returns the same body. Add `decision: "allow"` to approve the
+          relying party on the agent's behalf.
 
         The same limits and replay behavior as Connect Provider apply.
       idempotent: true
       request:
-        name: ConnectWithoutProviderRequest
-        body: optional<ConnectWithoutProviderBody>
+        name: ConnectBrowserRequest
+        body: optional<ConnectBrowserBody>
       response:
         status-code: 202
         type: ConnectAccepted
