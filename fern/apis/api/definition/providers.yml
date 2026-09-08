@@ -4,6 +4,7 @@ imports:
   global: __package__.yml
   accounts: accounts.yml
   inboxes: inboxes/__package__.yml
+  api-keys: api-keys.yml
 
 types:
   Provider:
@@ -54,15 +55,28 @@ types:
       inbox_id:
         type: optional<inboxes.InboxId>
         docs: Inbox to enroll. Required unless the API key is scoped to an inbox.
+      transaction_jti:
+        type: optional<api-keys.BrowserEnrollmentTransactionJti>
+        docs: |
+          Attach to a sign-in the browser is already in, instead of minting a
+          magic URL. Read it from the AgentID page's enrollment action after
+          verifying the page origin is exactly `https://auth.agentid.com`.
+      decision:
+        type: optional<literal<"allow">>
+        docs: |
+          With `transaction_jti`: approve the relying party on the agent's
+          behalf so no human has to click through the disclosure page.
+          Requires the API key permission for every owner scope the
+          transaction requests.
 
   ConnectProviderAccepted:
     properties:
-      session_id:
-        type: uuid
+      api_key_id:
+        type: api-keys.ApiKeyId
         docs: |
-          ID of the session the browser will activate. Poll
-          [Get Session](/api-reference/sessions/get) with it to learn when the
-          browser has finished; the same ID lists and deletes the session
+          ID of the browser API key the browser will activate. Poll
+          [Get API Key](/api-reference/api-keys/get) with it to learn when the
+          browser has finished; the same ID lists and deletes the key
           afterward.
       magic_url:
         type: string
@@ -70,6 +84,25 @@ types:
       expires_at:
         type: datetime
         docs: Time at which the URL expires.
+
+  ConnectAccepted:
+    properties:
+      api_key_id:
+        type: api-keys.ApiKeyId
+        docs: |
+          ID of the browser API key the browser will activate. Poll
+          [Get API Key](/api-reference/api-keys/get) with it to learn when the
+          browser has finished; the same ID lists and deletes the key
+          afterward.
+      magic_url:
+        type: optional<string>
+        docs: |
+          Single-use URL to open in the browser that should hold the key.
+          Absent when the request carried `transaction_jti`, because the
+          browser is already on the AgentID page and continues there.
+      expires_at:
+        type: datetime
+        docs: Time at which the URL, or the pending key, expires.
 
 service:
   url: Http
@@ -143,19 +176,21 @@ service:
         Requires `api_key_create` and an `Idempotency-Key` header.
 
         Opening the URL enrolls the browser as the inbox, creating a
-        [session](/api-reference/sessions/get) or reusing one the browser
-        already holds, then continues to the provider's sign-in. The sessions
-        resource lists, reads, and deletes the sessions this creates.
-        To enroll a browser without continuing to any provider, use
+        [browser API key](/api-reference/api-keys/get) or reusing one the
+        browser already holds, then continues to the provider's sign-in. The
+        api-keys resource lists, reads, and deletes the keys this creates. To
+        enroll a browser without continuing to any provider, or to attach to
+        a sign-in the browser is already in, use
         [Connect Without Provider](/api-reference/providers/connect-without-provider).
 
-        Creation is limited to 20 pending sessions per API key per hour, 100
-        per organization per hour, and five live unactivated sessions per API
-        key. Browser activation is separately limited to 20 per API key per
-        UTC day. Either limit returns `429`; honor the `Retry-After` header.
+        Creation is limited to 20 pending browser API keys per bearer key per
+        hour, 100 per organization per hour, and five live unactivated keys
+        per bearer key. Browser activation is separately limited to 20 per
+        bearer key per UTC day. Either limit returns `429`; honor the
+        `Retry-After` header.
 
         The `magic_url` is returned exactly once. Replaying the same
-        `Idempotency-Key` returns `409` with the `session_id` and no URL; mint
+        `Idempotency-Key` returns `409` with the `api_key_id` and no URL; mint
         another with a new key if the response was lost.
       path-parameters:
         provider_id: accounts.ProviderId
@@ -176,23 +211,33 @@ service:
       path: /connect
       display-name: Connect Without Provider
       docs: |
-        Enrolls a browser as an inbox without signing in to any provider.
-        Returns a `magic_url` valid for five minutes; open it in the browser
-        that should hold the session. The browser creates a
-        [session](/api-reference/sessions/get), or reuses one it already
-        holds, and stops on AgentID once it is active. Requires
-        `api_key_create` and an `Idempotency-Key` header.
+        Enrolls a browser as an inbox without signing in to any provider. The
+        browser creates a [browser API key](/api-reference/api-keys/get), or
+        reuses one it already holds. Requires `api_key_create` and an
+        `Idempotency-Key` header.
 
-        Use this to prepare a browser profile ahead of any sign-in, or when
-        the relying party is not in the provider catalog. The same limits and
-        replay behavior as Connect Provider apply.
+        Two modes, chosen by the body:
+
+        - **No `transaction_jti`**: returns a `magic_url` valid for five
+          minutes. Open it in the browser that should hold the key; the
+          browser stops on AgentID once the key is active. Use this to prepare
+          a browser profile ahead of any sign-in, or when the relying party is
+          not in the provider catalog.
+        - **With `transaction_jti`**: the browser is already on an AgentID
+          sign-in page. No URL is returned; the page observes the pending key,
+          creates it, and continues the same sign-in. An idempotent retry for
+          the same pending transaction, inbox, and bearer key returns the same
+          body. Add `decision: "allow"` to approve the relying party on the
+          agent's behalf.
+
+        The same limits and replay behavior as Connect Provider apply.
       idempotent: true
       request:
         name: ConnectWithoutProviderRequest
         body: optional<ConnectWithoutProviderBody>
       response:
         status-code: 202
-        type: ConnectProviderAccepted
+        type: ConnectAccepted
       errors:
         - global.ValidationError
         - global.NotFoundError

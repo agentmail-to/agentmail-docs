@@ -1,0 +1,101 @@
+---
+tags: ["api-keys", "providers-api", "agentid", "new-feature", "breaking-change", "docs"]
+---
+
+## Summary
+
+A browser that signs in as an inbox at AgentID is now an API key of type `browser`, managed with the same list, get, and delete calls as every other API key. Start one with provider connect, or attach one to a sign-in the browser is already in, then poll it until the browser finishes, list it alongside your bearer keys, and revoke it when it is no longer needed, without handling key material or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
+
+### What's new?
+
+**New endpoints:**
+
+- `POST /v0/providers/connect` - Enroll a browser as an inbox with no provider handoff. Without `transaction_jti` it returns a `magic_url` to open in the browser, which stops on AgentID once the key is active. With `transaction_jti` it attaches to the AgentID sign-in the browser is already on, and no URL is returned. Pass `decision: "allow"` to approve the relying party on the agent's behalf.
+- `GET /v0/api-keys/{api_key_id}` - Get one API key, bearer or browser. For a browser key, poll it to watch `status` go from `pending` to `active`.
+
+**New features:**
+
+- **Browser API keys**: `GET /v0/api-keys` now includes keys of type `browser` with `inbox_id`, `status`, `authorized_by`, and `expires_at`. Filter with `type=browser` or `type=bearer`, and by `inbox_id`.
+- **One handle for the whole lifecycle**: the `api_key_id` a connect call returns is the same ID Get, List, and Delete use, before and after activation.
+- **Delete covers both kinds**: `DELETE /v0/api-keys/{api_key_id}` cancels a pending browser key or revokes an active one. Deleting a bearer key still revokes every browser key it authorized.
+
+### Breaking changes
+
+⚠️ **Provider connect returns `api_key_id` instead of `session_id`.** The value is the same handle; only the field name changes. Code reading `session_id` from the connect response must read `api_key_id`.
+
+<CodeBlocks>
+```python title="Python"
+# before
+connect = client.providers.connect(provider_id="d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", inbox_id="agent@example.com")
+print(connect.session_id)
+
+# after
+connect = client.providers.connect(provider_id="d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", inbox_id="agent@example.com")
+print(connect.api_key_id)
+```
+
+```typescript title="TypeScript"
+// before
+const connect = await client.providers.connect("d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", { inboxId: "agent@example.com" });
+console.log(connect.sessionId);
+
+// after
+const connect = await client.providers.connect("d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32", { inboxId: "agent@example.com" });
+console.log(connect.apiKeyId);
+```
+</CodeBlocks>
+
+⚠️ **API key lists include browser keys.** Every item now carries `type`, and browser items have no `prefix`, `name`, or `permissions`. Code that assumes every item is a bearer key should pass `type=bearer` or check `type` before reading bearer fields. In the SDKs, `ApiKey` becomes a union discriminated on `type`.
+
+**Changes:**
+
+- `GET /v0/api-keys/browser-credentials`, `DELETE /v0/api-keys/browser-credentials/{credential_id}`, `POST /v0/inboxes/{inbox_id}/browser-credentials/enrollments`, and `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}` are deprecated in favor of the api-keys and connect endpoints above. All keep working.
+
+### Use cases
+
+Build agents that:
+
+- Prepare a persistent browser profile as an inbox before any sign-in, then sign in silently at every AgentID relying party
+- Drive a browser through a relying party's sign-in and complete the AgentID step with one API call
+- Wait on a browser by polling one endpoint instead of diffing a list
+- Audit and revoke every credential that can act as an inbox, bearer and browser alike, from one list
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# enroll a browser with no provider handoff
+connect = client.providers.connect_without_provider(
+    inbox_id="agent@example.com",
+    request_options={"additional_headers": {"Idempotency-Key": "enroll-profile-1"}},
+)
+print(connect.magic_url)  # open in the browser that should hold the key
+
+# poll until the browser finishes
+key = client.api_keys.get(api_key_id=connect.api_key_id)
+print(key.status)
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// enroll a browser with no provider handoff
+const connect = await client.providers.connectWithoutProvider(
+  { inboxId: "agent@example.com" },
+  { idempotencyKey: "enroll-profile-1" },
+);
+console.log(connect.magicUrl); // open in the browser that should hold the key
+
+// poll until the browser finishes
+const key = await client.apiKeys.get(connect.apiKeyId);
+console.log(key.status);
+```
+</CodeBlocks>
+
+<Note>
+  See the [API Keys reference](https://docs.agentmail.to/api-reference/api-keys/get) and the [Browser API Keys guide](https://docs.agentmail.to/agentid-browser-enrollment) for the full flow.
+</Note>

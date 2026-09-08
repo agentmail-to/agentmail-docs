@@ -460,7 +460,8 @@ types:
         type: optional<boolean>
         docs: Delete pods.
 
-  ApiKey:
+  BearerApiKey:
+    docs: An API key presented as a bearer token in the `Authorization` header.
     properties:
       api_key_id: ApiKeyId
       prefix: Prefix
@@ -476,6 +477,50 @@ types:
         docs: Time at which api key was last used.
       permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
+
+  BrowserApiKeyStatus:
+    enum:
+      - pending
+      - active
+    docs: |
+      `pending` until the browser finishes creating its key on the AgentID
+      page; `active` once it can sign in as the inbox.
+
+  BrowserApiKey:
+    docs: |
+      An API key held by a browser. It has no secret and no permissions of its
+      own: the browser proves possession of a non-extractable key, and the
+      bearer API key that created it bounds what it may do. It is created by
+      [Connect Provider](/api-reference/providers/connect) or
+      [Connect Without Provider](/api-reference/providers/connect-without-provider),
+      never by Create API Key.
+    properties:
+      api_key_id: ApiKeyId
+      inbox_id:
+        type: string
+        docs: Inbox the browser signs in as.
+      status: BrowserApiKeyStatus
+      authorized_by:
+        type: ApiKeyId
+        docs: The bearer API key that created it. Deleting that key revokes this one.
+      created_at: CreatedAt
+      expires_at:
+        type: datetime
+        docs: |
+          While pending, the deadline for the browser to finish. Once active,
+          at most 30 days after activation and never later than the
+          authorizing key's own expiry.
+
+  ApiKey:
+    discriminant: type
+    union:
+      bearer: BearerApiKey
+      browser: BrowserApiKey
+
+  ApiKeyType:
+    enum:
+      - bearer
+      - browser
 
   CreateApiKeyResponse:
     properties:
@@ -500,7 +545,9 @@ types:
       next_page_token: optional<global.PageToken>
       api_keys:
         type: list<ApiKey>
-        docs: Ordered by `created_at` descending.
+        docs: |
+          Ordered by `created_at` descending. Includes browser API keys; filter
+          with `type` to see one kind.
 
   CreateApiKeyRequest:
     properties:
@@ -525,10 +572,34 @@ service:
       request:
         name: ListApiKeysRequest
         query-parameters:
+          type:
+            type: optional<ApiKeyType>
+            docs: Return only bearer or only browser API keys.
+          inbox_id:
+            type: optional<string>
+            docs: Return only keys scoped to this inbox.
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
           ascending: optional<global.Ascending>
       response: ListApiKeysResponse
+
+    get:
+      method: GET
+      path: /{api_key_id}
+      display-name: Get API Key
+      docs: |
+        Get one API key by ID, bearer or browser. Requires `api_key_read`.
+
+        For a browser API key, poll this with the `api_key_id` from a connect
+        call to learn when the browser has finished: `status` moves from
+        `pending` to `active`. A key that expired, was deleted, or was never
+        activated returns `404`. If the browser reused a key it already held
+        for the inbox, the `api_key_id` in the response is the one to keep.
+      path-parameters:
+        api_key_id: ApiKeyId
+      response: ApiKey
+      errors:
+        - global.NotFoundError
 
     create:
       method: POST
@@ -549,6 +620,11 @@ service:
       path: /{api_key_id}
       display-name: Delete API Key
       docs: |
+        Delete one API key by ID, bearer or browser. A pending browser API key
+        is cancelled and its magic URL can no longer be used; an active one is
+        revoked and can no longer sign in. Deleting a bearer key also revokes
+        every browser API key it authorized.
+
         **CLI:**
         ```bash
         agentmail api-keys delete --api-key-id <api_key_id>
@@ -656,8 +732,8 @@ service:
       display-name: List Browser Credentials
       availability: deprecated
       docs: |
-        Deprecated: use [List Sessions](/api-reference/sessions/list), which
-        returns the same browsers as sessions without key material.
+        Deprecated: use [List API Keys](/api-reference/api-keys/list) with
+        `type=browser`, which returns the same browsers without key material.
 
         List active browser credentials visible to the caller's scope. Requires `api_key_read`.
       request:
@@ -687,7 +763,7 @@ service:
       display-name: Delete Browser Credential
       availability: deprecated
       docs: |
-        Deprecated: use [Delete Session](/api-reference/sessions/delete) with
+        Deprecated: use [Delete API Key](/api-reference/api-keys/delete) with
         the same ID.
 
         Permanently revoke one active browser credential. Requires `api_key_delete`.
@@ -704,8 +780,8 @@ service:
       display-name: Cancel Browser Enrollment
       availability: deprecated
       docs: |
-        Deprecated: use [Delete Session](/api-reference/sessions/delete) with
-        the pending session's `session_id`.
+        Deprecated: use [Delete API Key](/api-reference/api-keys/delete) with
+        the pending browser API key's `api_key_id`.
 
         Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
       path-parameters:
