@@ -97,8 +97,11 @@ types:
         type: api-keys.ApiKeyId
         docs: Deprecated alias of `api_key_id`, carrying the same value.
       magic_url:
-        type: string
-        docs: Single-use URL to open in the browser that will hold the sign-in.
+        type: optional<string>
+        docs: |
+          Single-use URL to open in the browser that will hold the sign-in.
+          Absent when a repeated `client_id` resolves to a key the browser has
+          already activated.
       expires_at:
         type: datetime
         docs: Time at which the URL expires.
