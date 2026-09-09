@@ -102,6 +102,19 @@ Threads are groupings of messages and have no permissions of their own. Every th
 | `webhook_update` | Update webhooks |
 | `webhook_delete` | Delete webhooks |
 
+For organizations enrolled in the support-controlled content-boundary pilot, an enabled
+console content lock adds `message_read` checks when creating or retaining a body-bearing
+received webhook. This includes channel and HTTP-header updates and idempotent returns
+of existing subscriptions. Restricted-label requirements still apply. The
+`message.received.envelope` webhook contains selected metadata and does not require
+`message_read`. Organizations outside the enabled pilot retain their existing received
+webhook permission behavior. Existing security-event requirements are unchanged.
+
+The lock applies to console JWTs, not independently issued API keys or internal proxy
+credentials. Prior body subscriptions, content credentials and signed content URLs need
+separate cleanup before activation. Locked pilot organizations use a signed REST client
+and envelope webhooks; the console mail UI and WebSocket content stream are unavailable.
+
 ### Domains
 
 | Permission | Description |
