@@ -348,7 +348,6 @@ navigation:
                 icon: fa-solid fa-gear
                 path: pages/guides/domains/managing-domains.mdx
           - page: Google Workspace
-            hidden: true
             icon: fa-brands fa-google
             path: pages/guides/google-workspace.mdx
       - section: Webhooks
