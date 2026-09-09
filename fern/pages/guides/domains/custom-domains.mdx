@@ -500,27 +500,21 @@ DNS can be tricky. Here are some common issues and how to resolve them.
     it's been a while, click the verify domain button in the console which will trigger a reverification manually(DNS propagation can get stuck at times). 
   </Accordion>
   <Accordion title="I'm seeing 'Too many SPF records' errors">
-    A domain must have only **one** SPF record. If you're using other services that send email on your behalf (like a CRM), you need to merge their SPF policies with AgentMail's into a single record.
+    Publish only **one** SPF TXT record at each DNS hostname. SPF checks the SMTP MAIL FROM (Return-Path) domain, which can differ from the domain in the visible From address.
 
-    An SPF record is a single line of text. It starts with `v=spf1` and ends with a mechanism like `~all` or `-all`. All your permitted senders go in the middle.
-
-    **How to Merge:**
-
-    1.  **Find your existing SPF record.** It will look something like this: `v=spf1 include:_spf.other-domain.com ~all`
-    2.  **Find AgentMail's SPF include.** This is `include:spf.agentmail.to`.
-    3.  **Combine them.** Copy the `include` from AgentMail and place it into your existing record, right before the `~all` or `-all` part.
+    AgentMail uses a dedicated MAIL FROM subdomain for custom-domain sending, typically `mail.your-domain.com`. Publish the SPF record at the exact hostname shown in your domain's DNS records in the Console or API. The sending domain and its MAIL FROM subdomain can each have their own SPF record because they are different hostnames.
 
     <CodeBlocks>
-    ```text title="Example: Merging SPF records"
-    # Before
-    v=spf1 include:_spf.other-domain.com ~all
-
-    # After
-    v=spf1 include:_spf.other-domain.com include:spf.agentmail.to ~all
+    ```text title="Example: SPF at mail.your-domain.com"
+    v=spf1 include:amazonses.com -all
     ```
     </CodeBlocks>
 
-    Just keep adding `include:` mechanisms for each service you use. Remember to only have one `v=spf1` at the beginning and one `~all` or `-all` at the end.
+    Earlier versions of this guide incorrectly recommended `include:spf.agentmail.to`. That hostname does not publish an SPF record and must not be included in your policy. If you added it, remove that include while preserving any other authorized senders at the same hostname. Do not add `include:amazonses.com` to your visible From domain merely to replace it; use the exact MAIL FROM hostname and records returned for your domain. Keep the MAIL FROM MX record as well; it is separate from the MX records used to receive mail in your inboxes.
+
+    If multiple services actually use the same MAIL FROM hostname, combine their authorized mechanisms into one SPF record at that hostname. Do not merge records from different hostnames or replace another provider's SPF record on your main domain. SPF policies must stay within the [ten DNS-lookup limit](https://www.rfc-editor.org/rfc/rfc7208#section-4.6.4).
+
+    For a failed message, check its Return-Path and Authentication-Results headers before changing DNS. DMARC requires an aligned SPF or DKIM pass; passing authentication does not guarantee inbox placement. See [Amazon SES custom MAIL FROM setup](https://docs.aws.amazon.com/ses/latest/dg/mail-from.html) for the SPF and MX requirements.
 
   </Accordion>
 
