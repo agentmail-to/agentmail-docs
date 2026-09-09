@@ -731,83 +731,6 @@ service:
       errors:
         - global.NotFoundError
 
-    listPublicKeys:
-      method: GET
-      path: /public-keys
-      display-name: List Public-Key Credentials
-      availability: deprecated
-      docs: |
-        Deprecated: use [List API Keys](/api-reference/api-keys/list) with `type=public_key`.
-
-        List only public-key credentials visible to the bearer caller's scope.
-        Bearer credentials are never returned, even though both credential types
-        share storage and pagination indexes. Requires `api_key_read`.
-      request:
-        name: ListPublicKeysRequest
-        query-parameters:
-          limit: optional<global.Limit>
-          page_token: optional<global.PageToken>
-          ascending: optional<global.Ascending>
-      response: ListPublicKeysResponse
-
-    createPublicKey:
-      method: POST
-      path: /public-keys
-      display-name: Register Public-Key Credential
-      availability: deprecated
-      docs: |
-        Deprecated: use [Create API Key](/api-reference/api-keys/create) with a `public_key` body.
-
-        Register a public P-256 JWK using an existing AgentMail bearer API key
-        with `api_key_create`. Re-registering the same JWK creates a new
-        credential ID; it does not replace or recover an earlier credential.
-        The private key must never be sent to AgentMail.
-      request: CreatePublicKeyRequest
-      response: PublicKeyCredential
-      errors:
-        - global.ValidationError
-        - global.ConflictError
-
-    updatePublicKeyName:
-      method: PATCH
-      path: /public-keys/{api_key_id}
-      display-name: Rename Public-Key Credential
-      availability: deprecated
-      docs: |
-        Deprecated: use [Update API Key](/api-reference/api-keys/update).
-
-        Rename the credential. All security-relevant fields are immutable.
-        Requires `api_key_update`.
-      path-parameters:
-        api_key_id:
-          type: uuid
-          docs: Public-key credential ID returned by registration.
-      request: UpdatePublicKeyNameRequest
-      response: PublicKeyCredential
-      errors:
-        - global.ValidationError
-        - global.NotFoundError
-
-    revokePublicKey:
-      method: DELETE
-      path: /public-keys/{api_key_id}
-      display-name: Revoke Public-Key Credential
-      availability: deprecated
-      docs: |
-        Deprecated: use [Delete API Key](/api-reference/api-keys/delete).
-
-        Permanently revoke one public-key credential. This hard-deletes the
-        credential; repeating the request returns not found. Requires
-        `api_key_delete`.
-      path-parameters:
-        api_key_id:
-          type: uuid
-          docs: Public-key credential ID returned by registration.
-      response:
-        status-code: 204
-      errors:
-        - global.NotFoundError
-
     revokeAllAgentIdSignInKeys:
       method: POST
       path: /public-keys/agentid-sign-in/revoke-all
@@ -835,23 +758,6 @@ service:
         - global.ValidationError
         - global.ConflictError
 
-    listBrowserCredentials:
-      method: GET
-      path: /browser-credentials
-      display-name: List Browser Credentials
-      availability: deprecated
-      docs: |
-        Deprecated: use [List API Keys](/api-reference/api-keys/list) with
-        `type=public_key`, which returns the same browsers without key material.
-
-        List active browser credentials visible to the caller's scope. Requires `api_key_read`.
-      request:
-        name: ListBrowserCredentialsRequest
-        query-parameters:
-          limit: optional<BrowserAuthorizationListLimit>
-          page_token: optional<global.PageToken>
-      response: ListBrowserCredentialsResponse
-
     listBrowserCredentialEvents:
       method: GET
       path: /browser-credentials/events
@@ -863,40 +769,6 @@ service:
           limit: optional<BrowserAuthorizationListLimit>
           page_token: optional<global.PageToken>
       response: ListBrowserLifecycleEventsResponse
-      errors:
-        - global.NotFoundError
-
-    deleteBrowserCredential:
-      method: DELETE
-      path: /browser-credentials/{credential_id}
-      display-name: Delete Browser Credential
-      availability: deprecated
-      docs: |
-        Deprecated: use [Delete API Key](/api-reference/api-keys/delete) with
-        the same ID.
-
-        Permanently revoke one active browser credential. Requires `api_key_delete`.
-      path-parameters:
-        credential_id: uuid
-      response:
-        status-code: 204
-      errors:
-        - global.NotFoundError
-
-    cancelBrowserEnrollment:
-      method: DELETE
-      path: /browser-credentials/enrollments/{enrollment_id}
-      display-name: Cancel Browser Enrollment
-      availability: deprecated
-      docs: |
-        Deprecated: use [Delete API Key](/api-reference/api-keys/delete) with
-        the pending browser session's `api_key_id`.
-
-        Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
-      path-parameters:
-        enrollment_id: uuid
-      response:
-        status-code: 204
       errors:
         - global.NotFoundError
 

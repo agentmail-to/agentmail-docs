@@ -284,9 +284,10 @@ operations require `api_key_read`; deletion and cancellation require
 | List remembered consent for an inbox | `GET /v0/api-keys/browser-consents?inbox_id={inbox_id}` |
 | Revoke remembered consent | `DELETE /v0/api-keys/browser-consents/{consent_id}` |
 
-The older `/v0/api-keys/browser-credentials` list and delete endpoints and the
-`browser-credentials/enrollments` create and cancel endpoints are deprecated
-aliases of the endpoints above.
+The older `/v0/api-keys/browser-credentials` list and delete endpoints, the
+`browser-credentials/enrollments` create and cancel endpoints, and the
+`/v0/api-keys/public-keys` routes still answer for existing callers but are no
+longer documented; use the endpoints above.
 
 List endpoints accept `limit` from 1 through 100 and a sealed `page_token`.
 They return `count`, the effective `limit`, an optional `next_page_token`, and

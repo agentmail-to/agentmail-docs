@@ -4,7 +4,6 @@ navigation:
   - threads.yml
   - messages.yml
   - drafts.yml
-  - browser-credentials.yml
   - webhooks.yml
   - lists.yml
   - metrics.yml
