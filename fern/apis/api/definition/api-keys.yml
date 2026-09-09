@@ -492,6 +492,10 @@ types:
       permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
 
+  ApiKeyCreator:
+    properties:
+      api_key_id: ApiKeyId
+
   BrowserApiKeyStatus:
     enum:
       - pending
@@ -502,25 +506,29 @@ types:
 
   BrowserApiKey:
     docs: |
-      A public-key credential held by a browser, the session it uses to sign in
-      as the inbox at AgentID relying parties. It has no secret and no
-      permissions of its own: the browser proves possession of a non-extractable
-      key, and the bearer API key that created it bounds what it may do. It is
-      created by [Connect Provider](/api-reference/providers/connect) or
-      [Connect Browser](/api-reference/providers/connect-browser), never by
-      Create API Key.
+      A public key held by a browser, scoped to one inbox: the key it uses to
+      sign in as that inbox at AgentID relying parties. It has no secret and
+      no permissions of its own: the browser proves possession of a
+      non-extractable key, and the bearer API key in `created_by` bounds what
+      it may do. Created by [Connect Provider](/api-reference/providers/connect)
+      or [Connect Browser](/api-reference/providers/connect-browser), never by
+      Create API Key. `status` is the only field a registered public key lacks.
     properties:
       type: literal<"public_key">
-      purpose:
-        type: literal<"browser_session">
-        docs: Distinguishes a browser session from a registered public key.
       api_key_id: ApiKeyId
+      organization_id: global.OrganizationId
+      pod_id:
+        type: string
+        docs: Pod of the inbox the browser signs in as.
       inbox_id:
         type: string
         docs: Inbox the browser signs in as.
       status: BrowserApiKeyStatus
-      authorized_by:
-        type: ApiKeyId
+      permissions:
+        type: ApiKeyPermissions
+        docs: Always empty; a browser key borrows its authority from the key in `created_by`.
+      created_by:
+        type: ApiKeyCreator
         docs: The bearer API key that created it. Deleting that key revokes this one.
       created_at: CreatedAt
       expires_at:
@@ -532,9 +540,9 @@ types:
 
   ApiKey:
     docs: |
-      One credential of any family. `type` is `bearer` or `public_key`; a
-      public key with `purpose: browser_session` is a browser session, and one
-      without `purpose` is a registered signing key.
+      One credential of any family. `type` is `bearer` or `public_key`. A
+      public key carrying `status` is a browser key; one without it is a
+      registered signing key.
     discriminated: false
     union:
       - BearerApiKey
@@ -570,9 +578,9 @@ types:
       api_keys:
         type: list<ApiKey>
         docs: |
-          One credential family per request, ordered by `created_at` descending:
-          bearer keys by default, registered public keys with `type=public_key`,
-          browser sessions with `type=public_key&purpose=browser_session`.
+          One credential family per request, ordered by `created_at`
+          descending: bearer keys by default, every public key with
+          `type=public_key`. Registered keys page first, then browser keys.
 
   CreateBearerApiKeyRequest:
     properties:
@@ -631,12 +639,9 @@ service:
           type:
             type: optional<ApiKeyType>
             docs: Credential family to list. Defaults to `bearer`.
-          purpose:
-            type: optional<literal<"browser_session">>
-            docs: With `type=public_key`, list browser sessions instead of registered keys.
           inbox_id:
             type: optional<string>
-            docs: With `purpose=browser_session`, return only this inbox's sessions.
+            docs: With `type=public_key`, return only browser keys for this inbox.
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
           ascending: optional<global.Ascending>
@@ -650,9 +655,9 @@ service:
         Get one credential of any family by ID. Registered public keys also
         resolve by their `client_id`. Requires `api_key_read`.
 
-        For a browser session, poll this with the `api_key_id` from a connect
+        For a browser key, poll this with the `api_key_id` from a connect
         call to learn when the browser has finished: `status` moves from
-        `pending` to `active`. A session that expired, was deleted, or was
+        `pending` to `active`. A key that expired, was deleted, or was
         never activated returns `404`. If the browser reused a key it already
         held for the inbox, the `api_key_id` in the response is the one to
         keep; it is the handle List and Delete accept.
@@ -832,8 +837,7 @@ service:
       availability: deprecated
       docs: |
         Deprecated: use [List API Keys](/api-reference/api-keys/list) with
-        `type=public_key&purpose=browser_session`, which returns the same
-        browsers without key material.
+        `type=public_key`, which returns the same browsers without key material.
 
         List active browser credentials visible to the caller's scope. Requires `api_key_read`.
       request:

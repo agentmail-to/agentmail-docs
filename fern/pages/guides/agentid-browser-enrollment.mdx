@@ -57,8 +57,8 @@ origin override: do not accept a different origin from runtime input.
 5. Send `{inbox_id, transaction_jti}` with the bearer API key and an
    `Idempotency-Key` header to exactly
    `https://api.agentmail.to/v0/providers/connect`, the fixed endpoint the
-   action publishes. Add `decision: "allow"` to approve the relying party on
-   the agent's behalf.
+   action publishes. Add `authorize: true` to approve the relying party on the
+   agent's behalf.
 6. Keep the existing AgentID page open. It observes the pending key, creates
    a non-extractable browser key, proves possession, and continues the same
    transaction.
@@ -276,8 +276,8 @@ operations require `api_key_read`; deletion and cancellation require
 | --- | --- |
 | Attach a browser already on an AgentID page | `POST /v0/providers/connect` with `transaction_jti` |
 | Enroll a browser by magic URL | `POST /v0/providers/connect` or `POST /v0/providers/{provider_id}/connect` |
-| List browser sessions across the key's scope | `GET /v0/api-keys?type=public_key&purpose=browser_session` |
-| List an inbox's browser sessions | `GET /v0/api-keys?type=public_key&purpose=browser_session&inbox_id={inbox_id}` |
+| List public keys, registered and browser, across the key's scope | `GET /v0/api-keys?type=public_key` |
+| List an inbox's browser keys | `GET /v0/api-keys?type=public_key&inbox_id={inbox_id}` |
 | Get one, pending or active | `GET /v0/api-keys/{api_key_id}` |
 | Cancel a pending key or revoke an active one | `DELETE /v0/api-keys/{api_key_id}` |
 | List lifecycle events | `GET /v0/api-keys/browser-credentials/events` |

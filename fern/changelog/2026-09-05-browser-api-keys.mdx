@@ -4,19 +4,19 @@ tags: ["api-keys", "providers-api", "agentid", "new-feature", "docs"]
 
 ## Summary
 
-A browser that signs in as an inbox at AgentID is now an API key, a public-key credential with purpose `browser_session`, managed with the same list, get, and delete calls as every other API key. Start one with provider connect, or attach one to a sign-in the browser is already in, then poll it until the browser finishes, list it alongside your bearer keys, and revoke it when it is no longer needed, without handling key material or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
+A browser that signs in as an inbox at AgentID is now an API key, a public key scoped to that inbox, managed with the same list, get, and delete calls as every other API key. Start one with provider connect, or attach one to a sign-in the browser is already in, then poll it until the browser finishes, list it alongside your bearer keys, and revoke it when it is no longer needed, without handling key material or enrollment internals. A new connect call with no provider enrolls a browser and stops, so agents can prepare a browser profile ahead of any sign-in.
 
 ### What's new?
 
 **New endpoints:**
 
-- `POST /v0/providers/connect` - Connect a browser by provider domain, with no provider at all, or by attaching to the AgentID sign-in the browser is already on with `transaction_jti`. The no-provider mode returns a `magic_url` and the browser stops on AgentID once the session is active; attach mode returns no URL. Pass `decision: "allow"` in attach mode to approve the relying party on the agent's behalf.
+- `POST /v0/providers/connect` - Connect a browser by provider domain, with no provider at all, or by attaching to the AgentID sign-in the browser is already on with `transaction_jti`. The no-provider mode returns a `magic_url` and the browser stops on AgentID once the session is active; attach mode returns no URL. Pass `authorize: true` to approve the relying party on the agent's behalf, in either mode.
 - `GET /v0/api-keys/{api_key_id}` - Get one credential of any family. For a browser session, poll it to watch `status` go from `pending` to `active`.
 - `PATCH /v0/api-keys/{api_key_id}` - Rename or re-permission a bearer key or a public-key credential.
 
 **New features:**
 
-- **One list for every credential family**: `GET /v0/api-keys` lists bearer keys by default, registered public keys with `type=public_key`, and browser sessions with `type=public_key&purpose=browser_session`, filterable by `inbox_id`. Every item carries `type`; browser sessions carry `purpose`, `inbox_id`, `status`, `authorized_by`, and `expires_at`.
+- **One vocabulary for every credential family**: `GET /v0/api-keys` lists bearer keys by default and every public key with `type=public_key`, registered keys first and then browser keys, filterable by `inbox_id`. Every item carries `type`, `organization_id`, `pod_id`, `inbox_id`, `permissions`, `created_by`, and the timestamps; browser keys add `status`.
 - **One handle for the whole lifecycle**: connect responses now carry `api_key_id`, the same ID Get, List, and Delete use before and after activation. `session_id` stays as a deprecated alias with the same value.
 - **Delete covers every family**: `DELETE /v0/api-keys/{api_key_id}` deletes a bearer key, revokes a registered public key, cancels a pending browser session, or revokes an active one. Deleting a bearer key still revokes every browser session it authorized.
 - **Public keys live under api-keys**: `POST /v0/api-keys` with a `public_key` body registers a public-key credential, and list, get, update, and delete cover it alongside bearer keys. The `/v0/api-keys/public-keys` routes are deprecated aliases.
