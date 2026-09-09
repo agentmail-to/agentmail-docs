@@ -20,7 +20,7 @@ A browser that signs in as an inbox at AgentID is now an API key, a public key s
 - **One handle for the whole lifecycle**: connect responses now carry `api_key_id`, the same ID Get, List, and Delete use before and after activation. `session_id` stays as a deprecated alias with the same value.
 - **Delete covers every family**: `DELETE /v0/api-keys/{api_key_id}` deletes a bearer key, revokes a registered public key, cancels a pending browser session, or revokes an active one. Deleting a bearer key still revokes every browser session it authorized.
 - **Public keys live under api-keys**: `POST /v0/api-keys` with a `public_key` body registers a public-key credential, and list, get, update, and delete cover it alongside bearer keys. The `/v0/api-keys/public-keys` routes are deprecated aliases.
-- **Client IDs for public keys**: register a public key with a caller-chosen `client_id`, unique within the organization, and use it in place of `api_key_id` on get, rename, and revoke. Registration is idempotent on the alias.
+- **Client IDs for public keys**: register a public key, or connect a browser, with a caller-chosen `client_id`, unique within the organization across every public key, and use it in place of `api_key_id` on get, rename, and revoke. Registration and connect are idempotent on the alias: a repeated connect answers from the key the `client_id` names instead of minting another. The `Idempotency-Key` header on connect is deprecated and read as `client_id` when the body omits it.
 
 **Changes:**
 

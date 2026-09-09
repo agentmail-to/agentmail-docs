@@ -524,6 +524,11 @@ types:
         type: string
         docs: Inbox the browser signs in as.
       status: BrowserApiKeyStatus
+      client_id:
+        type: optional<string>
+        docs: |
+          The name given at connect, unique within the organization across
+          every public key. Get and Delete accept it in place of `api_key_id`.
       permissions:
         type: ApiKeyPermissions
         docs: Always empty; a browser key borrows its authority from the key in `created_by`.
