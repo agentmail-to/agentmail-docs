@@ -609,9 +609,8 @@ types:
 
   UpdateApiKeyRequest:
     docs: |
-      Rename a credential or change its permissions. `allowed_scopes` applies
-      to public-key credentials only. Key material, type, scope, and expiry
-      are immutable.
+      Rename a credential or change its permissions. Key material, type,
+      scope, and expiry are immutable.
     properties:
       name:
         type: optional<string>
@@ -619,9 +618,6 @@ types:
           minLength: 1
           maxLength: 256
       permissions: optional<ApiKeyPermissions>
-      allowed_scopes:
-        type: optional<list<string>>
-        docs: Public keys only. The exact maximum sign-in scope set; omit to leave unchanged.
 
 service:
   url: Http
@@ -712,9 +708,8 @@ service:
       display-name: Update API Key
       docs: |
         Rename a bearer key or a public-key credential, or change its
-        permissions. Public keys also resolve by `client_id` and accept
-        `allowed_scopes`. Browser sessions cannot be updated. Requires
-        `api_key_update`.
+        permissions. Public keys also resolve by `client_id`. Browser
+        sessions cannot be updated. Requires `api_key_update`.
       path-parameters:
         api_key_id: ApiKeyId
       request: UpdateApiKeyRequest
