@@ -122,8 +122,8 @@ types:
         type: optional<string>
         docs: |
           Single-use URL to open in the browser that should hold the key.
-          Absent when the request carried `transaction_jti`, because the
-          browser is already on the AgentID page and continues there.
+          Absent when a repeated `client_id` resolves to a key that is
+          already active: there is nothing left to open.
       expires_at:
         type: datetime
         docs: Time at which the URL, or the pending key, expires.
