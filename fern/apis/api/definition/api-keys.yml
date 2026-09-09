@@ -634,6 +634,14 @@ service:
       path: ""
       display-name: List API Keys
       docs: |
+        List one credential family: bearer keys by default, or every public
+        key (registered and browser) with `type=public_key`.
+
+        With `type=public_key`, `limit` is at most 100, `ascending` is not
+        accepted, and pages continue until `next_page_token` is absent: a page
+        can be empty and still carry a token, so page to token exhaustion, not
+        to the first empty page.
+
         **CLI:**
         ```bash
         agentmail api-keys list
@@ -646,10 +654,14 @@ service:
             docs: Credential family to list. Defaults to `bearer`.
           inbox_id:
             type: optional<string>
-            docs: With `type=public_key`, return only browser keys for this inbox.
+            docs: |
+              With `type=public_key`, return only keys scoped to this inbox,
+              registered and browser alike.
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
-          ascending: optional<global.Ascending>
+          ascending:
+            type: optional<global.Ascending>
+            docs: Bearer keys only; rejected with `type=public_key`.
       response: ListApiKeysResponse
 
     get:
