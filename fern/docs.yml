@@ -99,6 +99,8 @@ experimental:
 default-language: python
 
 redirects:
+  - source: /api-reference/inboxes/browser-credentials/create-enrollment
+    destination: /agentid-browser-enrollment
   - source: /integrations/moltbot
     destination: /integrations/openclaw
     permanent: true
@@ -456,7 +458,10 @@ navigation:
           typescript: agentmail
         layout:
           - agent
-          - inboxes
+          - inboxes:
+              - browser-credentials:
+                  - endpoint: POST /inboxes/{inbox_id}/browser-credentials/enrollments
+                    hidden: true
           - threads
           - drafts
           - webhooks
