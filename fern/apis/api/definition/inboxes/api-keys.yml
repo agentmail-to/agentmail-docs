@@ -41,7 +41,7 @@ service:
         agentmail inboxes api-keys create --inbox-id <inbox_id> --name "My Key"
         ```
       request: api-keys.CreateApiKeyRequest
-      response: api-keys.CreateApiKeyResponse
+      response: api-keys.CreateApiKeyResult
       errors:
         - global.NotFoundError
         - global.ValidationError

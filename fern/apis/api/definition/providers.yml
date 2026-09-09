@@ -80,16 +80,9 @@ types:
       authorize:
         type: optional<boolean>
         docs: |
-          Approve the relying party on the agent's behalf so no human has to
-          click through the disclosure page: the selected `provider` on a
-          magic-URL mint, or the transaction's relying party when attaching.
-          Requires the API key permission for every owner scope involved.
-      transaction_jti:
-        type: optional<api-keys.BrowserEnrollmentTransactionJti>
-        docs: |
-          Attach to a sign-in the browser is already in, instead of minting a
-          magic URL. Read it from the AgentID page's enrollment action after
-          verifying the page origin is exactly `https://auth.agentid.com`.
+          Approve the selected `provider` on the agent's behalf so no human
+          has to click through the disclosure page. Requires the API key
+          permission for every owner scope involved.
 
   ConnectProviderAccepted:
     properties:
@@ -243,9 +236,9 @@ service:
       path: /connect
       display-name: Connect Browser
       docs: |
-        Enrolls a browser as an inbox. The browser creates a
+        Enrolls a browser as an inbox by magic URL. The browser creates a
         [browser session](/api-reference/api-keys/get), or reuses one it
-        already holds. Requires `api_key_create`. Three modes, chosen by the
+        already holds. Requires `api_key_create`. Two modes, chosen by the
         body:
 
         - **`provider` set to a domain or URL**: same as Connect Provider
@@ -256,12 +249,10 @@ service:
           AgentID once it is active. Use this to prepare a browser profile
           ahead of any sign-in, or when the relying party is not in the
           provider catalog.
-        - **`transaction_jti` set**: the browser is already on an AgentID
-          sign-in page. No URL is returned; the page observes the pending
-          session, creates the key, and continues the same sign-in. An
-          idempotent retry for the same pending transaction, inbox, and bearer
-          key returns the same body. Add `authorize: true` to approve the
-          relying party on the agent's behalf.
+
+        To attach to a sign-in the browser is already in, create the key
+        directly instead: [Create API Key](/api-reference/api-keys/create)
+        with `transaction_jti`.
 
         The same limits and `client_id` repeat behavior as Connect Provider
         apply.

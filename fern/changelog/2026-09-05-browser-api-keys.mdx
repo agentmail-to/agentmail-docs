@@ -10,7 +10,8 @@ A browser that signs in as an inbox at AgentID is now an API key, a public key s
 
 **New endpoints:**
 
-- `POST /v0/providers/connect` - Connect a browser by provider domain, with no provider at all, or by attaching to the AgentID sign-in the browser is already on with `transaction_jti`. The no-provider mode returns a `magic_url` and the browser stops on AgentID once the session is active; attach mode returns no URL. Pass `authorize: true` to approve the relying party on the agent's behalf, in either mode.
+- `POST /v0/providers/connect` - Connect a browser by provider domain, or with no provider at all. Both return a `magic_url`; the no-provider mode stops on AgentID once the session is active. Pass `authorize: true` to approve the provider on the agent's behalf.
+- `POST /v0/api-keys` and `POST /v0/inboxes/{inbox_id}/api-keys` with `transaction_jti` - Create a browser key bound to the AgentID sign-in the browser is already in, for relying parties reached directly rather than through connect. Returns the pending key; `authorize: true` approves that relying party.
 - `GET /v0/api-keys/{api_key_id}` - Get one credential of any family. For a browser session, poll it to watch `status` go from `pending` to `active`.
 - `PATCH /v0/api-keys/{api_key_id}` - Rename or re-permission a bearer key or a public-key credential.
 

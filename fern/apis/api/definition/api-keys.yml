@@ -592,20 +592,45 @@ types:
       name: optional<Name>
       permissions: optional<ApiKeyPermissions>
 
+  CreateBrowserApiKeyRequest:
+    docs: |
+      Create a browser key bound to the AgentID sign-in the browser is already
+      in. The AgentID page publishes `transaction_jti` in its session action;
+      read it only after verifying the page origin is exactly
+      `https://auth.agentid.com`. The transaction is the idempotency anchor:
+      repeating the call for the same sign-in, inbox, and API key returns the
+      same pending key.
+    properties:
+      transaction_jti: BrowserEnrollmentTransactionJti
+      inbox_id:
+        type: optional<string>
+        docs: |
+          Inbox the browser signs in as. Required on `POST /api-keys` above the
+          inbox scope; implied by the path on `POST /inboxes/{inbox_id}/api-keys`.
+      authorize:
+        type: optional<boolean>
+        docs: |
+          Approve the transaction's relying party on the agent's behalf so no
+          human has to click through the disclosure page. Requires the API key
+          permission for every owner scope involved.
+
   CreateApiKeyRequest:
     docs: |
-      A body with `public_key` registers a public-key credential; any other
-      body mints a bearer key.
+      A body with `public_key` registers a public-key credential; a body with
+      `transaction_jti` creates a browser key; any other body mints a bearer
+      key.
     discriminated: false
     union:
       - CreateBearerApiKeyRequest
       - CreatePublicKeyRequest
+      - CreateBrowserApiKeyRequest
 
   CreateApiKeyResult:
     discriminated: false
     union:
       - CreateApiKeyResponse
       - PublicKeyCredential
+      - BrowserApiKey
 
   UpdateApiKeyRequest:
     docs: |
@@ -685,12 +710,14 @@ service:
       path: ""
       display-name: Create API Key
       docs: |
-        Create one credential of either family. A body without `public_key`
-        mints a bearer key and returns its secret once. A body with a public
-        JWK registers a public-key credential, optionally under a caller-chosen
-        `client_id`, and returns the credential without any secret. Browser
-        sessions are created by the connect calls, never here. Requires
-        `api_key_create`.
+        Create one credential of any family. A body with a public JWK
+        registers a public-key credential, optionally under a caller-chosen
+        `client_id`, and returns it without any secret. A body with
+        `transaction_jti` creates a browser key bound to the AgentID sign-in
+        the browser is already in and returns it as `pending`; poll Get until
+        it is `active`. Any other body mints a bearer key and returns its
+        secret once. Magic-URL enrollment stays on the connect endpoints.
+        Requires `api_key_create`.
 
         **CLI:**
         ```bash
