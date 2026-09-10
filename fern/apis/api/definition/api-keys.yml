@@ -102,12 +102,26 @@ types:
         docs: Human-readable credential name.
       public_key: PublicKeyMaterial
       scope: PublicKeyScope
+      organization_id: global.OrganizationId
+      pod_id:
+        type: optional<string>
+        docs: Present for a pod- or inbox-scoped credential; the same value `scope` carries.
+      inbox_id:
+        type: optional<string>
+        docs: Present for an inbox-scoped credential; the same value `scope` carries.
+      created_by:
+        type: ApiKeyCreator
+        docs: The bearer API key that registered it.
+      permissions: ApiKeyPermissions
       expires_at:
         type: optional<datetime>
         docs: Immutable absolute expiry. Omitted when the credential does not expire.
       revoked_at:
         type: optional<datetime>
         docs: Present when organization-wide revoke-all invalidated this credential generation.
+      used_at:
+        type: optional<datetime>
+        docs: Last time this key signed an admitted request, when known.
       created_at: datetime
       updated_at: datetime
 
@@ -510,9 +524,11 @@ types:
       sign in as that inbox at AgentID relying parties. It has no secret and
       no permissions of its own: the browser proves possession of a
       non-extractable key, and the bearer API key in `created_by` bounds what
-      it may do. Created by [Connect Provider](/api-reference/providers/connect)
-      or [Connect Browser](/api-reference/providers/connect-browser), never by
-      Create API Key. `status` is the only field a registered public key lacks.
+      it may do. Created by [Connect Provider](/api-reference/providers/connect),
+      [Connect Browser](/api-reference/providers/connect-browser), or
+      [Create API Key](/api-reference/api-keys/create) with `transaction_jti`.
+      It answers with the same fields as a registered public key plus
+      `status`; `public_key` appears once the browser has proved its key.
     properties:
       type: literal<"public_key">
       api_key_id: ApiKeyId
@@ -524,6 +540,15 @@ types:
         type: string
         docs: Inbox the browser signs in as.
       status: BrowserApiKeyStatus
+      name:
+        type: Name
+        docs: Server-assigned, `Browser · <inbox_id>`.
+      scope:
+        type: PublicKeyScope
+        docs: Always the inbox scope; the same value as `inbox_id`.
+      public_key:
+        type: optional<PublicKeyMaterial>
+        docs: The browser's public key once `status` is `active`; absent while pending.
       client_id:
         type: optional<string>
         docs: |
@@ -536,12 +561,19 @@ types:
         type: ApiKeyCreator
         docs: The bearer API key that created it. Deleting that key revokes this one.
       created_at: CreatedAt
+      updated_at: datetime
       expires_at:
         type: datetime
         docs: |
           While pending, the deadline for the browser to finish. Once active,
           at most 30 days after activation and never later than the
           authorizing key's own expiry.
+      used_at:
+        type: optional<datetime>
+        docs: Not recorded for browser keys today.
+      revoked_at:
+        type: optional<datetime>
+        docs: Not returned for browser keys today; a revoked browser key is not found.
 
   ApiKey:
     docs: |
@@ -734,9 +766,9 @@ service:
       path: /{api_key_id}
       display-name: Update API Key
       docs: |
-        Rename a bearer key or a public-key credential, or change its
-        permissions. Public keys also resolve by `client_id`. Browser
-        sessions cannot be updated. Requires `api_key_update`.
+        Rename a bearer key or a registered public-key credential, or change
+        its permissions. Public keys also resolve by `client_id`. A browser
+        key has no mutable fields and answers `400`. Requires `api_key_update`.
       path-parameters:
         api_key_id: ApiKeyId
       request: UpdateApiKeyRequest
