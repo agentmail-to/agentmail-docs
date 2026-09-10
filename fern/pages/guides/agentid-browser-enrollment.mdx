@@ -92,7 +92,7 @@ only after obtaining the final page URL from the browser transport:
 
 ```json
 {
-  "type": "agentid_enrollment_required",
+  "type": "agentid_session_required",
   "issuer": "https://auth.agentid.com",
   "browser_origin": "https://auth.agentid.com",
   "agentmail_enrollment_endpoint": "https://api.agentmail.to/v0/inboxes/{inbox_id}/browser-credentials/enrollments",
@@ -151,7 +151,7 @@ def create_browser_enrollment(
     if canonical_origin(source_url) != AGENTID_ORIGIN:
         raise ValueError("Untrusted browser enrollment origin")
     if (
-        action.get("type") != "agentid_enrollment_required"
+        action.get("type") != "agentid_session_required"
         or action.get("issuer") != AGENTID_ORIGIN
         or action.get("browser_origin") != AGENTID_ORIGIN
         or action.get("agentmail_enrollment_endpoint")
@@ -213,7 +213,7 @@ async function createBrowserEnrollment({
     throw new Error("Untrusted browser enrollment origin");
   }
   if (
-    action.type !== "agentid_enrollment_required" ||
+    action.type !== "agentid_session_required" ||
     action.issuer !== AGENTID_ORIGIN ||
     action.browser_origin !== AGENTID_ORIGIN ||
     action.agentmail_enrollment_endpoint !== ENROLLMENT_ENDPOINT_TEMPLATE ||
