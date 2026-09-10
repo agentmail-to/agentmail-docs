@@ -116,9 +116,6 @@ types:
       expires_at:
         type: optional<datetime>
         docs: Immutable absolute expiry. Omitted when the credential does not expire.
-      revoked_at:
-        type: optional<datetime>
-        docs: Present when organization-wide revoke-all invalidated this credential generation.
       used_at:
         type: optional<datetime>
         docs: Last time this key signed an admitted request, when known.
@@ -175,19 +172,6 @@ types:
       public_keys:
         type: list<PublicKeyCredential>
         docs: Public-key credentials only, ordered by creation time descending by default.
-
-  RevokeAllAgentIdSignInKeysResponse:
-    docs: Permanent idempotency receipt for an organization-wide AgentID sign-in key revocation.
-    properties:
-      previous_generation:
-        type: integer
-        validation:
-          min: 0
-      current_generation:
-        type: integer
-        validation:
-          min: 1
-      revoked_at: datetime
 
   BrowserEnrollmentTransactionJti:
     type: string
@@ -571,9 +555,6 @@ types:
       used_at:
         type: optional<datetime>
         docs: Not recorded for browser keys today.
-      revoked_at:
-        type: optional<datetime>
-        docs: Not returned for browser keys today; a revoked browser key is not found.
 
   ApiKey:
     docs: |
@@ -796,33 +777,6 @@ service:
         api_key_id: ApiKeyId
       errors:
         - global.NotFoundError
-
-    revokeAllAgentIdSignInKeys:
-      method: POST
-      path: /public-keys/agentid-sign-in/revoke-all
-      display-name: Revoke All AgentID Sign-In Keys
-      docs: |
-        Invalidate every current public-key credential in the caller's
-        organization by advancing its AgentID key generation. The caller must be
-        organization-scoped and either have `api_key_delete` or, for a verified
-        self-serve agent organization, use an unrestricted unmanaged bearer
-        credential. No request body is accepted.
-
-        `Idempotency-Key` is required and must be a UUID. Reusing the same UUID
-        returns the original permanent receipt without advancing the generation
-        again. A new UUID performs a new generation advance.
-      request:
-        name: RevokeAllAgentIdSignInKeysRequest
-        headers:
-          Idempotency-Key:
-            type: string
-            validation:
-              format: uuid
-            docs: Required UUID identifying this revoke-all operation permanently.
-      response: RevokeAllAgentIdSignInKeysResponse
-      errors:
-        - global.ValidationError
-        - global.ConflictError
 
     listBrowserCredentialEvents:
       method: GET

@@ -75,3 +75,7 @@ console.log(key.status);
 <Note>
   See the [API Keys reference](https://docs.agentmail.to/api-reference/api-keys/get) and the [Browser API Keys guide](https://docs.agentmail.to/agentid-browser-enrollment) for the full flow.
 </Note>
+
+### Removed
+
+- `POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` and the `revoked_at` response field. Revoke keys individually with `DELETE /v0/api-keys/{api_key_id}`; the list endpoint enumerates every public key in scope.

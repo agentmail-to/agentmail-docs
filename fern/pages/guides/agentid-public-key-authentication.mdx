@@ -366,16 +366,9 @@ again returns a new `api_key_id`; store and use that new value as `kid`. Rotatio
 is therefore create new, deploy new, then delete old. Never reuse an old `kid`
 for new key material.
 
-For an emergency organization-wide fence, call
-`POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` with an
-organization-scoped bearer credential and a required UUID `Idempotency-Key`.
-The caller normally needs `api_key_delete`. A verified self-serve agent
-organization may instead use an unrestricted unmanaged bearer credential for
-this emergency operation. The request has no body. Repeating the same UUID
-returns the original `{previous_generation, current_generation, revoked_at}`
-receipt and does not advance the generation twice. A new UUID advances it again.
-Existing rows remain visible with `revoked_at` for audit; individually revoked
-keys are deleted.
+To revoke every credential in an organization, list them with
+`GET /v0/api-keys?type=public_key` and delete each one; deletion takes
+effect immediately and individually.
 
 <CodeBlocks>
 

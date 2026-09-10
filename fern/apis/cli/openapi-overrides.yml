@@ -765,11 +765,6 @@ paths:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: revoke-public-key
-  /v0/api-keys/public-keys/agentid-sign-in/revoke-all:
-    post:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: revoke-all-agent-id-sign-in-keys
   /v0/inboxes/{inbox_id}/webhooks/{webhook_id}/headers:
     get:
       x-fern-sdk-group-name:
