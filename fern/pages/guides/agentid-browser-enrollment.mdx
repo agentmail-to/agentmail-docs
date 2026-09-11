@@ -13,8 +13,8 @@ is sent only to the AgentMail API. The browser creates the private key and
 never exports it.
 
 There are two ways to create one. If the browser is already on an AgentID
-sign-in page, attach to that page's transaction with
-[Create API Key](/api-reference/api-keys/create) and `transaction_jti`,
+sign-in page, authorize that page's transaction for the inbox with
+[Authorize Inbox](/api-reference/inboxes/authorize) and `transaction_jti`,
 as this guide shows. If the agent is choosing the browser itself, call
 [Connect Provider](/api-reference/providers/connect) or
 [Connect Browser](/api-reference/providers/connect-browser) and open the
@@ -57,8 +57,10 @@ origin override: do not accept a different origin from runtime input.
    does not prove that the original authorization transaction omitted its
    hint; the API still checks the original value and may return `400`.
 5. Send `{transaction_jti}` with the bearer API key to exactly
-   `https://api.agentmail.to/v0/inboxes/{inbox_id}/api-keys`, the fixed
-   endpoint the action publishes, with the selected inbox in the path. Add
+   `https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize`, the fixed
+   endpoint the action publishes, with the selected inbox in the path. The
+   response is the pending browser API key, read back at
+   `GET /v0/api-keys/{api_key_id}`. Add
    `authorize: true` to approve the relying party on the agent's behalf. The
    transaction is the idempotency anchor, so no `Idempotency-Key` is needed.
 6. Keep the existing AgentID page open. It observes the pending key, creates
@@ -118,7 +120,7 @@ only after obtaining the final page URL from the browser transport:
   "type": "agentid_session_required",
   "issuer": "https://auth.agentid.com",
   "browser_origin": "https://auth.agentid.com",
-  "agentmail_api_keys_endpoint": "https://api.agentmail.to/v0/inboxes/{inbox_id}/api-keys",
+  "agentmail_authorize_endpoint": "https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize",
   "transaction_jti": "AAAAAAAAAAAAAAAAAAAAAA",
   "transaction_expires_at": 1787694600,
   "login_hint": null,
@@ -147,7 +149,7 @@ from urllib.parse import urlsplit
 import httpx
 
 AGENTID_ORIGIN = "https://auth.agentid.com"
-API_KEYS_ENDPOINT = "https://api.agentmail.to/v0/inboxes/{inbox_id}/api-keys"
+AUTHORIZE_ENDPOINT = "https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize"
 INVARIANT = (
     "AgentMail API keys are sent only to https://api.agentmail.to; "
     "AgentID never requests them."
@@ -174,7 +176,7 @@ def create_browser_api_key(
         action.get("type") != "agentid_session_required"
         or action.get("issuer") != AGENTID_ORIGIN
         or action.get("browser_origin") != AGENTID_ORIGIN
-        or action.get("agentmail_api_keys_endpoint") != API_KEYS_ENDPOINT
+        or action.get("agentmail_api_keys_endpoint") != AUTHORIZE_ENDPOINT
         or action.get("login_hint_authoritative") is not False
         or action.get("invariant") != INVARIANT
     ):
@@ -193,7 +195,7 @@ def create_browser_api_key(
         raise ValueError("Trusted inbox does not match login_hint")
 
     response = httpx.post(
-        API_KEYS_ENDPOINT.replace("{inbox_id}", inbox_id),
+        AUTHORIZE_ENDPOINT.replace("{inbox_id}", inbox_id),
         headers={"Authorization": f"Bearer {agentmail_api_key}"},
         json={"transaction_jti": jti},
         follow_redirects=False,
@@ -206,7 +208,7 @@ def create_browser_api_key(
 
 ```typescript title="TypeScript"
 const AGENTID_ORIGIN = "https://auth.agentid.com";
-const API_KEYS_ENDPOINT = "https://api.agentmail.to/v0/inboxes/{inbox_id}/api-keys";
+const AUTHORIZE_ENDPOINT = "https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize";
 const INVARIANT =
   "AgentMail API keys are sent only to https://api.agentmail.to; AgentID never requests them.";
 const JTI = /^[A-Za-z0-9_-]{22}$/;
@@ -230,7 +232,7 @@ async function createBrowserApiKey({
     action.type !== "agentid_session_required" ||
     action.issuer !== AGENTID_ORIGIN ||
     action.browser_origin !== AGENTID_ORIGIN ||
-    action.agentmail_api_keys_endpoint !== API_KEYS_ENDPOINT ||
+    action.agentmail_api_keys_endpoint !== AUTHORIZE_ENDPOINT ||
     action.login_hint_authoritative !== false ||
     action.invariant !== INVARIANT
   ) {
@@ -251,7 +253,7 @@ async function createBrowserApiKey({
     throw new Error("Trusted inbox does not match login_hint");
   }
 
-  const response = await fetch(API_KEYS_ENDPOINT.replace("{inbox_id}", encodeURIComponent(inboxId)), {
+  const response = await fetch(AUTHORIZE_ENDPOINT.replace("{inbox_id}", encodeURIComponent(inboxId)), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${agentmailApiKey}`,

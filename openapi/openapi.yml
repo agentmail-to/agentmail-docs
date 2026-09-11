@@ -2006,6 +2006,61 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateApiKeyRequest'
+  /v0/inboxes/{inbox_id}/authorize:
+    post:
+      description: |-
+        Authorize the AgentID sign-in a browser is already waiting in, for the
+        inbox in the path. Mints the browser API key that sign-in will activate
+        and returns it pending; poll `GET /v0/api-keys/{api_key_id}` for
+        `status`. The transaction is the idempotency anchor: a repeat for the
+        same transaction, inbox, and bearer returns the same pending key.
+        Requires `provider_connect`. Read `transaction_jti` only from an action
+        published on exactly `https://auth.agentid.com`.
+      operationId: inboxes_authorize
+      tags:
+        - Inboxes
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+      responses:
+        '202':
+          description: The pending browser API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicKeyCredential'
+        '200':
+          description: The same pending key, on a repeat for the same transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicKeyCredential'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Authorize Inbox
+      servers:
+        - url: https://api.agentmail.to
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizeInboxRequest'
   /v0/inboxes/{inbox_id}/api-keys/{api_key_id}:
     delete:
       description: >-
@@ -8497,6 +8552,21 @@ components:
       description: >-
         Transaction identifier read from an enrollment action on exactly
         `https://auth.agentid.com`.
+    AuthorizeInboxRequest:
+      title: AuthorizeInboxRequest
+      type: object
+      description: |-
+        Authorize one pending AgentID sign-in for the inbox in the path. The
+        inbox is selected by the trusted path parameter, never by an AgentID
+        `login_hint`.
+      properties:
+        transaction_jti:
+          $ref: '#/components/schemas/BrowserEnrollmentTransactionJti'
+        authorize:
+          type: boolean
+          description: Approve the relying party on the agent's behalf, skipping the first-use disclosure page.
+      required:
+        - transaction_jti
     CreateBrowserEnrollmentRequest:
       title: CreateBrowserEnrollmentRequest
       type: object
