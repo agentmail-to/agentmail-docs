@@ -8023,13 +8023,6 @@ components:
           description: >-
             Immutable absolute expiry. Omitted when the credential does not
             expire.
-        revoked_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: >-
-            Present when organization-wide revoke-all invalidated this
-            credential generation.
         created_at:
           type: string
           format: date-time
