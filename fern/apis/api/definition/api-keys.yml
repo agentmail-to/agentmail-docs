@@ -26,9 +26,9 @@ types:
       minLength: 43
       maxLength: 43
       pattern: "^[A-Za-z0-9_-]{43}$"
-    docs: A 32-byte P-256 coordinate encoded as unpadded base64url.
+    docs: A 32-byte public-key coordinate encoded as unpadded base64url.
 
-  PublicJwk:
+  P256PublicJwk:
     docs: |
       A public P-256 JWK. The object accepts exactly `kty`, `crv`, `x`, and `y`.
       Private key material such as `d`, embedded key IDs, and all other members
@@ -39,6 +39,29 @@ types:
       crv: literal<"P-256">
       x: PublicJwkCoordinate
       y: PublicJwkCoordinate
+
+  Secp256k1PublicJwk:
+    docs: A strict public secp256k1 JWK for ES256K signatures.
+    properties:
+      kty: literal<"EC">
+      crv: literal<"secp256k1">
+      x: PublicJwkCoordinate
+      y: PublicJwkCoordinate
+
+  Ed25519PublicJwk:
+    docs: A strict public Ed25519 JWK for EdDSA signatures.
+    properties:
+      kty: literal<"OKP">
+      crv: literal<"Ed25519">
+      x: PublicJwkCoordinate
+
+  PublicJwk:
+    docs: A strict P-256, secp256k1, or Ed25519 public JWK. Private and unknown members are rejected.
+    discriminated: false
+    union:
+      - P256PublicJwk
+      - Secp256k1PublicJwk
+      - Ed25519PublicJwk
 
   OrganizationPublicKeyScope:
     docs: Organization-wide authority.
@@ -95,24 +118,40 @@ types:
       name:
         type: Name
         docs: Human-readable credential name.
+      client_id:
+        type: optional<string>
+        docs: Optional tenant-scoped idempotency and lookup alias supplied at registration.
       public_key: PublicKeyMaterial
       scope: PublicKeyScope
+      organization_id: uuid
+      pod_id: optional<uuid>
+      inbox_id:
+        type: optional<string>
+        validation:
+          format: email
+      created_by: BrowserCredentialCreator
+      permissions: ApiKeyPermissions
+      allowed_scopes:
+        type: nullable<unknown>
+        docs: Deprecated compatibility field; currently always null.
       expires_at:
         type: optional<datetime>
         docs: Immutable absolute expiry. Omitted when the credential does not expire.
-      revoked_at:
+      used_at:
         type: optional<datetime>
-        docs: Present when organization-wide revoke-all invalidated this credential generation.
+        docs: Last observed credential use, when available.
       created_at: datetime
       updated_at: datetime
 
   CreatePublicKeyRequest:
     docs: |
-      Register only a public P-256 JWK. Credential type, `api_key_id`, sign-in
-      eligibility, permissions, and generation are server-owned and are not
-      request properties.
+      Register a supported public JWK. Credential type and `api_key_id` are
+      server-owned and are not request properties.
     properties:
       public_key: PublicJwk
+      client_id:
+        type: optional<string>
+        docs: Tenant-scoped idempotency alias. An exact retry returns the existing credential; a changed binding returns conflict.
       name:
         type: optional<string>
         validation:
@@ -129,17 +168,23 @@ types:
         docs: |
           Future absolute expiry. Omit to inherit the registering bearer key's
           expiry. A child credential cannot outlive its creator.
+      permissions:
+        type: optional<ApiKeyPermissions>
+        docs: Sparse grants bounded by the registering bearer. Omit to inherit its eligible authority.
 
   UpdatePublicKeyNameRequest:
     docs: |
-      Rename a public-key credential. Key material, ID, type, scope, sign-in
-      eligibility, permissions, generation, and expiry are immutable.
+      Update a public-key credential's name, permissions, or both. Key material,
+      ID, type, scope, client ID, and expiry are immutable.
     properties:
       name:
-        type: string
+        type: optional<string>
         validation:
           minLength: 1
           maxLength: 256
+      permissions:
+        type: optional<ApiKeyPermissions>
+        docs: Sparse replacement grants bounded by the managing bearer.
 
   ListPublicKeysResponse:
     properties:
@@ -366,6 +411,9 @@ types:
       message_read:
         type: optional<boolean>
         docs: Read messages. Also required to read threads.
+      message_reply:
+        type: optional<boolean>
+        docs: Reply and reply-all to an existing message without granting direct send or forward.
       message_send:
         type: optional<boolean>
         docs: Send messages.
@@ -438,6 +486,18 @@ types:
       metrics_read:
         type: optional<boolean>
         docs: Read metrics.
+      provider_connect:
+        type: optional<boolean>
+        docs: Allow AgentID provider sign-in. This is the explicit opt-out permission.
+      provider_owner_share:
+        type: optional<boolean>
+        docs: Allow both owner profile and owner email claims for new credentials.
+      owner_profile:
+        type: optional<boolean>
+        docs: Allow the AgentID owner profile claim.
+      owner_email:
+        type: optional<boolean>
+        docs: Allow the AgentID owner email claim.
       api_key_read:
         type: optional<boolean>
         docs: Read API keys.
@@ -450,12 +510,18 @@ types:
       api_key_delete:
         type: optional<boolean>
         docs: Delete API keys.
+      public_key_register:
+        type: optional<boolean>
+        docs: Register public-key credentials without granting bearer-key creation.
       pod_read:
         type: optional<boolean>
         docs: Read pods.
       pod_create:
         type: optional<boolean>
         docs: Create pods.
+      pod_update:
+        type: optional<boolean>
+        docs: Update pods.
       pod_delete:
         type: optional<boolean>
         docs: Delete pods.
@@ -579,9 +645,10 @@ service:
       path: /public-keys
       display-name: Register Public-Key Credential
       docs: |
-        Register a public P-256 JWK using an existing AgentMail bearer API key
-        with `api_key_create`. Re-registering the same JWK creates a new
-        credential ID; it does not replace or recover an earlier credential.
+        Register a P-256, secp256k1, or Ed25519 public JWK using an existing
+        AgentMail bearer API key with `public_key_register`. An exact repeated
+        `client_id` binding returns the existing credential; a changed binding
+        conflicts. Without `client_id`, each registration creates a new ID.
         The private key must never be sent to AgentMail.
       request: CreatePublicKeyRequest
       response: PublicKeyCredential
@@ -592,10 +659,10 @@ service:
     updatePublicKeyName:
       method: PATCH
       path: /public-keys/{api_key_id}
-      display-name: Rename Public-Key Credential
+      display-name: Update Public-Key Credential
       docs: |
-        Rename the credential. All security-relevant fields are immutable.
-        Requires `api_key_update`.
+        Update the name, granular permissions, or both. Requires
+        `api_key_update`; grants cannot exceed the managing bearer.
       path-parameters:
         api_key_id:
           type: uuid

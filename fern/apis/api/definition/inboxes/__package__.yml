@@ -55,6 +55,13 @@ types:
       removes it. Up to 256 keys; keys and string values are each limited to
       256 characters.
 
+  InboxStatus:
+    enum:
+      - active
+      - inactive
+      - suspended
+    docs: Lifecycle status. Suspended inboxes retain content but cannot send or receive new mail.
+
   Inbox:
     properties:
       pod_id: pods.PodId
@@ -62,6 +69,7 @@ types:
       email: Email
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
+      status: optional<InboxStatus>
       metadata:
         type: optional<Metadata>
         docs: Custom metadata attached to the inbox.
@@ -103,12 +111,18 @@ types:
           Defaults to `agentmail.to`.
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
+      status:
+        type: optional<InboxStatus>
+        docs: Creating a suspended inbox requires organization lifecycle enrollment.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata to attach to the inbox.
 
   UpdateInboxRequest:
     properties:
+      status:
+        type: optional<InboxStatus>
+        docs: Set suspended to pause mail flow or active to restore it. Lifecycle enrollment is required for suspension.
       display_name: optional<DisplayName>
       metadata:
         type: optional<nullable<UpdateMetadata>>
