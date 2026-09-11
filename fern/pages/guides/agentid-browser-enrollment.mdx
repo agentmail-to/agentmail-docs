@@ -271,7 +271,7 @@ async function createBrowserApiKey({
 
 </CodeBlocks>
 
-## Manage credentials and consent
+## Manage credentials
 
 Management requests use a bearer API key at `https://api.agentmail.to`. List
 operations require `api_key_read`; deletion and cancellation require
@@ -285,19 +285,17 @@ operations require `api_key_read`; deletion and cancellation require
 | List an inbox's browser keys | `GET /v0/api-keys?type=public_key&inbox_id={inbox_id}` |
 | Get one, pending or active | `GET /v0/api-keys/{api_key_id}` |
 | Cancel a pending key or revoke an active one | `DELETE /v0/api-keys/{api_key_id}` |
-| List lifecycle events | `GET /v0/api-keys/browser-credentials/events` |
-| List remembered consent for an inbox | `GET /v0/api-keys/browser-consents?inbox_id={inbox_id}` |
-| Revoke remembered consent | `DELETE /v0/api-keys/browser-consents/{consent_id}` |
 
-The older `/v0/api-keys/browser-credentials` list and delete endpoints, the
-`browser-credentials/enrollments` create and cancel endpoints,
+The older `/v0/api-keys/browser-credentials` list, delete, and events
+endpoints, the `browser-credentials/enrollments` create and cancel endpoints,
+the `/v0/api-keys/browser-consents` list and delete endpoints,
 `POST /v0/inboxes/{inbox_id}/api-keys` with `transaction_jti`, and the
 `/v0/api-keys/public-keys` routes have been removed and answer `404`; use the
 endpoints above.
 
-List endpoints accept `limit` from 1 through 100 and a sealed `page_token`.
-They return `count`, the effective `limit`, an optional `next_page_token`, and
-the corresponding `api_keys`, `events`, or `consents` array.
+The list endpoint accepts `limit` from 1 through 100 and a sealed
+`page_token`. It returns `count`, the effective `limit`, an optional
+`next_page_token`, and the `api_keys` array.
 
 For rotation, connect and verify a new browser API key, then delete the old
 one. There is no endpoint that extends a key in place. A browser API key
@@ -305,8 +303,8 @@ cannot outlive its authorizing bearer API key, and deleting or expiring that
 bearer key prevents the browser from authorizing new requests.
 
 The browser's **Forget** action deletes only local key material. It does not
-revoke the server-side key or remembered application consent. Use the DELETE
-endpoints above for server-side revocation.
+revoke the server-side key. Use `DELETE /v0/api-keys/{api_key_id}` for
+server-side revocation.
 
 ## Consent behavior
 
@@ -317,8 +315,8 @@ unexpired consent can be reused. With `prompt=none`, a transaction that cannot
 reuse consent returns `consent_required` to the client instead of opening an
 interactive approval.
 
-Deleting a remembered consent does not delete the browser API key. It makes
-the next interactive authorization require review again.
+Remembered consent is not exposed through the API; it expires on its own
+and is re-reviewed after any material change to the relying party.
 
 ## Persistent browser support
 

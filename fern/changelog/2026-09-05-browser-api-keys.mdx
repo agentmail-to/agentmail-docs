@@ -27,7 +27,8 @@ A browser that signs in as an inbox at AgentID is now an API key, a public key s
 
 - `GET /v0/api-keys/browser-credentials`, `DELETE /v0/api-keys/browser-credentials/{credential_id}`, `POST /v0/inboxes/{inbox_id}/browser-credentials/enrollments`, `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}`, `POST /v0/api-keys/browser-credentials/enrollments`, and the `/v0/api-keys/public-keys` list, register, rename, and revoke routes are removed in favor of the api-keys and connect endpoints above. They now answer `404`.
 - `POST /v0/api-keys` and `POST /v0/inboxes/{inbox_id}/api-keys` no longer accept `transaction_jti`; use `POST /v0/inboxes/{inbox_id}/authorize`.
-- The `enrollment_endpoint` and `browser_credentials_endpoint` fields are gone from `GET /v0/.well-known/agentid-configuration`.
+- `GET /v0/api-keys/browser-credentials/events`, `GET /v0/api-keys/browser-consents`, and `DELETE /v0/api-keys/browser-consents/{consent_id}` are removed. Remembered consent is managed by AgentID and is no longer listed or revoked through the API.
+- The `enrollment_endpoint`, `browser_credentials_endpoint`, and `browser_consents_endpoint` fields are gone from `GET /v0/.well-known/agentid-configuration`.
 - `POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all` and the `revoked_at` response field. Revoke keys individually with `DELETE /v0/api-keys/{api_key_id}`; the list endpoint enumerates every public key in scope.
 
 ### Use cases

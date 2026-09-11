@@ -769,21 +769,6 @@ paths:
       - pods
       - webhooks
       x-fern-sdk-method-name: update-headers
-  /v0/api-keys/browser-credentials/events:
-    get:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: list-browser-credential-events
-  /v0/api-keys/browser-consents:
-    get:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: list-browser-consents
-  /v0/api-keys/browser-consents/{consent_id}:
-    delete:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: delete-browser-consent
   /v0/domains/{domain_id}/setup-link:
     get:
       x-fern-sdk-group-name:
