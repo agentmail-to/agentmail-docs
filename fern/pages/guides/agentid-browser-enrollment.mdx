@@ -279,7 +279,7 @@ operations require `api_key_read`; deletion and cancellation require
 
 | Operation | Request |
 | --- | --- |
-| Attach a browser already on an AgentID page | `POST /v0/inboxes/{inbox_id}/api-keys` with `transaction_jti` |
+| Attach a browser already on an AgentID page | `POST /v0/inboxes/{inbox_id}/authorize` with `transaction_jti` |
 | Enroll a browser by magic URL | `POST /v0/providers/connect` or `POST /v0/providers/{provider_id}/connect` |
 | List public keys, registered and browser, across the key's scope | `GET /v0/api-keys?type=public_key` |
 | List an inbox's browser keys | `GET /v0/api-keys?type=public_key&inbox_id={inbox_id}` |
@@ -290,9 +290,10 @@ operations require `api_key_read`; deletion and cancellation require
 | Revoke remembered consent | `DELETE /v0/api-keys/browser-consents/{consent_id}` |
 
 The older `/v0/api-keys/browser-credentials` list and delete endpoints, the
-`browser-credentials/enrollments` create and cancel endpoints, and the
-`/v0/api-keys/public-keys` routes still answer for existing callers but are no
-longer documented; use the endpoints above.
+`browser-credentials/enrollments` create and cancel endpoints,
+`POST /v0/inboxes/{inbox_id}/api-keys` with `transaction_jti`, and the
+`/v0/api-keys/public-keys` routes have been removed and answer `404`; use the
+endpoints above.
 
 List endpoints accept `limit` from 1 through 100 and a sealed `page_token`.
 They return `count`, the effective `limit`, an optional `next_page_token`, and

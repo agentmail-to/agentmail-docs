@@ -154,24 +154,6 @@ types:
           Future absolute expiry. Omit to inherit the registering bearer key's
           expiry. A child credential cannot outlive its creator.
 
-  UpdatePublicKeyNameRequest:
-    docs: |
-      Rename a public-key credential. Key material, ID, type, scope, sign-in
-      eligibility, permissions, generation, and expiry are immutable.
-    properties:
-      name:
-        type: string
-        validation:
-          minLength: 1
-          maxLength: 256
-
-  ListPublicKeysResponse:
-    properties:
-      count: global.Count
-      next_page_token: optional<global.PageToken>
-      public_keys:
-        type: list<PublicKeyCredential>
-        docs: Public-key credentials only, ordered by creation time descending by default.
 
   BrowserEnrollmentTransactionJti:
     type: string
@@ -180,59 +162,6 @@ types:
       maxLength: 22
       pattern: "^[A-Za-z0-9_-]{22}$"
     docs: Transaction identifier read from an enrollment action on exactly `https://auth.agentid.com`.
-
-  CreateBrowserEnrollmentRequest:
-    docs: |
-      Attach a browser enrollment intent to one pending AgentID authorization
-      transaction. The inbox is selected by the trusted path parameter, not an
-      AgentID `login_hint`.
-    properties:
-      transaction_jti: BrowserEnrollmentTransactionJti
-
-  BrowserEnrollmentAccepted:
-    docs: |
-      Pending enrollment receipt. The browser completes key creation and proof
-      on the existing AgentID page. This response contains no URL, token, or
-      navigation instruction.
-    properties:
-      status: literal<"pending">
-      enrollment_id: uuid
-      expires_at:
-        type: integer
-        validation:
-          min: 1
-        docs: Unix timestamp after which the pending enrollment cannot be activated.
-
-  BrowserCredentialCreator:
-    properties:
-      kind: literal<"bearer_api_key">
-      api_key_id:
-        type: uuid
-        docs: Bearer API key that authorized creation of the browser credential.
-      created_at:
-        type: datetime
-        docs: Incarnation timestamp of the authorizing bearer API key.
-
-  BrowserCredential:
-    docs: Owner-facing metadata for an active browser credential. Private key material never leaves the browser.
-    properties:
-      credential_id: uuid
-      public_key_fingerprint_prefix:
-        type: string
-        validation:
-          minLength: 8
-          maxLength: 8
-          pattern: "^[A-Za-z0-9_-]{8}$"
-      organization_id: uuid
-      pod_id: uuid
-      inbox_id:
-        type: string
-        validation:
-          format: email
-          maxLength: 254
-      created_by: BrowserCredentialCreator
-      created_at: datetime
-      expires_at: datetime
 
   BrowserConsent:
     docs: Remembered approval for one closed AgentID client and inbox.
@@ -337,13 +266,6 @@ types:
     validation:
       min: 1
       max: 100
-
-  ListBrowserCredentialsResponse:
-    properties:
-      count: global.Count
-      limit: BrowserAuthorizationListLimit
-      next_page_token: optional<global.PageToken>
-      credentials: list<BrowserCredential>
 
   ListBrowserConsentsResponse:
     properties:
@@ -510,7 +432,7 @@ types:
       non-extractable key, and the bearer API key in `created_by` bounds what
       it may do. Created by [Connect Provider](/api-reference/providers/connect),
       [Connect Browser](/api-reference/providers/connect-browser), or
-      [Create API Key](/api-reference/api-keys/create) with `transaction_jti`.
+      [Authorize Inbox](/api-reference/inboxes/authorize).
       It answers with the same fields as a registered public key plus
       `status`; `public_key` appears once the browser has proved its key.
     properties:
@@ -605,38 +527,14 @@ types:
       name: optional<Name>
       permissions: optional<ApiKeyPermissions>
 
-  CreateBrowserApiKeyRequest:
-    docs: |
-      Create a browser key bound to the AgentID sign-in the browser is already
-      in. The AgentID page publishes `transaction_jti` in its session action;
-      read it only after verifying the page origin is exactly
-      `https://auth.agentid.com`. The transaction is the idempotency anchor:
-      repeating the call for the same sign-in, inbox, and API key returns the
-      same pending key.
-    properties:
-      transaction_jti: BrowserEnrollmentTransactionJti
-      inbox_id:
-        type: optional<string>
-        docs: |
-          Inbox the browser signs in as. Required on `POST /api-keys` above the
-          inbox scope; implied by the path on `POST /inboxes/{inbox_id}/api-keys`.
-      authorize:
-        type: optional<boolean>
-        docs: |
-          Approve the transaction's relying party on the agent's behalf so no
-          human has to click through the disclosure page. Requires the API key
-          permission for every owner scope involved.
-
   CreateApiKeyRequest:
     docs: |
-      A body with `public_key` registers a public-key credential; a body with
-      `transaction_jti` creates a browser key; any other body mints a bearer
-      key.
+      A body with `public_key` registers a public-key credential; any other
+      body mints a bearer key.
     discriminated: false
     union:
       - CreateBearerApiKeyRequest
       - CreatePublicKeyRequest
-      - CreateBrowserApiKeyRequest
 
   CreateApiKeyResult:
     discriminated: false
@@ -725,11 +623,10 @@ service:
       docs: |
         Create one credential of any family. A body with a public JWK
         registers a public-key credential, optionally under a caller-chosen
-        `client_id`, and returns it without any secret. A body with
-        `transaction_jti` creates a browser key bound to the AgentID sign-in
-        the browser is already in and returns it as `pending`; poll Get until
-        it is `active`. Any other body mints a bearer key and returns its
-        secret once. Magic-URL enrollment stays on the connect endpoints.
+        `client_id`, and returns it without any secret. Any other body mints
+        a bearer key and returns its secret once. Browser keys are created by
+        the connect endpoints and by
+        [Authorize Inbox](/api-reference/inboxes/authorize), not here.
         Requires `api_key_create`.
 
         **CLI:**
