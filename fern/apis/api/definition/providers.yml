@@ -253,9 +253,9 @@ service:
           ahead of any sign-in, or when the relying party is not in the
           provider catalog.
 
-        To attach to a sign-in the browser is already in, create the key
-        directly instead: [Create API Key](/api-reference/api-keys/create)
-        with `transaction_jti`.
+        To attach to a sign-in the browser is already in, use
+        [Authorize Inbox](/api-reference/inboxes/authorize) with
+        `transaction_jti` instead.
 
         The same limits and `client_id` repeat behavior as Connect Provider
         apply.

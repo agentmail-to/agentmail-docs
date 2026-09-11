@@ -29,7 +29,8 @@ bearer key or the private key to AgentID.
 1. Generate a P-256 key pair in trusted code and persist the private key in your
    keystore.
 2. Export only `{kty: "EC", crv: "P-256", x, y}` and register it at
-   `POST /v0/api-keys/public-keys` with an existing AgentMail bearer API key.
+   `POST /v0/api-keys` (a body carrying `public_key`) with an existing
+   AgentMail bearer API key.
 3. Store the returned `api_key_id` beside the private-key handle. It is the JWS
    `kid`; do not compute or choose it yourself.
 4. For one pending authorization transaction, sign exactly `{jti, inbox_id}`

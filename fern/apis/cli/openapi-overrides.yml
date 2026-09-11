@@ -747,24 +747,6 @@ paths:
       x-fern-sdk-group-name:
       - webhooks
       x-fern-sdk-method-name: update-headers
-  /v0/api-keys/public-keys:
-    get:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: list-public-keys
-    post:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: create-public-key
-  /v0/api-keys/public-keys/{api_key_id}:
-    patch:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: update-public-key-name
-    delete:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: revoke-public-key
   /v0/api-keys/public-keys/agentid-sign-in/revoke-all:
     post:
       x-fern-sdk-group-name:
@@ -792,26 +774,11 @@ paths:
       - pods
       - webhooks
       x-fern-sdk-method-name: update-headers
-  /v0/api-keys/browser-credentials:
-    get:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: list-browser-credentials
   /v0/api-keys/browser-credentials/events:
     get:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: list-browser-credential-events
-  /v0/api-keys/browser-credentials/{credential_id}:
-    delete:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: delete-browser-credential
-  /v0/api-keys/browser-credentials/enrollments/{enrollment_id}:
-    delete:
-      x-fern-sdk-group-name:
-      - apiKeys
-      x-fern-sdk-method-name: cancel-browser-enrollment
   /v0/api-keys/browser-consents:
     get:
       x-fern-sdk-group-name:
@@ -822,12 +789,6 @@ paths:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: delete-browser-consent
-  /v0/inboxes/{inbox_id}/browser-credentials/enrollments:
-    post:
-      x-fern-sdk-group-name:
-      - inboxes
-      - browserCredentials
-      x-fern-sdk-method-name: create-enrollment
   /v0/domains/{domain_id}/setup-link:
     get:
       x-fern-sdk-group-name:
@@ -881,3 +842,8 @@ paths:
         description: Unique key that makes the connect idempotent. The endpoint requires one; the CLI generates a UUID when the flag is omitted and reuses it across retries, so a transient failure cannot start a second sign-in. Pass a value to make a manual re-run resolve to the same attempt.
         schema:
           type: string
+  /v0/inboxes/{inbox_id}/authorize:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      x-fern-sdk-method-name: authorize

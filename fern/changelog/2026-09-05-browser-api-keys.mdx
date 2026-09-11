@@ -11,7 +11,7 @@ A browser that signs in as an inbox at AgentID is now an API key, a public key s
 **New endpoints:**
 
 - `POST /v0/providers/connect` - Connect a browser by provider domain, or with no provider at all. Both return a `magic_url`; the no-provider mode stops on AgentID once the session is active. Pass `authorize: true` to approve the provider on the agent's behalf.
-- `POST /v0/inboxes/{inbox_id}/authorize` - Authorize the AgentID sign-in a browser is already waiting in, for relying parties reached directly rather than through connect. Mints and returns the pending browser key in the api-keys shape; `authorize: true` approves that relying party. (`POST /v0/inboxes/{inbox_id}/api-keys` with `transaction_jti` did the same for a short window and is now an undocumented alias slated for removal.)
+- `POST /v0/inboxes/{inbox_id}/authorize` - Authorize the AgentID sign-in a browser is already waiting in, for relying parties reached directly rather than through connect. Mints and returns the pending browser key in the api-keys shape; `authorize: true` approves that relying party.
 - `GET /v0/api-keys/{api_key_id}` - Get one credential of any family. For a browser session, poll it to watch `status` go from `pending` to `active`.
 - `PATCH /v0/api-keys/{api_key_id}` - Rename or re-permission a bearer key or a public-key credential.
 
@@ -20,12 +20,14 @@ A browser that signs in as an inbox at AgentID is now an API key, a public key s
 - **One vocabulary for every credential family**: `GET /v0/api-keys` lists bearer keys by default and every public key with `type=public_key`, registered keys first and then browser keys, filterable by `inbox_id`. Every item carries `type`, `organization_id`, `pod_id`, `inbox_id`, `permissions`, `created_by`, and the timestamps; browser keys add `status`.
 - **One handle for the whole lifecycle**: connect responses now carry `api_key_id`, the same ID Get, List, and Delete use before and after activation. `session_id` stays as a deprecated alias with the same value.
 - **Delete covers every family**: `DELETE /v0/api-keys/{api_key_id}` deletes a bearer key, revokes a registered public key, cancels a pending browser session, or revokes an active one. Deleting a bearer key still revokes every browser session it authorized.
-- **Public keys live under api-keys**: `POST /v0/api-keys` with a `public_key` body registers a public-key credential, and list, get, update, and delete cover it alongside bearer keys. The `/v0/api-keys/public-keys` routes are no longer documented.
+- **Public keys live under api-keys**: `POST /v0/api-keys` with a `public_key` body registers a public-key credential, and list, get, update, and delete cover it alongside bearer keys. The `/v0/api-keys/public-keys` routes are removed.
 - **Client IDs for public keys**: register a public key, or connect a browser, with a caller-chosen `client_id`, unique within the organization across every public key, and use it in place of `api_key_id` on get, rename, and revoke. Registration and connect are idempotent on the alias: a repeated connect answers from the key the `client_id` names instead of minting another. The `Idempotency-Key` header on connect is deprecated and read as `client_id` when the body omits it.
 
-**Changes:**
+**Removed:**
 
-- `GET /v0/api-keys/browser-credentials`, `DELETE /v0/api-keys/browser-credentials/{credential_id}`, `POST /v0/inboxes/{inbox_id}/browser-credentials/enrollments`, `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}`, and the `/v0/api-keys/public-keys` list, register, rename, and revoke routes are removed from the reference in favor of the api-keys and connect endpoints above. They keep answering for existing callers until their removal is announced.
+- `GET /v0/api-keys/browser-credentials`, `DELETE /v0/api-keys/browser-credentials/{credential_id}`, `POST /v0/inboxes/{inbox_id}/browser-credentials/enrollments`, `DELETE /v0/api-keys/browser-credentials/enrollments/{enrollment_id}`, `POST /v0/api-keys/browser-credentials/enrollments`, and the `/v0/api-keys/public-keys` list, register, rename, and revoke routes are removed in favor of the api-keys and connect endpoints above. They now answer `404`.
+- `POST /v0/api-keys` and `POST /v0/inboxes/{inbox_id}/api-keys` no longer accept `transaction_jti`; use `POST /v0/inboxes/{inbox_id}/authorize`.
+- The `enrollment_endpoint` and `browser_credentials_endpoint` fields are gone from `GET /v0/.well-known/agentid-configuration`.
 
 ### Use cases
 
