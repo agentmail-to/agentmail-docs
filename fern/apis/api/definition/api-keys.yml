@@ -555,11 +555,11 @@ types:
       - CreatePublicKeyRequest
 
   CreateApiKeyResult:
+    docs: The secret-bearing bearer key, or the registered public key without any secret.
     discriminated: false
     union:
       - CreateApiKeyResponse
       - PublicKeyCredential
-      - BrowserApiKey
 
   UpdateApiKeyRequest:
     docs: |
