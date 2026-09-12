@@ -82,6 +82,26 @@ types:
         type: optional<string>
         docs: Reason for adding the entry.
 
+  ReplaceListEntry:
+    properties:
+      entry: string
+      reason: optional<string>
+
+  ReplaceListEntriesRequest:
+    properties:
+      expected_version:
+        type: nullable<uuid>
+        docs: Current version, or null when creating the first managed snapshot.
+      entries:
+        type: list<ReplaceListEntry>
+        docs: Complete desired list, with at most 500 unique normalized entries.
+
+  ReplaceListEntriesResponse:
+    properties:
+      version: uuid
+      count: global.Count
+      entries: list<ListEntry>
+
 service:
   url: Http
   base-path: /lists/{direction}/{type}
@@ -91,6 +111,20 @@ service:
   auth: true
 
   endpoints:
+    replace:
+      method: PUT
+      path: ""
+      display-name: Replace List Entries
+      docs: |
+        Atomically replace an enrolled organization or pod list using compare-and-swap.
+        A stale `expected_version` returns conflict. Inbox-scoped replacement is unavailable.
+      request: ReplaceListEntriesRequest
+      response: ReplaceListEntriesResponse
+      errors:
+        - global.ValidationError
+        - global.ConflictError
+        - global.UnprocessableError
+
     list:
       method: GET
       path: ""
