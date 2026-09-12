@@ -49,7 +49,7 @@ types:
       client_id:
         type: optional<string>
         docs: |
-          Your own name for the browser key, unique within the organization
+          Your own name for the key, unique within the organization
           across every public key, and the idempotency handle for this call:
           connecting again with the same `client_id` answers from the key it
           names instead of minting another. The legacy `Idempotency-Key`
@@ -72,7 +72,7 @@ types:
       client_id:
         type: optional<string>
         docs: |
-          Your own name for the browser key, unique within the organization
+          Your own name for the key, unique within the organization
           across every public key, and the idempotency handle for this call:
           connecting again with the same `client_id` answers from the key it
           names instead of minting another. The legacy `Idempotency-Key`
@@ -89,9 +89,9 @@ types:
       api_key_id:
         type: api-keys.ApiKeyId
         docs: |
-          ID of the browser session the browser will activate. Poll
+          ID of the public key the browser will activate. Poll
           [Get API Key](/api-reference/api-keys/get) with it to learn when the
-          browser has finished; the same ID lists and deletes the session
+          browser has finished; the same ID lists and deletes the key
           afterward.
       session_id:
         type: api-keys.ApiKeyId
@@ -111,9 +111,9 @@ types:
       api_key_id:
         type: api-keys.ApiKeyId
         docs: |
-          ID of the browser session the browser will activate. Poll
+          ID of the public key the browser will activate. Poll
           [Get API Key](/api-reference/api-keys/get) with it to learn when the
-          browser has finished; the same ID lists and deletes the session
+          browser has finished; the same ID lists and deletes the key
           afterward.
       session_id:
         type: api-keys.ApiKeyId
@@ -200,14 +200,14 @@ service:
         Requires `api_key_create`.
 
         Opening the URL enrolls the browser as the inbox, creating a
-        [browser session](/api-reference/api-keys/get) or reusing one the
+        [public key](/api-reference/api-keys/get) for it or reusing one the
         browser already holds, then continues to the provider's sign-in. The
-        api-keys resource lists, reads, and deletes the sessions this creates.
+        api-keys resource lists, reads, and deletes the keys this creates.
         To connect by provider domain instead of ID, enroll without continuing
         to any provider, or attach to a sign-in the browser is already in, use
         [Connect Browser](/api-reference/providers/connect-browser).
 
-        Creation is limited to 20 pending browser API keys per bearer key per
+        Creation is limited to 20 pending keys per bearer key per
         hour, 100 per organization per hour, and five live unactivated keys
         per bearer key. Browser activation is separately limited to 20 per
         bearer key per UTC day. Either limit returns `429`; honor the
@@ -240,7 +240,7 @@ service:
       display-name: Connect Browser
       docs: |
         Enrolls a browser as an inbox by magic URL. The browser creates a
-        [browser session](/api-reference/api-keys/get), or reuses one it
+        [public key](/api-reference/api-keys/get) for the inbox, or reuses one it
         already holds. Requires `api_key_create`. Two modes, chosen by the
         body:
 

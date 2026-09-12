@@ -1,11 +1,11 @@
 ---
-title: Browser API Keys
+title: Browser Sign-In
 subtitle: Enroll a persistent browser as an inbox without sending an AgentMail API key to AgentID.
 slug: agentid-browser-enrollment
-description: Verify the AgentID browser origin, attach a browser to a sign-in with ordinary authenticated HTTP, and manage browser API keys and consent.
+description: Verify the AgentID browser origin, attach a browser to a sign-in with ordinary authenticated HTTP, and manage the public keys browsers hold.
 ---
 
-A browser API key lets a persistent browser create and retain its own
+An inbox-scoped public key lets a persistent browser create and retain its own
 non-extractable P-256 credential for one inbox and sign in as that inbox at
 AgentID relying parties. It is an API key of type `browser`: it has no secret,
 and the bearer API key that created it bounds what it may do. That bearer key
@@ -19,10 +19,10 @@ as this guide shows. If the agent is choosing the browser itself, call
 [Connect Provider](/api-reference/providers/connect) or
 [Connect Browser](/api-reference/providers/connect-browser) and open the
 returned `magic_url` in it. Both paths produce the same
-[browser API key](/api-reference/api-keys/get).
+[public key](/api-reference/api-keys/get).
 
 <Note title="US production availability">
-  Browser API keys are available to every organization using US production at
+  Browser sign-in is available to every organization using US production at
   `https://api.agentmail.to`. It is not available in EU production at
   `https://api.agentmail.eu`; these routes return `404` there.
 </Note>
@@ -59,12 +59,12 @@ origin override: do not accept a different origin from runtime input.
 5. Send `{transaction_jti}` with the bearer API key to exactly
    `https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize`, the fixed
    endpoint the action publishes, with the selected inbox in the path. The
-   response is the pending browser API key, read back at
+   response is the pending public key, read back at
    `GET /v0/api-keys/{api_key_id}`. Add
    `authorize: true` to approve the relying party on the agent's behalf. The
    transaction is the idempotency anchor, so no `Idempotency-Key` is needed.
 6. Keep the existing AgentID page open. It observes the pending key, creates
-   a non-extractable browser key, proves possession, and continues the same
+   a non-extractable key, proves possession, and continues the same
    transaction.
 
 [Create API Key](/api-reference/api-keys/create) requires `api_key_create`.
@@ -92,13 +92,13 @@ browser transaction in response to it. Poll
 [Get API Key](/api-reference/api-keys/get) with the `api_key_id` to see
 `status` become `active`.
 
-A pending browser API key lasts at most five minutes and may expire sooner
+A pending key lasts at most five minutes and may expire sooner
 with its authorization transaction. An active one lasts at most 30 days and
 may expire sooner with its authorizing bearer API key. Remembered consent
 lasts 180 days. Treat every returned `expires_at` as authoritative and connect
 again before the current key expires.
 
-Creation is limited to 20 pending browser API keys per bearer API key per
+Creation is limited to 20 pending keys per bearer API key per
 hour, 100 per organization per hour, and five live unactivated keys per
 bearer API key. A limit returns [`429`](/errors#rate_limit_exceeded); honor
 its `Retry-After` header instead of retrying before the indicated time. Delete
@@ -282,7 +282,7 @@ operations require `api_key_read`; deletion and cancellation require
 | Attach a browser already on an AgentID page | `POST /v0/inboxes/{inbox_id}/authorize` with `transaction_jti` |
 | Enroll a browser by magic URL | `POST /v0/providers/connect` or `POST /v0/providers/{provider_id}/connect` |
 | List public keys, registered and browser, across the key's scope | `GET /v0/api-keys?type=public_key` |
-| List an inbox's browser keys | `GET /v0/api-keys?type=public_key&inbox_id={inbox_id}` |
+| List an inbox's public keys, including those browsers hold | `GET /v0/api-keys?type=public_key&inbox_id={inbox_id}` |
 | Get one, pending or active | `GET /v0/api-keys/{api_key_id}` |
 | Cancel a pending key or revoke an active one | `DELETE /v0/api-keys/{api_key_id}` |
 
@@ -297,8 +297,8 @@ The list endpoint accepts `limit` from 1 through 100 and a sealed
 `page_token`. It returns `count`, the effective `limit`, an optional
 `next_page_token`, and the `api_keys` array.
 
-For rotation, connect and verify a new browser API key, then delete the old
-one. There is no endpoint that extends a key in place. A browser API key
+For rotation, connect and verify a new key, then delete the old
+one. There is no endpoint that extends a key in place. A key a browser holds
 cannot outlive its authorizing bearer API key, and deleting or expiring that
 bearer key prevents the browser from authorizing new requests.
 
@@ -334,6 +334,6 @@ nonpersistent data stores are unsupported.
 
 ## Migration from public-key authentication
 
-Browser API keys are the current path for persistent browser approval. The
+Inbox-scoped public keys are the current path for persistent browser approval. The
 [AgentID public-key flow](/agentid-public-key-authentication) remains supported
 during migration, and no deprecation date is being announced with this release.

@@ -82,9 +82,15 @@ types:
 
   PublicKeyCredential:
     docs: |
-      An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
-      use `api_key_id` as the JWS `kid`. This response never contains a bearer
-      secret or private key.
+      An AgentID sign-in credential: a public key scoped to the organization,
+      a pod, or one inbox. Registered directly with its key material, or
+      created for a browser by [Connect Provider](/api-reference/providers/connect),
+      [Connect Browser](/api-reference/providers/connect-browser), or
+      [Authorize Inbox](/api-reference/inboxes/authorize), in which case it
+      carries `status` and the browser supplies the key material on the
+      AgentID page. `type` and `api_key_id` are server-owned; use `api_key_id`
+      as the JWS `kid`. This response never contains a bearer secret or
+      private key.
     properties:
       api_key_id:
         type: uuid
@@ -100,7 +106,15 @@ types:
       name:
         type: Name
         docs: Human-readable credential name.
-      public_key: PublicKeyMaterial
+      status:
+        type: optional<PublicKeyStatus>
+        docs: |
+          Present on a key a browser holds: `pending` until the browser has
+          created its key on the AgentID page, `active` once it can sign in as
+          the inbox. Absent on a registered key.
+      public_key:
+        type: optional<PublicKeyMaterial>
+        docs: The key material. Absent while a browser's key is still `pending`.
       scope: PublicKeyScope
       organization_id: global.OrganizationId
       pod_id:
@@ -111,7 +125,7 @@ types:
         docs: Present for an inbox-scoped credential; the same value `scope` carries.
       created_by:
         type: ApiKeyCreator
-        docs: The bearer API key that registered it.
+        docs: The bearer API key that registered or created it. Deleting that key revokes a key a browser holds.
       permissions: ApiKeyPermissions
       expires_at:
         type: optional<datetime>
@@ -297,77 +311,22 @@ types:
     properties:
       api_key_id: ApiKeyId
 
-  BrowserApiKeyStatus:
+  PublicKeyStatus:
     enum:
       - pending
       - active
     docs: |
-      `pending` until the browser finishes creating its key on the AgentID
-      page; `active` once it can sign in as the inbox.
-
-  BrowserApiKey:
-    docs: |
-      A public key held by a browser, scoped to one inbox: the key it uses to
-      sign in as that inbox at AgentID relying parties. It has no secret and
-      no permissions of its own: the browser proves possession of a
-      non-extractable key, and the bearer API key in `created_by` bounds what
-      it may do. Created by [Connect Provider](/api-reference/providers/connect),
-      [Connect Browser](/api-reference/providers/connect-browser), or
-      [Authorize Inbox](/api-reference/inboxes/authorize).
-      It answers with the same fields as a registered public key plus
-      `status`; `public_key` appears once the browser has proved its key.
-    properties:
-      type: literal<"public_key">
-      api_key_id: ApiKeyId
-      organization_id: global.OrganizationId
-      pod_id:
-        type: string
-        docs: Pod of the inbox the browser signs in as.
-      inbox_id:
-        type: string
-        docs: Inbox the browser signs in as.
-      status: BrowserApiKeyStatus
-      name:
-        type: Name
-        docs: Server-assigned, `Browser · <inbox_id>`.
-      scope:
-        type: PublicKeyScope
-        docs: Always the inbox scope; the same value as `inbox_id`.
-      public_key:
-        type: optional<PublicKeyMaterial>
-        docs: The browser's public key once `status` is `active`; absent while pending.
-      client_id:
-        type: optional<string>
-        docs: |
-          The name given at connect, unique within the organization across
-          every public key. Get and Delete accept it in place of `api_key_id`.
-      permissions:
-        type: ApiKeyPermissions
-        docs: Always empty; a browser key borrows its authority from the key in `created_by`.
-      created_by:
-        type: ApiKeyCreator
-        docs: The bearer API key that created it. Deleting that key revokes this one.
-      created_at: CreatedAt
-      updated_at: datetime
-      expires_at:
-        type: datetime
-        docs: |
-          While pending, the deadline for the browser to finish. Once active,
-          at most 30 days after activation and never later than the
-          authorizing key's own expiry.
-      used_at:
-        type: optional<datetime>
-        docs: Not recorded for browser keys today.
+      Lifecycle of a key a browser holds: `pending` until the browser finishes
+      creating it on the AgentID page, `active` once it can sign in as the inbox.
 
   ApiKey:
     docs: |
       One credential of any family. `type` is `bearer` or `public_key`. A
-      public key carrying `status` is a browser key; one without it is a
+      public key carrying `status` is one a browser holds; one without it is a
       registered signing key.
     discriminated: false
     union:
       - BearerApiKey
-      - BrowserApiKey
       - PublicKeyCredential
 
   ApiKeyType:
@@ -401,7 +360,7 @@ types:
         docs: |
           One credential family per request, ordered by `created_at`
           descending: bearer keys by default, every public key with
-          `type=public_key`. Registered keys page first, then browser keys.
+          `type=public_key`. Registered keys page first, then keys browsers hold.
 
   CreateBearerApiKeyRequest:
     properties:
@@ -485,7 +444,7 @@ service:
         Get one credential of any family by ID. Registered public keys also
         resolve by their `client_id`. Requires `api_key_read`.
 
-        For a browser key, poll this with the `api_key_id` from a connect
+        For a key a browser holds, poll this with the `api_key_id` from a connect
         call to learn when the browser has finished: `status` moves from
         `pending` to `active`. A key that expired, was deleted, or was
         never activated returns `404`. The `api_key_id` from connect is the
@@ -505,7 +464,7 @@ service:
         Create one credential of any family. A body with a public JWK
         registers a public-key credential, optionally under a caller-chosen
         `client_id`, and returns it without any secret. Any other body mints
-        a bearer key and returns its secret once. Browser keys are created by
+        a bearer key and returns its secret once. Keys browsers hold are created by
         the connect endpoints and by
         [Authorize Inbox](/api-reference/inboxes/authorize), not here.
         Requires `api_key_create`.
@@ -542,10 +501,10 @@ service:
       display-name: Delete API Key
       docs: |
         Delete one credential of any family by ID. A registered public key
-        also resolves by its `client_id`. A pending browser session is
-        cancelled and its magic URL can no longer be used; an active one is
-        revoked and can no longer sign in. Deleting a bearer key also revokes
-        every browser session it authorized.
+        also resolves by its `client_id`. A pending key a browser has not yet
+        activated is cancelled and its magic URL can no longer be used; an
+        active one is revoked and can no longer sign in. Deleting a bearer key
+        also revokes every key it created for a browser.
 
         **CLI:**
         ```bash

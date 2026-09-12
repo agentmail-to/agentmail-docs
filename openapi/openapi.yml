@@ -1570,7 +1570,7 @@ paths:
     post:
       description: |-
         Authorize the AgentID sign-in a browser is already waiting in, for the
-        inbox in the path. Mints the browser API key that sign-in will activate
+        inbox in the path. Mints the inbox's public key that sign-in will activate
         and returns it pending; poll `GET /v0/api-keys/{api_key_id}` for
         `status`. The transaction is the idempotency anchor: a repeat for the
         same transaction, inbox, and bearer returns the same pending key.
@@ -1587,7 +1587,7 @@ paths:
             $ref: '#/components/schemas/inboxesInboxId'
       responses:
         '202':
-          description: The pending browser API key.
+          description: The pending public key.
           content:
             application/json:
               schema:
@@ -7890,6 +7890,12 @@ components:
         name:
           $ref: '#/components/schemas/Name'
           description: Human-readable credential name.
+        status:
+          type: string
+          enum:
+            - pending
+            - active
+          description: Present on a key a browser holds; pending until the browser has created its key on the AgentID page, active once it can sign in as the inbox.
         public_key:
           $ref: '#/components/schemas/PublicKeyMaterial'
         scope:
@@ -7911,7 +7917,6 @@ components:
         - api_key_id
         - type
         - name
-        - public_key
         - scope
         - created_at
         - updated_at
