@@ -4,6 +4,7 @@ imports:
   global: __package__.yml
   accounts: accounts.yml
   inboxes: inboxes/__package__.yml
+  api-keys: api-keys.yml
 
 types:
   Provider:
@@ -45,21 +46,87 @@ types:
       inbox_id:
         type: optional<inboxes.InboxId>
         docs: Inbox to connect. Required unless the API key is scoped to an inbox.
+      client_id:
+        type: optional<string>
+        docs: |
+          Your own name for the key, unique within the organization
+          across every public key, and the idempotency handle for this call:
+          connecting again with the same `client_id` answers from the key it
+          names instead of minting another. The legacy `Idempotency-Key`
+          header is read as `client_id` when the body omits it.
       authorize:
         type: optional<boolean>
         docs: Authorize the provider for this inbox, skipping the first-use disclosure page.
 
+  ConnectBrowserBody:
+    properties:
+      provider:
+        type: optional<string>
+        docs: |
+          Provider to continue to after enrollment, as an approved domain or
+          HTTPS URL such as `smolmachines.com`. Matching is exact; an unknown
+          domain returns `404`. Omit to stop on AgentID once the key is active.
+      inbox_id:
+        type: optional<inboxes.InboxId>
+        docs: Inbox to enroll. Required unless the API key is scoped to an inbox.
+      client_id:
+        type: optional<string>
+        docs: |
+          Your own name for the key, unique within the organization
+          across every public key, and the idempotency handle for this call:
+          connecting again with the same `client_id` answers from the key it
+          names instead of minting another. The legacy `Idempotency-Key`
+          header is read as `client_id` when the body omits it.
+      authorize:
+        type: optional<boolean>
+        docs: |
+          Approve the selected `provider` on the agent's behalf so no human
+          has to click through the disclosure page. Requires the API key
+          permission for every owner scope involved.
+
   ConnectProviderAccepted:
     properties:
+      api_key_id:
+        type: api-keys.ApiKeyId
+        docs: |
+          ID of the public key the browser will activate. Poll
+          [Get API Key](/api-reference/api-keys/get) with it to learn when the
+          browser has finished; the same ID lists and deletes the key
+          afterward.
       session_id:
-        type: uuid
-        docs: ID of session.
+        type: api-keys.ApiKeyId
+        docs: Deprecated alias of `api_key_id`, carrying the same value.
       magic_url:
-        type: string
-        docs: Single-use URL to open in the browser that will hold the sign-in.
+        type: optional<string>
+        docs: |
+          Single-use URL to open in the browser that will hold the sign-in.
+          Absent when a repeated `client_id` resolves to a key the browser has
+          already activated.
       expires_at:
         type: datetime
         docs: Time at which the URL expires.
+
+  ConnectAccepted:
+    properties:
+      api_key_id:
+        type: api-keys.ApiKeyId
+        docs: |
+          ID of the public key the browser will activate. Poll
+          [Get API Key](/api-reference/api-keys/get) with it to learn when the
+          browser has finished; the same ID lists and deletes the key
+          afterward.
+      session_id:
+        type: api-keys.ApiKeyId
+        docs: Deprecated alias of `api_key_id`, carrying the same value.
+      magic_url:
+        type: optional<string>
+        docs: |
+          Single-use URL to open in the browser that should hold the key.
+          Absent when a repeated `client_id` resolves to a key that is
+          already active: there is nothing left to open.
+      expires_at:
+        type: datetime
+        docs: Time at which the URL, or the pending key, expires.
 
 service:
   url: Http
@@ -130,7 +197,29 @@ service:
       docs: |
         Starts signing an inbox in to a provider. Returns a `magic_url` valid
         for five minutes; open it in the browser that will hold the sign-in.
-        Requires `api_key_create` and an `Idempotency-Key` header.
+        Requires `api_key_create`.
+
+        Opening the URL enrolls the browser as the inbox, creating a
+        [public key](/api-reference/api-keys/get) for it or reusing one the
+        browser already holds, then continues to the provider's sign-in. The
+        api-keys resource lists, reads, and deletes the keys this creates.
+        To connect by provider domain instead of ID, enroll without continuing
+        to any provider, or attach to a sign-in the browser is already in, use
+        [Connect Browser](/api-reference/providers/connect-browser).
+
+        Creation is limited to 20 pending keys per bearer key per
+        hour, 100 per organization per hour, and five live unactivated keys
+        per bearer key. Browser activation is separately limited to 20 per
+        bearer key per UTC day. Either limit returns `429`; honor the
+        `Retry-After` header.
+
+        The `magic_url` is returned exactly once. Name the key with a
+        `client_id` to make the call safe to repeat: while that key is still
+        pending, the repeat returns `409` with its `api_key_id` and no URL;
+        once the browser has activated it, the repeat returns `200` with the
+        key and no URL; once it has expired or been deleted, the repeat mints
+        a new key under the same `client_id`. Without a `client_id`, every
+        call mints a new key.
       path-parameters:
         provider_id: accounts.ProviderId
       idempotent: true
@@ -140,6 +229,43 @@ service:
       response:
         status-code: 202
         type: ConnectProviderAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError
+
+    connectBrowser:
+      method: POST
+      path: /connect
+      display-name: Connect Browser
+      docs: |
+        Enrolls a browser as an inbox by magic URL. The browser creates a
+        [public key](/api-reference/api-keys/get) for the inbox, or reuses one it
+        already holds. Requires `api_key_create`. Two modes, chosen by the
+        body:
+
+        - **`provider` set to a domain or URL**: same as Connect Provider
+          without a catalog lookup. Returns a `magic_url`; after enrollment
+          the browser continues to that provider's sign-in.
+        - **No `provider`**: returns a `magic_url` valid for five minutes. Open
+          it in the browser that should hold the session; the browser stops on
+          AgentID once it is active. Use this to prepare a browser profile
+          ahead of any sign-in, or when the relying party is not in the
+          provider catalog.
+
+        To attach to a sign-in the browser is already in, use
+        [Authorize Inbox](/api-reference/inboxes/authorize) with
+        `transaction_jti` instead.
+
+        The same limits and `client_id` repeat behavior as Connect Provider
+        apply.
+      idempotent: true
+      request:
+        name: ConnectBrowserRequest
+        body: optional<ConnectBrowserBody>
+      response:
+        status-code: 202
+        type: ConnectAccepted
       errors:
         - global.ValidationError
         - global.NotFoundError

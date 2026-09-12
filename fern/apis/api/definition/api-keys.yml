@@ -82,27 +82,57 @@ types:
 
   PublicKeyCredential:
     docs: |
-      An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
-      use `api_key_id` as the JWS `kid`. This response never contains a bearer
-      secret or private key.
+      An AgentID sign-in credential: a public key scoped to the organization,
+      a pod, or one inbox. Registered directly with its key material, or
+      created for a browser by [Connect Provider](/api-reference/providers/connect),
+      [Connect Browser](/api-reference/providers/connect-browser), or
+      [Authorize Inbox](/api-reference/inboxes/authorize), in which case it
+      carries `status` and the browser supplies the key material on the
+      AgentID page. `type` and `api_key_id` are server-owned; use `api_key_id`
+      as the JWS `kid`. This response never contains a bearer secret or
+      private key.
     properties:
       api_key_id:
         type: uuid
         docs: Server-generated credential ID. Store this value as the signing key's `kid`.
+      client_id:
+        type: optional<string>
+        docs: |
+          Caller-chosen alias, unique within the organization. Get, Rename, and
+          Revoke accept it in place of `api_key_id`.
       type:
         type: literal<"public_key">
         docs: Server-owned credential discriminator. Callers cannot select or update it.
       name:
         type: Name
         docs: Human-readable credential name.
-      public_key: PublicKeyMaterial
+      status:
+        type: optional<PublicKeyStatus>
+        docs: |
+          Present on a key a browser holds: `pending` until the browser has
+          created its key on the AgentID page, `active` once it can sign in as
+          the inbox. Absent on a registered key.
+      public_key:
+        type: optional<PublicKeyMaterial>
+        docs: The key material. Absent while a browser's key is still `pending`.
       scope: PublicKeyScope
+      organization_id: global.OrganizationId
+      pod_id:
+        type: optional<string>
+        docs: Present for a pod- or inbox-scoped credential; the same value `scope` carries.
+      inbox_id:
+        type: optional<string>
+        docs: Present for an inbox-scoped credential; the same value `scope` carries.
+      created_by:
+        type: ApiKeyCreator
+        docs: The bearer API key that registered or created it. Deleting that key revokes a key a browser holds.
+      permissions: ApiKeyPermissions
       expires_at:
         type: optional<datetime>
         docs: Immutable absolute expiry. Omitted when the credential does not expire.
-      revoked_at:
+      used_at:
         type: optional<datetime>
-        docs: Present when organization-wide revoke-all invalidated this credential generation.
+        docs: Last time this key signed an admitted request, when known.
       created_at: datetime
       updated_at: datetime
 
@@ -113,6 +143,14 @@ types:
       request properties.
     properties:
       public_key: PublicJwk
+      client_id:
+        type: optional<string>
+        docs: |
+          Caller-chosen alias, unique within the organization and reusable
+          after deletion. Registration is idempotent on it: the same alias
+          with the same key and bindings returns the existing credential, and
+          a different key or bindings returns `409`. URL-safe labels such as
+          `inbox-123-runtime`; no slash or `@`.
       name:
         type: optional<string>
         validation:
@@ -130,38 +168,6 @@ types:
           Future absolute expiry. Omit to inherit the registering bearer key's
           expiry. A child credential cannot outlive its creator.
 
-  UpdatePublicKeyNameRequest:
-    docs: |
-      Rename a public-key credential. Key material, ID, type, scope, sign-in
-      eligibility, permissions, generation, and expiry are immutable.
-    properties:
-      name:
-        type: string
-        validation:
-          minLength: 1
-          maxLength: 256
-
-  ListPublicKeysResponse:
-    properties:
-      count: global.Count
-      next_page_token: optional<global.PageToken>
-      public_keys:
-        type: list<PublicKeyCredential>
-        docs: Public-key credentials only, ordered by creation time descending by default.
-
-  RevokeAllAgentIdSignInKeysResponse:
-    docs: Permanent idempotency receipt for an organization-wide AgentID sign-in key revocation.
-    properties:
-      previous_generation:
-        type: integer
-        validation:
-          min: 0
-      current_generation:
-        type: integer
-        validation:
-          min: 1
-      revoked_at: datetime
-
   BrowserEnrollmentTransactionJti:
     type: string
     validation:
@@ -169,184 +175,6 @@ types:
       maxLength: 22
       pattern: "^[A-Za-z0-9_-]{22}$"
     docs: Transaction identifier read from an enrollment action on exactly `https://auth.agentid.com`.
-
-  CreateBrowserEnrollmentRequest:
-    docs: |
-      Attach a browser enrollment intent to one pending AgentID authorization
-      transaction. The inbox is selected by the trusted path parameter, not an
-      AgentID `login_hint`.
-    properties:
-      transaction_jti: BrowserEnrollmentTransactionJti
-
-  BrowserEnrollmentAccepted:
-    docs: |
-      Pending enrollment receipt. The browser completes key creation and proof
-      on the existing AgentID page. This response contains no URL, token, or
-      navigation instruction.
-    properties:
-      status: literal<"pending">
-      enrollment_id: uuid
-      expires_at:
-        type: integer
-        validation:
-          min: 1
-        docs: Unix timestamp after which the pending enrollment cannot be activated.
-
-  BrowserCredentialCreator:
-    properties:
-      kind: literal<"bearer_api_key">
-      api_key_id:
-        type: uuid
-        docs: Bearer API key that authorized creation of the browser credential.
-      created_at:
-        type: datetime
-        docs: Incarnation timestamp of the authorizing bearer API key.
-
-  BrowserCredential:
-    docs: Owner-facing metadata for an active browser credential. Private key material never leaves the browser.
-    properties:
-      credential_id: uuid
-      public_key_fingerprint_prefix:
-        type: string
-        validation:
-          minLength: 8
-          maxLength: 8
-          pattern: "^[A-Za-z0-9_-]{8}$"
-      organization_id: uuid
-      pod_id: uuid
-      inbox_id:
-        type: string
-        validation:
-          format: email
-          maxLength: 254
-      created_by: BrowserCredentialCreator
-      created_at: datetime
-      expires_at: datetime
-
-  BrowserConsent:
-    docs: Remembered approval for one closed AgentID client and inbox.
-    properties:
-      consent_id:
-        type: string
-        validation:
-          minLength: 48
-          maxLength: 48
-          pattern: "^brc1_[A-Za-z0-9_-]{43}$"
-      inbox_id:
-        type: string
-        validation:
-          format: email
-          maxLength: 254
-      client_type: literal<"closed">
-      client_id:
-        type: string
-        validation:
-          minLength: 1
-          maxLength: 2048
-      client_url:
-        type: optional<string>
-        docs: Registered client URL, when one is available.
-      approved_scopes:
-        type: list<string>
-        docs: At least one non-empty scope approved for this client.
-      created_at: datetime
-      updated_at: datetime
-      expires_at: datetime
-
-  BrowserLifecycleApiKeyActor:
-    properties:
-      api_key_id: uuid
-
-  BrowserLifecycleCredentialActor:
-    properties:
-      credential_id: uuid
-      authorizing_api_key_id: uuid
-
-  BrowserLifecycleActor:
-    union:
-      api_key: BrowserLifecycleApiKeyActor
-      browser_credential: BrowserLifecycleCredentialActor
-
-  BrowserEnrollmentLifecycleEventType:
-    enum:
-      - browser_enrollment_intent_created
-      - browser_credential_activated
-      - browser_enrollment_cancelled
-      - browser_credential_deleted
-
-  BrowserConsentLifecycleEventType:
-    enum:
-      - browser_consent_created
-      - browser_consent_updated
-      - browser_consent_reused
-      - browser_consent_revoked
-
-  BrowserEnrollmentLifecycleEvent:
-    properties:
-      type: BrowserEnrollmentLifecycleEventType
-      trace_id: uuid
-      event_id: uuid
-      occurred_at: datetime
-      organization_id: uuid
-      pod_id: uuid
-      actor: BrowserLifecycleActor
-      enrollment_id: uuid
-      credential_id: uuid
-
-  BrowserConsentLifecycleEvent:
-    properties:
-      type: BrowserConsentLifecycleEventType
-      trace_id: uuid
-      event_id: uuid
-      occurred_at: datetime
-      organization_id: uuid
-      pod_id: uuid
-      actor: BrowserLifecycleActor
-      consent_id:
-        type: string
-        validation:
-          minLength: 48
-          maxLength: 48
-          pattern: "^brc1_[A-Za-z0-9_-]{43}$"
-      client_type: literal<"closed">
-      client_id:
-        type: string
-        validation:
-          minLength: 1
-          maxLength: 2048
-
-  BrowserLifecycleEvent:
-    discriminated: false
-    union:
-      - BrowserEnrollmentLifecycleEvent
-      - BrowserConsentLifecycleEvent
-
-  BrowserAuthorizationListLimit:
-    type: integer
-    validation:
-      min: 1
-      max: 100
-
-  ListBrowserCredentialsResponse:
-    properties:
-      count: global.Count
-      limit: BrowserAuthorizationListLimit
-      next_page_token: optional<global.PageToken>
-      credentials: list<BrowserCredential>
-
-  ListBrowserConsentsResponse:
-    properties:
-      count: global.Count
-      limit: BrowserAuthorizationListLimit
-      next_page_token: optional<global.PageToken>
-      consents: list<BrowserConsent>
-
-  ListBrowserLifecycleEventsResponse:
-    properties:
-      count: global.Count
-      limit: BrowserAuthorizationListLimit
-      next_page_token: optional<global.PageToken>
-      events: list<BrowserLifecycleEvent>
 
   ApiKeyPermissions:
     docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.
@@ -460,8 +288,10 @@ types:
         type: optional<boolean>
         docs: Delete pods.
 
-  ApiKey:
+  BearerApiKey:
+    docs: An API key presented as a bearer token in the `Authorization` header.
     properties:
+      type: literal<"bearer">
       api_key_id: ApiKeyId
       prefix: Prefix
       name: Name
@@ -476,6 +306,33 @@ types:
         docs: Time at which api key was last used.
       permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
+
+  ApiKeyCreator:
+    properties:
+      api_key_id: ApiKeyId
+
+  PublicKeyStatus:
+    enum:
+      - pending
+      - active
+    docs: |
+      Lifecycle of a key a browser holds: `pending` until the browser finishes
+      creating it on the AgentID page, `active` once it can sign in as the inbox.
+
+  ApiKey:
+    docs: |
+      One credential of any family. `type` is `bearer` or `public_key`. A
+      public key carrying `status` is one a browser holds; one without it is a
+      registered signing key.
+    discriminated: false
+    union:
+      - BearerApiKey
+      - PublicKeyCredential
+
+  ApiKeyType:
+    enum:
+      - bearer
+      - public_key
 
   CreateApiKeyResponse:
     properties:
@@ -500,11 +357,42 @@ types:
       next_page_token: optional<global.PageToken>
       api_keys:
         type: list<ApiKey>
-        docs: Ordered by `created_at` descending.
+        docs: |
+          One credential family per request, ordered by `created_at`
+          descending: bearer keys by default, every public key with
+          `type=public_key`. Registered keys page first, then keys browsers hold.
 
-  CreateApiKeyRequest:
+  CreateBearerApiKeyRequest:
     properties:
       name: optional<Name>
+      permissions: optional<ApiKeyPermissions>
+
+  CreateApiKeyRequest:
+    docs: |
+      A body with `public_key` registers a public-key credential; any other
+      body mints a bearer key.
+    discriminated: false
+    union:
+      - CreateBearerApiKeyRequest
+      - CreatePublicKeyRequest
+
+  CreateApiKeyResult:
+    docs: The secret-bearing bearer key, or the registered public key without any secret.
+    discriminated: false
+    union:
+      - CreateApiKeyResponse
+      - PublicKeyCredential
+
+  UpdateApiKeyRequest:
+    docs: |
+      Rename a credential or change its permissions. Key material, type,
+      scope, and expiry are immutable.
+    properties:
+      name:
+        type: optional<string>
+        validation:
+          minLength: 1
+          maxLength: 256
       permissions: optional<ApiKeyPermissions>
 
 service:
@@ -518,6 +406,14 @@ service:
       path: ""
       display-name: List API Keys
       docs: |
+        List one credential family: bearer keys by default, or every public
+        key (registered and browser) with `type=public_key`.
+
+        With `type=public_key`, `limit` is at most 100, `ascending` is not
+        accepted, and pages continue until `next_page_token` is absent: a page
+        can be empty and still carry a token, so page to token exhaustion, not
+        to the first empty page.
+
         **CLI:**
         ```bash
         agentmail api-keys list
@@ -525,30 +421,91 @@ service:
       request:
         name: ListApiKeysRequest
         query-parameters:
+          type:
+            type: optional<ApiKeyType>
+            docs: Credential family to list. Defaults to `bearer`.
+          inbox_id:
+            type: optional<string>
+            docs: |
+              With `type=public_key`, return only keys scoped to this inbox,
+              registered and browser alike.
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
-          ascending: optional<global.Ascending>
+          ascending:
+            type: optional<global.Ascending>
+            docs: Bearer keys only; rejected with `type=public_key`.
       response: ListApiKeysResponse
+
+    get:
+      method: GET
+      path: /{api_key_id}
+      display-name: Get API Key
+      docs: |
+        Get one credential of any family by ID. Registered public keys also
+        resolve by their `client_id`. Requires `api_key_read`.
+
+        For a key a browser holds, poll this with the `api_key_id` from a connect
+        call to learn when the browser has finished: `status` moves from
+        `pending` to `active`. A key that expired, was deleted, or was
+        never activated returns `404`. The `api_key_id` from connect is the
+        key for its whole life, even when the browser proved material it
+        already held for the inbox: it is the handle List and Delete accept.
+      path-parameters:
+        api_key_id: ApiKeyId
+      response: ApiKey
+      errors:
+        - global.NotFoundError
 
     create:
       method: POST
       path: ""
       display-name: Create API Key
       docs: |
+        Create one credential of any family. A body with a public JWK
+        registers a public-key credential, optionally under a caller-chosen
+        `client_id`, and returns it without any secret. Any other body mints
+        a bearer key and returns its secret once. Keys browsers hold are created by
+        the connect endpoints and by
+        [Authorize Inbox](/api-reference/inboxes/authorize), not here.
+        Requires `api_key_create`.
+
         **CLI:**
         ```bash
         agentmail api-keys create --name "My Key"
         ```
       request: CreateApiKeyRequest
-      response: CreateApiKeyResponse
+      response: CreateApiKeyResult
       errors:
         - global.ValidationError
+        - global.ConflictError
+
+    update:
+      method: PATCH
+      path: /{api_key_id}
+      display-name: Update API Key
+      docs: |
+        Rename a bearer key or a registered public-key credential, or change
+        its permissions. Public keys also resolve by `client_id`. A browser
+        key has no mutable fields and answers `400`. Requires `api_key_update`.
+      path-parameters:
+        api_key_id: ApiKeyId
+      request: UpdateApiKeyRequest
+      response: ApiKey
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
 
     delete:
       method: DELETE
       path: /{api_key_id}
       display-name: Delete API Key
       docs: |
+        Delete one credential of any family by ID. A registered public key
+        also resolves by its `client_id`. A pending key a browser has not yet
+        activated is cancelled and its magic URL can no longer be used; an
+        active one is revoked and can no longer sign in. Deleting a bearer key
+        also revokes every key it created for a browser.
+
         **CLI:**
         ```bash
         agentmail api-keys delete --api-key-id <api_key_id>
@@ -558,180 +515,3 @@ service:
       errors:
         - global.NotFoundError
 
-    listPublicKeys:
-      method: GET
-      path: /public-keys
-      display-name: List Public-Key Credentials
-      docs: |
-        List only public-key credentials visible to the bearer caller's scope.
-        Bearer credentials are never returned, even though both credential types
-        share storage and pagination indexes. Requires `api_key_read`.
-      request:
-        name: ListPublicKeysRequest
-        query-parameters:
-          limit: optional<global.Limit>
-          page_token: optional<global.PageToken>
-          ascending: optional<global.Ascending>
-      response: ListPublicKeysResponse
-
-    createPublicKey:
-      method: POST
-      path: /public-keys
-      display-name: Register Public-Key Credential
-      docs: |
-        Register a public P-256 JWK using an existing AgentMail bearer API key
-        with `api_key_create`. Re-registering the same JWK creates a new
-        credential ID; it does not replace or recover an earlier credential.
-        The private key must never be sent to AgentMail.
-      request: CreatePublicKeyRequest
-      response: PublicKeyCredential
-      errors:
-        - global.ValidationError
-        - global.ConflictError
-
-    updatePublicKeyName:
-      method: PATCH
-      path: /public-keys/{api_key_id}
-      display-name: Rename Public-Key Credential
-      docs: |
-        Rename the credential. All security-relevant fields are immutable.
-        Requires `api_key_update`.
-      path-parameters:
-        api_key_id:
-          type: uuid
-          docs: Public-key credential ID returned by registration.
-      request: UpdatePublicKeyNameRequest
-      response: PublicKeyCredential
-      errors:
-        - global.ValidationError
-        - global.NotFoundError
-
-    revokePublicKey:
-      method: DELETE
-      path: /public-keys/{api_key_id}
-      display-name: Revoke Public-Key Credential
-      docs: |
-        Permanently revoke one public-key credential. This hard-deletes the
-        credential; repeating the request returns not found. Requires
-        `api_key_delete`.
-      path-parameters:
-        api_key_id:
-          type: uuid
-          docs: Public-key credential ID returned by registration.
-      response:
-        status-code: 204
-      errors:
-        - global.NotFoundError
-
-    revokeAllAgentIdSignInKeys:
-      method: POST
-      path: /public-keys/agentid-sign-in/revoke-all
-      display-name: Revoke All AgentID Sign-In Keys
-      docs: |
-        Invalidate every current public-key credential in the caller's
-        organization by advancing its AgentID key generation. The caller must be
-        organization-scoped and either have `api_key_delete` or, for a verified
-        self-serve agent organization, use an unrestricted unmanaged bearer
-        credential. No request body is accepted.
-
-        `Idempotency-Key` is required and must be a UUID. Reusing the same UUID
-        returns the original permanent receipt without advancing the generation
-        again. A new UUID performs a new generation advance.
-      request:
-        name: RevokeAllAgentIdSignInKeysRequest
-        headers:
-          Idempotency-Key:
-            type: string
-            validation:
-              format: uuid
-            docs: Required UUID identifying this revoke-all operation permanently.
-      response: RevokeAllAgentIdSignInKeysResponse
-      errors:
-        - global.ValidationError
-        - global.ConflictError
-
-    listBrowserCredentials:
-      method: GET
-      path: /browser-credentials
-      display-name: List Browser Credentials
-      docs: List active browser credentials visible to the caller's scope. Requires `api_key_read`.
-      request:
-        name: ListBrowserCredentialsRequest
-        query-parameters:
-          limit: optional<BrowserAuthorizationListLimit>
-          page_token: optional<global.PageToken>
-      response: ListBrowserCredentialsResponse
-
-    listBrowserCredentialEvents:
-      method: GET
-      path: /browser-credentials/events
-      display-name: List Browser Credential Events
-      docs: List owner-facing browser credential and consent lifecycle events. Requires `api_key_read`.
-      request:
-        name: ListBrowserCredentialEventsRequest
-        query-parameters:
-          limit: optional<BrowserAuthorizationListLimit>
-          page_token: optional<global.PageToken>
-      response: ListBrowserLifecycleEventsResponse
-      errors:
-        - global.NotFoundError
-
-    deleteBrowserCredential:
-      method: DELETE
-      path: /browser-credentials/{credential_id}
-      display-name: Delete Browser Credential
-      docs: Permanently revoke one active browser credential. Requires `api_key_delete`.
-      path-parameters:
-        credential_id: uuid
-      response:
-        status-code: 204
-      errors:
-        - global.NotFoundError
-
-    cancelBrowserEnrollment:
-      method: DELETE
-      path: /browser-credentials/enrollments/{enrollment_id}
-      display-name: Cancel Browser Enrollment
-      docs: Cancel one pending, unexpired browser enrollment intent. Requires `api_key_delete`.
-      path-parameters:
-        enrollment_id: uuid
-      response:
-        status-code: 204
-      errors:
-        - global.NotFoundError
-
-    listBrowserConsents:
-      method: GET
-      path: /browser-consents
-      display-name: List Browser Consents
-      docs: List remembered AgentID client approvals for one live inbox. Requires `api_key_read`.
-      request:
-        name: ListBrowserConsentsRequest
-        query-parameters:
-          inbox_id:
-            type: string
-            validation:
-              format: email
-              maxLength: 254
-          limit: optional<BrowserAuthorizationListLimit>
-          page_token: optional<global.PageToken>
-      response: ListBrowserConsentsResponse
-      errors:
-        - global.NotFoundError
-
-    deleteBrowserConsent:
-      method: DELETE
-      path: /browser-consents/{consent_id}
-      display-name: Delete Browser Consent
-      docs: Revoke one remembered AgentID client approval. Requires `api_key_delete`.
-      path-parameters:
-        consent_id:
-          type: string
-          validation:
-            minLength: 48
-            maxLength: 48
-            pattern: "^brc1_[A-Za-z0-9_-]{43}$"
-      response:
-        status-code: 204
-      errors:
-        - global.NotFoundError
