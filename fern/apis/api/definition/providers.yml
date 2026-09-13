@@ -93,9 +93,6 @@ types:
           [Get API Key](/api-reference/api-keys/get) with it to learn when the
           browser has finished; the same ID lists and deletes the key
           afterward.
-      session_id:
-        type: api-keys.ApiKeyId
-        docs: Deprecated alias of `api_key_id`, carrying the same value.
       magic_url:
         type: optional<string>
         docs: |
@@ -115,9 +112,6 @@ types:
           [Get API Key](/api-reference/api-keys/get) with it to learn when the
           browser has finished; the same ID lists and deletes the key
           afterward.
-      session_id:
-        type: api-keys.ApiKeyId
-        docs: Deprecated alias of `api_key_id`, carrying the same value.
       magic_url:
         type: optional<string>
         docs: |
@@ -195,31 +189,12 @@ service:
       path: /{provider_id}/connect
       display-name: Connect Provider
       docs: |
-        Starts signing an inbox in to a provider. Returns a `magic_url` valid
-        for five minutes; open it in the browser that will hold the sign-in.
-        Requires `provider_connect`.
-
-        Opening the URL enrolls the browser as the inbox, creating a
-        [public key](/api-reference/api-keys/get) for it or reusing one the
-        browser already holds, then continues to the provider's sign-in. The
-        api-keys resource lists, reads, and deletes the keys this creates.
-        To connect by provider domain instead of ID, enroll without continuing
-        to any provider, or attach to a sign-in the browser is already in, use
-        [Connect Browser](/api-reference/providers/connect-browser).
-
-        Creation is limited to 20 pending keys per bearer key per
-        hour, 100 per organization per hour, and five live unactivated keys
-        per bearer key. Browser activation is separately limited to 20 per
-        bearer key per UTC day. Either limit returns `429`; honor the
-        `Retry-After` header.
-
-        The `magic_url` is returned exactly once. Name the key with a
-        `client_id` to make the call safe to repeat: while that key is still
-        pending, the repeat returns `409` with its `api_key_id` and no URL;
-        once the browser has activated it, the repeat returns `200` with the
-        key and no URL; once it has expired or been deleted, the repeat mints
-        a new key under the same `client_id`. Without a `client_id`, every
-        call mints a new key.
+        Starts signing an inbox in to a provider. Returns a single-use `magic_url`,
+        valid for five minutes, to open in the browser that will hold the sign-in;
+        the browser enrolls as the inbox and continues to the provider. Poll
+        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
+        Repeating a `client_id` answers from the key it names: `409` while pending,
+        `200` once active, a new key once it has expired or been deleted.
       path-parameters:
         provider_id: accounts.ProviderId
       idempotent: true
@@ -239,26 +214,9 @@ service:
       path: /connect
       display-name: Connect Browser
       docs: |
-        Enrolls a browser as an inbox by magic URL. The browser creates a
-        [public key](/api-reference/api-keys/get) for the inbox, or reuses one it
-        already holds. Requires `provider_connect`. Two modes, chosen by the
-        body:
-
-        - **`provider` set to a domain or URL**: same as Connect Provider
-          without a catalog lookup. Returns a `magic_url`; after enrollment
-          the browser continues to that provider's sign-in.
-        - **No `provider`**: returns a `magic_url` valid for five minutes. Open
-          it in the browser that should hold the session; the browser stops on
-          AgentID once it is active. Use this to prepare a browser profile
-          ahead of any sign-in, or when the relying party is not in the
-          provider catalog.
-
-        To attach to a sign-in the browser is already in, use
-        [Authorize Inbox](/api-reference/inboxes/authorize) with
-        `transaction_jti` instead.
-
-        The same limits and `client_id` repeat behavior as Connect Provider
-        apply.
+        Enrolls a browser as an inbox by magic URL. With `provider`, continues to
+        that provider's sign-in after enrollment; without it, stops on AgentID once
+        the key is active. Otherwise behaves as Connect Provider.
       idempotent: true
       request:
         name: ConnectBrowserRequest

@@ -249,14 +249,9 @@ service:
       path: /{inbox_id}/authorize
       display-name: Authorize Inbox
       docs: |
-        Authorize the AgentID sign-in a browser is already waiting in, for the
-        inbox in the path. Mints the inbox's public key that sign-in will activate
-        and returns it as `pending`; poll
-        [Get API Key](/api-reference/api-keys/get) for `status`. The
-        transaction is the idempotency anchor: a repeat for the same
-        transaction, inbox, and bearer returns the same pending key. Requires
-        `provider_connect`. Read `transaction_jti` only from an action
-        published on exactly `https://auth.agentid.com`.
+        Authorizes the AgentID sign-in a browser is already waiting in, for the
+        inbox in the path, and returns the pending public key it will activate. A
+        repeat for the same transaction, inbox, and bearer returns the same key.
       path-parameters:
         inbox_id: InboxId
       request: AuthorizeInboxRequest

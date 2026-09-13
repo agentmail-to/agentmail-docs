@@ -54,17 +54,9 @@ types:
 
   PublicKeyCredential:
     docs: |
-      An AgentID sign-in credential: a public key scoped to the organization,
-      a pod, or one inbox, exactly as a bearer key is (`pod_id` and `inbox_id`
-      absent, pod, or pod and inbox). Registered directly with its key
-      material on the route that names the scope, or
-      created for a browser by [Connect Provider](/api-reference/providers/connect),
-      [Connect Browser](/api-reference/providers/connect-browser), or
-      [Authorize Inbox](/api-reference/inboxes/authorize), in which case it
-      carries `status` and the browser supplies the key material on the
-      AgentID page. `type` and `api_key_id` are server-owned; use `api_key_id`
-      as the JWS `kid`. This response never contains a bearer secret or
-      private key.
+      An AgentID sign-in credential, scoped like a bearer key. A key a browser
+      holds carries `status` and gains `public_key` once the browser has
+      proved it. `api_key_id` is the JWS `kid`.
     properties:
       type:
         type: literal<"public_key">
@@ -118,13 +110,7 @@ types:
           the browser to finish; once active, at most 30 days after activation.
 
   CreatePublicKeyRequest:
-    docs: |
-      Register only a public P-256 JWK. The route selects the scope, as for a
-      bearer key: `POST /v0/api-keys` for the caller's own scope,
-      `POST /v0/pods/{pod_id}/api-keys` for a pod, `POST /v0/inboxes/{inbox_id}/api-keys`
-      for an inbox; the target must be the caller's scope or a live descendant.
-      Credential type, `api_key_id`, sign-in eligibility, and generation are
-      server-owned and are not request properties.
+    docs: Registers a public P-256 JWK at the route's scope. `type` and `api_key_id` are server-owned.
     properties:
       public_key: PublicJwk
       client_id:
@@ -407,13 +393,9 @@ service:
       path: ""
       display-name: List API Keys
       docs: |
-        List one credential family: bearer keys by default, or every public
-        key (registered and browser) with `type=public_key`.
-
-        With `type=public_key`, `limit` is at most 100, `ascending` is not
-        accepted, and pages continue until `next_page_token` is absent: a page
-        can be empty and still carry a token, so page to token exhaustion, not
-        to the first empty page.
+        Lists bearer keys by default, or every public key with `type=public_key`.
+        Public keys page to token exhaustion: a page can be empty and still carry a
+        `next_page_token`.
 
         **CLI:**
         ```bash
@@ -442,15 +424,8 @@ service:
       path: /{api_key_id}
       display-name: Get API Key
       docs: |
-        Get one credential of any family by ID. Registered public keys also
-        resolve by their `client_id`. Requires `api_key_read`.
-
-        For a key a browser holds, poll this with the `api_key_id` from a connect
-        call to learn when the browser has finished: `status` moves from
-        `pending` to `active`. A key that expired, was deleted, or was
-        never activated returns `404`. The `api_key_id` from connect is the
-        key for its whole life, even when the browser proved material it
-        already held for the inbox: it is the handle List and Delete accept.
+        Returns one credential of any family. Public keys also resolve by
+        `client_id`. Poll a browser-held key until `status` is `active`.
       path-parameters:
         api_key_id: ApiKeyId
       response: ApiKey
@@ -462,13 +437,8 @@ service:
       path: ""
       display-name: Create API Key
       docs: |
-        Create one credential of any family. A body with a public JWK
-        registers a public-key credential, optionally under a caller-chosen
-        `client_id`, and returns it without any secret. Any other body mints
-        a bearer key and returns its secret once. Keys browsers hold are created by
-        the connect endpoints and by
-        [Authorize Inbox](/api-reference/inboxes/authorize), not here.
-        Requires `api_key_create`.
+        Creates a bearer key, or registers a public key when the body carries
+        `public_key`. The route selects the scope. Bearer secrets are returned once.
 
         **CLI:**
         ```bash
@@ -485,10 +455,9 @@ service:
       path: /{api_key_id}
       display-name: Update API Key
       docs: |
-        Rename a bearer key or a public-key credential, or change its
-        permissions. Public keys also resolve by `client_id`. A key a browser
-        holds accepts only `provider_connect` and `provider_owner_share`.
-        Requires `api_key_update`.
+        Renames a credential or changes its permissions. Public keys also resolve
+        by `client_id`; a browser-held key accepts only `provider_connect` and
+        `provider_owner_share`.
       path-parameters:
         api_key_id: ApiKeyId
       request: UpdateApiKeyRequest
@@ -502,10 +471,8 @@ service:
       path: /{api_key_id}
       display-name: Delete API Key
       docs: |
-        Delete one credential of any family by ID. A registered public key
-        also resolves by its `client_id`. A pending key a browser has not yet
-        activated is cancelled and its magic URL can no longer be used; an
-        active one is revoked and can no longer sign in.
+        Deletes one credential of any family. A pending browser-held key is
+        cancelled; an active one is revoked. Public keys also resolve by `client_id`.
 
         **CLI:**
         ```bash

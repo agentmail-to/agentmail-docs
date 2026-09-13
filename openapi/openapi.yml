@@ -10452,10 +10452,6 @@ components:
       title: ConnectProviderAccepted
       type: object
       properties:
-        session_id:
-          type: string
-          format: uuid
-          description: ID of session.
         magic_url:
           type: string
           description: Single-use URL to open in the browser that will hold the sign-in.
@@ -10464,7 +10460,6 @@ components:
           format: date-time
           description: Time at which the URL expires.
       required:
-        - session_id
         - magic_url
         - expires_at
     ThreadId:
