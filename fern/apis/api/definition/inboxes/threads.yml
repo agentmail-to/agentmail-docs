@@ -87,6 +87,15 @@ service:
         ```
       path-parameters:
         thread_id: threads.ThreadId
+      request:
+        name: GetInboxThreadRequest
+        query-parameters:
+          limit:
+            type: optional<global.Limit>
+            docs: Maximum number of messages to return. Cannot exceed 100.
+          page_token:
+            type: optional<global.PageToken>
+            docs: Token returned by the previous response for retrieving the next, older page.
       response: threads.Thread
       errors:
         - global.NotFoundError

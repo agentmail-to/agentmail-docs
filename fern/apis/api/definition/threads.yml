@@ -104,9 +104,18 @@ types:
       size: ThreadSize
       updated_at: ThreadUpdatedAt
       created_at: ThreadCreatedAt
+      count:
+        type: global.Count
+        docs: Number of messages in this response page.
+      limit:
+        type: optional<global.Limit>
+        docs: Maximum number of messages requested for this page.
+      next_page_token:
+        type: optional<global.PageToken>
+        docs: Token for the next, older page of messages. Omitted when this page completes the thread.
       messages:
         type: list<messages.Message>
-        docs: Messages in thread. Ordered by `timestamp` ascending.
+        docs: Messages in this page, ordered by `timestamp` ascending. The first page contains the newest messages; follow `next_page_token` to retrieve older pages.
 
   UpdateThreadRequest:
     properties:
@@ -247,6 +256,15 @@ service:
         ```
       path-parameters:
         thread_id: ThreadId
+      request:
+        name: GetThreadRequest
+        query-parameters:
+          limit:
+            type: optional<global.Limit>
+            docs: Maximum number of messages to return. Cannot exceed 100.
+          page_token:
+            type: optional<global.PageToken>
+            docs: Token returned by the previous response for retrieving the next, older page.
       response: Thread
       errors:
         - global.NotFoundError
