@@ -280,8 +280,8 @@ operations require `api_key_read`; deletion and cancellation require
 | --- | --- |
 | Attach a browser already on an AgentID page | `POST /v0/inboxes/{inbox_id}/authorize` with `transaction_jti` |
 | Enroll a browser by magic URL | `POST /v0/providers/connect` or `POST /v0/providers/{provider_id}/connect` |
-| List public keys, registered and browser, across the key's scope | `GET /v0/api-keys?type=public_key` |
-| List an inbox's public keys, including those browsers hold | `GET /v0/api-keys?type=public_key&inbox_id={inbox_id}` |
+| List every key, or only public keys | `GET /v0/api-keys` or `GET /v0/api-keys?type=public_key` |
+| List an inbox's keys | `GET /v0/api-keys?inbox_id={inbox_id}` |
 | Get one, pending or active | `GET /v0/api-keys/{api_key_id}` |
 | Cancel a pending key or revoke an active one | `DELETE /v0/api-keys/{api_key_id}` |
 

@@ -20,6 +20,42 @@ types:
     type: datetime
     docs: Time at which api key was created.
 
+  UpdatedAt:
+    type: datetime
+    docs: Time at which api key was last updated.
+
+  ExpiresAt:
+    type: datetime
+    docs: Time at which api key expires. Omitted when it does not expire.
+
+  UsedAt:
+    type: datetime
+    docs: Time at which api key was last used.
+
+  PodScopeId:
+    type: string
+    docs: Pod ID the api key is scoped to. If set, the key can only access resources within this pod.
+
+  InboxScopeId:
+    type: string
+    docs: Inbox ID the api key is scoped to. If set, the key can only access resources within this inbox.
+
+  PublicKeyClientId:
+    type: string
+    docs: |
+      Caller-chosen alias for a public key, unique within the organization and
+      reusable after deletion. Accepted in place of `api_key_id` on get, update,
+      and delete. Registration and connect are idempotent on it: the same alias
+      returns the existing key, a conflicting one returns `409`. URL-safe; no
+      slash or `@`.
+
+  Authorize:
+    type: boolean
+    docs: |
+      Approve the provider on the agent's behalf, skipping the first-use
+      disclosure page. Requires `provider_owner_share` when owner scopes are
+      involved.
+
   PublicJwkCoordinate:
     type: string
     validation:
@@ -54,92 +90,42 @@ types:
 
   PublicKeyCredential:
     docs: |
-      An AgentID sign-in credential, scoped like a bearer key. A key a browser
-      holds carries `status` and gains `public_key` once the browser has
-      proved it. `api_key_id` is the JWS `kid`.
+      An AgentID sign-in credential, scoped like a bearer key; `api_key_id` is
+      the JWS `kid`. A key a browser holds carries `status`, gains
+      `public_key` once the browser has proved it, expires 30 days after
+      activation, and carries exactly `provider_connect` and
+      `provider_owner_share`, snapshotted from the bearer key that created it
+      and enforced from the key itself.
     properties:
-      type:
-        type: literal<"public_key">
-        docs: Server-owned credential discriminator. Callers cannot select or update it.
-      api_key_id:
-        type: uuid
-        docs: Server-generated credential ID. Store this value as the signing key's `kid`.
-      client_id:
-        type: optional<string>
-        docs: |
-          Caller-chosen alias, unique within the organization. Get, Rename, and
-          Revoke accept it in place of `api_key_id`.
-      name:
-        type: Name
-        docs: Human-readable credential name.
-      public_key:
-        type: optional<PublicKeyMaterial>
-        docs: The key material. Absent while a browser's key is still `pending`.
-      pod_id:
-        type: optional<string>
-        docs: Pod the credential is scoped to. Absent on an organization-scoped credential.
-      inbox_id:
-        type: optional<string>
-        docs: Inbox the credential is scoped to. Absent unless the credential is inbox-scoped.
-      status:
-        type: optional<PublicKeyStatus>
-        docs: |
-          Present on a key a browser holds: `pending` until the browser has
-          created its key on the AgentID page, `active` once it can sign in as
-          the inbox. Absent on a registered key.
-      used_at:
-        type: optional<datetime>
-        docs: Last time this key signed an admitted request, when known.
-      permissions:
-        type: ApiKeyPermissions
-        docs: |
-          Granular permissions, as on a bearer key. A key a browser holds carries
-          `provider_connect` and `provider_owner_share`, snapshotted from the
-          bearer API key that created it and enforced from the key itself;
-          change them with Update API Key.
-      created_by:
-        type: ApiKeyCreator
-        docs: The bearer API key that registered or created it. Provenance only; the credential outlives it.
-      created_at: datetime
-      updated_at: datetime
-      expires_at:
-        type: optional<datetime>
-        docs: |
-          Immutable absolute expiry. Omitted when the credential does not
-          expire. For a key a browser holds: while pending, the deadline for
-          the browser to finish; once active, at most 30 days after activation.
+      type: literal<"public_key">
+      api_key_id: ApiKeyId
+      client_id: optional<PublicKeyClientId>
+      name: Name
+      public_key: optional<PublicKeyMaterial>
+      pod_id: optional<PodScopeId>
+      inbox_id: optional<InboxScopeId>
+      status: optional<PublicKeyStatus>
+      used_at: optional<UsedAt>
+      permissions: ApiKeyPermissions
+      created_by: ApiKeyCreator
+      created_at: CreatedAt
+      updated_at: UpdatedAt
+      expires_at: optional<ExpiresAt>
 
   CreatePublicKeyRequest:
-    docs: Registers a public P-256 JWK at the route's scope. `type` and `api_key_id` are server-owned.
+    docs: |
+      Registers a public P-256 JWK at the route's scope. `type` and
+      `api_key_id` are server-owned. `name` defaults to
+      `AgentID key {first eight fingerprint characters}`; `permissions`
+      defaults to the registering key's, and only grants it holds may be
+      true; `expires_at` defaults to the registering key's expiry and is
+      independent of that key afterward.
     properties:
       public_key: PublicJwk
-      client_id:
-        type: optional<string>
-        docs: |
-          Caller-chosen alias, unique within the organization and reusable
-          after deletion. Registration is idempotent on it: the same alias
-          with the same key and bindings returns the existing credential, and
-          a different key or bindings returns `409`. URL-safe labels such as
-          `inbox-123-runtime`; no slash or `@`.
-      name:
-        type: optional<string>
-        validation:
-          minLength: 1
-          maxLength: 256
-        docs: Defaults to `AgentID key {first eight fingerprint characters}`.
-      permissions:
-        type: optional<ApiKeyPermissions>
-        docs: |
-          Granular permissions, as on a bearer key. Omitted inherits the
-          registering bearer key's permissions; only grants that key holds may
-          be set to true.
-      expires_at:
-        type: optional<datetime>
-        docs: |
-          Future absolute expiry. Omit to copy the registering bearer key's
-          expiry at registration. The credential is independent of that key
-          afterward: deleting, narrowing, or expiring the bearer does not
-          affect it.
+      client_id: optional<PublicKeyClientId>
+      name: optional<Name>
+      permissions: optional<ApiKeyPermissions>
+      expires_at: optional<ExpiresAt>
 
   BrowserEnrollmentTransactionJti:
     type: string
@@ -278,23 +264,16 @@ types:
       api_key_id: ApiKeyId
       prefix: Prefix
       name: Name
-      pod_id:
-        type: optional<string>
-        docs: Pod ID the api key is scoped to. If set, the key can only access resources within this pod.
-      inbox_id:
-        type: optional<string>
-        docs: Inbox ID the api key is scoped to. If set, the key can only access resources within this inbox.
-      used_at:
-        type: optional<datetime>
-        docs: Time at which api key was last used.
+      pod_id: optional<PodScopeId>
+      inbox_id: optional<InboxScopeId>
+      used_at: optional<UsedAt>
       permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
-      updated_at: datetime
-      expires_at:
-        type: optional<datetime>
-        docs: Absolute expiry. Omitted when the key does not expire.
+      updated_at: UpdatedAt
+      expires_at: optional<ExpiresAt>
 
   ApiKeyCreator:
+    docs: The bearer API key that created the credential. Provenance only; the credential outlives it.
     properties:
       api_key_id: ApiKeyId
 
@@ -304,7 +283,8 @@ types:
       - active
     docs: |
       Lifecycle of a key a browser holds: `pending` until the browser finishes
-      creating it on the AgentID page, `active` once it can sign in as the inbox.
+      creating it on the AgentID page, `active` once it can sign in as the
+      inbox. Absent on a registered key.
 
   ApiKey:
     docs: |
@@ -329,12 +309,8 @@ types:
         docs: API key.
       prefix: Prefix
       name: Name
-      pod_id:
-        type: optional<string>
-        docs: Pod ID the api key is scoped to.
-      inbox_id:
-        type: optional<string>
-        docs: Inbox ID the api key is scoped to.
+      pod_id: optional<PodScopeId>
+      inbox_id: optional<InboxScopeId>
       permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
 
@@ -345,9 +321,8 @@ types:
       api_keys:
         type: list<ApiKey>
         docs: |
-          One credential family per request, ordered by `created_at`
-          descending: bearer keys by default, every public key with
-          `type=public_key`. Registered keys page first, then keys browsers hold.
+          Every credential family, ordered by `created_at`. `type` restricts
+          to one family.
 
   CreateBearerApiKeyRequest:
     properties:
@@ -375,11 +350,7 @@ types:
       Rename a credential or change its permissions. Key material, type,
       scope, and expiry are immutable.
     properties:
-      name:
-        type: optional<string>
-        validation:
-          minLength: 1
-          maxLength: 256
+      name: optional<Name>
       permissions: optional<ApiKeyPermissions>
 
 service:
@@ -393,8 +364,8 @@ service:
       path: ""
       display-name: List API Keys
       docs: |
-        Lists bearer keys by default, or every public key with `type=public_key`.
-        Public keys page to token exhaustion: a page can be empty and still carry a
+        Lists every credential, newest first. Filter one family with `type`.
+        Page to token exhaustion: a page can be empty and still carry a
         `next_page_token`.
 
         **CLI:**
@@ -406,17 +377,13 @@ service:
         query-parameters:
           type:
             type: optional<ApiKeyType>
-            docs: Credential family to list. Defaults to `bearer`.
+            docs: Restrict the list to one credential family. Omit for every family.
           inbox_id:
             type: optional<string>
-            docs: |
-              With `type=public_key`, return only keys scoped to this inbox,
-              registered and browser alike.
+            docs: Return only keys scoped to this inbox.
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
-          ascending:
-            type: optional<global.Ascending>
-            docs: Bearer keys only; rejected with `type=public_key`.
+          ascending: optional<global.Ascending>
       response: ListApiKeysResponse
 
     get:
