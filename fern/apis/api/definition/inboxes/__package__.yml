@@ -55,12 +55,28 @@ types:
       removes it. Up to 256 keys; keys and string values are each limited to
       256 characters.
 
+  InboxStatus:
+    enum:
+      - active
+      - inactive
+    docs: |
+      `inactive` turns off mail flow in both directions: sending (including
+      scheduled sends), creating or updating drafts, and inbound delivery —
+      inbound mail to an inactive inbox is dropped, not bounced. Reading,
+      listing, and deleting still work, and the inbox keeps its address,
+      messages, and threads. Set `active` to turn mail flow back on.
+
   Inbox:
     properties:
       pod_id: pods.PodId
       inbox_id: InboxId
       email: Email
       display_name: optional<DisplayName>
+      status:
+        type: optional<InboxStatus>
+        docs: |
+          Only present when the inbox is `inactive`. An active inbox has no
+          `status` field.
       client_id: optional<ClientId>
       metadata:
         type: optional<Metadata>
@@ -102,6 +118,9 @@ types:
           verified domain that has subdomains enabled (e.g., `bot.example.com`).
           Defaults to `agentmail.to`.
       display_name: optional<DisplayName>
+      status:
+        type: optional<InboxStatus>
+        docs: Defaults to `active`.
       client_id: optional<ClientId>
       metadata:
         type: optional<Metadata>
@@ -110,6 +129,12 @@ types:
   UpdateInboxRequest:
     properties:
       display_name: optional<DisplayName>
+      status:
+        type: optional<InboxStatus>
+        docs: |
+          `inactive` pauses the inbox; `active` resumes it. Sending from or
+          drafting into an inactive inbox fails with the `inbox_inactive`
+          error; inbound mail to it is dropped, not bounced.
       metadata:
         type: optional<nullable<UpdateMetadata>>
         docs: |
@@ -117,8 +142,8 @@ types:
           are added or overwritten; keys you omit are left unchanged. To remove a
           single key, send it with a null value. To clear all metadata, send
           `metadata` as null. Sending an empty object is rejected; use null to
-          clear. Each update must include at least one of `display_name` or
-          `metadata`.
+          clear. Each update must include at least one of `display_name`,
+          `status`, or `metadata`.
 
 service:
   url: Http
@@ -210,7 +235,7 @@ service:
       request:
         body:
           type: UpdateInboxRequest
-          docs: Expects an object; provide at least one of `display_name` or `metadata`.
+          docs: Expects an object; provide at least one of `display_name`, `status`, or `metadata`.
       response: Inbox
       errors:
         - global.NotFoundError
@@ -229,3 +254,11 @@ service:
         inbox_id: InboxId
       errors:
         - global.NotFoundError
+
+errors:
+  InboxInactiveError:
+    status-code: 403
+    type: global.ErrorResponse
+    docs: |
+      The inbox's `status` is `inactive` (code `inbox_inactive`). Sending from it and creating or
+      updating its drafts are refused until it is set back to `active`.

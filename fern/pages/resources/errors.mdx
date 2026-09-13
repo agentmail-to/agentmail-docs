@@ -117,6 +117,12 @@ The message was not sent. The message names the reason, and the `fix` states whi
 - **A suspended account** — email support@agentmail.to; retrying will keep failing until the suspension is resolved.
 - **An unfetchable attachment URL** — use a URL that AgentMail can download without custom authentication headers or cookies, or send the attachment inline as Base64. Redirects and pre-signed URLs are supported, and the final response must be a successful 2xx response.
 
+## Inactive inbox (403)
+
+### inbox_inactive
+
+The inbox's `status` is `inactive`, which blocks sending (including scheduled sends), creating or updating drafts, and inbound delivery. Reading, listing, and deleting still work. This is a state you control, not an account-level block: reactivate the inbox with `PATCH /v0/inboxes/{inbox_id}` and `{ "status": "active" }`, then retry.
+
 ## Request too large (413)
 
 Oversized inline attachment requests return an infrastructure-generated response:

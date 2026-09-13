@@ -88,6 +88,7 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
+        - inboxes.InboxInactiveError
 
     update:
       method: PATCH
@@ -110,6 +111,7 @@ service:
         - global.ValidationError
         - global.NotFoundError
         - global.ConflictError
+        - inboxes.InboxInactiveError
 
     delete:
       method: DELETE
@@ -144,3 +146,4 @@ service:
         - global.ValidationError
         - global.ConflictError
         - messages.MessageRejectedError
+        - inboxes.InboxInactiveError
