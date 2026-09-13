@@ -307,6 +307,13 @@ enforced from the key itself; change them with
 `PATCH /v0/api-keys/{api_key_id}`. Deleting or narrowing the bearer key
 afterward does not affect it.
 
+`provider_owner_share` is one grouped grant covering both owner scopes. It is
+snapshotted as `true` only when the creating bearer key holds
+`provider_owner_share`, or both of the older `owner_profile` and `owner_email`
+grants; a bearer key holding just one of those mints keys with
+`provider_owner_share: false`, and can no longer pre-approve that single
+scope.
+
 The browser's **Forget** action deletes only local key material. It does not
 revoke the server-side key. Use `DELETE /v0/api-keys/{api_key_id}` for
 server-side revocation.
