@@ -324,10 +324,14 @@ types:
           Every credential family, ordered by `created_at`. `type` restricts
           to one family.
 
-  CreateBearerApiKeyRequest:
+  ApiKeyMutableFields:
+    docs: The fields a caller may set on a bearer key at creation and change afterward.
     properties:
       name: optional<Name>
       permissions: optional<ApiKeyPermissions>
+
+  CreateBearerApiKeyRequest:
+    extends: ApiKeyMutableFields
 
   CreateApiKeyRequest:
     docs: |
@@ -349,9 +353,7 @@ types:
     docs: |
       Rename a credential or change its permissions. Key material, type,
       scope, and expiry are immutable.
-    properties:
-      name: optional<Name>
-      permissions: optional<ApiKeyPermissions>
+    extends: ApiKeyMutableFields
 
 service:
   url: Http
