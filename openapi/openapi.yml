@@ -7782,73 +7782,6 @@ components:
         - crv
         - x
         - 'y'
-    OrganizationPublicKeyScope:
-      title: OrganizationPublicKeyScope
-      type: object
-      description: Organization-wide authority.
-      properties: {}
-    PodPublicKeyScope:
-      title: PodPublicKeyScope
-      type: object
-      description: Authority over one live pod and its inboxes.
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: ID of the pod.
-      required:
-        - id
-    InboxPublicKeyScope:
-      title: InboxPublicKeyScope
-      type: object
-      description: Authority over one live inbox incarnation.
-      properties:
-        id:
-          type: string
-          format: email
-          maxLength: 254
-          description: ID of the inbox.
-      required:
-        - id
-    PublicKeyScope:
-      title: PublicKeyScope
-      oneOf:
-        - type: object
-          allOf:
-            - type: object
-              properties:
-                type:
-                  type: string
-                  enum:
-                    - organization
-            - $ref: '#/components/schemas/OrganizationPublicKeyScope'
-          required:
-            - type
-        - type: object
-          allOf:
-            - type: object
-              properties:
-                type:
-                  type: string
-                  enum:
-                    - pod
-            - $ref: '#/components/schemas/PodPublicKeyScope'
-          required:
-            - type
-        - type: object
-          allOf:
-            - type: object
-              properties:
-                type:
-                  type: string
-                  enum:
-                    - inbox
-            - $ref: '#/components/schemas/InboxPublicKeyScope'
-          required:
-            - type
-      description: >-
-        The immutable scope in which a public-key credential can approve AgentID
-        sign-in.
     PublicKeyMaterial:
       title: PublicKeyMaterial
       type: object
@@ -7898,8 +7831,6 @@ components:
           description: Present on a key a browser holds; pending until the browser has created its key on the AgentID page, active once it can sign in as the inbox.
         public_key:
           $ref: '#/components/schemas/PublicKeyMaterial'
-        scope:
-          $ref: '#/components/schemas/PublicKeyScope'
         expires_at:
           type: string
           format: date-time
@@ -7917,7 +7848,6 @@ components:
         - api_key_id
         - type
         - name
-        - scope
         - created_at
         - updated_at
     BrowserEnrollmentTransactionJti:
