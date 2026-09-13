@@ -6574,7 +6574,7 @@ paths:
       description: |-
         Starts signing an inbox in to a provider. Returns a `magic_url` valid
         for five minutes; open it in the browser that will hold the sign-in.
-        Requires `api_key_create` and an `Idempotency-Key` header.
+        Requires `provider_connect` and an `Idempotency-Key` header.
       operationId: providers_connect
       tags:
         - Providers
@@ -8083,6 +8083,20 @@ components:
           type: boolean
           nullable: true
           description: Delete API keys.
+        provider_connect:
+          type: boolean
+          nullable: true
+          description: >-
+            Sign in to providers as an inbox: connect a provider, authorize an inbox, and mint the
+            keys browsers hold. Omitted on a new bearer key means false, whatever else the key holds.
+            Keys created before this permission existed keep the sign-in authority they had through
+            `api_key_create`.
+        provider_owner_share:
+          type: boolean
+          nullable: true
+          description: >-
+            Share the organization owner's name and email with providers at sign-in. One permission
+            for both values.
         pod_read:
           type: boolean
           nullable: true

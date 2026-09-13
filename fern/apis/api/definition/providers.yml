@@ -197,7 +197,7 @@ service:
       docs: |
         Starts signing an inbox in to a provider. Returns a `magic_url` valid
         for five minutes; open it in the browser that will hold the sign-in.
-        Requires `api_key_create`.
+        Requires `provider_connect`.
 
         Opening the URL enrolls the browser as the inbox, creating a
         [public key](/api-reference/api-keys/get) for it or reusing one the
@@ -241,7 +241,7 @@ service:
       docs: |
         Enrolls a browser as an inbox by magic URL. The browser creates a
         [public key](/api-reference/api-keys/get) for the inbox, or reuses one it
-        already holds. Requires `api_key_create`. Two modes, chosen by the
+        already holds. Requires `provider_connect`. Two modes, chosen by the
         body:
 
         - **`provider` set to a domain or URL**: same as Connect Provider
