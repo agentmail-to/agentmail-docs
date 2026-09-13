@@ -8019,7 +8019,7 @@ components:
           description: >-
             Sign in to providers as an inbox: connect a provider, authorize an inbox, and mint the
             keys browsers hold. Omitted on a new bearer key means false, whatever else the key holds.
-        provider_owner_share:
+        provider_share_owner:
           type: boolean
           nullable: true
           description: >-

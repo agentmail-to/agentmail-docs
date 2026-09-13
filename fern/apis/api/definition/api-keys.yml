@@ -53,7 +53,7 @@ types:
     type: boolean
     docs: |
       Approve the provider on the agent's behalf, skipping the first-use
-      disclosure page. Requires `provider_owner_share` when owner scopes are
+      disclosure page. Requires `provider_share_owner` when owner scopes are
       involved.
 
   PublicJwkCoordinate:
@@ -94,7 +94,7 @@ types:
       the JWS `kid`. A key a browser holds carries `status`, gains
       `public_key` once the browser has proved it, expires 30 days after
       activation, and carries exactly `provider_connect` and
-      `provider_owner_share`, snapshotted from the bearer key that created it
+      `provider_share_owner`, snapshotted from the bearer key that created it
       and enforced from the key itself.
     properties:
       type: literal<"public_key">
@@ -242,7 +242,7 @@ types:
         docs: |
           Sign in to providers as an inbox: connect a provider, authorize an inbox, and mint the
           keys browsers hold. Omitted on a new bearer key means false, whatever else the key holds.
-      provider_owner_share:
+      provider_share_owner:
         type: optional<boolean>
         docs: |
           Share the organization owner's name and email with providers at sign-in. One permission
@@ -423,7 +423,7 @@ service:
       docs: |
         Renames a credential or changes its permissions. Public keys also resolve
         by `client_id`; a browser-held key accepts only `provider_connect` and
-        `provider_owner_share`.
+        `provider_share_owner`.
       path-parameters:
         api_key_id: ApiKeyId
       request: UpdateApiKeyRequest

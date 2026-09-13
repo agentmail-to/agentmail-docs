@@ -301,16 +301,16 @@ one. There is no endpoint that extends a key in place.
 
 A key a browser holds is independent of the bearer API key that created it.
 It carries exactly two permissions, `provider_connect` and
-`provider_owner_share`, snapshotted from that bearer key at creation and
+`provider_share_owner`, snapshotted from that bearer key at creation and
 enforced from the key itself; change them with
 `PATCH /v0/api-keys/{api_key_id}`. Deleting or narrowing the bearer key
 afterward does not affect it.
 
-`provider_owner_share` is one grouped grant covering both owner scopes. It is
+`provider_share_owner` is one grouped grant covering both owner scopes. It is
 snapshotted as `true` only when the creating bearer key holds
-`provider_owner_share`, or both of the older `owner_profile` and `owner_email`
+`provider_share_owner`, or both of the older `owner_profile` and `owner_email`
 grants; a bearer key holding just one of those mints keys with
-`provider_owner_share: false`, and can no longer pre-approve that single
+`provider_share_owner: false`, and can no longer pre-approve that single
 scope.
 
 The browser's **Forget** action deletes only local key material. It does not
