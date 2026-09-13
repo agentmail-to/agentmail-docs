@@ -8089,8 +8089,6 @@ components:
           description: >-
             Sign in to providers as an inbox: connect a provider, authorize an inbox, and mint the
             keys browsers hold. Omitted on a new bearer key means false, whatever else the key holds.
-            Keys created before this permission existed keep the sign-in authority they had through
-            `api_key_create`.
         provider_owner_share:
           type: boolean
           nullable: true
