@@ -87,7 +87,6 @@ class InboxScope(TypedDict):
     id: str
 
 
-Scope = Union[OrganizationScope, PodScope, InboxScope]
 
 
 def b64url_coordinate(value: int) -> str:
@@ -108,18 +107,18 @@ def register_agentid_key(
     client: AgentMail,
     private_key: ec.EllipticCurvePrivateKey,
     *,
-    scope: Optional[Scope] = None,
+    inbox_id: str,
     name: Optional[str] = None,
     expires_at: Optional[datetime] = None,
 ):
+    # the route selects the scope: inboxes.api_keys for an inbox,
+    # pods.api_keys for a pod, api_keys for the caller's own scope
     request: Dict[str, Any] = {"public_key": public_jwk(private_key)}
-    if scope is not None:
-        request["scope"] = scope
     if name is not None:
         request["name"] = name
     if expires_at is not None:
         request["expires_at"] = expires_at
-    return client.api_keys.create_public_key(**request)
+    return client.inboxes.api_keys.create(inbox_id=inbox_id, **request)
 
 
 # Generate inside your keystore in production. This in-process object is only a
@@ -129,8 +128,8 @@ client = AgentMail(api_key="YOUR_EXISTING_AGENTMAIL_API_KEY")
 credential = register_agentid_key(
     client,
     private_key,
+    inbox_id="agent@example.com",
     name="production signer",
-    scope={"type": "inbox", "id": "agent@example.com"},
 )
 
 # Store this mapping in trusted application state.
@@ -144,10 +143,6 @@ key_record = {
 import { generateKeyPairSync, type KeyObject } from "node:crypto";
 import { AgentMailClient } from "agentmail";
 
-type Scope =
-  | { type: "organization" }
-  | { type: "pod"; id: string }
-  | { type: "inbox"; id: string };
 
 function publicJwk(publicKey: KeyObject) {
   const jwk = publicKey.export({ format: "jwk" });
@@ -161,11 +156,13 @@ function publicJwk(publicKey: KeyObject) {
 async function registerAgentIdKey(
   client: AgentMailClient,
   publicKey: KeyObject,
-  options: { scope?: Scope; name?: string; expiresAt?: Date } = {},
+  inboxId: string,
+  options: { name?: string; expiresAt?: Date } = {},
 ) {
-  return client.apiKeys.createPublicKey({
+  // the route selects the scope: inboxes.apiKeys for an inbox,
+  // pods.apiKeys for a pod, apiKeys for the caller's own scope
+  return client.inboxes.apiKeys.create(inboxId, {
     publicKey: publicJwk(publicKey),
-    scope: options.scope,
     name: options.name,
     expiresAt: options.expiresAt,
   });
@@ -177,9 +174,8 @@ const { privateKey, publicKey } = generateKeyPairSync("ec", {
   namedCurve: "prime256v1",
 });
 const client = new AgentMailClient({ apiKey: "YOUR_EXISTING_AGENTMAIL_API_KEY" });
-const credential = await registerAgentIdKey(client, publicKey, {
+const credential = await registerAgentIdKey(client, publicKey, "agent@example.com", {
   name: "production signer",
-  scope: { type: "inbox", id: "agent@example.com" },
 });
 
 const keyRecord = {
@@ -196,21 +192,12 @@ signature; do not make private key bytes an application-level return value.
 
 ## Scope and expiry
 
-Omitting `scope` inherits the registering bearer key's exact live scope. An
-explicit scope may be the caller's scope or a live descendant, never an ancestor
-or sibling.
-
-```json title="Organization scope"
-{ "type": "organization" }
-```
-
-```json title="Pod scope"
-{ "type": "pod", "id": "33333333-3333-4333-8333-333333333333" }
-```
-
-```json title="Inbox scope"
-{ "type": "inbox", "id": "agent@example.com" }
-```
+The route selects the scope, exactly as for a bearer key: `POST /v0/api-keys`
+registers at the caller's own scope, `POST /v0/pods/{pod_id}/api-keys` at a
+pod, and `POST /v0/inboxes/{inbox_id}/api-keys` at an inbox. The target must
+be the caller's scope or a live descendant, never an ancestor or sibling. The
+credential reports its scope the way a bearer key does: `pod_id` and
+`inbox_id`, both absent for an organization-scoped credential.
 
 For `expires_at`, omission inherits the registering bearer credential's expiry.
 If that bearer does not expire, the public-key credential does not expire. An
