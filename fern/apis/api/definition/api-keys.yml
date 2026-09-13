@@ -125,7 +125,7 @@ types:
         docs: Present for an inbox-scoped credential; the same value `scope` carries.
       created_by:
         type: ApiKeyCreator
-        docs: The bearer API key that registered or created it. Provenance only; a key a browser holds outlives it.
+        docs: The bearer API key that registered or created it. Provenance only; the credential outlives it.
       permissions:
         type: ApiKeyPermissions
         docs: |
@@ -174,8 +174,10 @@ types:
       expires_at:
         type: optional<datetime>
         docs: |
-          Future absolute expiry. Omit to inherit the registering bearer key's
-          expiry. A child credential cannot outlive its creator.
+          Future absolute expiry. Omit to copy the registering bearer key's
+          expiry at registration. The credential is independent of that key
+          afterward: deleting, narrowing, or expiring the bearer does not
+          affect it.
 
   BrowserEnrollmentTransactionJti:
     type: string
