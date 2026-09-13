@@ -93,8 +93,8 @@ browser transaction in response to it. Poll
 `status` become `active`.
 
 A pending key lasts at most five minutes and may expire sooner
-with its authorization transaction. An active one lasts at most 30 days and
-may expire sooner with its authorizing bearer API key. Remembered consent
+with its authorization transaction. An active one lasts at most 30 days.
+Remembered consent
 lasts 180 days. Treat every returned `expires_at` as authoritative and connect
 again before the current key expires.
 
@@ -298,9 +298,14 @@ The list endpoint accepts `limit` from 1 through 100 and a sealed
 `next_page_token`, and the `api_keys` array.
 
 For rotation, connect and verify a new key, then delete the old
-one. There is no endpoint that extends a key in place. A key a browser holds
-cannot outlive its authorizing bearer API key, and deleting or expiring that
-bearer key prevents the browser from authorizing new requests.
+one. There is no endpoint that extends a key in place.
+
+A key a browser holds is independent of the bearer API key that created it.
+It carries exactly two permissions, `provider_connect` and
+`provider_owner_share`, snapshotted from that bearer key at creation and
+enforced from the key itself; change them with
+`PATCH /v0/api-keys/{api_key_id}`. Deleting or narrowing the bearer key
+afterward does not affect it.
 
 The browser's **Forget** action deletes only local key material. It does not
 revoke the server-side key. Use `DELETE /v0/api-keys/{api_key_id}` for

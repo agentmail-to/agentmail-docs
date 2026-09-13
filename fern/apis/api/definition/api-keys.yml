@@ -125,11 +125,20 @@ types:
         docs: Present for an inbox-scoped credential; the same value `scope` carries.
       created_by:
         type: ApiKeyCreator
-        docs: The bearer API key that registered or created it. Deleting that key revokes a key a browser holds.
-      permissions: ApiKeyPermissions
+        docs: The bearer API key that registered or created it. Provenance only; a key a browser holds outlives it.
+      permissions:
+        type: ApiKeyPermissions
+        docs: |
+          Granular permissions. A key a browser holds carries exactly
+          `provider_connect` and `provider_owner_share`, snapshotted from the
+          bearer API key that created it and enforced from the key itself;
+          change them with Update API Key.
       expires_at:
         type: optional<datetime>
-        docs: Immutable absolute expiry. Omitted when the credential does not expire.
+        docs: |
+          Immutable absolute expiry. Omitted when the credential does not
+          expire. For a key a browser holds: while pending, the deadline for
+          the browser to finish; once active, at most 30 days after activation.
       used_at:
         type: optional<datetime>
         docs: Last time this key signed an admitted request, when known.
@@ -496,9 +505,10 @@ service:
       path: /{api_key_id}
       display-name: Update API Key
       docs: |
-        Rename a bearer key or a registered public-key credential, or change
-        its permissions. Public keys also resolve by `client_id`. A browser
-        key has no mutable fields and answers `400`. Requires `api_key_update`.
+        Rename a bearer key or a public-key credential, or change its
+        permissions. Public keys also resolve by `client_id`. A key a browser
+        holds accepts only `provider_connect` and `provider_owner_share`.
+        Requires `api_key_update`.
       path-parameters:
         api_key_id: ApiKeyId
       request: UpdateApiKeyRequest
@@ -515,8 +525,7 @@ service:
         Delete one credential of any family by ID. A registered public key
         also resolves by its `client_id`. A pending key a browser has not yet
         activated is cancelled and its magic URL can no longer be used; an
-        active one is revoked and can no longer sign in. Deleting a bearer key
-        also revokes every key it created for a browser.
+        active one is revoked and can no longer sign in.
 
         **CLI:**
         ```bash
