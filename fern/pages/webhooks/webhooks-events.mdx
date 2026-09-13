@@ -18,6 +18,26 @@ All webhook payloads follow the same basic structure:
 }
 ```
 
+## Metadata-only received envelope (opt-in pilot)
+
+`message.received.envelope` is available only after support enables the content-boundary
+pilot for your organization. It has its own `MessageReceivedEnvelopeEvent` schema;
+do not parse it as `MessageReceivedEvent`, which requires a full message and thread.
+It includes IDs, timestamps, bare addresses, labels, optional verified authentication
+results and an empty `headers` object. It excludes subject, body, preview, attachments,
+content URLs and the thread object. Malformed address values are omitted. Labels and
+Message-ID remain user-controlled strings; selected metadata is not a general trust signal.
+
+Authentication results can be absent on both new and legacy rows until the separate
+verification producer is deployed. Absence must never be interpreted as a passing verdict.
+Raw Authentication-Results headers are not forwarded as trusted results.
+
+The event has a stable ID distinct from the corresponding full-content event. Handle
+redelivery and deduplicate by `svix-id`; ordering is not guaranteed. This pilot does not
+add envelope events to WebSockets. Schema definitions do not imply that an already
+installed SDK release supports the new event; handle raw JSON until using a compatible
+release. Ordinary full-content event examples below are unchanged.
+
 ## Parsing events with SDKs
 
 The AgentMail SDKs export typed classes for each webhook payload shape, so you can parse raw payloads into fully typed objects.
