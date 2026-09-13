@@ -98,15 +98,24 @@ types:
       used_at:
         type: optional<datetime>
         docs: Last time this key signed an admitted request, when known.
-      permissions: ApiKeyPermissions
+      permissions:
+        type: ApiKeyPermissions
+        docs: |
+          Granular permissions, as on a bearer key. A key a browser holds carries
+          `provider_connect` and `provider_owner_share`, snapshotted from the
+          bearer API key that created it and enforced from the key itself;
+          change them with Update API Key.
       created_by:
         type: ApiKeyCreator
-        docs: The bearer API key that registered or created it. Deleting that key revokes a key a browser holds.
+        docs: The bearer API key that registered or created it. Provenance only; the credential outlives it.
       created_at: datetime
       updated_at: datetime
       expires_at:
         type: optional<datetime>
-        docs: Immutable absolute expiry. Omitted when the credential does not expire.
+        docs: |
+          Immutable absolute expiry. Omitted when the credential does not
+          expire. For a key a browser holds: while pending, the deadline for
+          the browser to finish; once active, at most 30 days after activation.
 
   CreatePublicKeyRequest:
     docs: |
