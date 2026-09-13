@@ -66,6 +66,9 @@ types:
       as the JWS `kid`. This response never contains a bearer secret or
       private key.
     properties:
+      type:
+        type: literal<"public_key">
+        docs: Server-owned credential discriminator. Callers cannot select or update it.
       api_key_id:
         type: uuid
         docs: Server-generated credential ID. Store this value as the signing key's `kid`.
@@ -74,18 +77,9 @@ types:
         docs: |
           Caller-chosen alias, unique within the organization. Get, Rename, and
           Revoke accept it in place of `api_key_id`.
-      type:
-        type: literal<"public_key">
-        docs: Server-owned credential discriminator. Callers cannot select or update it.
       name:
         type: Name
         docs: Human-readable credential name.
-      status:
-        type: optional<PublicKeyStatus>
-        docs: |
-          Present on a key a browser holds: `pending` until the browser has
-          created its key on the AgentID page, `active` once it can sign in as
-          the inbox. Absent on a registered key.
       public_key:
         type: optional<PublicKeyMaterial>
         docs: The key material. Absent while a browser's key is still `pending`.
@@ -95,27 +89,24 @@ types:
       inbox_id:
         type: optional<string>
         docs: Inbox the credential is scoped to. Absent unless the credential is inbox-scoped.
-      created_by:
-        type: ApiKeyCreator
-        docs: The bearer API key that registered or created it. Provenance only; the credential outlives it.
-      permissions:
-        type: ApiKeyPermissions
+      status:
+        type: optional<PublicKeyStatus>
         docs: |
-          Granular permissions. A key a browser holds carries exactly
-          `provider_connect` and `provider_owner_share`, snapshotted from the
-          bearer API key that created it and enforced from the key itself;
-          change them with Update API Key.
-      expires_at:
-        type: optional<datetime>
-        docs: |
-          Immutable absolute expiry. Omitted when the credential does not
-          expire. For a key a browser holds: while pending, the deadline for
-          the browser to finish; once active, at most 30 days after activation.
+          Present on a key a browser holds: `pending` until the browser has
+          created its key on the AgentID page, `active` once it can sign in as
+          the inbox. Absent on a registered key.
       used_at:
         type: optional<datetime>
         docs: Last time this key signed an admitted request, when known.
+      permissions: ApiKeyPermissions
+      created_by:
+        type: ApiKeyCreator
+        docs: The bearer API key that registered or created it. Deleting that key revokes a key a browser holds.
       created_at: datetime
       updated_at: datetime
+      expires_at:
+        type: optional<datetime>
+        docs: Immutable absolute expiry. Omitted when the credential does not expire.
 
   CreatePublicKeyRequest:
     docs: |
@@ -141,6 +132,12 @@ types:
           minLength: 1
           maxLength: 256
         docs: Defaults to `AgentID key {first eight fingerprint characters}`.
+      permissions:
+        type: optional<ApiKeyPermissions>
+        docs: |
+          Granular permissions, as on a bearer key. Omitted inherits the
+          registering bearer key's permissions; only grants that key holds may
+          be set to true.
       expires_at:
         type: optional<datetime>
         docs: |
@@ -297,6 +294,10 @@ types:
         docs: Time at which api key was last used.
       permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
+      updated_at: datetime
+      expires_at:
+        type: optional<datetime>
+        docs: Absolute expiry. Omitted when the key does not expire.
 
   ApiKeyCreator:
     properties:
