@@ -378,9 +378,6 @@ service:
           type:
             type: optional<ApiKeyType>
             docs: Restrict the list to one credential family. Omit for every family.
-          inbox_id:
-            type: optional<string>
-            docs: Return only keys scoped to this inbox.
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
           ascending: optional<global.Ascending>
