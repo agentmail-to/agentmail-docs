@@ -1,37 +1,36 @@
 ---
 title: AgentID Sign-In
-subtitle: Enroll a persistent browser as an inbox without sending an AgentMail API key to AgentID.
+subtitle: Authorize an AgentID sign-in for an inbox with one authenticated API call. AgentMail API keys never leave the AgentMail API.
 slug: agentid-browser-enrollment
 description: Verify the AgentID origin, authorize a pending sign-in with ordinary authenticated HTTP, and manage the inbox-scoped public keys it produces.
 ---
 
-An inbox-scoped public key lets a persistent browser create and retain its own
-non-extractable P-256 credential for one inbox and sign in as that inbox at
-[AgentID](https://www.agentid.com) relying parties. It is an API key of type `browser`: it has no secret,
-and the bearer API key that created it bounds what it may do. That bearer key
-is sent only to the AgentMail API. The browser creates the private key and
-never exports it.
+An inbox-scoped public key lets a client sign in as one inbox at
+[AgentID](https://www.agentid.com) relying parties. It is an API key of type
+`public_key`: it has no secret, the bearer API key that created it bounds what
+it may do, and the client that signs in holds a non-extractable P-256 private
+key that never leaves it. The bearer key is sent only to the AgentMail API.
 
-There are two ways to create one. If the browser is already on an AgentID
-sign-in page, authorize that page's transaction for the inbox with
-[Authorize Inbox](/api-reference/inboxes/authorize) and `auth_token`,
-as this guide shows. If the agent is choosing the browser itself, call
-[Connect Provider](/api-reference/providers/connect) and open the
-returned `magic_url` in it. Both paths produce the same
+There are two ways to create one. If a client is already waiting on an AgentID
+sign-in page, authorize that sign-in for the inbox with
+[Authorize Inbox](/api-reference/inboxes/authorize) and the page's
+`auth_token`, as this guide shows. If the agent is choosing the client itself,
+call [Connect Provider](/api-reference/providers/connect) and open the returned
+`magic_url` in it. Both paths produce the same
 [public key](/api-reference/api-keys/get).
 
 <Note title="US production availability">
-  Browser sign-in is available to every organization using US production at
+  AgentID sign-in is available to every organization using US production at
   `https://api.agentmail.to`. It is not available in EU production at
   `https://api.agentmail.eu`; these routes return `404` there.
 </Note>
 
-<Warning title="Verify the browser origin before connecting">
-  An agent that submits a `auth_token` read from any origin other than
-  `https://auth.agentid.com` can be induced to enroll an attacker's browser for
-  its own inbox. Verify the final page origin through the browser or automation
-  transport itself. The origin fields inside the action are self-asserted and
-  are not sufficient on their own.
+<Warning title="Verify the origin before authorizing">
+  An agent that submits an `auth_token` read from any origin other than
+  `https://auth.agentid.com` can be induced to authorize an attacker's client
+  for its own inbox. Verify the page's final origin through the transport that
+  loaded it. The origin fields inside the action are self-asserted and are not
+  sufficient on their own.
 </Warning>
 
 **AgentMail API keys are sent only to `https://api.agentmail.to`; AgentID never requests them.**
@@ -41,35 +40,33 @@ document](https://api.agentmail.to/v0/.well-known/agentid-configuration)
 publishes the same fixed origins and endpoints for discovery. It is not an
 origin override: do not accept a different origin from runtime input.
 
-## Attach flow
+## Authorize a waiting sign-in
 
-1. Open an AgentID authorization transaction in a persistent browser.
-2. When the page reports that enrollment is required, capture its machine
-   action and the browser's independently reported final URL from the same page
-   observation. Do not combine an action from one page or frame with the URL
-   from another.
-3. Verify that the final URL's origin is exactly
-   `https://auth.agentid.com`. Also verify the action's fixed fields and expiry.
-4. Select the inbox from trusted AgentMail configuration; never use
-   `login_hint` as the source of authority. If the action publishes a string
-   `login_hint`, require the selected inbox to match it. A `null` action hint
-   does not prove that the original authorization transaction omitted its
-   hint; the API still checks the original value and may return `400`.
-5. Send `{auth_token}` with the bearer API key to exactly
+1. A client opens an AgentID authorization transaction and lands on the sign-in
+   page at `https://auth.agentid.com`.
+2. When the page reports that a session is required, capture its machine action
+   and the independently reported final URL from the same page observation. Do
+   not combine an action from one page or frame with the URL from another.
+3. Verify that the final URL's origin is exactly `https://auth.agentid.com`.
+   Also verify the action's fixed fields and expiry.
+4. Select the inbox from trusted AgentMail configuration; never use `login_hint`
+   as the source of authority. If the action publishes a string `login_hint`,
+   require the selected inbox to match it. A `null` hint does not prove that the
+   original transaction omitted one; the API still checks the original value and
+   may return `400`.
+5. Send `{ "auth_token": "..." }` with the bearer API key to exactly
    `https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize`, the fixed
-   endpoint the action publishes, with the selected inbox in the path. The
-   response is the pending public key, read back at
-   `GET /v0/api-keys/{api_key_id}`. Add
-   `accept_disclosure: true` to accept the relying party's disclosure on the
+   endpoint the action publishes, with the selected inbox in the path. Add
+   `"accept_disclosure": true` to accept the relying party's disclosure on the
    agent's behalf. The token is the idempotency anchor, so no `Idempotency-Key`
    is needed.
-6. Keep the existing AgentID page open. It observes the pending key, creates
-   a non-extractable key, proves possession, and continues the same
-   transaction.
+6. Leave the sign-in page open. It observes the pending key, creates the
+   client's private key, proves possession, and continues the same transaction.
 
-[Create API Key](/api-reference/api-keys/create) requires `api_key_create`.
-A new key returns `202`; an idempotent retry for the same pending
-transaction, inbox, and bearer key returns `200` with the same key:
+[Authorize Inbox](/api-reference/inboxes/authorize) requires `provider_connect`
+on the bearer key, and `provider_share_owner` as well when the sign-in requests
+an owner scope. A new key returns `202`; an idempotent retry for the same
+pending transaction, inbox, and bearer key returns `200` with the same key:
 
 ```json
 {
@@ -85,34 +82,33 @@ transaction, inbox, and bearer key returns `200` with the same key:
 }
 ```
 
-The response contains no `magic_url`, AgentID URL,
-token, cookie, or navigation instruction. Do not navigate away from the
-browser transaction in response to it. Poll
-[Get API Key](/api-reference/api-keys/get) with the `api_key_id` to see
-`status` become `active`.
+The response contains no `magic_url`, AgentID URL, token, cookie, or
+navigation instruction. Do not navigate the waiting client in response to it.
+Poll [Get API Key](/api-reference/api-keys/get) with the `api_key_id` until
+`status` becomes `active`; that is the signal that the sign-in completed.
 
-A pending key lasts at most five minutes and may expire sooner
-with its authorization transaction. An active one lasts at most 30 days.
-Remembered consent
-lasts 180 days. Treat every returned `expires_at` as authoritative and connect
-again before the current key expires.
+A pending key lasts at most five minutes and may expire sooner with its
+authorization transaction. An active one lasts at most 30 days. Remembered
+consent lasts 180 days from the most recent sign-in. Treat every returned
+`expires_at` as authoritative and authorize again before the current key
+expires.
 
-Creation is limited to 20 pending keys per bearer API key per
-hour, 100 per organization per hour, and five live unactivated keys per
-bearer API key. A limit returns [`429`](/errors#rate_limit_exceeded); honor
-its `Retry-After` header instead of retrying before the indicated time. Delete
-an unused pending key or let it expire to release a slot.
+Creation is limited to 20 pending keys per bearer API key per hour, 100 per
+organization per hour, and five live unactivated keys per bearer API key. A
+limit returns [`429`](/errors#rate_limit_exceeded); honor its `Retry-After`
+header instead of retrying before the indicated time. Delete an unused pending
+key or let it expire to release a slot.
 
-Browser activation is separately limited to 20 activations per authorizing
-bearer API key per UTC day. Hitting that limit can return `429` from the browser
-activation step after the connect call succeeded. Honor `Retry-After` and wait
-for the daily window to reset; deleting a pending key does not reset the
-activation counter.
+Activation is separately limited to 20 activations per authorizing bearer API
+key per UTC day. Hitting that limit can return `429` from the activation step
+after the authorize call succeeded. Honor `Retry-After` and wait for the daily
+window to reset; deleting a pending key does not reset the activation counter.
 
-## Attach with HTTP
+## The action the sign-in page publishes
 
-The browser page exposes a machine action with the following shape. Read it
-only after obtaining the final page URL from the browser transport:
+The page exposes a machine action with the following shape, both as a hidden
+element with id `agentid-session-action` and as a `<meta name="agentid-session-action">`
+tag. Read it only after obtaining the final page URL from the transport:
 
 ```json
 {
@@ -120,19 +116,22 @@ only after obtaining the final page URL from the browser transport:
   "issuer": "https://auth.agentid.com",
   "browser_origin": "https://auth.agentid.com",
   "agentmail_authorize_endpoint": "https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize",
+  "agentmail_api_key_status_endpoint": "https://api.agentmail.to/v0/api-keys/{api_key_id}",
   "auth_token": "AAAAAAAAAAAAAAAAAAAAAA",
+  "accept_disclosure": true,
   "transaction_expires_at": 1787694600,
   "login_hint": null,
   "login_hint_authoritative": false,
+  "remembered_approval_days": 180,
   "invariant": "AgentMail API keys are sent only to https://api.agentmail.to; AgentID never requests them."
 }
 ```
 
-`login_hint` is always present in the action but may be `null`. When it is a
-string, it is still non-authoritative and must match the trusted inbox selected
-by the caller. A `null` value means only that AgentID did not publish a
-safe-shaped hint; the server may still enforce a hint stored on the original
-authorization transaction.
+`accept_disclosure` appears only once the page has loaded the relying party's
+server-authored disclosure; when present, send it through. `login_hint` is
+always present but may be `null`. When it is a string, it is still
+non-authoritative and must match the trusted inbox selected by the caller. The
+action may also carry a deprecated `agentmail_api_keys_endpoint`; ignore it.
 
 These examples use ordinary authenticated HTTP. They validate the fixed
 endpoint from the action, then send an inbox selected from trusted AgentMail
@@ -153,55 +152,59 @@ INVARIANT = (
     "AgentMail API keys are sent only to https://api.agentmail.to; "
     "AgentID never requests them."
 )
-JTI = re.compile(r"^[A-Za-z0-9_-]{22}$")
+AUTH_TOKEN = re.compile(r"^[A-Za-z0-9_-]{22}$")
 
 
 def canonical_origin(url: str) -> str:
     parsed = urlsplit(url)
     if parsed.scheme != "https" or parsed.hostname is None:
-        raise ValueError("Browser page is not HTTPS")
+        raise ValueError("Sign-in page is not HTTPS")
     port = "" if parsed.port in (None, 443) else f":{parsed.port}"
     return f"{parsed.scheme}://{parsed.hostname}{port}"
 
 
-def create_browser_api_key(
+def authorize_inbox(
     *, source_url: str, action: dict, inbox_id: str, agentmail_api_key: str
 ) -> dict:
-    # Capture source_url and action together from the same browser page.
-    # source_url must come from the browser/automation transport, not the action.
+    # Capture source_url and action together from the same page observation.
+    # source_url must come from the transport that loaded the page, not the action.
     if canonical_origin(source_url) != AGENTID_ORIGIN:
         raise ValueError("Untrusted AgentID origin")
     if (
         action.get("type") != "agentid_session_required"
         or action.get("issuer") != AGENTID_ORIGIN
         or action.get("browser_origin") != AGENTID_ORIGIN
-        or action.get("agentmail_api_keys_endpoint") != AUTHORIZE_ENDPOINT
+        or action.get("agentmail_authorize_endpoint") != AUTHORIZE_ENDPOINT
         or action.get("login_hint_authoritative") is not False
         or action.get("invariant") != INVARIANT
     ):
-        raise ValueError("Invalid AgentID enrollment action")
+        raise ValueError("Invalid AgentID action")
 
-    jti = action.get("auth_token")
+    token = action.get("auth_token")
     expires_at = action.get("transaction_expires_at")
-    if not isinstance(jti, str) or JTI.fullmatch(jti) is None:
+    if not isinstance(token, str) or AUTH_TOKEN.fullmatch(token) is None:
         raise ValueError("Invalid auth_token")
     if type(expires_at) is not int or expires_at <= int(time.time()):
-        raise ValueError("Expired AgentID enrollment action")
+        raise ValueError("Expired AgentID action")
 
     # inbox_id comes from trusted AgentMail configuration, not login_hint.
     login_hint = action.get("login_hint")
     if login_hint is not None and login_hint != inbox_id:
         raise ValueError("Trusted inbox does not match login_hint")
 
+    body = {"auth_token": token}
+    if action.get("accept_disclosure") is True:
+        body["accept_disclosure"] = True
+
     response = httpx.post(
         AUTHORIZE_ENDPOINT.replace("{inbox_id}", inbox_id),
         headers={"Authorization": f"Bearer {agentmail_api_key}"},
-        json={"auth_token": jti},
+        json=body,
         follow_redirects=False,
         timeout=10,
     )
     if response.status_code not in (200, 202):
-        raise RuntimeError(f"Create failed: {response.status_code}")
+        raise RuntimeError(f"Authorize failed: {response.status_code}")
     return response.json()
 ```
 
@@ -210,16 +213,16 @@ const AGENTID_ORIGIN = "https://auth.agentid.com";
 const AUTHORIZE_ENDPOINT = "https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize";
 const INVARIANT =
   "AgentMail API keys are sent only to https://api.agentmail.to; AgentID never requests them.";
-const JTI = /^[A-Za-z0-9_-]{22}$/;
+const AUTH_TOKEN = /^[A-Za-z0-9_-]{22}$/;
 
-async function createBrowserApiKey({
+async function authorizeInbox({
   sourceUrl,
   action,
   inboxId,
   agentmailApiKey,
 }: {
-  // Capture sourceUrl and action together from the same browser page.
-  sourceUrl: string; // Supplied by the browser transport, not by action.
+  // Capture sourceUrl and action together from the same page observation.
+  sourceUrl: string; // Supplied by the transport that loaded the page, not by the action.
   action: Record<string, unknown>;
   inboxId: string;
   agentmailApiKey: string;
@@ -231,15 +234,15 @@ async function createBrowserApiKey({
     action.type !== "agentid_session_required" ||
     action.issuer !== AGENTID_ORIGIN ||
     action.browser_origin !== AGENTID_ORIGIN ||
-    action.agentmail_api_keys_endpoint !== AUTHORIZE_ENDPOINT ||
+    action.agentmail_authorize_endpoint !== AUTHORIZE_ENDPOINT ||
     action.login_hint_authoritative !== false ||
     action.invariant !== INVARIANT
   ) {
-    throw new Error("Invalid AgentID enrollment action");
+    throw new Error("Invalid AgentID action");
   }
   if (
     typeof action.auth_token !== "string" ||
-    !JTI.test(action.auth_token) ||
+    !AUTH_TOKEN.test(action.auth_token) ||
     typeof action.transaction_expires_at !== "number" ||
     !Number.isSafeInteger(action.transaction_expires_at) ||
     action.transaction_expires_at <= Math.floor(Date.now() / 1000)
@@ -252,17 +255,20 @@ async function createBrowserApiKey({
     throw new Error("Trusted inbox does not match login_hint");
   }
 
+  const body: Record<string, unknown> = { auth_token: action.auth_token };
+  if (action.accept_disclosure === true) body.accept_disclosure = true;
+
   const response = await fetch(AUTHORIZE_ENDPOINT.replace("{inbox_id}", encodeURIComponent(inboxId)), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${agentmailApiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ auth_token: action.auth_token }),
+    body: JSON.stringify(body),
     redirect: "error",
   });
   if (response.status !== 200 && response.status !== 202) {
-    throw new Error(`Create failed: ${response.status}`);
+    throw new Error(`Authorize failed: ${response.status}`);
   }
   return response.json();
 }
@@ -270,7 +276,7 @@ async function createBrowserApiKey({
 
 </CodeBlocks>
 
-## Manage credentials
+## Manage keys
 
 Management requests use a bearer API key at `https://api.agentmail.to`. List
 operations require `api_key_read`; deletion and cancellation require
@@ -278,8 +284,8 @@ operations require `api_key_read`; deletion and cancellation require
 
 | Operation | Request |
 | --- | --- |
-| Attach a browser already on an AgentID page | `POST /v0/inboxes/{inbox_id}/authorize` with `auth_token` |
-| Enroll a browser by magic URL | `POST /v0/providers/{provider_id}/connect` |
+| Authorize a sign-in a client is waiting in | `POST /v0/inboxes/{inbox_id}/authorize` with `auth_token` |
+| Connect a client of the agent's choosing | `POST /v0/providers/{provider_id}/connect` |
 | List every key, or only public keys | `GET /v0/api-keys` or `GET /v0/api-keys?type=public_key` |
 | List an inbox's keys | `GET /v0/inboxes/{inbox_id}/api-keys` |
 | Get one, pending or active | `GET /v0/api-keys/{api_key_id}` |
@@ -296,15 +302,14 @@ The list endpoint accepts `limit` from 1 through 100 and a sealed
 `page_token`. It returns `count`, the effective `limit`, an optional
 `next_page_token`, and the `api_keys` array.
 
-For rotation, connect and verify a new key, then delete the old
-one. There is no endpoint that extends a key in place.
+For rotation, authorize and verify a new key, then delete the old one. There is
+no endpoint that extends a key in place.
 
-A key a browser holds is independent of the bearer API key that created it.
-It carries exactly two permissions, `provider_connect` and
-`provider_share_owner`, snapshotted from that bearer key at creation and
-enforced from the key itself; change them with
-`PATCH /v0/api-keys/{api_key_id}`. Deleting or narrowing the bearer key
-afterward does not affect it.
+A public key is independent of the bearer API key that created it. It carries
+exactly two permissions, `provider_connect` and `provider_share_owner`,
+snapshotted from that bearer key at creation and enforced from the key itself;
+change them with `PATCH /v0/api-keys/{api_key_id}`. Deleting or narrowing the
+bearer key afterward does not affect it.
 
 `provider_share_owner` is one grouped grant covering both owner scopes. It is
 snapshotted as `true` only when the creating bearer key holds
@@ -313,9 +318,10 @@ grants; a bearer key holding just one of those mints keys with
 `provider_share_owner: false`, and can no longer pre-approve that single
 scope.
 
-The browser's **Forget** action deletes only local key material. It does not
-revoke the server-side key. Use `DELETE /v0/api-keys/{api_key_id}` for
-server-side revocation.
+The **Forget** action on the sign-in page deletes only the client's local key
+material. It does not revoke the server-side key. Use
+`DELETE /v0/api-keys/{api_key_id}` for revocation. Relying parties are not
+notified of a revocation; their next `/userinfo` call fails instead.
 
 ## Consent behavior
 
@@ -329,22 +335,26 @@ interactive approval.
 Remembered consent is not exposed through the API; it expires on its own
 and is re-reviewed after any material change to the relying party.
 
-## Persistent browser support
+## Client persistence
 
-Use a standard persistent Chromium profile. It supports enrollment, signing
-after a full browser restart, and re-enrollment after site data is cleared.
+The private key lives in the client's own storage, so the client has to
+persist. A standard persistent Chromium profile is supported: it survives a
+full restart and can re-authorize after site data is cleared.
 
-Do not promise persistence for private or incognito sessions. Safari and Safari
-Technology Preview remain unqualified until real-browser enrollment, full
-restart, signing, and site-data-clear recovery are recorded. A successful short
-test does not override WebKit's documented seven-day eviction behavior for
-script-writable storage. Playwright WebKit is not a shipping Safari
-qualification. Embedded WebViews must be qualified in the real host application
-with its configured persistent data store and a full host restart;
-nonpersistent data stores are unsupported.
+Private and incognito sessions do not persist. Safari and Safari Technology
+Preview remain unqualified until real-device enrollment, full restart, signing,
+and site-data-clear recovery are recorded; a short test does not override
+WebKit's documented seven-day eviction of script-writable storage, and
+Playwright WebKit is not a shipping Safari qualification. Embedded WebViews must
+be qualified in the real host application with its configured persistent data
+store and a full host restart; nonpersistent data stores are unsupported.
 
-## Migration from public-key authentication
+## Public-key authentication is retired
 
-Inbox-scoped public keys are the current path for persistent browser approval. The
-[AgentID public-key flow](/agentid-public-key-authentication) remains supported
-during migration, and no deprecation date is being announced with this release.
+The agent-signed approval flow, in which an agent registered a P-256 key and
+signed one approval per sign-in, was removed on 2026-09-08 along with its guide.
+Approval is now the authenticated call described above, and the persistent
+credential is the inbox-scoped public key the client creates for itself. A key
+registered for the old flow still lists as `type: public_key` and can be
+deleted with `DELETE /v0/api-keys/{api_key_id}`, but it no longer approves
+anything.
