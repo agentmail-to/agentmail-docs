@@ -45,16 +45,15 @@ types:
     docs: |
       Caller-chosen alias for a public key, unique within the organization and
       reusable after deletion. Accepted in place of `api_key_id` on get, update,
-      and delete. Registration and connect are idempotent on it: the same alias
-      returns the existing key, a conflicting one returns `409`. URL-safe; no
-      slash or `@`.
+      and delete. Registration is idempotent on it: the same alias returns the
+      existing key, a conflicting one returns `409`. URL-safe; no slash or `@`.
 
-  Authorize:
+  AcceptDisclosure:
     type: boolean
     docs: |
-      Approve the provider on the agent's behalf, skipping the first-use
-      disclosure page. Requires `provider_share_owner` when owner scopes are
-      involved.
+      Accept the provider's disclosure on the agent's behalf, skipping the
+      first-use disclosure page. Requires `provider_share_owner` when owner
+      scopes are involved.
 
   PublicJwkCoordinate:
     type: string
@@ -127,13 +126,13 @@ types:
       permissions: optional<ApiKeyPermissions>
       expires_at: optional<ExpiresAt>
 
-  BrowserEnrollmentTransactionJti:
+  AuthToken:
     type: string
     validation:
       minLength: 22
       maxLength: 22
       pattern: "^[A-Za-z0-9_-]{22}$"
-    docs: Transaction identifier read from an enrollment action on exactly `https://auth.agentid.com`.
+    docs: Token identifying one pending AgentID sign-in, read from the sign-in action on exactly `https://auth.agentid.com`.
 
   ApiKeyPermissions:
     docs: Granular permissions for the API key. When ommitted all permissions are granted. Otherwise, only permissions set to true are granted.

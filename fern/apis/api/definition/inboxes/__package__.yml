@@ -126,8 +126,8 @@ types:
       inbox is selected by the trusted path parameter, never by an AgentID
       `login_hint`.
     properties:
-      transaction_jti: api-keys.BrowserEnrollmentTransactionJti
-      authorize: optional<api-keys.Authorize>
+      auth_token: api-keys.AuthToken
+      accept_disclosure: optional<api-keys.AcceptDisclosure>
 
 service:
   url: Http
@@ -246,7 +246,7 @@ service:
       docs: |
         Authorizes the AgentID sign-in a browser is already waiting in, for the
         inbox in the path, and returns the pending public key it will activate. A
-        repeat for the same transaction, inbox, and bearer returns the same key.
+        repeat for the same token, inbox, and bearer returns the same key.
       path-parameters:
         inbox_id: InboxId
       request: AuthorizeInboxRequest

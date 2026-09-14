@@ -46,33 +46,19 @@ types:
     docs: Inbox to sign in as. Required unless the API key is scoped to an inbox.
 
   ConnectProviderBody:
-    docs: The legacy `Idempotency-Key` header is read as `client_id` when the body omits it.
     properties:
       inbox_id: optional<ConnectInboxId>
-      client_id: optional<api-keys.PublicKeyClientId>
-      authorize: optional<api-keys.Authorize>
-
-  ConnectBrowserBody:
-    extends: ConnectProviderBody
-    properties:
-      provider:
-        type: optional<string>
-        docs: |
-          Provider to continue to after enrollment, as an approved domain or
-          HTTPS URL such as `smolmachines.com`. Matching is exact; an unknown
-          domain returns `404`. Omit to stop on AgentID once the key is active.
+      accept_disclosure: optional<api-keys.AcceptDisclosure>
 
   MagicUrl:
     type: string
-    docs: |
-      Single-use URL to open in the browser that will hold the key. Absent when
-      a repeated `client_id` resolved to a key that is already active.
+    docs: Single-use URL to open in the browser that will hold the key.
 
   ConnectAccepted:
     docs: The pending public key the browser will activate. Poll Get API Key with `api_key_id` for `status`.
     properties:
       api_key_id: api-keys.ApiKeyId
-      magic_url: optional<MagicUrl>
+      magic_url: MagicUrl
       expires_at: api-keys.ExpiresAt
 
 service:
@@ -146,11 +132,8 @@ service:
         valid for five minutes, to open in the browser that will hold the sign-in;
         the browser enrolls as the inbox and continues to the provider. Poll
         [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
-        Repeating a `client_id` answers from the key it names: `409` while pending,
-        `200` once active, a new key once it has expired or been deleted.
       path-parameters:
         provider_id: accounts.ProviderId
-      idempotent: true
       request:
         name: ConnectProviderRequest
         body: optional<ConnectProviderBody>
@@ -160,24 +143,4 @@ service:
       errors:
         - global.ValidationError
         - global.NotFoundError
-        - global.ConflictError
 
-    connectBrowser:
-      method: POST
-      path: /connect
-      display-name: Connect Browser
-      docs: |
-        Enrolls a browser as an inbox by magic URL. With `provider`, continues to
-        that provider's sign-in after enrollment; without it, stops on AgentID once
-        the key is active. Otherwise behaves as Connect Provider.
-      idempotent: true
-      request:
-        name: ConnectBrowserRequest
-        body: optional<ConnectBrowserBody>
-      response:
-        status-code: 202
-        type: ConnectAccepted
-      errors:
-        - global.ValidationError
-        - global.NotFoundError
-        - global.ConflictError

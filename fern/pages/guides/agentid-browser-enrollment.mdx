@@ -1,5 +1,5 @@
 ---
-title: Browser Sign-In
+title: AgentID Sign-In
 subtitle: Enroll a persistent browser as an inbox without sending an AgentMail API key to AgentID.
 slug: agentid-browser-enrollment
 description: Verify the AgentID browser origin, attach a browser to a sign-in with ordinary authenticated HTTP, and manage the public keys browsers hold.
@@ -14,10 +14,9 @@ never exports it.
 
 There are two ways to create one. If the browser is already on an AgentID
 sign-in page, authorize that page's transaction for the inbox with
-[Authorize Inbox](/api-reference/inboxes/authorize) and `transaction_jti`,
+[Authorize Inbox](/api-reference/inboxes/authorize) and `auth_token`,
 as this guide shows. If the agent is choosing the browser itself, call
-[Connect Provider](/api-reference/providers/connect) or
-[Connect Browser](/api-reference/providers/connect-browser) and open the
+[Connect Provider](/api-reference/providers/connect) and open the
 returned `magic_url` in it. Both paths produce the same
 [public key](/api-reference/api-keys/get).
 
@@ -28,7 +27,7 @@ returned `magic_url` in it. Both paths produce the same
 </Note>
 
 <Warning title="Verify the browser origin before connecting">
-  An agent that submits a `transaction_jti` read from any origin other than
+  An agent that submits a `auth_token` read from any origin other than
   `https://auth.agentid.com` can be induced to enroll an attacker's browser for
   its own inbox. Verify the final page origin through the browser or automation
   transport itself. The origin fields inside the action are self-asserted and
@@ -56,13 +55,14 @@ origin override: do not accept a different origin from runtime input.
    `login_hint`, require the selected inbox to match it. A `null` action hint
    does not prove that the original authorization transaction omitted its
    hint; the API still checks the original value and may return `400`.
-5. Send `{transaction_jti}` with the bearer API key to exactly
+5. Send `{auth_token}` with the bearer API key to exactly
    `https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize`, the fixed
    endpoint the action publishes, with the selected inbox in the path. The
    response is the pending public key, read back at
    `GET /v0/api-keys/{api_key_id}`. Add
-   `authorize: true` to approve the relying party on the agent's behalf. The
-   transaction is the idempotency anchor, so no `Idempotency-Key` is needed.
+   `accept_disclosure: true` to accept the relying party's disclosure on the
+   agent's behalf. The token is the idempotency anchor, so no `Idempotency-Key`
+   is needed.
 6. Keep the existing AgentID page open. It observes the pending key, creates
    a non-extractable key, proves possession, and continues the same
    transaction.
@@ -120,7 +120,7 @@ only after obtaining the final page URL from the browser transport:
   "issuer": "https://auth.agentid.com",
   "browser_origin": "https://auth.agentid.com",
   "agentmail_authorize_endpoint": "https://api.agentmail.to/v0/inboxes/{inbox_id}/authorize",
-  "transaction_jti": "AAAAAAAAAAAAAAAAAAAAAA",
+  "auth_token": "AAAAAAAAAAAAAAAAAAAAAA",
   "transaction_expires_at": 1787694600,
   "login_hint": null,
   "login_hint_authoritative": false,
@@ -181,10 +181,10 @@ def create_browser_api_key(
     ):
         raise ValueError("Invalid AgentID enrollment action")
 
-    jti = action.get("transaction_jti")
+    jti = action.get("auth_token")
     expires_at = action.get("transaction_expires_at")
     if not isinstance(jti, str) or JTI.fullmatch(jti) is None:
-        raise ValueError("Invalid transaction_jti")
+        raise ValueError("Invalid auth_token")
     if type(expires_at) is not int or expires_at <= int(time.time()):
         raise ValueError("Expired AgentID enrollment action")
 
@@ -196,7 +196,7 @@ def create_browser_api_key(
     response = httpx.post(
         AUTHORIZE_ENDPOINT.replace("{inbox_id}", inbox_id),
         headers={"Authorization": f"Bearer {agentmail_api_key}"},
-        json={"transaction_jti": jti},
+        json={"auth_token": jti},
         follow_redirects=False,
         timeout=10,
     )
@@ -238,8 +238,8 @@ async function createBrowserApiKey({
     throw new Error("Invalid AgentID enrollment action");
   }
   if (
-    typeof action.transaction_jti !== "string" ||
-    !JTI.test(action.transaction_jti) ||
+    typeof action.auth_token !== "string" ||
+    !JTI.test(action.auth_token) ||
     typeof action.transaction_expires_at !== "number" ||
     !Number.isSafeInteger(action.transaction_expires_at) ||
     action.transaction_expires_at <= Math.floor(Date.now() / 1000)
@@ -258,7 +258,7 @@ async function createBrowserApiKey({
       Authorization: `Bearer ${agentmailApiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ transaction_jti: action.transaction_jti }),
+    body: JSON.stringify({ auth_token: action.auth_token }),
     redirect: "error",
   });
   if (response.status !== 200 && response.status !== 202) {
@@ -278,8 +278,8 @@ operations require `api_key_read`; deletion and cancellation require
 
 | Operation | Request |
 | --- | --- |
-| Attach a browser already on an AgentID page | `POST /v0/inboxes/{inbox_id}/authorize` with `transaction_jti` |
-| Enroll a browser by magic URL | `POST /v0/providers/connect` or `POST /v0/providers/{provider_id}/connect` |
+| Attach a browser already on an AgentID page | `POST /v0/inboxes/{inbox_id}/authorize` with `auth_token` |
+| Enroll a browser by magic URL | `POST /v0/providers/{provider_id}/connect` |
 | List every key, or only public keys | `GET /v0/api-keys` or `GET /v0/api-keys?type=public_key` |
 | List an inbox's keys | `GET /v0/inboxes/{inbox_id}/api-keys` |
 | Get one, pending or active | `GET /v0/api-keys/{api_key_id}` |
@@ -288,7 +288,7 @@ operations require `api_key_read`; deletion and cancellation require
 The older `/v0/api-keys/browser-credentials` list, delete, and events
 endpoints, the `browser-credentials/enrollments` create and cancel endpoints,
 the `/v0/api-keys/browser-consents` list and delete endpoints,
-`POST /v0/inboxes/{inbox_id}/api-keys` with `transaction_jti`, and the
+`POST /v0/inboxes/{inbox_id}/api-keys` with `auth_token`, and the
 `/v0/api-keys/public-keys` routes have been removed and answer `404`; use the
 endpoints above.
 
