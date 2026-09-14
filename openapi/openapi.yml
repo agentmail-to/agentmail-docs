@@ -95,6 +95,60 @@ paths:
             schema:
               $ref: '#/components/schemas/inboxesCreateInboxRequest'
               nullable: true
+  /v0/inboxes/search:
+    get:
+      description: |-
+        Searches inboxes in the organization by address or display name, ranked
+        by relevance. Each word in the query matches the start of a word in the
+        address or display name, so `sup` matches `support@example.com` but
+        `port` does not. An exact address match always ranks first. `limit`
+        cannot exceed 100. A page can be empty and still carry a
+        `next_page_token`; keep paging until the token is absent.
+      operationId: inboxes_search
+      tags:
+        - Inboxes
+      parameters:
+        - name: q
+          in: query
+          description: >-
+            Address or display name to search for. Matches word prefixes. Must
+            be 2 to 256 characters.
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inboxesSearchInboxesResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Search Inboxes
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/inboxes/{inbox_id}:
     get:
       description: |-
@@ -219,6 +273,57 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/inboxes/{inbox_id}/authorize:
+    post:
+      description: >-
+        Authorizes the AgentID sign-in a client is already waiting in, for the
+
+        inbox in the path, and returns the pending public key it will activate.
+        A
+
+        repeat for the same token, inbox, and bearer returns the same key.
+      operationId: inboxes_authorize
+      tags:
+        - Inboxes
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+      responses:
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicKeyCredential'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Authorize Inbox
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/inboxesAuthorizeInboxRequest'
   /v0/pods:
     get:
       description: |-
@@ -851,6 +956,10 @@ paths:
   /v0/api-keys:
     get:
       description: |-
+        Lists every credential, newest first. Filter one family with `type`.
+        Page to token exhaustion: a page can be empty and still carry a
+        `next_page_token`.
+
         **CLI:**
         ```bash
         agentmail api-keys list
@@ -859,6 +968,13 @@ paths:
       tags:
         - ApiKeys
       parameters:
+        - name: type
+          in: query
+          description: Restrict the list to one credential family. Omit for every family.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ApiKeyType'
+            nullable: true
         - name: limit
           in: query
           required: false
@@ -893,10 +1009,19 @@ paths:
       security:
         - BearerAuth: []
     post:
-      description: |-
+      description: >-
+        Creates a bearer key, or registers a public key when the body carries
+
+        `public_key`. The route selects the scope. Bearer secrets are returned
+        once.
+
+
         **CLI:**
+
         ```bash
+
         agentmail api-keys create --name "My Key"
+
         ```
       operationId: apiKeys_create
       tags:
@@ -908,13 +1033,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateApiKeyResponse'
+                $ref: '#/components/schemas/CreateApiKeyResult'
         '400':
           description: ''
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Create API Key
       servers:
         - url: https://api.agentmail.to
@@ -930,11 +1061,104 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateApiKeyRequest'
   /v0/api-keys/{api_key_id}:
-    delete:
+    get:
       description: |-
+        Returns one credential of any family. Public keys also resolve by
+        `client_id`. Poll a sign-in key until `status` is `active`.
+      operationId: apiKeys_get
+      tags:
+        - ApiKeys
+      parameters:
+        - name: api_key_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApiKeyId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get API Key
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        Renames a credential or changes its permissions. Public keys also
+        resolve
+
+        by `client_id`; a sign-in key accepts only `provider_connect` and
+
+        `provider_share_owner`.
+      operationId: apiKeys_update
+      tags:
+        - ApiKeys
+      parameters:
+        - name: api_key_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApiKeyId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update API Key
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApiKeyRequest'
+    delete:
+      description: >-
+        Deletes one credential of any family. A pending sign-in key is
+
+        cancelled; an active one is revoked. Public keys also resolve by
+        `client_id`.
+
+
         **CLI:**
+
         ```bash
+
         agentmail api-keys delete --api-key-id <api_key_id>
+
         ```
       operationId: apiKeys_delete
       tags:
@@ -1539,7 +1763,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateApiKeyResponse'
+                $ref: '#/components/schemas/CreateApiKeyResult'
         '400':
           description: ''
           content:
@@ -1566,38 +1790,38 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateApiKeyRequest'
-  /v0/inboxes/{inbox_id}/authorize:
-    post:
-      description: |-
-        Authorize the AgentID sign-in a browser is already waiting in, for the
-        inbox in the path. Mints the inbox's public key that sign-in will activate
-        and returns it pending; poll `GET /v0/api-keys/{api_key_id}` for
-        `status`. The transaction is the idempotency anchor: a repeat for the
-        same transaction, inbox, and bearer returns the same pending key.
-        Requires `provider_connect`. Read `transaction_jti` only from an action
-        published on exactly `https://auth.agentid.com`.
-      operationId: inboxes_authorize
+  /v0/inboxes/{inbox_id}/api-keys/{api_key_id}:
+    patch:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes api-keys update --inbox-id <inbox_id> --api-key-id
+        <api_key_id> --name "Renamed"
+
+        ```
+      operationId: inboxes_apiKeys_update
       tags:
-        - Inboxes
+        - InboxesApiKeys
       parameters:
         - name: inbox_id
           in: path
           required: true
           schema:
             $ref: '#/components/schemas/inboxesInboxId'
+        - name: api_key_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApiKeyId'
       responses:
-        '202':
-          description: The pending public key.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PublicKeyCredential'
         '200':
-          description: The same pending key, on a repeat for the same transaction.
+          description: ''
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicKeyCredential'
+                $ref: '#/components/schemas/ApiKey'
         '400':
           description: ''
           content:
@@ -1610,9 +1834,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      summary: Authorize Inbox
+      summary: Update API Key
       servers:
         - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
       requestBody:
@@ -1620,8 +1847,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthorizeInboxRequest'
-  /v0/inboxes/{inbox_id}/api-keys/{api_key_id}:
+              $ref: '#/components/schemas/UpdateApiKeyRequest'
     delete:
       description: >-
         **CLI:**
@@ -3587,6 +3813,22 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ThreadId'
+        - name: limit
+          in: query
+          description: Maximum number of messages to return. Cannot exceed 100.
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          description: >-
+            Token returned by the previous response for retrieving the next,
+            older page.
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
       responses:
         '200':
           description: ''
@@ -4566,6 +4808,63 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateApiKeyRequest'
   /v0/pods/{pod_id}/api-keys/{api_key_id}:
+    patch:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail pods api-keys update --pod-id <pod_id> --api-key-id
+        <api_key_id> --name "Renamed"
+
+        ```
+      operationId: pods_apiKeys_update
+      tags:
+        - PodsApiKeys
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: api_key_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApiKeyId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update API Key
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApiKeyRequest'
     delete:
       description: >-
         **CLI:**
@@ -5183,6 +5482,71 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/inboxesCreateInboxRequest'
+  /v0/pods/{pod_id}/inboxes/search:
+    get:
+      description: |-
+        Searches inboxes in the pod by address or display name, ranked by
+        relevance. Each word in the query matches the start of a word in the
+        address or display name, so `sup` matches `support@example.com` but
+        `port` does not. An exact address match always ranks first. `limit`
+        cannot exceed 100. A page can be empty and still carry a
+        `next_page_token`; keep paging until the token is absent.
+      operationId: pods_inboxes_search
+      tags:
+        - PodsInboxes
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: q
+          in: query
+          description: >-
+            Address or display name to search for. Matches word prefixes. Must
+            be 2 to 256 characters.
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inboxesSearchInboxesResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Search Inboxes
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/pods/{pod_id}/inboxes/{inbox_id}:
     get:
       description: |-
@@ -5914,6 +6278,22 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ThreadId'
+        - name: limit
+          in: query
+          description: Maximum number of messages to return. Cannot exceed 100.
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          description: >-
+            Token returned by the previous response for retrieving the next,
+            older page.
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
       responses:
         '200':
           description: ''
@@ -6571,10 +6951,17 @@ paths:
         - BearerAuth: []
   /v0/providers/{provider_id}/connect:
     post:
-      description: |-
-        Starts signing an inbox in to a provider. Returns a `magic_url` valid
-        for five minutes; open it in the browser that will hold the sign-in.
-        Requires `provider_connect` and an `Idempotency-Key` header.
+      description: >-
+        Starts signing an inbox in to a provider. Returns a single-use
+        `magic_url`,
+
+        valid for five minutes, to open in the client that will hold the
+        sign-in;
+
+        the client enrolls as the inbox and continues to the provider. Poll
+
+        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for
+        `status`.
       operationId: providers_connect
       tags:
         - Providers
@@ -6590,7 +6977,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConnectProviderAccepted'
+                $ref: '#/components/schemas/ConnectAccepted'
         '400':
           description: ''
           content:
@@ -6598,12 +6985,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
         '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
           description: ''
           content:
             application/json:
@@ -6839,6 +7220,22 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ThreadId'
+        - name: limit
+          in: query
+          description: Maximum number of messages to return. Cannot exceed 100.
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          description: >-
+            Token returned by the previous response for retrieving the next,
+            older page.
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
       responses:
         '200':
           description: ''
@@ -7222,6 +7619,26 @@ components:
       required:
         - count
         - inboxes
+    inboxesSearchInboxesResponse:
+      title: inboxesSearchInboxesResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/Limit'
+          nullable: true
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        inboxes:
+          type: array
+          items:
+            $ref: '#/components/schemas/inboxesInbox'
+          description: Ordered by relevance, best match first.
+      required:
+        - count
+        - inboxes
     inboxesCreateInboxRequest:
       title: inboxesCreateInboxRequest
       type: object
@@ -7274,6 +7691,21 @@ components:
             clear. Each update must include at least one of `display_name` or
 
             `metadata`.
+    inboxesAuthorizeInboxRequest:
+      title: inboxesAuthorizeInboxRequest
+      type: object
+      description: |-
+        Authorize one pending AgentID sign-in for the inbox in the path. The
+        inbox is selected by the trusted path parameter, never by an AgentID
+        `login_hint`.
+      properties:
+        auth_token:
+          $ref: '#/components/schemas/AuthToken'
+        accept_disclosure:
+          $ref: '#/components/schemas/AcceptDisclosure'
+          nullable: true
+      required:
+        - auth_token
     podsPodId:
       title: podsPodId
       type: string
@@ -7745,6 +8177,53 @@ components:
       type: string
       format: date-time
       description: Time at which api key was created.
+    UpdatedAt:
+      title: UpdatedAt
+      type: string
+      format: date-time
+      description: Time at which api key was last updated.
+    ExpiresAt:
+      title: ExpiresAt
+      type: string
+      format: date-time
+      description: Time at which api key expires. Omitted when it does not expire.
+    UsedAt:
+      title: UsedAt
+      type: string
+      format: date-time
+      description: Time at which api key was last used.
+    PodScopeId:
+      title: PodScopeId
+      type: string
+      description: >-
+        Pod ID the api key is scoped to. If set, the key can only access
+        resources within this pod.
+    InboxScopeId:
+      title: InboxScopeId
+      type: string
+      description: >-
+        Inbox ID the api key is scoped to. If set, the key can only access
+        resources within this inbox.
+    PublicKeyClientId:
+      title: PublicKeyClientId
+      type: string
+      description: >-
+        Caller-chosen alias for a public key, unique within the organization and
+
+        reusable after deletion. Accepted in place of `api_key_id` on get,
+        update,
+
+        and delete. Registration is idempotent on it: the same alias returns the
+
+        existing key, a conflicting one returns `409`. URL-safe; no slash or
+        `@`.
+    AcceptDisclosure:
+      title: AcceptDisclosure
+      type: boolean
+      description: |-
+        Accept the provider's disclosure on the agent's behalf, skipping the
+        first-use disclosure page. Requires `provider_share_owner` when owner
+        scopes are involved.
     PublicJwkCoordinate:
       title: PublicJwkCoordinate
       type: string
@@ -7804,76 +8283,93 @@ components:
       title: PublicKeyCredential
       type: object
       description: |-
-        An AgentID sign-in credential. `type` and `api_key_id` are server-owned;
-        use `api_key_id` as the JWS `kid`. This response never contains a bearer
-        secret or private key.
+        An AgentID sign-in credential, scoped like a bearer key; `api_key_id` is
+        the JWS `kid`. A sign-in key carries `status`, gains `public_key` once
+        the client has proved it, expires 30 days after
+        activation, and carries exactly `provider_connect` and
+        `provider_share_owner`, snapshotted from the bearer key that created it
+        and enforced from the key itself.
       properties:
-        api_key_id:
-          type: string
-          format: uuid
-          description: >-
-            Server-generated credential ID. Store this value as the signing
-            key's `kid`.
         type:
           type: string
           const: public_key
-          description: >-
-            Server-owned credential discriminator. Callers cannot select or
-            update it.
+        api_key_id:
+          $ref: '#/components/schemas/ApiKeyId'
+        client_id:
+          $ref: '#/components/schemas/PublicKeyClientId'
+          nullable: true
         name:
           $ref: '#/components/schemas/Name'
-          description: Human-readable credential name.
-        status:
-          type: string
-          enum:
-            - pending
-            - active
-          description: Present on a key a browser holds; pending until the browser has created its key on the AgentID page, active once it can sign in as the inbox.
         public_key:
           $ref: '#/components/schemas/PublicKeyMaterial'
-        expires_at:
-          type: string
-          format: date-time
           nullable: true
-          description: >-
-            Immutable absolute expiry. Omitted when the credential does not
-            expire.
+        pod_id:
+          $ref: '#/components/schemas/PodScopeId'
+          nullable: true
+        inbox_id:
+          $ref: '#/components/schemas/InboxScopeId'
+          nullable: true
+        status:
+          $ref: '#/components/schemas/PublicKeyStatus'
+          nullable: true
+        used_at:
+          $ref: '#/components/schemas/UsedAt'
+          nullable: true
+        permissions:
+          $ref: '#/components/schemas/ApiKeyPermissions'
+        created_by:
+          $ref: '#/components/schemas/ApiKeyCreator'
         created_at:
-          type: string
-          format: date-time
+          $ref: '#/components/schemas/CreatedAt'
         updated_at:
-          type: string
-          format: date-time
+          $ref: '#/components/schemas/UpdatedAt'
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+          nullable: true
       required:
-        - api_key_id
         - type
+        - api_key_id
         - name
+        - permissions
+        - created_by
         - created_at
         - updated_at
-    BrowserEnrollmentTransactionJti:
-      title: BrowserEnrollmentTransactionJti
+    CreatePublicKeyRequest:
+      title: CreatePublicKeyRequest
+      type: object
+      description: |-
+        Registers a public P-256 JWK at the route's scope. `type` and
+        `api_key_id` are server-owned. `name` defaults to
+        `AgentID key {first eight fingerprint characters}`; `permissions`
+        defaults to the registering key's, and only grants it holds may be
+        true; `expires_at` defaults to the registering key's expiry and is
+        independent of that key afterward.
+      properties:
+        public_key:
+          $ref: '#/components/schemas/PublicJwk'
+        client_id:
+          $ref: '#/components/schemas/PublicKeyClientId'
+          nullable: true
+        name:
+          $ref: '#/components/schemas/Name'
+          nullable: true
+        permissions:
+          $ref: '#/components/schemas/ApiKeyPermissions'
+          nullable: true
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+          nullable: true
+      required:
+        - public_key
+    AuthToken:
+      title: AuthToken
       type: string
       pattern: ^[A-Za-z0-9_-]{22}$
       minLength: 22
       maxLength: 22
       description: >-
-        Transaction identifier read from an enrollment action on exactly
-        `https://auth.agentid.com`.
-    AuthorizeInboxRequest:
-      title: AuthorizeInboxRequest
-      type: object
-      description: |-
-        Authorize one pending AgentID sign-in for the inbox in the path. The
-        inbox is selected by the trusted path parameter, never by an AgentID
-        `login_hint`.
-      properties:
-        transaction_jti:
-          $ref: '#/components/schemas/BrowserEnrollmentTransactionJti'
-        authorize:
-          type: boolean
-          description: Approve the relying party on the agent's behalf, skipping the first-use disclosure page.
-      required:
-        - transaction_jti
+        Token identifying one pending AgentID sign-in, read from the sign-in
+        action on exactly `https://auth.agentid.com`.
     ApiKeyPermissions:
       title: ApiKeyPermissions
       type: object
@@ -8017,13 +8513,18 @@ components:
           type: boolean
           nullable: true
           description: >-
-            Sign in to providers as an inbox: connect a provider, authorize an inbox, and mint the
-            keys browsers hold. Omitted on a new bearer key means false, whatever else the key holds.
+            Sign in to providers as an inbox: connect a provider, authorize an
+            inbox, and mint the
+
+            sign-in keys. Omitted on a new bearer key means false, whatever else
+            the key holds.
         provider_share_owner:
           type: boolean
           nullable: true
           description: >-
-            Share the organization owner's name and email with providers at sign-in. One permission
+            Share the organization owner's name and email with providers at
+            sign-in. One permission
+
             for both values.
         pod_read:
           type: boolean
@@ -8037,10 +8538,14 @@ components:
           type: boolean
           nullable: true
           description: Delete pods.
-    ApiKey:
-      title: ApiKey
+    BearerApiKey:
+      title: BearerApiKey
       type: object
+      description: An API key presented as a bearer token in the `Authorization` header.
       properties:
+        type:
+          type: string
+          const: bearer
         api_key_id:
           $ref: '#/components/schemas/ApiKeyId'
         prefix:
@@ -8048,32 +8553,67 @@ components:
         name:
           $ref: '#/components/schemas/Name'
         pod_id:
-          type: string
+          $ref: '#/components/schemas/PodScopeId'
           nullable: true
-          description: >-
-            Pod ID the api key is scoped to. If set, the key can only access
-            resources within this pod.
         inbox_id:
-          type: string
+          $ref: '#/components/schemas/InboxScopeId'
           nullable: true
-          description: >-
-            Inbox ID the api key is scoped to. If set, the key can only access
-            resources within this inbox.
         used_at:
-          type: string
-          format: date-time
+          $ref: '#/components/schemas/UsedAt'
           nullable: true
-          description: Time at which api key was last used.
         permissions:
           $ref: '#/components/schemas/ApiKeyPermissions'
           nullable: true
         created_at:
           $ref: '#/components/schemas/CreatedAt'
+        updated_at:
+          $ref: '#/components/schemas/UpdatedAt'
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+          nullable: true
       required:
+        - type
         - api_key_id
         - prefix
         - name
         - created_at
+        - updated_at
+    ApiKeyCreator:
+      title: ApiKeyCreator
+      type: object
+      description: >-
+        The bearer API key that created the credential. Provenance only; the
+        credential outlives it.
+      properties:
+        api_key_id:
+          $ref: '#/components/schemas/ApiKeyId'
+      required:
+        - api_key_id
+    PublicKeyStatus:
+      title: PublicKeyStatus
+      type: string
+      enum:
+        - pending
+        - active
+      description: |-
+        Lifecycle of a sign-in key: `pending` until the client finishes
+        creating it on the AgentID page, `active` once it can sign in as the
+        inbox. Absent on a registered key.
+    ApiKey:
+      title: ApiKey
+      oneOf:
+        - $ref: '#/components/schemas/BearerApiKey'
+        - $ref: '#/components/schemas/PublicKeyCredential'
+      description: |-
+        One credential of any family. `type` is `bearer` or `public_key`. A
+        public key carrying `status` is a sign-in key; one without it is a
+        registered signing key.
+    ApiKeyType:
+      title: ApiKeyType
+      type: string
+      enum:
+        - bearer
+        - public_key
     CreateApiKeyResponse:
       title: CreateApiKeyResponse
       type: object
@@ -8088,13 +8628,11 @@ components:
         name:
           $ref: '#/components/schemas/Name'
         pod_id:
-          type: string
+          $ref: '#/components/schemas/PodScopeId'
           nullable: true
-          description: Pod ID the api key is scoped to.
         inbox_id:
-          type: string
+          $ref: '#/components/schemas/InboxScopeId'
           nullable: true
-          description: Inbox ID the api key is scoped to.
         permissions:
           $ref: '#/components/schemas/ApiKeyPermissions'
           nullable: true
@@ -8119,13 +8657,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ApiKey'
-          description: Ordered by `created_at` descending.
+          description: |-
+            Every credential family, ordered by `created_at`. `type` restricts
+            to one family.
       required:
         - count
         - api_keys
-    CreateApiKeyRequest:
-      title: CreateApiKeyRequest
+    ApiKeyMutableFields:
+      title: ApiKeyMutableFields
       type: object
+      description: >-
+        The fields a caller may set on a bearer key at creation and change
+        afterward.
       properties:
         name:
           $ref: '#/components/schemas/Name'
@@ -8133,6 +8676,37 @@ components:
         permissions:
           $ref: '#/components/schemas/ApiKeyPermissions'
           nullable: true
+    CreateBearerApiKeyRequest:
+      title: CreateBearerApiKeyRequest
+      type: object
+      properties: {}
+      allOf:
+        - $ref: '#/components/schemas/ApiKeyMutableFields'
+    CreateApiKeyRequest:
+      title: CreateApiKeyRequest
+      oneOf:
+        - $ref: '#/components/schemas/CreateBearerApiKeyRequest'
+        - $ref: '#/components/schemas/CreatePublicKeyRequest'
+      description: |-
+        A body with `public_key` registers a public-key credential; any other
+        body mints a bearer key.
+    CreateApiKeyResult:
+      title: CreateApiKeyResult
+      oneOf:
+        - $ref: '#/components/schemas/CreateApiKeyResponse'
+        - $ref: '#/components/schemas/PublicKeyCredential'
+      description: >-
+        The secret-bearing bearer key, or the registered public key without any
+        secret.
+    UpdateApiKeyRequest:
+      title: UpdateApiKeyRequest
+      type: object
+      description: |-
+        Rename a credential or change its permissions. Key material, type,
+        scope, and expiry are immutable.
+      properties: {}
+      allOf:
+        - $ref: '#/components/schemas/ApiKeyMutableFields'
     AttachmentId:
       title: AttachmentId
       type: string
@@ -10434,32 +11008,39 @@ components:
         - count
         - limit
         - accounts
+    ConnectInboxId:
+      title: ConnectInboxId
+      $ref: '#/components/schemas/inboxesInboxId'
+      description: Inbox to sign in as. Required unless the API key is scoped to an inbox.
     ConnectProviderBody:
       title: ConnectProviderBody
       type: object
       properties:
         inbox_id:
-          $ref: '#/components/schemas/inboxesInboxId'
+          $ref: '#/components/schemas/ConnectInboxId'
           nullable: true
-          description: Inbox to connect. Required unless the API key is scoped to an inbox.
-        authorize:
-          type: boolean
+        accept_disclosure:
+          $ref: '#/components/schemas/AcceptDisclosure'
           nullable: true
-          description: >-
-            Authorize the provider for this inbox, skipping the first-use
-            disclosure page.
-    ConnectProviderAccepted:
-      title: ConnectProviderAccepted
+    MagicUrl:
+      title: MagicUrl
+      type: string
+      description: Single-use URL to open in the client that will hold the key.
+    ConnectAccepted:
+      title: ConnectAccepted
       type: object
+      description: >-
+        The pending sign-in key the client will activate. Poll Get API Key with
+        `api_key_id` for `status`.
       properties:
+        api_key_id:
+          $ref: '#/components/schemas/ApiKeyId'
         magic_url:
-          type: string
-          description: Single-use URL to open in the browser that will hold the sign-in.
+          $ref: '#/components/schemas/MagicUrl'
         expires_at:
-          type: string
-          format: date-time
-          description: Time at which the URL expires.
+          $ref: '#/components/schemas/ExpiresAt'
       required:
+        - api_key_id
         - magic_url
         - expires_at
     ThreadId:
@@ -10633,11 +11214,27 @@ components:
           $ref: '#/components/schemas/ThreadUpdatedAt'
         created_at:
           $ref: '#/components/schemas/ThreadCreatedAt'
+        count:
+          $ref: '#/components/schemas/Count'
+          description: Number of messages in this response page.
+        limit:
+          $ref: '#/components/schemas/Limit'
+          nullable: true
+          description: Maximum number of messages requested for this page.
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+          description: >-
+            Token for the next, older page of messages. Omitted when this page
+            completes the thread.
         messages:
           type: array
           items:
             $ref: '#/components/schemas/Message'
-          description: Messages in thread. Ordered by `timestamp` ascending.
+          description: >-
+            Messages in this page, ordered by `timestamp` ascending. The first
+            page contains the newest messages; follow `next_page_token` to
+            retrieve older pages.
       required:
         - inbox_id
         - thread_id
@@ -10650,6 +11247,7 @@ components:
         - size
         - updated_at
         - created_at
+        - count
         - messages
     UpdateThreadRequest:
       title: UpdateThreadRequest

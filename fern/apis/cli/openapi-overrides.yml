@@ -42,6 +42,11 @@ paths:
       - inboxes
       - apiKeys
       x-fern-sdk-method-name: delete
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - apiKeys
+      x-fern-sdk-method-name: update
   /v0/inboxes/{inbox_id}/drafts:
     get:
       x-fern-sdk-group-name:
@@ -315,6 +320,11 @@ paths:
       - pods
       - apiKeys
       x-fern-sdk-method-name: delete
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - apiKeys
+      x-fern-sdk-method-name: update
   /v0/pods/{pod_id}/domains:
     get:
       x-fern-sdk-group-name:
@@ -541,6 +551,14 @@ paths:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: delete
+    get:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - apiKeys
+      x-fern-sdk-method-name: update
   /v0/auth/me:
     get:
       x-fern-sdk-group-name:
@@ -827,3 +845,14 @@ paths:
       x-fern-sdk-group-name:
       - inboxes
       x-fern-sdk-method-name: authorize
+  /v0/inboxes/search:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      x-fern-sdk-method-name: search
+  /v0/pods/{pod_id}/inboxes/search:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - inboxes
+      x-fern-sdk-method-name: search
