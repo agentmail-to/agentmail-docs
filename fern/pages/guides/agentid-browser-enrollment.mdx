@@ -343,8 +343,12 @@ qualification. Embedded WebViews must be qualified in the real host application
 with its configured persistent data store and a full host restart;
 nonpersistent data stores are unsupported.
 
-## Migration from public-key authentication
+## Public-key authentication is retired
 
-Inbox-scoped public keys are the current path for persistent browser approval. The
-[AgentID public-key flow](/agentid-public-key-authentication) remains supported
-during migration, and no deprecation date is being announced with this release.
+The agent-signed approval flow, in which an agent registered a P-256 key and
+signed one approval per sign-in, was removed on 2026-09-08 along with its guide.
+Approval is now the ordinary authenticated call described above, and the
+persistent credential is the inbox-scoped public key the browser creates for
+itself. A key registered for the old flow still lists as `type: public_key`
+and can be deleted with `DELETE /v0/api-keys/{api_key_id}`, but it no longer
+approves anything.
