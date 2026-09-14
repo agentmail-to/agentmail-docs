@@ -4,7 +4,6 @@ navigation:
   - threads.yml
   - messages.yml
   - drafts.yml
-  - browser-credentials.yml
   - webhooks.yml
   - lists.yml
   - metrics.yml
@@ -14,6 +13,7 @@ navigation:
 imports:
   global: ../__package__.yml
   pods: ../pods/__package__.yml
+  api-keys: ../api-keys.yml
 
 types:
   InboxId:
@@ -119,6 +119,15 @@ types:
           `metadata` as null. Sending an empty object is rejected; use null to
           clear. Each update must include at least one of `display_name` or
           `metadata`.
+
+  AuthorizeInboxRequest:
+    docs: |
+      Authorize one pending AgentID sign-in for the inbox in the path. The
+      inbox is selected by the trusted path parameter, never by an AgentID
+      `login_hint`.
+    properties:
+      auth_token: api-keys.AuthToken
+      accept_disclosure: optional<api-keys.AcceptDisclosure>
 
 service:
   url: Http
@@ -228,4 +237,22 @@ service:
       path-parameters:
         inbox_id: InboxId
       errors:
+        - global.NotFoundError
+
+    authorize:
+      method: POST
+      path: /{inbox_id}/authorize
+      display-name: Authorize Inbox
+      docs: |
+        Authorizes the AgentID sign-in a client is already waiting in, for the
+        inbox in the path, and returns the pending public key it will activate. A
+        repeat for the same token, inbox, and bearer returns the same key.
+      path-parameters:
+        inbox_id: InboxId
+      request: AuthorizeInboxRequest
+      response:
+        status-code: 202
+        type: api-keys.PublicKeyCredential
+      errors:
+        - global.ValidationError
         - global.NotFoundError

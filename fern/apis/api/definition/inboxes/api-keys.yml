@@ -41,10 +41,27 @@ service:
         agentmail inboxes api-keys create --inbox-id <inbox_id> --name "My Key"
         ```
       request: api-keys.CreateApiKeyRequest
-      response: api-keys.CreateApiKeyResponse
+      response: api-keys.CreateApiKeyResult
       errors:
         - global.NotFoundError
         - global.ValidationError
+
+    update:
+      method: PATCH
+      path: /{api_key_id}
+      display-name: Update API Key
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail inboxes api-keys update --inbox-id <inbox_id> --api-key-id <api_key_id> --name "Renamed"
+        ```
+      path-parameters:
+        api_key_id: api-keys.ApiKeyId
+      request: api-keys.UpdateApiKeyRequest
+      response: api-keys.ApiKey
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
 
     delete:
       method: DELETE

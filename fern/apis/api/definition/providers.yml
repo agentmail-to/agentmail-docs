@@ -4,6 +4,7 @@ imports:
   global: __package__.yml
   accounts: accounts.yml
   inboxes: inboxes/__package__.yml
+  api-keys: api-keys.yml
 
 types:
   Provider:
@@ -40,26 +41,25 @@ types:
       next_page_token: optional<global.PageToken>
       accounts: list<accounts.Account>
 
+  ConnectInboxId:
+    type: inboxes.InboxId
+    docs: Inbox to sign in as. Required unless the API key is scoped to an inbox.
+
   ConnectProviderBody:
     properties:
-      inbox_id:
-        type: optional<inboxes.InboxId>
-        docs: Inbox to connect. Required unless the API key is scoped to an inbox.
-      authorize:
-        type: optional<boolean>
-        docs: Authorize the provider for this inbox, skipping the first-use disclosure page.
+      inbox_id: optional<ConnectInboxId>
+      accept_disclosure: optional<api-keys.AcceptDisclosure>
 
-  ConnectProviderAccepted:
+  MagicUrl:
+    type: string
+    docs: Single-use URL to open in the client that will hold the key.
+
+  ConnectAccepted:
+    docs: The pending sign-in key the client will activate. Poll Get API Key with `api_key_id` for `status`.
     properties:
-      session_id:
-        type: uuid
-        docs: ID of session.
-      magic_url:
-        type: string
-        docs: Single-use URL to open in the browser that will hold the sign-in.
-      expires_at:
-        type: datetime
-        docs: Time at which the URL expires.
+      api_key_id: api-keys.ApiKeyId
+      magic_url: MagicUrl
+      expires_at: api-keys.ExpiresAt
 
 service:
   url: Http
@@ -128,19 +128,19 @@ service:
       path: /{provider_id}/connect
       display-name: Connect Provider
       docs: |
-        Starts signing an inbox in to a provider. Returns a `magic_url` valid
-        for five minutes; open it in the browser that will hold the sign-in.
-        Requires `api_key_create` and an `Idempotency-Key` header.
+        Starts signing an inbox in to a provider. Returns a single-use `magic_url`,
+        valid for five minutes, to open in the client that will hold the sign-in;
+        the client enrolls as the inbox and continues to the provider. Poll
+        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
       path-parameters:
         provider_id: accounts.ProviderId
-      idempotent: true
       request:
         name: ConnectProviderRequest
         body: optional<ConnectProviderBody>
       response:
         status-code: 202
-        type: ConnectProviderAccepted
+        type: ConnectAccepted
       errors:
         - global.ValidationError
         - global.NotFoundError
-        - global.ConflictError
+
