@@ -128,6 +128,79 @@ def parse_existing_full(path):
     return out
 
 
+def duplicate_keys(path):
+    """Return path keys, and (path, method) pairs, that appear more than once
+    under `paths:`. YAML forbids duplicate mapping keys: js-yaml rejects the
+    file, lenient loaders keep only the last block and drop the earlier one's
+    methods. The line-wise parsers above merge them silently, so check here."""
+    seen_paths, seen_ops, dups, cur_path, in_paths = set(), set(), [], None, False
+    for line in open(path):
+        if re.match(r"^paths:\s*$", line):
+            in_paths = True
+            continue
+        if in_paths and re.match(r"^\S", line):
+            in_paths = False
+        if not in_paths:
+            continue
+        m = re.match(r"^  (/\S+):\s*$", line)
+        if m:
+            cur_path = m.group(1)
+            if cur_path in seen_paths:
+                dups.append(cur_path)
+            seen_paths.add(cur_path)
+            continue
+        m = re.match(r"^    ([a-z]+):\s*$", line)
+        if m and m.group(1) in HTTP_METHODS and cur_path:
+            if (cur_path, m.group(1)) in seen_ops:
+                dups.append(f"{m.group(1).upper()} {cur_path}")
+            seen_ops.add((cur_path, m.group(1)))
+    return dups
+
+
+def merge_into_overrides(path, by_path, order):
+    """Write new method blocks into the overrides file. A path that already has
+    a block gets its new methods inserted at the end of that block; only paths
+    absent from the file are appended as new keys."""
+    lines = open(path).read().splitlines()
+    starts, in_paths = {}, False
+    for i, line in enumerate(lines):
+        if re.match(r"^paths:\s*$", line):
+            in_paths = True
+            continue
+        if in_paths and re.match(r"^\S", line):
+            in_paths = False
+        m = re.match(r"^  (/\S+):\s*$", line) if in_paths else None
+        if m:
+            starts[m.group(1)] = i
+
+    def block_end(start):
+        for j in range(start + 1, len(lines)):
+            if re.match(r"^  /\S+:\s*$", lines[j]) or re.match(r"^\S", lines[j]):
+                return j
+        return len(lines)
+
+    def method_lines(url_path):
+        out = []
+        for http, g, m in by_path[url_path]:
+            out.append(f"    {http}:")
+            out.append("      x-fern-sdk-group-name:")
+            out.extend(f"      - {seg}" for seg in g)
+            out.append(f"      x-fern-sdk-method-name: {m}")
+        return out
+
+    # insert bottom-up so earlier indices stay valid
+    for url_path in sorted((p for p in order if p in starts),
+                           key=lambda p: starts[p], reverse=True):
+        end = block_end(starts[url_path])
+        lines[end:end] = method_lines(url_path)
+    for url_path in order:
+        if url_path not in starts:
+            lines.append(f"  {url_path}:")
+            lines.extend(method_lines(url_path))
+    with open(path, "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def parse_old_overlay(path):
     """Return {(path, method): (groups, method_name)} from the retired demo
     overlay (OpenAPI Overlay 1.0 format with JSONPath targets)."""
@@ -232,12 +305,22 @@ def main():
     else:
         print("stale entries: none")
 
+    dups = duplicate_keys(OVERRIDES)
+    if dups:
+        print("DUPLICATE keys in overrides (merge each into its first block):")
+        for d in dups:
+            print(f"  {d}")
+    else:
+        print("duplicate keys: none")
+
     if args.check:
         problems = []
         if missing:
             problems.append(f"{len(missing)} spec operation(s) missing annotations")
         if stale:
             problems.append(f"{len(stale)} stale override entr(ies)")
+        if dups:
+            problems.append(f"{len(dups)} duplicate key(s)")
         if problems:
             sys.exit("CHECK FAILED: " + "; ".join(problems) +
                      ". Run bin/gen-cli-overrides.py --write and prune stale blocks.")
@@ -273,22 +356,20 @@ def main():
             order.append(url_path)
         by_path[url_path].append((http, g, m))
 
-    chunk = []
-    for url_path in order:
-        chunk.append(f"  {url_path}:")
-        for http, g, m in by_path[url_path]:
-            chunk.append(f"    {http}:")
-            chunk.append("      x-fern-sdk-group-name:")
-            for seg in g:
-                chunk.append(f"      - {seg}")
-            chunk.append(f"      x-fern-sdk-method-name: {m}")
-    text = "\n".join(chunk) + "\n"
-
     if args.write:
-        with open(OVERRIDES, "a") as f:
-            f.write(text)
-        print(f"appended {len(missing)} operations to {OVERRIDES}")
+        merge_into_overrides(OVERRIDES, by_path, order)
+        print(f"wrote {len(missing)} operations to {OVERRIDES}")
     else:
+        chunk = []
+        for url_path in order:
+            chunk.append(f"  {url_path}:")
+            for http, g, m in by_path[url_path]:
+                chunk.append(f"    {http}:")
+                chunk.append("      x-fern-sdk-group-name:")
+                for seg in g:
+                    chunk.append(f"      - {seg}")
+                chunk.append(f"      x-fern-sdk-method-name: {m}")
+        text = "\n".join(chunk) + "\n"
         print("--- would append (run with --write) ---")
         print(text)
 
