@@ -52,10 +52,10 @@ types:
 
   MagicUrl:
     type: string
-    docs: Single-use URL to open in the browser that will hold the key.
+    docs: Single-use URL to open in the client that will hold the key.
 
   ConnectAccepted:
-    docs: The pending public key the browser will activate. Poll Get API Key with `api_key_id` for `status`.
+    docs: The pending sign-in key the client will activate. Poll Get API Key with `api_key_id` for `status`.
     properties:
       api_key_id: api-keys.ApiKeyId
       magic_url: MagicUrl
@@ -129,8 +129,8 @@ service:
       display-name: Connect Provider
       docs: |
         Starts signing an inbox in to a provider. Returns a single-use `magic_url`,
-        valid for five minutes, to open in the browser that will hold the sign-in;
-        the browser enrolls as the inbox and continues to the provider. Poll
+        valid for five minutes, to open in the client that will hold the sign-in;
+        the client enrolls as the inbox and continues to the provider. Poll
         [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
       path-parameters:
         provider_id: accounts.ProviderId

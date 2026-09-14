@@ -46,6 +46,23 @@ service:
         - global.NotFoundError
         - global.ValidationError
 
+    update:
+      method: PATCH
+      path: /{api_key_id}
+      display-name: Update API Key
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods api-keys update --pod-id <pod_id> --api-key-id <api_key_id> --name "Renamed"
+        ```
+      path-parameters:
+        api_key_id: api-keys.ApiKeyId
+      request: api-keys.UpdateApiKeyRequest
+      response: api-keys.ApiKey
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+
     delete:
       method: DELETE
       path: /{api_key_id}

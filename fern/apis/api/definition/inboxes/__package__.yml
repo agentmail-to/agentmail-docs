@@ -244,7 +244,7 @@ service:
       path: /{inbox_id}/authorize
       display-name: Authorize Inbox
       docs: |
-        Authorizes the AgentID sign-in a browser is already waiting in, for the
+        Authorizes the AgentID sign-in a client is already waiting in, for the
         inbox in the path, and returns the pending public key it will activate. A
         repeat for the same token, inbox, and bearer returns the same key.
       path-parameters:

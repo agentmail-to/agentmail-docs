@@ -90,8 +90,8 @@ types:
   PublicKeyCredential:
     docs: |
       An AgentID sign-in credential, scoped like a bearer key; `api_key_id` is
-      the JWS `kid`. A key a browser holds carries `status`, gains
-      `public_key` once the browser has proved it, expires 30 days after
+      the JWS `kid`. A sign-in key carries `status`, gains `public_key` once
+      the client has proved it, expires 30 days after
       activation, and carries exactly `provider_connect` and
       `provider_share_owner`, snapshotted from the bearer key that created it
       and enforced from the key itself.
@@ -240,7 +240,7 @@ types:
         type: optional<boolean>
         docs: |
           Sign in to providers as an inbox: connect a provider, authorize an inbox, and mint the
-          keys browsers hold. Omitted on a new bearer key means false, whatever else the key holds.
+          sign-in keys. Omitted on a new bearer key means false, whatever else the key holds.
       provider_share_owner:
         type: optional<boolean>
         docs: |
@@ -281,14 +281,14 @@ types:
       - pending
       - active
     docs: |
-      Lifecycle of a key a browser holds: `pending` until the browser finishes
+      Lifecycle of a sign-in key: `pending` until the client finishes
       creating it on the AgentID page, `active` once it can sign in as the
       inbox. Absent on a registered key.
 
   ApiKey:
     docs: |
       One credential of any family. `type` is `bearer` or `public_key`. A
-      public key carrying `status` is one a browser holds; one without it is a
+      public key carrying `status` is a sign-in key; one without it is a
       registered signing key.
     discriminated: false
     union:
@@ -390,7 +390,7 @@ service:
       display-name: Get API Key
       docs: |
         Returns one credential of any family. Public keys also resolve by
-        `client_id`. Poll a browser-held key until `status` is `active`.
+        `client_id`. Poll a sign-in key until `status` is `active`.
       path-parameters:
         api_key_id: ApiKeyId
       response: ApiKey
@@ -421,7 +421,7 @@ service:
       display-name: Update API Key
       docs: |
         Renames a credential or changes its permissions. Public keys also resolve
-        by `client_id`; a browser-held key accepts only `provider_connect` and
+        by `client_id`; a sign-in key accepts only `provider_connect` and
         `provider_share_owner`.
       path-parameters:
         api_key_id: ApiKeyId
@@ -436,7 +436,7 @@ service:
       path: /{api_key_id}
       display-name: Delete API Key
       docs: |
-        Deletes one credential of any family. A pending browser-held key is
+        Deletes one credential of any family. A pending sign-in key is
         cancelled; an active one is revoked. Public keys also resolve by `client_id`.
 
         **CLI:**
