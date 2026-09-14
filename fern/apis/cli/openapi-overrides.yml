@@ -9,6 +9,38 @@ components:
   schemas:
     Send:
       x-fern-type-name: SendEvent
+    # CreateApiKeyRequest is a oneOf (bearer key | public key), and the CLI
+    # generator emits only --json for a union body: 1.3.0's
+    # `api-keys create --name/--permissions` flags vanished on regen, and a
+    # plain bearer-key body makes the CLI's local schema check reject a
+    # public_key passed via --json. The three create operations below point
+    # at this flattened object, which carries both variants' fields.
+    # public_key is a free-form object on purpose: with PublicJwk's members
+    # listed, generator 0.38.10 makes --public-key.x/.y required flags even
+    # though public_key is optional, blocking bearer creation. The server
+    # validates the JWK. Keep in sync with ApiKeyMutableFields and
+    # CreatePublicKeyRequest in ../../../openapi/openapi.yml.
+    CliCreateApiKeyRequest:
+      type: object
+      description: |-
+        Omit `public_key` to mint a bearer key; include it to register a
+        public key. `client_id` and `expires_at` apply only with `public_key`.
+      properties:
+        name:
+          $ref: "#/components/schemas/Name"
+        permissions:
+          $ref: "#/components/schemas/ApiKeyPermissions"
+        public_key:
+          type: object
+          additionalProperties: true
+          description: |-
+            Public P-256 JWK with exactly `kty` ("EC"), `crv` ("P-256"), `x`,
+            and `y`, as JSON. Registers a public key instead of minting a
+            bearer key.
+        client_id:
+          $ref: "#/components/schemas/PublicKeyClientId"
+        expires_at:
+          $ref: "#/components/schemas/ExpiresAt"
 
 # The Fern definition marks the five send operations idempotent via
 # `idempotency-headers` (api.yml), but the fern-openapi export drops that
@@ -36,6 +68,12 @@ paths:
       - inboxes
       - apiKeys
       x-fern-sdk-method-name: create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliCreateApiKeyRequest"
   /v0/inboxes/{inbox_id}/api-keys/{api_key_id}:
     delete:
       x-fern-sdk-group-name:
@@ -314,6 +352,12 @@ paths:
       - pods
       - apiKeys
       x-fern-sdk-method-name: create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliCreateApiKeyRequest"
   /v0/pods/{pod_id}/api-keys/{api_key_id}:
     delete:
       x-fern-sdk-group-name:
@@ -546,6 +590,12 @@ paths:
       x-fern-sdk-group-name:
       - apiKeys
       x-fern-sdk-method-name: create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliCreateApiKeyRequest"
   /v0/api-keys/{api_key_id}:
     delete:
       x-fern-sdk-group-name:
