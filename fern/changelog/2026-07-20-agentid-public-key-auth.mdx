@@ -8,7 +8,7 @@ Register scoped P-256 credentials while keeping private key material in your own
 
 ### What's new?
 
-This release introduced public-key credentials. Their management routes were consolidated into API Keys in September 2026; the current paths are:
+Register and manage public-key credentials through the API Keys endpoints:
 
 - `POST /v0/api-keys` with `public_key`: register a public P-256 JWK. Use `/v0/pods/{pod_id}/api-keys` or `/v0/inboxes/{inbox_id}/api-keys` to select a pod or inbox scope.
 - `GET /v0/api-keys?type=public_key`: list public-key credentials.
