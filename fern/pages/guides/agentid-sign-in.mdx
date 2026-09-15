@@ -173,3 +173,28 @@ An active sign-in key expires 30 days after activation. To rotate, create and ac
 <Note>
   For keys your application generates and stores itself, see [AgentID Public-Key Authentication](https://docs.agentmail.to/agentid-public-key-authentication).
 </Note>
+
+## Credential lifetimes
+
+A sign-in involves several objects with separate lifetimes. Ending one does not end the others.
+
+| Object | Created by | Held by | Lifetime | Ends when | Unaffected |
+| --- | --- | --- | --- | --- | --- |
+| Bearer API key | You, in the console or with [Create API Key](https://docs.agentmail.to/api-reference/api-keys/create) | AgentMail | Until deleted, or its own `expires_at` | `DELETE /v0/api-keys/{api_key_id}` | Every sign-in key it created |
+| Pending sign-in key | Connect or authorize, using that bearer key | AgentMail, until the client activates it | At most five minutes, sooner if the sign-in expires | Activation, expiry, or `DELETE` (cancel) | Nothing depends on it yet |
+| Active sign-in key | The client that completed the sign-in, by activating the pending key | AgentMail records the public key; the private material stays in that client | 30 days from activation | Expiry, or `DELETE` (revoke) | Tokens already issued, the remembered approval, the provider's session |
+| Remembered approval | The first approved sign-in of an inbox at a provider | AgentID | 180 days from the most recent sign-in, per inbox and provider | Lapse, or the provider changes its redirect URI or scopes and asks again | The provider's session, and any key |
+| ID and access tokens | AgentID, when the provider redeems the authorization code | The provider | Ten minutes; there is no refresh token | Expiry | The provider's session |
+| Provider session | The provider, after its callback succeeds | The provider | The provider's choice | Sign-out at the provider, or its own expiry | Nothing on AgentMail |
+
+The two long lifetimes are different objects. A 30-day sign-in key is a credential; a 180-day remembered approval is consent. A remembered approval does not prove a key is still usable, and revoking a key does not clear the approval. There is no endpoint to revoke a remembered approval.
+
+### Clear a session in the browser
+
+The browser that completed a sign-in keeps the private half of its sign-in key as a saved session. To see and clear those sessions, open [https://auth.agentid.com/sessions](https://auth.agentid.com/sessions) in that browser and choose to forget the session there. The page lists only the sessions saved in the browser that opens it, so a different browser or profile shows none.
+
+Clearing a session there removes the sign-in material from that browser only. The key stays active on AgentMail until it expires or you revoke it; to revoke it, delete its key with `DELETE /v0/api-keys/{api_key_id}` as in the table above. Providers keep the sessions they issued until those expire or you sign out there.
+
+### I revoked a key, but an agent is still signed in at a provider
+
+Revocation stops new sign-ins with that key. It does not end sessions the provider already issued. AgentID sends no revocation webhook and no back-channel logout, an ID token already issued stays valid until it expires ten minutes after issue, and the provider decides its own session length. Sign out at the provider, or wait for that session to expire. A provider that re-reads AgentID's UserInfo endpoint inside those ten minutes sees the revocation sooner.
