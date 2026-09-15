@@ -182,9 +182,9 @@ types:
       allow_conflicting_provider:
         type: optional<boolean>
         docs: |
-          Allow registration when the domain already has another email provider's MX
-          records, such as Google Workspace or Microsoft 365. Defaults to false;
-          registration otherwise returns 422 when a conflicting provider is detected.
+          Allow registration when the domain already has Google Workspace MX records.
+          Defaults to false; registration otherwise returns 422 when a conflicting
+          provider is detected.
           This flag does not configure DNS or inbound routing. For shared Google
           Workspace domains, follow the [Google Workspace guide](/google-workspace).
       feedback_enabled: optional<FeedbackEnabled>

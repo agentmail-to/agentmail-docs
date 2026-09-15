@@ -68,7 +68,7 @@ Configure the route with the following settings:
 
 1. Set the name to **AgentMail**
 2. Select **Single host**
-3. Enter the receiving MX target returned in your domain's `records`, such as `inbound-smtp.us-east-1.amazonaws.com`, for the host name
+3. Enter `inbound-smtp.us-east-1.amazonaws.com` for the host name
 4. Enter `25` for the port
 5. Check the recommended options
 6. Click **Save**
@@ -96,9 +96,3 @@ Click **Save** to apply the rule. Emails sent to addresses that don't belong to 
 ## Inboxes and catch-all behavior
 
 Google's routing rule forwards unrecognized addresses to AgentMail. By default, each destination address must already have an AgentMail inbox; the rule does not create inboxes or collect unknown recipients into a single catch-all inbox. Create the inboxes you intend to receive mail at before using those addresses.
-
-If you need automatic inbox creation for unprovisioned addresses, [contact support](/support) to discuss whether it fits your setup. It requires separate enablement and is not configured by `allow_conflicting_provider` or the Google routing rule.
-
-## Verify delivery
-
-Wait for your domain to be verified, then [create an inbox](/api-reference/inboxes/create) on it using an address that is not provisioned in Google Workspace. Send a test email to that address from an external account and confirm it appears in AgentMail. Also send a test email to an existing Google Workspace user to confirm delivery still reaches Gmail.
