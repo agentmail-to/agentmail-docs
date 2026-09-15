@@ -11,18 +11,40 @@ Custom domains help establish trust with your recipients. We recommend configuri
 
 It is possible to use the same domain with both Google Workspace and AgentMail. This guide walks you through that configuration.
 
+## Register the shared domain
+
+Register your domain with [`POST /v0/domains`](/api-reference/domains/create), setting `allow_conflicting_provider` to `true`:
+
+```bash
+curl --request POST 'https://api.agentmail.to/v0/domains' \
+  --header "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  --header 'Content-Type: application/json' \
+  --data '{"domain": "example.com", "allow_conflicting_provider": true}'
+```
+
+Replace `example.com` with your domain and set `AGENTMAIL_API_KEY` to your API key. Use the API base URL for your account's region.
+
+The flag defaults to `false`. Without it, registration returns `422` when Google Workspace MX records are detected, even if you have already configured Google's routing rule or validated TLS for the AgentMail host. Setting it to `true` allows registration alongside your existing provider; it does not configure DNS or Google Workspace routing.
+
 ## DNS records
 
-The initial setup is the same as any domain: add the AgentMail DNS records. These records will not interfere with your existing Google Workspace setup.
+Add the DNS records returned by registration manually, preserving your existing Google Workspace MX records. Publish the AgentMail DKIM and `mail` subdomain records, and preserve your existing DMARC policy if one is already configured.
 
-Even after adding these records, AgentMail will not receive email sent to your domain by default. This is because the AgentMail MX record has a priority of `10`, while Google's MX record is typically set to `1` (lower numbers take higher priority).
+Google should remain the preferred mail server for your domain: Google's MX record is typically priority `1`, while AgentMail's receiving MX record is priority `10` (lower numbers take higher priority). MX priority alone does not route unrecognized addresses to AgentMail; configure the Google Workspace routing rule below.
 
-Your MX records should look like this:
+For a US-region domain named `example.com`, the MX records look like this. Use the exact names and regional targets returned in your domain's `records`:
 
-| Priority | Host                                    |
-| -------- | --------------------------------------- |
-| `1`      | `smtp.google.com`                       |
-| `10`     | `feedback-smtp.us-east-1.amazonses.com` |
+| DNS name | Priority | Mail server |
+| --- | --- | --- |
+| `example.com` | `1` | `smtp.google.com` |
+| `example.com` | `10` | `inbound-smtp.us-east-1.amazonaws.com` |
+| `mail.example.com` | `10` | `feedback-smtp.us-east-1.amazonses.com` |
+
+If you already use Google's legacy MX records, keep those records and their priorities, with Google preferred over AgentMail.
+
+<Warning>
+`feedback-smtp` handles bounces for the custom MAIL FROM subdomain (`mail.example.com`). It belongs on that subdomain, not at the root domain or in Google's mail host configuration. Incoming messages use `inbound-smtp`.
+</Warning>
 
 ## Google Workspace configuration
 
@@ -70,3 +92,9 @@ Scroll down and check **All inactive and unrecognized accounts**. Check **Change
 <img src="../../assets/google-workspace/rule2.png" alt="Routing rule configuration" />
 
 Click **Save** to apply the rule. Emails sent to addresses that don't belong to existing Gmail accounts will now be routed to AgentMail.
+
+## Inboxes and catch-all behavior
+
+Use an AgentMail inbox address that is not already used by a Google Workspace user, alias, or group. With this routing rule, Google handles recognized addresses, so creating the same address in AgentMail will not cause messages to be forwarded there.
+
+Google's routing rule forwards unrecognized addresses to AgentMail. By default, each destination address must already have an AgentMail inbox; the rule does not create inboxes or collect unknown recipients into a single catch-all inbox. Create the inboxes you intend to receive mail at before using those addresses.

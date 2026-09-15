@@ -179,6 +179,14 @@ types:
   CreateDomainRequest:
     properties:
       domain: DomainName
+      allow_conflicting_provider:
+        type: optional<boolean>
+        docs: |
+          Allow registration when the domain already has Google Workspace MX records.
+          Defaults to false; registration otherwise returns 422 when a conflicting
+          provider is detected.
+          This flag does not configure DNS or inbound routing. For shared Google
+          Workspace domains, follow the [Google Workspace guide](/google-workspace).
       feedback_enabled: optional<FeedbackEnabled>
       subdomains_enabled: optional<SubdomainsEnabled>
       tracking_enabled: optional<TrackingEnabled>
@@ -261,6 +269,7 @@ service:
       response: Domain
       errors:
         - global.ValidationError
+        - global.UnprocessableError
 
     update:
       method: PATCH

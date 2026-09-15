@@ -75,6 +75,7 @@ service:
       response: domains.Domain
       errors:
         - global.ValidationError
+        - global.UnprocessableError
 
     update:
       method: PATCH
