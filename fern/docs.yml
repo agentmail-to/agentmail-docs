@@ -99,6 +99,10 @@ experimental:
 default-language: python
 
 redirects:
+  - source: /agentid-browser-enrollment
+    destination: /agentid-sign-in
+    permanent: true
+
   - source: /integrations/moltbot
     destination: /integrations/openclaw
     permanent: true
@@ -319,7 +323,7 @@ navigation:
         contents:
           - page: AgentID Sign-In
             icon: fa-solid fa-shield-halved
-            path: pages/guides/agentid-browser-enrollment.mdx
+            path: pages/guides/agentid-sign-in.mdx
           - page: AgentID Public-Key Authentication
             icon: fa-solid fa-key
             path: pages/guides/agentid-public-key-authentication.mdx

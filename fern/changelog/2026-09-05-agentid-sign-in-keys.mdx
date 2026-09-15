@@ -1,5 +1,5 @@
 ---
-tags: ["api-keys", "providers-api", "agentid", "new-feature", "docs"]
+tags: ["api-keys", "providers-api", "agentid", "new-feature"]
 ---
 
 ## Summary
@@ -16,7 +16,7 @@ Signing in to a provider as an inbox now produces an API key: an inbox-scoped pu
 
 **New features:**
 
-- **One vocabulary for every credential family**: `GET /v0/api-keys` lists every credential in one list, newest first; `type` restricts to one family; the pod- and inbox-nested routes restrict to one scope. Every item carries `type`, `pod_id`, `inbox_id`, `permissions`, `created_by`, and the timestamps, scope expressed exactly as on a bearer key; a sign-in key adds `status`.
+- **One vocabulary for every credential family**: `GET /v0/api-keys` lists every credential in one list, newest first; `type` restricts to one family; the pod- and inbox-nested routes restrict to one scope. Items identify their credential `type` and include applicable scope, permissions, and timestamps. Public keys include `created_by`; sign-in keys add `status`.
 - **One handle for the whole lifecycle**: connect responses carry `api_key_id`, the same ID Get, List, and Delete use before and after activation.
 - **Delete covers every family**: `DELETE /v0/api-keys/{api_key_id}` deletes a bearer key, revokes a registered public key, cancels a pending sign-in key, or revokes an active one.
 - **Sign-in keys carry their own permissions**: exactly `provider_connect` and `provider_share_owner`, snapshotted from the creating bearer key, enforced from the key itself, and editable with `PATCH /v0/api-keys/{api_key_id}`. `provider_share_owner` is one grouped permission: a bearer key holding only one of the older `owner_profile` / `owner_email` permissions mints keys with it `false`.
@@ -25,12 +25,26 @@ Signing in to a provider as an inbox now produces an API key: an inbox-scoped pu
 - **Public keys live under api-keys**: `POST /v0/api-keys` with a `public_key` body registers a public-key credential at the route's scope (`/pods/{pod_id}/api-keys` and `/inboxes/{inbox_id}/api-keys` for a pod or inbox, no `scope` body field), and list, get, update, and delete cover it alongside bearer keys.
 - **Client IDs for public keys**: register a public key with a caller-chosen `client_id`, unique within the organization across every public key, and use it in place of `api_key_id` on get, update, and delete. Registration is idempotent on it.
 
-**Removed:**
+### Breaking changes
 
-- The `/v0/api-keys/public-keys` list, register, rename, and revoke routes, `POST /v0/api-keys/public-keys/agentid-sign-in/revoke-all`, and the `revoked_at` response field. Use the api-keys endpoints above; revoke keys individually.
-- `GET /v0/api-keys/browser-credentials` and its `events`, `enrollments`, and `{credential_id}` routes, `POST /v0/inboxes/{inbox_id}/browser-credentials/enrollments`, and both `/v0/api-keys/browser-consents` routes. Remembered consent is managed by AgentID and is no longer listed or revoked through the API.
-- `POST /v0/api-keys` and `POST /v0/inboxes/{inbox_id}/api-keys` no longer mint sign-in keys; use `POST /v0/inboxes/{inbox_id}/authorize`.
-- The `session_id` field on connect responses, and the `enrollment_endpoint`, `browser_credentials_endpoint`, and `browser_consents_endpoint` fields of `GET /v0/.well-known/agentid-configuration`.
+⚠️ Public-key management now uses the shared API Keys routes. Dedicated credential, enrollment, consent, and bulk-revocation routes have been removed. Remembered consent is managed by AgentID.
+
+Before, creating a pending sign-in key used the inbox API Keys route:
+
+```http
+POST /v0/inboxes/{inbox_id}/api-keys
+```
+
+Now, authorize a pending sign-in with its `auth_token`:
+
+```http
+POST /v0/inboxes/{inbox_id}/authorize
+Content-Type: application/json
+
+{"auth_token": "AAAAAAAAAAAAAAAAAAAAAA"}
+```
+
+Connect returns `api_key_id`, `magic_url`, and `expires_at`. Use that key ID with the shared API Keys routes for status and revocation.
 
 ### Use cases
 
@@ -40,42 +54,42 @@ Build agents that:
 - Wait on a pending sign-in by polling one endpoint instead of diffing a list
 - Audit and revoke every credential that can act as an inbox, bearer and sign-in keys alike, from one list
 
+Python SDK 0.5.10 does not include these routes; the Python example uses `httpx`. The TypeScript example uses SDK 0.5.25.
+
 <CodeBlocks>
 ```python title="Python"
-from agentmail import AgentMail
+import os
+import uuid
+import httpx
 
-client = AgentMail(api_key="your-api-key")
-
-# start signing the inbox in to a provider
-connect = client.providers.connect(
-    provider_id="00000000-0000-4000-8000-000000000000",
-    inbox_id="agent@example.com",
+response = httpx.post(
+    "https://api.agentmail.to/v0/providers/d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32/connect",
+    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}",
+             "Idempotency-Key": str(uuid.uuid4())},
+    json={"inbox_id": "agent@example.com"},
+    timeout=30,
 )
-print(connect.magic_url)  # open in the client that will hold the key
-
-# poll until the sign-in is active
-key = client.api_keys.get(api_key_id=connect.api_key_id)
-print(key.status)
+response.raise_for_status()
+connection = response.json()
+print(connection["magic_url"], connection["api_key_id"])
 ```
 
 ```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
+import { randomUUID } from "node:crypto";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail({ apiKey: "your-api-key" });
-
-// start signing the inbox in to a provider
-const connect = await client.providers.connect(
-  "00000000-0000-4000-8000-000000000000",
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+const connection = await client.providers.connect(
+  "d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32",
   { inboxId: "agent@example.com" },
+  { headers: { "Idempotency-Key": randomUUID() } },
 );
-console.log(connect.magicUrl); // open in the client that will hold the key
-
-// poll until the sign-in is active
-const key = await client.apiKeys.get(connect.apiKeyId);
-console.log(key.status);
+console.log(connection.magicUrl); // open to complete sign-in
+const key = await client.apiKeys.get(connection.apiKeyId);
+if (key.type === "public_key") console.log(key.status);
 ```
 </CodeBlocks>
 
 <Note>
-  See the [API Keys reference](https://docs.agentmail.to/api-reference/api-keys/get) and the [AgentID Sign-In guide](https://docs.agentmail.to/agentid-browser-enrollment) for the full flow.
+  See the [AgentID Sign-In guide](https://docs.agentmail.to/agentid-sign-in) for setup and the complete flow.
 </Note>

@@ -143,22 +143,28 @@ Shell completions (`agentmail completion`) and man pages (`agentmail man`) are b
 
 ## Upgrading to 1.4
 
-Public keys and AgentID sign-in keys are now API keys, managed with the same `api-keys` commands
-as bearer keys (see [API Keys](/api-reference/api-keys/get)). The commands below called API routes
-that have been removed, so they already fail on 1.3; 1.4 drops them:
+Public keys and AgentID sign-in keys use the same `api-keys` commands as bearer
+keys. Upgrade with `npm install -g agentmail-cli@latest` to use these commands:
 
-| 1.3 | 1.4 |
+| Operation | Current command |
 | --- | --- |
-| `agentmail api-keys list-public-keys` | `agentmail api-keys list --type public_key` |
-| `agentmail api-keys create-public-key ...` | `agentmail api-keys create --public-key '<jwk>' ...` |
-| `agentmail api-keys update-public-key-name ...` | `agentmail api-keys update --api-key-id <id> --name <name>` |
-| `agentmail api-keys revoke-public-key ...` | `agentmail api-keys delete --api-key-id <id>` |
-| `agentmail api-keys revoke-all-agent-id-sign-in-keys` | `agentmail api-keys delete` for each key |
-| `agentmail inboxes browser-credentials create-enrollment ...` | `agentmail providers connect ...`, or `agentmail inboxes authorize ...` for a sign-in already waiting |
-| `agentmail api-keys list-browser-credentials`, `list-browser-credential-events`, `delete-browser-credential`, `cancel-browser-enrollment` | `agentmail api-keys list`, `get`, and `delete` |
-| `agentmail api-keys list-browser-consents`, `delete-browser-consent` | None: AgentID manages remembered consent |
+| Start a provider sign-in | `agentmail providers connect --provider-id <provider_id> --inbox-id <inbox_id>` |
+| Authorize a pending sign-in | `agentmail inboxes authorize --inbox-id <inbox_id> --auth-token <auth_token>` |
+| Accept a provider's disclosure | Add `--accept-disclosure true` to connect or authorize |
+| List public keys | `agentmail api-keys list --type public_key` |
+| Register a public key | `agentmail api-keys create --public-key '<jwk>'` |
+| Check sign-in key status | `agentmail api-keys get --api-key-id <api_key_id>` |
+| Rename a key | `agentmail api-keys update --api-key-id <api_key_id> --name <name>` |
+| Revoke a key or cancel a pending sign-in key | `agentmail api-keys delete --api-key-id <api_key_id>` |
 
-`agentmail providers connect --authorize` is now `--accept-disclosure`.
+Connect and authorize require `provider_connect`. Accepting a disclosure that
+shares the owner's name or email also requires `provider_share_owner`. Connect
+automatically supplies an idempotency key; use `--idempotency-key` to reuse the
+same attempt across manual runs.
+
+The dedicated public-key lifecycle commands have been removed. Revoke multiple
+keys by listing them and deleting each one individually. See
+[AgentID Sign-In](https://docs.agentmail.to/agentid-sign-in) for the full flow.
 
 New in 1.4: `agentmail inboxes search` and `agentmail pods inboxes search`, `agentmail api-keys get`,
 and `update` under `api-keys`, `inboxes api-keys`, and `pods api-keys`. `agentmail api-keys list`

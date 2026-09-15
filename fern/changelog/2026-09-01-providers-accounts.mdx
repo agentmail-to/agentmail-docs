@@ -1,5 +1,5 @@
 ---
-tags: ["providers-api", "accounts-api", "agentid", "new-feature", "docs"]
+tags: ["providers-api", "accounts-api", "agentid", "new-feature"]
 ---
 
 ## Summary
@@ -14,7 +14,7 @@ Browse the AgentID provider catalog, see which providers each inbox is signed in
 - `GET /v0/providers/search` - Prefix search over the catalog.
 - `GET /v0/providers/{provider_id}` - One provider. Providers in the catalog return the full entry; a provider you are signed in to but that is not in the catalog returns its ID and name.
 - `GET /v0/providers/{provider_id}/accounts` - Your accounts at one provider, most recent sign-in first, with the provider embedded under `provider`.
-- `POST /v0/providers/{provider_id}/connect` - Start signing an inbox in to a provider and receive a five-minute `magic_url`. Requires `api_key_create` and an `Idempotency-Key` header.
+- `POST /v0/providers/{provider_id}/connect` - Start signing an inbox in to a provider and receive a five-minute `magic_url`. Requires `provider_connect` and an `Idempotency-Key` header (supplied automatically by the CLI).
 - `GET /v0/accounts` - Every AgentID account your API key can see, across all providers. Each row carries `provider_id` so it joins back to the provider.
 - `GET /v0/accounts/{account_id}` - One account by its own ID.
 
@@ -30,7 +30,7 @@ Build agents that:
 
 - Show a marketplace of providers an inbox can sign in to
 - Audit which providers each inbox has signed in to, and when
-- Kick off a sign-in at a provider from an agent workflow and hand the resulting URL to a browser session
+- Kick off a sign-in at a provider from an agent workflow and continue through the returned sign-in URL
 - Resolve any `provider_id` on an account to a human-readable provider
 
 <Note>
