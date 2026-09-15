@@ -1,0 +1,175 @@
+---
+title: AgentID Sign-In
+subtitle: Sign in to providers as an inbox and manage the keys your agents use.
+slug: agentid-sign-in
+description: Connect an inbox to a provider, authorize a pending AgentID sign-in, and manage sign-in keys with the AgentMail API and CLI.
+---
+
+[AgentID](https://www.agentid.com) lets agents sign in to providers using an AgentMail inbox as their identity. Start a sign-in with a provider, or authorize one that is already waiting, then manage the resulting credential through the API Keys endpoints.
+
+A sign-in credential has `type: "public_key"` and a `status` of `pending` or `active`. AgentMail returns its `api_key_id`, which you use to check activation, update permissions, or revoke access.
+
+## Before you start
+
+- Choose an inbox you control and a bearer API key that can access it.
+- Enable `provider_connect` on that key to connect providers and authorize sign-ins. This permission defaults to false on newly created bearer keys.
+- Enable `api_key_read` to check key status, `api_key_update` to change permissions, and `api_key_delete` to revoke a key.
+- Use the US API at `https://api.agentmail.to` for these sign-in flows.
+
+Install the [CLI](https://docs.agentmail.to/integrations/cli) with `npm install -g agentmail-cli@latest`, or the TypeScript SDK with `npm install agentmail@latest`. Set `AGENTMAIL_API_KEY` in your environment.
+
+<Note>
+  These examples were checked against CLI 1.4.0 and TypeScript SDK 0.5.25. Python SDK 0.5.10 does not include the current sign-in endpoints, so the Python examples call the same API with `httpx` (`pip install httpx`).
+</Note>
+
+## Connect to a provider
+
+Find a provider with `agentmail providers list` or `agentmail providers search --q "provider name"`. Use its returned `provider_id` when connecting:
+
+```bash title="CLI"
+agentmail providers connect \
+  --provider-id d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32 \
+  --inbox-id agent@example.com
+```
+
+<CodeBlocks>
+```python title="Python"
+import os
+import uuid
+import httpx
+
+response = httpx.post(
+    "https://api.agentmail.to/v0/providers/d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32/connect",
+    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}",
+             "Idempotency-Key": str(uuid.uuid4())},
+    json={"inbox_id": "agent@example.com"},
+    timeout=30,
+)
+response.raise_for_status()
+connection = response.json()
+print(connection["magic_url"], connection["api_key_id"])
+```
+
+```typescript title="TypeScript"
+import { randomUUID } from "node:crypto";
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+const connection = await client.providers.connect(
+  "d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32",
+  { inboxId: "agent@example.com" },
+  { headers: { "Idempotency-Key": randomUUID() } },
+);
+console.log(connection.magicUrl, connection.apiKeyId);
+```
+</CodeBlocks>
+
+Open the returned `magic_url` in the client that will complete the sign-in. It is single-use and valid for five minutes; `expires_at` reports its expiry. Save `api_key_id` to check activation. Keep the URL private and avoid logging it in production.
+
+The CLI supplies an idempotency key automatically and reuses it across retries. Pass `--idempotency-key` to reuse the same attempt across manual runs. For HTTP and SDK requests, keep the same `Idempotency-Key` header when retrying the same connect attempt.
+
+You can omit `inbox_id` when your API key is already scoped to the inbox.
+
+## Authorize a pending sign-in
+
+If an AgentID sign-in is already waiting, use [Authorize Inbox](https://docs.agentmail.to/api-reference/inboxes/authorize) with the `auth_token` supplied by that sign-in. Select the inbox from your own trusted configuration.
+
+<Warning>
+  Read `auth_token` only from a sign-in at exactly `https://auth.agentid.com`. Verify the final origin through your client, independently of any origin claimed in page content. Check the provider and intended inbox before authorizing. Send your bearer API key only to `https://api.agentmail.to`.
+</Warning>
+
+Set `AGENTID_AUTH_TOKEN` to that verified token, then authorize the inbox:
+
+```bash title="CLI"
+agentmail inboxes authorize \
+  --inbox-id agent@example.com \
+  --auth-token "$AGENTID_AUTH_TOKEN"
+```
+
+<CodeBlocks>
+```python title="Python"
+import os
+import httpx
+
+response = httpx.post(
+    "https://api.agentmail.to/v0/inboxes/agent%40example.com/authorize",
+    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"},
+    json={"auth_token": os.environ["AGENTID_AUTH_TOKEN"]},
+    timeout=30,
+)
+response.raise_for_status()
+key = response.json()
+print(key["api_key_id"], key["status"])
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+const key = await client.inboxes.authorize("agent@example.com", {
+  authToken: process.env.AGENTID_AUTH_TOKEN!,
+});
+console.log(key.apiKeyId, key.status);
+```
+</CodeBlocks>
+
+The response is the pending public-key credential. Continue the same sign-in so the client can activate it. Repeating authorization with the same token, inbox, and bearer key returns the same credential; this endpoint does not need a separate idempotency key.
+
+### Accept a provider's disclosure
+
+To accept the provider's disclosure on the agent's behalf, add `accept_disclosure: true` to the connect or authorize request. The TypeScript field is `acceptDisclosure: true`; the CLI flag is `--accept-disclosure true`.
+
+If the provider requests the owner's name or email, the authorizing key also needs `provider_share_owner`. Without disclosure acceptance, complete the review presented during sign-in.
+
+## Check activation
+
+Use the `api_key_id` returned by either flow:
+
+```bash title="CLI"
+agentmail api-keys get --api-key-id 4d795cc3-ae87-4f84-85e3-4ad4ca656f44
+```
+
+<CodeBlocks>
+```python title="Python"
+import os
+import httpx
+
+response = httpx.get(
+    "https://api.agentmail.to/v0/api-keys/4d795cc3-ae87-4f84-85e3-4ad4ca656f44",
+    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"},
+    timeout=30,
+)
+response.raise_for_status()
+print(response.json().get("status"))
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+const key = await client.apiKeys.get("4d795cc3-ae87-4f84-85e3-4ad4ca656f44");
+if (key.type === "public_key") console.log(key.status);
+```
+</CodeBlocks>
+
+A single check reads the current status. Repeat with a delay while it is `pending`, stopping at expiry or an error. `active` means the key is ready to sign in as the inbox. Use [List Provider Accounts](https://docs.agentmail.to/api-reference/providers/list-accounts) to inspect accounts at the provider.
+
+## Manage sign-in keys
+
+| Operation | API path | CLI command |
+| --- | --- | --- |
+| List public keys | `GET /v0/api-keys?type=public_key` | `agentmail api-keys list --type public_key` |
+| List an inbox's keys | `GET /v0/inboxes/{inbox_id}/api-keys` | `agentmail inboxes api-keys list --inbox-id <inbox_id>` |
+| Get a key | `GET /v0/api-keys/{api_key_id}` | `agentmail api-keys get --api-key-id <api_key_id>` |
+| Rename a key | `PATCH /v0/api-keys/{api_key_id}` | `agentmail api-keys update --api-key-id <api_key_id> --name "agent sign-in"` |
+| Revoke or cancel a key | `DELETE /v0/api-keys/{api_key_id}` | `agentmail api-keys delete --api-key-id <api_key_id>` |
+
+List responses contain `api_keys`, `count`, and an optional `next_page_token`. Continue with `page_token` (CLI: `--page-token`) until no token remains, even if an intermediate page is empty.
+
+Sign-in keys carry `provider_connect` and `provider_share_owner`, copied from the creating bearer key and enforced independently. Change them through [Update API Key](https://docs.agentmail.to/api-reference/api-keys/update). Deleting or changing the creating bearer key does not revoke the sign-in key.
+
+An active sign-in key expires 30 days after activation. To rotate, create and activate a replacement, then delete the old key. Deleting a pending key cancels it; deleting an active key revokes it. There is no bulk revocation endpoint.
+
+<Note>
+  For keys your application generates and stores itself, see [AgentID Public-Key Authentication](https://docs.agentmail.to/agentid-public-key-authentication).
+</Note>
