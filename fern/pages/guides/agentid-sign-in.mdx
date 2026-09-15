@@ -189,11 +189,11 @@ A sign-in involves several objects with separate lifetimes. Ending one does not 
 
 The two long lifetimes are different objects. A 30-day sign-in key is a credential; a 180-day remembered approval is consent. A remembered approval does not prove a key is still usable, and revoking a key does not clear the approval. There is no endpoint to revoke a remembered approval.
 
-### Sessions saved in a client
+### Clear a session in the browser
 
-The client that completed a sign-in keeps the private half of its sign-in key as a saved session. AgentID lists those sessions at [https://auth.agentid.com/sessions](https://auth.agentid.com/sessions). The page shows the sessions saved in the client that opens it, so open it from the client that completed the sign-in; another client shows none.
+The browser that completed a sign-in keeps the private half of its sign-in key as a saved session. To see and clear those sessions, open [https://auth.agentid.com/sessions](https://auth.agentid.com/sessions) in that browser and choose to forget the session there. The page lists only the sessions saved in the browser that opens it, so a different browser or profile shows none.
 
-Forgetting a session there removes the local material from that client only. To revoke the credential itself, delete its key with `DELETE /v0/api-keys/{api_key_id}` as in the table above. Providers keep the sessions they issued until those expire or you sign out there.
+Clearing a session there removes the sign-in material from that browser only. The key stays active on AgentMail until it expires or you revoke it; to revoke it, delete its key with `DELETE /v0/api-keys/{api_key_id}` as in the table above. Providers keep the sessions they issued until those expire or you sign out there.
 
 ### I revoked a key, but an agent is still signed in at a provider
 
