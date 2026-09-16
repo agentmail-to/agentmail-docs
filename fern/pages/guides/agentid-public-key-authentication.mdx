@@ -16,7 +16,7 @@ Use a bearer API key with `api_key_create` to register keys. Reading, updating, 
 Install the TypeScript SDK with `npm install agentmail@latest`, or the CLI with `npm install -g agentmail-cli@latest`. Set `AGENTMAIL_API_KEY` in your environment.
 
 <Note>
-  The examples use TypeScript SDK 0.5.25 and CLI 1.4.0. Python SDK 0.5.10 still exposes the previous public-key endpoints. The Python example uses the current HTTP route with `httpx`; install its dependencies with `pip install httpx cryptography`.
+  The examples use Python SDK 0.6.0, TypeScript SDK 0.5.26, and CLI 1.5.0. Install the Python dependencies with `pip install --upgrade agentmail cryptography`.
 </Note>
 
 <Warning>
@@ -30,8 +30,7 @@ The following examples generate a P-256 key and register it for one inbox. They 
 <CodeBlocks>
 ```python title="Python"
 import base64
-import os
-import httpx
+from agentmail import AgentMail, ApiKeyPermissions, CreatePublicKeyRequest, PublicJwk
 from cryptography.hazmat.primitives.asymmetric import ec
 
 private_key = ec.generate_private_key(ec.SECP256R1())
@@ -40,19 +39,18 @@ numbers = private_key.public_key().public_numbers()
 def coordinate(value: int) -> str:
     return base64.urlsafe_b64encode(value.to_bytes(32, "big")).rstrip(b"=").decode()
 
-public_key = {
-    "kty": "EC", "crv": "P-256",
-    "x": coordinate(numbers.x), "y": coordinate(numbers.y),
-}
-response = httpx.post(
-    "https://api.agentmail.to/v0/inboxes/agent%40example.com/api-keys",
-    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"},
-    json={"public_key": public_key, "client_id": "production-signer-v1",
-          "name": "production signer", "permissions": {"provider_connect": True}},
-    timeout=30,
+client = AgentMail()
+credential = client.inboxes.api_keys.create(
+    inbox_id="agent@example.com",
+    request=CreatePublicKeyRequest(
+        public_key=PublicJwk(kty="EC", crv="P-256",
+                             x=coordinate(numbers.x), y=coordinate(numbers.y)),
+        client_id="production-signer-v1",
+        name="production signer",
+        permissions=ApiKeyPermissions(provider_connect=True),
+    ),
 )
-response.raise_for_status()
-print(response.json()["api_key_id"])
+print(credential.api_key_id)
 ```
 
 ```typescript title="TypeScript"

@@ -141,6 +141,17 @@ Shell completions (`agentmail completion`) and man pages (`agentmail man`) are b
 - **`--dry-run` is not an acceptance guarantee.** Flag values are type-checked locally, so `--limit abc` fails before a request is made. `--dry-run` then shows the request that would be sent — the API can still reject it on grounds the CLI cannot check, such as an unknown ID or a permission error.
 - **No auto-pagination.** List commands return one page. Paginate manually: pass `--limit`, read `next_page_token` from the response, and pass it back as `--page-token`.
 
+## Upgrading to 1.5
+
+Version 1.5 adds `--allow-conflicting-provider true` to domain creation, including
+`agentmail pods domains create`, so you can register a domain that already uses
+Google Workspace. Configure DNS and inbound routing separately using the
+[Google Workspace guide](https://docs.agentmail.to/google-workspace).
+
+Provider responses now include optional `owner_signup_limit`: the maximum number
+of accounts your organization can sign up at that provider. `0` pauses new
+sign-ups; existing accounts can still sign in. Omission means no configured limit.
+
 ## Upgrading to 1.4
 
 Public keys and AgentID sign-in keys use the same `api-keys` commands as bearer

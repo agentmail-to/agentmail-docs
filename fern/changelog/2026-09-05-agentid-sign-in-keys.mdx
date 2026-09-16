@@ -54,24 +54,20 @@ Build agents that:
 - Wait on a pending sign-in by polling one endpoint instead of diffing a list
 - Audit and revoke every credential that can act as an inbox, bearer and sign-in keys alike, from one list
 
-Python SDK 0.5.10 does not include these routes; the Python example uses `httpx`. The TypeScript example uses SDK 0.5.25.
+The examples below use the current SDK methods, available in Python 0.6.0 and TypeScript 0.5.26.
 
 <CodeBlocks>
 ```python title="Python"
-import os
 import uuid
-import httpx
+from agentmail import AgentMail, ConnectProviderBody
 
-response = httpx.post(
-    "https://api.agentmail.to/v0/providers/d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32/connect",
-    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}",
-             "Idempotency-Key": str(uuid.uuid4())},
-    json={"inbox_id": "agent@example.com"},
-    timeout=30,
+client = AgentMail()
+connection = client.providers.connect(
+    provider_id=uuid.UUID("d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32"),
+    request=ConnectProviderBody(inbox_id="agent@example.com"),
+    request_options={"additional_headers": {"Idempotency-Key": str(uuid.uuid4())}},
 )
-response.raise_for_status()
-connection = response.json()
-print(connection["magic_url"], connection["api_key_id"])
+print(connection.magic_url, connection.api_key_id)
 ```
 
 ```typescript title="TypeScript"

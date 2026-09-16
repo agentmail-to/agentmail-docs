@@ -1,0 +1,73 @@
+---
+tags: ["domains-api", "providers-api", "breaking-change", "sdk"]
+---
+
+## Summary
+
+Register domains that already use Google Workspace and inspect a provider's sign-up limit with the updated SDKs and CLI. Python also gains the current AgentID sign-in and API-key management methods, inbox search, and pagination for messages in a thread.
+
+### What's new?
+
+- Domain creation accepts `allow_conflicting_provider` on `POST /v0/domains` and `POST /v0/pods/{pod_id}/domains`. Set it to `true` to allow registration alongside Google Workspace; DNS and inbound routing still need to be configured separately. Conflicting registrations without the flag return `422`.
+- Provider responses include optional `owner_signup_limit`. It limits accounts your organization can sign up at that provider; `0` pauses new sign-ups, while existing accounts can continue signing in. Omission means no configured limit.
+- Python includes providers and accounts resources, `inboxes.authorize` with `auth_token` and `accept_disclosure`, the current API Keys methods, organization and pod inbox search, and thread-message pagination with `limit` and `page_token`.
+- CLI 1.5.0 adds `--allow-conflicting-provider true` to `agentmail domains create` and `agentmail pods domains create`, and includes the provider limit in its schema.
+
+### Breaking changes
+
+⚠️ Python 0.6.0 removes the previous dedicated public-key management, enrollment, consent, and bulk-revocation methods. Use the API Keys methods and authorize pending sign-ins through `inboxes.authorize`.
+
+Before, public keys used a dedicated list method:
+
+```python
+client.api_keys.list_public_keys()
+```
+
+Now, filter the API Keys list:
+
+```python
+client.api_keys.list(type="public_key")
+```
+
+Key creation and list responses can contain bearer or public-key credentials. Check `type` before accessing fields specific to one family. Scope is selected by the organization, pod, or inbox route; public-key responses identify it with `pod_id` and `inbox_id` instead of a `scope` object.
+
+Thread responses include a page of messages. Follow `next_page_token` until it is absent to retrieve the complete thread.
+
+### Use cases
+
+Build agents that:
+
+- Register a shared Google Workspace domain before configuring its routing
+- Check a provider's account limit before starting a new sign-up
+- Manage sign-in keys and retrieve complete message threads using the Python SDK
+
+### SDK Updates
+
+- [Python SDK 0.6.0](https://github.com/agentmail-to/agentmail-python/releases/tag/0.6.0)
+- [TypeScript SDK 0.5.26](https://github.com/agentmail-to/agentmail-node/releases/tag/0.5.26)
+- [CLI 1.5.0](https://github.com/agentmail-to/agentmail-cli/releases/tag/v1.5.0)
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+keys = client.api_keys.list(type="public_key")
+for key in keys.api_keys:
+    print(key.api_key_id, key.inbox_id)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+const keys = await client.apiKeys.list({ type: "public_key" });
+for (const key of keys.apiKeys) {
+  console.log(key.apiKeyId, key.inboxId);
+}
+```
+</CodeBlocks>
+
+<Note>
+  Follow the [AgentID Sign-In guide](https://docs.agentmail.to/agentid-sign-in) for current SDK examples and credential management.
+</Note>

@@ -4,8 +4,8 @@ import { fileURLToPath } from "url";
 
 const fernDir = join(dirname(fileURLToPath(import.meta.url)), "..", "fern");
 const instances = [
-  "https://agentmail-production.docs.buildwithfern.com",
-  "https://agentmail-production.docs.buildwithfern.com/docs",
+  "agentmail-production.docs.buildwithfern.com",
+  "agentmail-production.docs.buildwithfern.com/docs",
 ] as const;
 
 function fern(args: string[]) {
