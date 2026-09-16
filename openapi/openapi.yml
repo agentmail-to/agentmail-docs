@@ -1287,6 +1287,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Create Domain
       servers:
         - url: https://api.agentmail.to
@@ -4989,6 +4995,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Create Domain
       servers:
         - url: https://api.agentmail.to
@@ -9138,6 +9150,23 @@ components:
       properties:
         domain:
           $ref: '#/components/schemas/DomainName'
+        allow_conflicting_provider:
+          type: boolean
+          nullable: true
+          description: >-
+            Allow registration when the domain already has Google Workspace MX
+            records.
+
+            Defaults to false; registration otherwise returns 422 when a
+            conflicting
+
+            provider is detected.
+
+            This flag does not configure DNS or inbound routing. For shared
+            Google
+
+            Workspace domains, follow the [Google Workspace
+            guide](/google-workspace).
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
           nullable: true
@@ -10953,9 +10982,9 @@ components:
           type: integer
           nullable: true
           description: >-
-            Maximum number of accounts your organization may sign up at this provider. Omitted when
-            the provider sets no limit. 0 means the provider has paused new sign-ups; existing accounts
-            keep signing in.
+            Maximum number of accounts your organization may sign up at this
+            provider. Omitted when the provider sets no limit. 0 means the
+            provider has paused new sign-ups; existing accounts keep signing in.
       required:
         - provider_id
     ListProvidersResponse:

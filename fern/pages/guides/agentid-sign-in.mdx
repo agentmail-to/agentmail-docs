@@ -16,10 +16,10 @@ A sign-in credential has `type: "public_key"` and a `status` of `pending` or `ac
 - Enable `api_key_read` to check key status, `api_key_update` to change permissions, and `api_key_delete` to revoke a key.
 - Use the US API at `https://api.agentmail.to` for these sign-in flows.
 
-Install the [CLI](https://docs.agentmail.to/integrations/cli) with `npm install -g agentmail-cli@latest`, or the TypeScript SDK with `npm install agentmail@latest`. Set `AGENTMAIL_API_KEY` in your environment.
+Install the [CLI](https://docs.agentmail.to/integrations/cli) with `npm install -g agentmail-cli@latest`, the Python SDK with `pip install --upgrade agentmail`, or the TypeScript SDK with `npm install agentmail@latest`. Set `AGENTMAIL_API_KEY` in your environment.
 
 <Note>
-  These examples were checked against CLI 1.4.0 and TypeScript SDK 0.5.25. Python SDK 0.5.10 does not include the current sign-in endpoints, so the Python examples call the same API with `httpx` (`pip install httpx`).
+  These examples use Python SDK 0.6.0, TypeScript SDK 0.5.26, and CLI 1.5.0. Upgrade older installations to use the current sign-in and API Keys methods.
 </Note>
 
 ## Connect to a provider
@@ -34,20 +34,16 @@ agentmail providers connect \
 
 <CodeBlocks>
 ```python title="Python"
-import os
 import uuid
-import httpx
+from agentmail import AgentMail, ConnectProviderBody
 
-response = httpx.post(
-    "https://api.agentmail.to/v0/providers/d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32/connect",
-    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}",
-             "Idempotency-Key": str(uuid.uuid4())},
-    json={"inbox_id": "agent@example.com"},
-    timeout=30,
+client = AgentMail()
+connection = client.providers.connect(
+    provider_id=uuid.UUID("d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32"),
+    request=ConnectProviderBody(inbox_id="agent@example.com"),
+    request_options={"additional_headers": {"Idempotency-Key": str(uuid.uuid4())}},
 )
-response.raise_for_status()
-connection = response.json()
-print(connection["magic_url"], connection["api_key_id"])
+print(connection.magic_url, connection.api_key_id)
 ```
 
 ```typescript title="TypeScript"
@@ -89,17 +85,14 @@ agentmail inboxes authorize \
 <CodeBlocks>
 ```python title="Python"
 import os
-import httpx
+from agentmail import AgentMail
 
-response = httpx.post(
-    "https://api.agentmail.to/v0/inboxes/agent%40example.com/authorize",
-    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"},
-    json={"auth_token": os.environ["AGENTID_AUTH_TOKEN"]},
-    timeout=30,
+client = AgentMail()
+key = client.inboxes.authorize(
+    inbox_id="agent@example.com",
+    auth_token=os.environ["AGENTID_AUTH_TOKEN"],
 )
-response.raise_for_status()
-key = response.json()
-print(key["api_key_id"], key["status"])
+print(key.api_key_id, key.status)
 ```
 
 ```typescript title="TypeScript"
@@ -131,16 +124,12 @@ agentmail api-keys get --api-key-id 4d795cc3-ae87-4f84-85e3-4ad4ca656f44
 
 <CodeBlocks>
 ```python title="Python"
-import os
-import httpx
+from agentmail import AgentMail
 
-response = httpx.get(
-    "https://api.agentmail.to/v0/api-keys/4d795cc3-ae87-4f84-85e3-4ad4ca656f44",
-    headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"},
-    timeout=30,
-)
-response.raise_for_status()
-print(response.json().get("status"))
+client = AgentMail()
+key = client.api_keys.get(api_key_id="4d795cc3-ae87-4f84-85e3-4ad4ca656f44")
+if key.type == "public_key":
+    print(key.status)
 ```
 
 ```typescript title="TypeScript"
