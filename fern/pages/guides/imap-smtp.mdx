@@ -38,6 +38,31 @@ Before configuring IMAP or SMTP, you'll need two pieces of information from the 
   </Step>
 </Steps>
 
+<Callout intent="warning" title="Restricted API keys need the full read permission set">
+An API key created **without** a permissions object is unrestricted and works
+with IMAP as-is. If you create a **restricted** key (one where you specify
+`permissions` explicitly), it must carry all of these or IMAP will not sync:
+
+| Permission | Needed for |
+| --- | --- |
+| `inbox_read` | Authenticating (`LOGIN`) |
+| `message_read` | Reading messages, and the inbox event log IMAP syncs from |
+| `message_update` | `STORE` (flag changes), `MOVE`, `COPY` |
+| `message_send` | Sending over SMTP |
+| `label_spam_read` | The `Spam` folder |
+| `label_trash_read` | The `Trash` folder |
+| `label_blocked_read` | Required by the event log (no IMAP folder of its own) |
+| `label_unauthenticated_read` | Required by the event log (no IMAP folder of its own) |
+
+The four `label_*_read` permissions are all required because the inbox event
+log can carry any restricted label, and IMAP reads that log to stay in sync.
+
+**Symptom of a missing permission:** `LOGIN` succeeds and SMTP sending works,
+but the mailbox never receives new mail — IMAP cannot read the event log, so
+the folder view stops updating. The server reports the cause in an `[ALERT]`
+response naming the permissions to grant.
+</Callout>
+
 ## IMAP Configuration
 
 Use IMAP to read emails from your AgentMail inbox.
