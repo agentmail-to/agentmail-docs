@@ -1,0 +1,140 @@
+---
+title: Vercel
+subtitle: Install AgentMail from the Vercel Marketplace and call it with short-lived OIDC resource tokens
+slug: integrations/vercel
+description: Provision AgentMail from the Vercel Marketplace and authenticate your Vercel functions with OIDC resource tokens or the provisioned API key
+---
+
+## Overview
+
+AgentMail is a native integration on the [Vercel Marketplace](https://vercel.com/marketplace/agentmail). Installing it from Vercel provisions an AgentMail organization for your team without a separate signup, puts the usage on your Vercel invoice, and lets you open the AgentMail console from the Vercel dashboard.
+
+Your Vercel functions can authenticate to AgentMail in two ways:
+
+- **OIDC resource tokens** (recommended). Your deployment exchanges its own Vercel identity for a five-minute AgentMail token bound to your resource. Nothing long-lived is stored anywhere.
+- **The provisioned API key**. Installing the integration injects `AGENTMAIL_API_KEY` into the connected projects. This is a normal AgentMail API key and keeps working; Vercel is phasing long-lived Marketplace credentials out in favor of resource tokens, so new projects should start with the token flow.
+
+## Install
+
+1. In the Vercel dashboard open **Integrations**, then **Marketplace**, find **AgentMail** and click **Install**. From a terminal, `vercel integration add agentmail` does the same.
+2. Pick a plan and name the resource. One resource is one AgentMail organization; connect it to every project that should share its inboxes.
+3. Run `vercel env pull .env.local` in each connected project to get the injected variables locally.
+
+Plan changes and billing live in the Vercel dashboard under the resource. **Open in AgentMail** on the resource page signs you into the AgentMail console for that organization.
+
+## Authenticate with an OIDC resource token
+
+Every Vercel deployment can obtain an [OIDC token](https://vercel.com/docs/oidc) that proves which team, project and environment it is running as. Vercel exchanges that token for an AgentMail resource token that is:
+
+- scoped to the AgentMail organization behind your resource, with the same permissions as the provisioned key, except that it cannot create, rotate or delete API keys;
+- valid for five minutes, after which AgentMail rejects it (HTTP 401 or 403);
+- recorded in AgentMail's audit trail with the Vercel project and environment that used it.
+
+### 1. Enable OIDC federation on the project
+
+In the project's **Settings**, under **Security**, make sure **Secure backend access with OIDC federation** is enabled. It is on by default for new projects. Deployments then receive a `VERCEL_OIDC_TOKEN`, and `vercel env pull` writes a short-lived one to `.env.local` for local development.
+
+### 2. Record the resource id
+
+The token is minted for a specific Vercel resource, identified by its Vercel id (it starts with `ir_`). Find it with `vercel integration list`, or in the resource's dashboard URL, and store it as an environment variable on the project:
+
+```bash
+vercel env add AGENTMAIL_RESOURCE_ID
+```
+
+### 3. Mint the token and pass it as the API key
+
+Both SDKs accept a function in place of a static key, so the client mints a token when it needs one. The examples below reuse a token until a minute before it expires.
+
+<CodeBlocks>
+```typescript title="TypeScript"
+import { getVercelOidcToken } from "@vercel/functions/oidc";
+import { AgentMailClient } from "agentmail";
+
+let cached: { token: string; expiresAt: number } | undefined;
+
+// mint a token for this resource; reuse it until a minute before it expires
+async function resourceToken(): Promise<string> {
+  if (cached && cached.expiresAt - Date.now() > 60_000) return cached.token;
+  const res = await fetch(
+    `https://api.vercel.com/v1/integrations/marketplace/resources/${process.env.AGENTMAIL_RESOURCE_ID}/token`,
+    { method: "POST", headers: { Authorization: `Bearer ${await getVercelOidcToken()}` } },
+  );
+  if (!res.ok) throw new Error(`AgentMail token mint failed: ${res.status}`);
+  cached = await res.json(); // { token, expiresAt } — expiresAt is epoch milliseconds
+  return cached!.token;
+}
+
+const client = new AgentMailClient({ apiKey: resourceToken });
+const inboxes = await client.inboxes.list();
+```
+
+```python title="Python"
+import os
+import time
+
+import requests
+from agentmail import AgentMail
+
+_cached = {"token": None, "expires_at": 0}
+
+# mint a token for this resource; reuse it until a minute before it expires
+def resource_token() -> str:
+    if _cached["token"] and _cached["expires_at"] - time.time() * 1000 > 60_000:
+        return _cached["token"]
+    res = requests.post(
+        f"https://api.vercel.com/v1/integrations/marketplace/resources/{os.environ['AGENTMAIL_RESOURCE_ID']}/token",
+        headers={"Authorization": f"Bearer {os.environ['VERCEL_OIDC_TOKEN']}"},
+        timeout=10,
+    )
+    res.raise_for_status()
+    body = res.json()  # token, expiresAt (epoch milliseconds)
+    _cached.update(token=body["token"], expires_at=body["expiresAt"])
+    return _cached["token"]
+
+client = AgentMail(api_key=resource_token)
+inboxes = client.inboxes.list()
+```
+</CodeBlocks>
+
+The mint call needs the deployment's own OIDC token: `getVercelOidcToken()` reads it in Node, and every runtime has it as the `VERCEL_OIDC_TOKEN` environment variable. It only succeeds from a project the resource is connected to.
+
+<Tip>
+Keep the client, and with it the token cache, at module scope rather than inside the request handler, so one function instance mints a token every five minutes instead of on every request.
+</Tip>
+
+### Troubleshooting
+
+| Symptom | Cause |
+| --- | --- |
+| The mint call returns 403 or 404 | `AGENTMAIL_RESOURCE_ID` is not the Vercel `ir_` id of a resource connected to this project, or the deployment has no OIDC token (check step 1). |
+| AgentMail returns 401 or 403 on a token that just worked | The token is past its five-minute lifetime. Mint a new one; the examples above do this automatically. |
+| AgentMail returns 403 on every token | The resource was deleted or the integration uninstalled. Reinstall from the Marketplace. |
+| `api_keys` calls return 403 | Resource tokens cannot manage API keys. Use the console, or the provisioned `AGENTMAIL_API_KEY`. |
+
+## Use the provisioned API key
+
+`AGENTMAIL_API_KEY` is injected into every connected project when you install the integration, and `vercel env pull .env.local` brings it to your machine. Use it like any other AgentMail key:
+
+<CodeBlocks>
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+const inbox = await client.inboxes.create({ clientId: "support-agent" });
+```
+
+```python title="Python"
+from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
+
+client = AgentMail()  # reads AGENTMAIL_API_KEY
+inbox = client.inboxes.create(request=CreateInboxRequest(client_id="support-agent"))
+```
+</CodeBlocks>
+
+Because it is a long-lived secret, treat it as one: mark the resource **Production only** in its Vercel settings if preview and development deployments do not need it, and prefer the resource-token flow for new code.
+
+<Note>
+Everything else about AgentMail is the same on Vercel: see the [inboxes](https://docs.agentmail.to/api-reference/inboxes/create) and [webhooks](https://docs.agentmail.to/webhooks-overview) references, and the [Vercel AI SDK example](https://agentmail.to/build/vercel) for sending email from an agent tool.
+</Note>
