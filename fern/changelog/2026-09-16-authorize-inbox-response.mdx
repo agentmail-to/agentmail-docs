@@ -1,0 +1,62 @@
+---
+tags: ["api-keys", "agentid", "breaking-change"]
+---
+
+## Summary
+
+`POST /v0/inboxes/{inbox_id}/authorize` now returns only what the agent needs after authorizing a waiting sign-in: the key's `api_key_id` and an `instructions` line. The full key, including `status` and `permissions`, is read with Get API Key, the same call every other credential uses.
+
+### Breaking changes
+
+⚠️ The authorize response no longer carries the pending public key's fields. Read `status`, `permissions`, and `expires_at` from `GET /v0/api-keys/{api_key_id}` instead.
+
+**Migration guide:**
+
+<CodeBlocks>
+```python title="Python"
+import os
+import httpx
+
+headers = {"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"}
+response = httpx.post(
+    "https://api.agentmail.to/v0/inboxes/agent%40example.com/authorize",
+    headers=headers,
+    json={"auth_token": os.environ["AGENTID_AUTH_TOKEN"]},
+    timeout=30,
+)
+response.raise_for_status()
+authorization = response.json()
+
+# before
+# print(authorization["status"])
+
+# after: read the key for its status
+key = httpx.get(
+    f"https://api.agentmail.to/v0/api-keys/{authorization['api_key_id']}",
+    headers=headers,
+    timeout=30,
+)
+key.raise_for_status()
+print(key.json()["status"])
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+const authorization = await client.inboxes.authorize("agent@example.com", {
+  authToken: process.env.AGENTID_AUTH_TOKEN!,
+});
+
+// before
+// console.log(authorization.status);
+
+// after: read the key for its status
+const key = await client.apiKeys.get(authorization.apiKeyId);
+if (key.type === "public_key") console.log(key.status);
+```
+</CodeBlocks>
+
+<Note>
+  See [Authorize Inbox](https://docs.agentmail.to/api-reference/inboxes/authorize) and the [AgentID Sign-In guide](https://docs.agentmail.to/agentid-sign-in).
+</Note>

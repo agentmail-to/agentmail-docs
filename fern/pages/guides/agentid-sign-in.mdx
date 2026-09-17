@@ -98,22 +98,22 @@ response = httpx.post(
     timeout=30,
 )
 response.raise_for_status()
-key = response.json()
-print(key["api_key_id"], key["status"])
+authorization = response.json()
+print(authorization["api_key_id"], authorization["instructions"])
 ```
 
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
-const key = await client.inboxes.authorize("agent@example.com", {
+const authorization = await client.inboxes.authorize("agent@example.com", {
   authToken: process.env.AGENTID_AUTH_TOKEN!,
 });
-console.log(key.apiKeyId, key.status);
+console.log(authorization.apiKeyId, authorization.instructions);
 ```
 </CodeBlocks>
 
-The response is the pending public-key credential. Continue the same sign-in so the client can activate it. Repeating authorization with the same token, inbox, and bearer key returns the same credential; this endpoint does not need a separate idempotency key.
+The response is the pending key's `api_key_id` and an `instructions` line, `Authorization complete. Return to browser.` Nothing further is required from the agent: the client continues the same sign-in and activates the key. To read the key itself, including its `status`, use [Get API Key](https://docs.agentmail.to/api-reference/api-keys/get) as shown under [Check activation](#check-activation). Repeating authorization with the same token, inbox, and bearer key returns the same `api_key_id`; this endpoint does not need a separate idempotency key.
 
 ### Accept a provider's disclosure
 

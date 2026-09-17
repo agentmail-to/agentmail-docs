@@ -129,6 +129,18 @@ types:
       auth_token: api-keys.AuthToken
       accept_disclosure: optional<api-keys.AcceptDisclosure>
 
+  AuthorizeInboxResponse:
+    docs: |
+      The authorized sign-in's key ID plus the agent's next step. The key itself
+      is read with Get API Key.
+    properties:
+      api_key_id:
+        type: api-keys.ApiKeyId
+        docs: ID of the public key the client will activate.
+      instructions:
+        type: literal<"Authorization complete. Return to browser.">
+        docs: The agent's next step. Nothing further is required from the agent.
+
 service:
   url: Http
   base-path: /inboxes
@@ -245,14 +257,15 @@ service:
       display-name: Authorize Inbox
       docs: |
         Authorizes the AgentID sign-in a client is already waiting in, for the
-        inbox in the path, and returns the pending public key it will activate. A
-        repeat for the same token, inbox, and bearer returns the same key.
+        inbox in the path, and returns the ID of the pending public key it will
+        activate. Read the key with Get API Key. A repeat for the same token,
+        inbox, and bearer returns the same key ID.
       path-parameters:
         inbox_id: InboxId
       request: AuthorizeInboxRequest
       response:
         status-code: 202
-        type: api-keys.PublicKeyCredential
+        type: AuthorizeInboxResponse
       errors:
         - global.ValidationError
         - global.NotFoundError
