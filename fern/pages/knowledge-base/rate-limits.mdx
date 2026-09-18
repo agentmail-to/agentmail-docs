@@ -1,10 +1,10 @@
 ---
 title: "What are the rate limits?"
-subtitle: Understand AgentMail's rate limits and how to work within them.
+subtitle: Understand AgentMail's sending limits and API rate limits, and how to work within them.
 slug: knowledge-base/rate-limits
 ---
 
-AgentMail is built for high-volume agent workflows. Limits vary by plan.
+AgentMail is built for high-volume agent workflows. Two kinds of limits apply: how much email your plan can send, and how quickly you can call the API.
 
 ## Sending limits by plan
 
@@ -19,39 +19,48 @@ For full plan details, see the [pricing page](https://agentmail.to/pricing).
 
 ## API rate limits
 
-All API endpoints are rate-limited per API key. If you exceed the limit, the API returns a `429 Too Many Requests` response with a `Retry-After` header indicating how long to wait before retrying.
+AgentMail limits how quickly each organization can call the API. The limits keep the API fast and reliable for everyone: one runaway client cannot slow it down for other customers.
+
+The limits are generous. They sit well above what agent workloads normally use, short bursts are absorbed, and almost no customer ever reaches them. Higher plans come with higher limits.
+
+### If you receive a 429
+
+When a client goes over the limit, the API responds with `429 Too Many Requests` and a `Retry-After` header, usually `1` second. The response body's `message` and `fix` fields say which limit was reached and what to change.
+
+The official SDKs retry `429` responses automatically and wait for `Retry-After`. If you call the API directly, do the same:
 
 ```typescript title="TypeScript"
-import { AgentMailClient } from "agentmail";
-
-const client = new AgentMailClient({ apiKey: "am_..." });
-
-async function sendWithRetry(inboxId: string, params: any, maxRetries = 3) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+async function withRetry<T>(call: () => Promise<T>, maxRetries = 3): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
     try {
-      return await client.inboxes.messages.send(inboxId, params);
+      return await call();
     } catch (error: any) {
-      if (error.statusCode === 429 && attempt < maxRetries - 1) {
-        const retryAfter = parseInt(error.headers?.["retry-after"] || "5");
-        await new Promise((r) => setTimeout(r, retryAfter * 1000));
-      } else {
-        throw error;
-      }
+      if (error.statusCode !== 429 || attempt >= maxRetries) throw error;
+      const retryAfter = parseInt(error.headers?.["retry-after"] || "1");
+      await new Promise((r) => setTimeout(r, retryAfter * 1000 * 2 ** attempt));
     }
   }
 }
 ```
 
+If you receive `429` responses regularly, the tips below almost always resolve it.
+
 ## Tips for high-volume agents
+
+**Use webhooks or WebSockets instead of polling.** Polling an inbox in a tight loop is the most common way to reach the rate limit, and it is never needed: [webhooks](/webhooks-overview) and [WebSockets](/websockets) deliver new messages as they arrive.
+
+**If you do poll, poll slowly.** One list call every few seconds per inbox is plenty.
+
+**Spread scheduled jobs out.** A job that reads many threads or messages at once should pace itself over a few minutes rather than sending every request in the first second.
+
+**Honor `Retry-After`.** Wait the number of seconds it gives before retrying, and back off further on consecutive `429` responses.
 
 **Distribute sends across inboxes.** Sending from multiple inboxes improves deliverability and avoids per-address throttling by mailbox providers. Instead of 1,000 emails from 1 inbox, send 10 emails each from 100 inboxes.
 
 **Use idempotency keys for resource creation.** The `clientId` parameter on create operations (inboxes, pods, webhooks, drafts) prevents duplicate resources on retries. For preventing duplicate email sends, track sent message IDs in your application or use the [draft workflow](/knowledge-base/preventing-duplicate-sends).
 
-**Implement exponential backoff.** When you receive a `429` response, wait for the duration specified in the `Retry-After` header before retrying. Increase the wait time with each consecutive retry.
-
 **Monitor your usage.** Track your sending volume against your plan limits. You can view usage in the [AgentMail Console](https://console.agentmail.to).
 
 ## Need higher limits?
 
-If you need higher sending volumes or more inboxes than your current plan allows, contact [support@agentmail.cc](mailto:support@agentmail.cc) or visit the [pricing page](https://agentmail.to/pricing) for enterprise options.
+[Upgrading your plan](https://console.agentmail.to/dashboard/upgrade) raises your API rate limits along with your sending limits. For enterprise volumes, contact [support@agentmail.cc](mailto:support@agentmail.cc) or visit the [pricing page](https://agentmail.to/pricing).
