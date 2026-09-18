@@ -1,10 +1,10 @@
 ---
 title: "What are the rate limits?"
-subtitle: Understand AgentMail's sending limits and API request budgets, and how to work within them.
+subtitle: Understand AgentMail's sending limits and API rate limits, and how to work within them.
 slug: knowledge-base/rate-limits
 ---
 
-AgentMail is built for high-volume agent workflows. Two kinds of limits apply: how much email your plan can send, and how fast you can call the API.
+AgentMail is built for high-volume agent workflows. Two kinds of limits apply: how much email your plan can send, and how quickly you can call the API.
 
 ## Sending limits by plan
 
@@ -17,83 +17,17 @@ AgentMail is built for high-volume agent workflows. Two kinds of limits apply: h
 
 For full plan details, see the [pricing page](https://agentmail.to/pricing).
 
-## API request limits
+## API rate limits
 
-Every API request costs a small number of **units**, and every organization has a **budget** of units per minute. The budget keeps one client from slowing the API down for everyone else. Most integrations never come near it.
+AgentMail limits how quickly each organization can call the API. The limits keep the API fast and reliable for everyone: one runaway client cannot slow it down for other customers.
 
-### What a request costs
+The limits are generous. They sit well above what agent workloads normally use, short bursts are absorbed, and almost no customer ever reaches them. Higher plans come with higher limits.
 
-| Cost | Requests |
-| --- | --- |
-| 1 unit | Light reads: get an inbox, list inboxes, get a pod, list pods, get your organization, list API keys, download a raw message |
-| 2 units | Everything not listed in another row: list threads, list messages, get a message, drafts, label updates |
-| 4 units | Send, reply, reply all, forward, send a draft, get a thread, delete an inbox, and creating, updating, verifying or deleting domains and webhooks |
-| 8 units | Search |
+### If you receive a 429
 
-### Budgets by plan
+When a client goes over the limit, the API responds with `429 Too Many Requests` and a `Retry-After` header, usually `1` second. The response body's `message` and `fix` fields say which limit was reached and what to change.
 
-Budgets are in units per minute. The organization budget is 1,000 units per minute for every inbox your plan includes.
-
-| Plan | Organization | Each pod | Each inbox |
-| --- | --- | --- | --- |
-| Free | 3,000 | 1,500 | 750 |
-| Developer | 10,000 | 5,000 | 2,500 |
-| Startup | 30,000 | 15,000 | 7,500 |
-| Enterprise | Custom | Custom | Custom |
-
-A request counts against every level it touches:
-
-- A request on an inbox counts against that inbox, its pod, and the organization.
-- A request on a pod counts against that pod and the organization.
-- An organization-level request counts against the organization only.
-
-The pod and inbox shares keep one busy inbox, or one tenant of a platform, from using up the whole organization's budget. If you use a single inbox, the inbox number is the one you will notice first: on the Free plan, 750 units per minute is about six list calls per second, sustained.
-
-Requests made in the [AgentMail Console](https://console.agentmail.to) are not counted. Requests made with your API keys are, including mail clients connected over IMAP.
-
-### Bursts
-
-Budgets are continuous, not fixed one-minute windows. A budget of 3,000 units per minute refills one unit every 20 milliseconds.
-
-Budget you do not use accumulates while you are idle, up to five minutes' worth and at most 10,000 units, and you can spend it all at once. A job that runs every half hour can spend its saved allowance in its first minute, and is then paced at the budget rate.
-
-### When you exceed a budget
-
-The API responds with `429 Too Many Requests`:
-
-```http
-HTTP/1.1 429 Too Many Requests
-Retry-After: 1
-ratelimit-limit: 750
-```
-
-```json
-{
-  "name": "RateLimitError",
-  "code": "rate_limit_exceeded",
-  "message": "Request rate limit exceeded: inbox budget of 750 units per minute",
-  "fix": "This inbox's request budget is 750 units per minute, ...",
-  "resource": "request",
-  "scope": "inbox",
-  "exceeded": ["inbox"],
-  "limit": 750
-}
-```
-
-| Field | Meaning |
-| --- | --- |
-| `Retry-After` header | Seconds to wait before retrying. Usually `1`: budgets refill continuously, so you never wait out a whole minute. |
-| `ratelimit-limit` header, `limit` | The budget that was exceeded, in units per minute. |
-| `scope` | The most specific budget that was exceeded: `organization`, `pod`, or `inbox`. |
-| `exceeded` | Every budget this request exceeded. |
-| `fix` | What to change, in plain language. |
-| `upgrade_url` | Present when a higher self-serve plan raises the exceeded budget. |
-
-Sending limits return the same `429` status and `rate_limit_exceeded` code, with `resource` set to `send` and a `window` field naming the limit that was reached.
-
-### Handling a 429
-
-The official SDKs retry `429` responses automatically (twice by default) and wait for `Retry-After`. If you call the API directly, do the same:
+The official SDKs retry `429` responses automatically and wait for `Retry-After`. If you call the API directly, do the same:
 
 ```typescript title="TypeScript"
 async function withRetry<T>(call: () => Promise<T>, maxRetries = 3): Promise<T> {
@@ -109,13 +43,17 @@ async function withRetry<T>(call: () => Promise<T>, maxRetries = 3): Promise<T> 
 }
 ```
 
+If you receive `429` responses regularly, the tips below almost always resolve it.
+
 ## Tips for high-volume agents
 
-**Use webhooks or WebSockets instead of polling.** Polling an inbox in a tight loop is the most common way to reach a request budget, and it is never needed: [webhooks](/webhooks-overview) and [WebSockets](/websockets) deliver new messages as they arrive, at no request cost.
+**Use webhooks or WebSockets instead of polling.** Polling an inbox in a tight loop is the most common way to reach the rate limit, and it is never needed: [webhooks](/webhooks-overview) and [WebSockets](/websockets) deliver new messages as they arrive.
 
-**If you do poll, poll slowly.** One list call every few seconds per inbox stays far below every plan's budget.
+**If you do poll, poll slowly.** One list call every few seconds per inbox is plenty.
 
-**Spread scheduled jobs out.** A job that reads hundreds of threads fits within the burst allowance once. Pace the rest over a few minutes rather than sending everything in the first second.
+**Spread scheduled jobs out.** A job that reads many threads or messages at once should pace itself over a few minutes rather than sending every request in the first second.
+
+**Honor `Retry-After`.** Wait the number of seconds it gives before retrying, and back off further on consecutive `429` responses.
 
 **Distribute sends across inboxes.** Sending from multiple inboxes improves deliverability and avoids per-address throttling by mailbox providers. Instead of 1,000 emails from 1 inbox, send 10 emails each from 100 inboxes.
 
@@ -125,4 +63,4 @@ async function withRetry<T>(call: () => Promise<T>, maxRetries = 3): Promise<T> 
 
 ## Need higher limits?
 
-If you need a higher request budget, higher sending volumes, or more inboxes than your current plan allows, contact [support@agentmail.cc](mailto:support@agentmail.cc) or visit the [pricing page](https://agentmail.to/pricing) for enterprise options.
+[Upgrading your plan](https://console.agentmail.to/dashboard/upgrade) raises your API rate limits along with your sending limits. For enterprise volumes, contact [support@agentmail.cc](mailto:support@agentmail.cc) or visit the [pricing page](https://agentmail.to/pricing).
