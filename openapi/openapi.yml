@@ -853,7 +853,7 @@ paths:
       security:
         - BearerAuth: []
   /v0/accounts/{account_id}/update:
-    post:
+    patch:
       description: |-
         Updates one account. Set `status` to `disabled` to stop the inbox from
         signing in at the provider again, or to `enabled` to re-enable it.
@@ -1850,72 +1850,6 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
-  /v0/inboxes/{inbox_id}/accounts/{account_id}/update:
-    post:
-      description: >-
-        Updates one account held by the inbox. Set `status` to `disabled` to
-        stop the
-
-        inbox from signing in at the provider again, or to `enabled` to
-
-        re-enable it. Idempotent: disabling an already disabled account keeps
-
-        its original `disabled_at`, and enabling an enabled account is a no-op.
-
-        An account elsewhere is a 404. Requires `account_update`.
-      operationId: inboxes_accounts_update
-      tags:
-        - InboxesAccounts
-      parameters:
-        - name: inbox_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/inboxesInboxId'
-        - name: account_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/AccountId'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Update Account
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateAccountRequest'
   /v0/inboxes/{inbox_id}/api-keys:
     get:
       description: |-
@@ -5028,72 +4962,6 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
-  /v0/pods/{pod_id}/accounts/{account_id}/update:
-    post:
-      description: >-
-        Updates one account held by inboxes in the pod. Set `status` to
-        `disabled` to stop the
-
-        inbox from signing in at the provider again, or to `enabled` to
-
-        re-enable it. Idempotent: disabling an already disabled account keeps
-
-        its original `disabled_at`, and enabling an enabled account is a no-op.
-
-        An account elsewhere is a 404. Requires `account_update`.
-      operationId: pods_accounts_update
-      tags:
-        - PodsAccounts
-      parameters:
-        - name: pod_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/podsPodId'
-        - name: account_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/AccountId'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Update Account
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateAccountRequest'
   /v0/pods/{pod_id}/api-keys:
     get:
       description: |-

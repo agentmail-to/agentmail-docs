@@ -110,7 +110,7 @@ service:
         - global.NotFoundError
 
     update:
-      method: POST
+      method: PATCH
       path: /{account_id}/update
       display-name: Update Account
       docs: |

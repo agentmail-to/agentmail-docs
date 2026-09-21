@@ -41,22 +41,3 @@ service:
       response: accounts.Account
       errors:
         - global.NotFoundError
-
-    update:
-      method: POST
-      path: /{account_id}/update
-      display-name: Update Account
-      docs: |
-        Updates one account held by inboxes in the pod. Set `status` to `disabled` to stop the
-        inbox from signing in at the provider again, or to `enabled` to
-        re-enable it. Idempotent: disabling an already disabled account keeps
-        its original `disabled_at`, and enabling an enabled account is a no-op.
-        An account elsewhere is a 404. Requires `account_update`.
-      path-parameters:
-        account_id: accounts.AccountId
-      request: accounts.UpdateAccountRequest
-      response: accounts.Account
-      errors:
-        - global.ValidationError
-        - global.NotFoundError
-        - global.ConflictError

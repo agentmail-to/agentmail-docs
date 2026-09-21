@@ -907,7 +907,7 @@ paths:
       - inboxes
       x-fern-sdk-method-name: search
   /v0/accounts/{account_id}/update:
-    post:
+    patch:
       x-fern-sdk-group-name:
       - accounts
       x-fern-sdk-method-name: update
@@ -923,12 +923,6 @@ paths:
       - inboxes
       - accounts
       x-fern-sdk-method-name: get
-  /v0/inboxes/{inbox_id}/accounts/{account_id}/update:
-    post:
-      x-fern-sdk-group-name:
-      - inboxes
-      - accounts
-      x-fern-sdk-method-name: update
   /v0/pods/{pod_id}/accounts:
     get:
       x-fern-sdk-group-name:
@@ -941,9 +935,3 @@ paths:
       - pods
       - accounts
       x-fern-sdk-method-name: get
-  /v0/pods/{pod_id}/accounts/{account_id}/update:
-    post:
-      x-fern-sdk-group-name:
-      - pods
-      - accounts
-      x-fern-sdk-method-name: update

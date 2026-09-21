@@ -4,17 +4,15 @@ tags: ["accounts-api", "pods-api", "inboxes-api", "new-feature"]
 
 ## Summary
 
-Disable an inbox's sign-in at a provider, and re-enable it later, with one call. Accounts now carry a `status`, and the accounts resource is reachable under pods and inboxes so an agent can audit and control sign-ins at exactly the scope its key holds.
+Disable an inbox's sign-in at a provider, and re-enable it later, with one call. Accounts now carry a `status`, and accounts can be listed and read under pods and inboxes so an agent can audit sign-ins at exactly the scope its key holds.
 
 ### What's new?
 
 **New endpoints:**
 
-- `POST /v0/accounts/{account_id}/update` - Update one account. Send `{ "status": "disabled" }` to refuse every new sign-in for that inbox at that provider, or `{ "status": "enabled" }` to re-enable it. Requires the new `account_update` permission.
+- `PATCH /v0/accounts/{account_id}/update` - Update one account. Send `{ "status": "disabled" }` to refuse every new sign-in for that inbox at that provider, or `{ "status": "enabled" }` to re-enable it. Requires the new `account_update` permission.
 - `GET /v0/pods/{pod_id}/accounts` and `GET /v0/pods/{pod_id}/accounts/{account_id}` - List and read the accounts held by inboxes in one pod.
-- `POST /v0/pods/{pod_id}/accounts/{account_id}/update` - Update an account within one pod.
 - `GET /v0/inboxes/{inbox_id}/accounts` and `GET /v0/inboxes/{inbox_id}/accounts/{account_id}` - List and read the accounts held by one inbox.
-- `POST /v0/inboxes/{inbox_id}/accounts/{account_id}/update` - Update an account held by one inbox.
 
 **New features:**
 
