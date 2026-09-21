@@ -14,6 +14,22 @@ types:
     type: uuid
     docs: ID of provider.
 
+  AccountStatus:
+    enum:
+      - disabled
+    docs: |
+      `disabled` refuses every new sign-in for the account until it is
+      re-enabled. Access tokens already issued are not revoked.
+
+  UpdateAccountStatus:
+    enum:
+      - enabled
+      - disabled
+    docs: |
+      Status to set. `disabled` stops the inbox from signing in at the
+      provider; `enabled` re-enables it. An enabled account reads back with no
+      `status`.
+
   Account:
     docs: One inbox signed in at one provider.
     properties:
@@ -34,6 +50,12 @@ types:
       sign_in_count:
         type: integer
         docs: Number of sign-ins at provider.
+      status:
+        type: optional<AccountStatus>
+        docs: Present only while the account is disabled. Absent means the inbox may sign in.
+      disabled_at:
+        type: optional<datetime>
+        docs: Time at which the account was disabled. Present only while `status` is `disabled`.
 
   ListAccountsResponse:
     properties:
@@ -41,6 +63,14 @@ types:
       limit: global.Limit
       next_page_token: optional<global.PageToken>
       accounts: list<Account>
+
+  UpdateAccountRequest:
+    docs: |
+      Fields to change on the account. Fields you omit are left unchanged and
+      unknown fields are rejected. Expects at least one field; today that is
+      `status`.
+    properties:
+      status: optional<UpdateAccountStatus>
 
 service:
   url: Http
@@ -52,7 +82,10 @@ service:
       method: GET
       path: ""
       display-name: List Accounts
-      docs: Lists accounts across all providers.
+      docs: |
+        Lists accounts across all providers, scoped to the API key: an
+        organization key sees every account, a pod key its pod's, an inbox key
+        its inbox's. Requires `inbox_read`.
       request:
         name: ListAccountsRequest
         query-parameters:
@@ -67,8 +100,30 @@ service:
       method: GET
       path: /{account_id}
       display-name: Get Account
+      docs: |
+        Returns one account by ID. An account outside the key's scope is a 404.
+        Requires `inbox_read`.
       path-parameters:
         account_id: AccountId
       response: Account
       errors:
         - global.NotFoundError
+
+    update:
+      method: POST
+      path: /{account_id}/update
+      display-name: Update Account
+      docs: |
+        Updates one account. Set `status` to `disabled` to stop the inbox from
+        signing in at the provider again, or to `enabled` to re-enable it.
+        Idempotent: disabling an already disabled account keeps its original
+        `disabled_at`, and enabling an enabled account is a no-op. An account
+        outside the key's scope is a 404. Requires `account_update`.
+      path-parameters:
+        account_id: AccountId
+      request: UpdateAccountRequest
+      response: Account
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError

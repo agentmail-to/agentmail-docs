@@ -246,6 +246,11 @@ types:
         docs: |
           Share the organization owner's name and email with providers at sign-in. One permission
           for both values.
+      account_update:
+        type: optional<boolean>
+        docs: |
+          Update accounts: disable or re-enable an inbox's sign-in at a provider. Reading accounts
+          needs only `inbox_read`.
       pod_read:
         type: optional<boolean>
         docs: Read pods.

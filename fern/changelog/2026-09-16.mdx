@@ -1,0 +1,75 @@
+---
+tags: ["accounts-api", "pods-api", "inboxes-api", "new-feature"]
+---
+
+## Summary
+
+Disable an inbox's sign-in at a provider, and re-enable it later, with one call. Accounts now carry a `status`, and the accounts resource is reachable under pods and inboxes so an agent can audit and control sign-ins at exactly the scope its key holds.
+
+### What's new?
+
+**New endpoints:**
+
+- `POST /v0/accounts/{account_id}/update` - Update one account. Send `{ "status": "disabled" }` to refuse every new sign-in for that inbox at that provider, or `{ "status": "enabled" }` to re-enable it. Requires the new `account_update` permission.
+- `GET /v0/pods/{pod_id}/accounts` and `GET /v0/pods/{pod_id}/accounts/{account_id}` - List and read the accounts held by inboxes in one pod.
+- `POST /v0/pods/{pod_id}/accounts/{account_id}/update` - Update an account within one pod.
+- `GET /v0/inboxes/{inbox_id}/accounts` and `GET /v0/inboxes/{inbox_id}/accounts/{account_id}` - List and read the accounts held by one inbox.
+- `POST /v0/inboxes/{inbox_id}/accounts/{account_id}/update` - Update an account held by one inbox.
+
+**New features:**
+
+- **Account status**: a disabled account carries `status: "disabled"` and `disabled_at` on every read. An account without `status` can sign in.
+- **Idempotent updates**: disabling an already disabled account keeps its original `disabled_at`, and enabling an enabled account is a no-op, so a retry never conflicts.
+- **`account_update` permission**: a separate grant for the write. Unrestricted keys hold it; restricted keys get it only when granted. Reading accounts still needs only `inbox_read`.
+- **Scoped views**: the pod and inbox forms return the same account object as `GET /v0/accounts`, narrowed to the pod or inbox in the path. An account outside that scope is a 404.
+
+### Use cases
+
+Build agents that:
+
+- Cut off a provider that is misbehaving, without deleting the sign-in record
+- Pause one inbox's access to a provider during an incident and restore it afterward
+- Audit, per pod or per inbox, which providers each agent has signed in to
+- Give a tenant's key visibility into its own accounts and nothing beyond its pod
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="your-api-key")
+
+# disable an inbox's sign-in at a provider
+account = client.accounts.update(
+    account_id="3f1c2a4e-8b7d-4c6e-9a1f-2d3e4f5a6b7c",
+    status="disabled",
+)
+print(account.status, account.disabled_at)
+
+# list the accounts one inbox holds
+accounts = client.inboxes.accounts.list(inbox_id="agent@agentmail.to")
+for item in accounts.accounts:
+    print(item.provider_name, item.status or "ok")
+```
+
+```typescript title="TypeScript"
+import { AgentMail } from "agentmail";
+
+const client = new AgentMail({ apiKey: "your-api-key" });
+
+// disable an inbox's sign-in at a provider
+const account = await client.accounts.update("3f1c2a4e-8b7d-4c6e-9a1f-2d3e4f5a6b7c", {
+  status: "disabled",
+});
+console.log(account.status, account.disabledAt);
+
+// list the accounts one inbox holds
+const accounts = await client.inboxes.accounts.list("agent@agentmail.to");
+for (const item of accounts.accounts) {
+  console.log(item.providerName, item.status ?? "ok");
+}
+```
+</CodeBlocks>
+
+<Note>
+  See [Update Account](https://docs.agentmail.to/api-reference/accounts/update) in the API reference for the request and response shapes.
+</Note>
