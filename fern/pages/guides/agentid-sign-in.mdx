@@ -152,7 +152,7 @@ if (key.type === "public_key") console.log(key.status);
 ```
 </CodeBlocks>
 
-A single check reads the current status. Repeat with a delay while it is `pending`, stopping at expiry or an error. `active` means the key is ready to sign in as the inbox. Use [List Provider Accounts](https://docs.agentmail.to/api-reference/providers/list-accounts) to inspect accounts at the provider.
+A single check reads the current status. Repeat with a delay while it is `pending`, stopping at expiry or an error. `active` means the key is ready to sign in as the inbox. Use [List Provider Accounts](https://docs.agentmail.to/api-reference/providers/list-accounts) to inspect accounts at the provider. To stop an inbox from signing in at a provider again, disable its account with [Update Account](https://docs.agentmail.to/api-reference/accounts/update).
 
 ## Manage sign-in keys
 

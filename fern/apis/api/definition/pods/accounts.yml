@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  pods: __package__.yml
+  accounts: ../accounts.yml
+
+service:
+  url: Http
+  base-path: /pods/{pod_id}/accounts
+  path-parameters:
+    pod_id: pods.PodId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Accounts
+      docs: |
+        Lists accounts held by inboxes in the pod, across all providers. Requires `inbox_read`.
+      request:
+        name: ListAccountsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: accounts.ListAccountsResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{account_id}
+      display-name: Get Account
+      docs: |
+        Returns one account held by inboxes in the pod. An account elsewhere is a 404. Requires
+        `inbox_read`.
+      path-parameters:
+        account_id: accounts.AccountId
+      response: accounts.Account
+      errors:
+        - global.NotFoundError

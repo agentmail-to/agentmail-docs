@@ -9,6 +9,7 @@ navigation:
   - metrics.yml
   - events.yml
   - api-keys.yml
+  - accounts.yml
 
 imports:
   global: ../__package__.yml

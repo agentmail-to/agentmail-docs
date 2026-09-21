@@ -906,3 +906,32 @@ paths:
       - pods
       - inboxes
       x-fern-sdk-method-name: search
+  /v0/accounts/{account_id}/update:
+    patch:
+      x-fern-sdk-group-name:
+      - accounts
+      x-fern-sdk-method-name: update
+  /v0/inboxes/{inbox_id}/accounts:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - accounts
+      x-fern-sdk-method-name: list
+  /v0/inboxes/{inbox_id}/accounts/{account_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - accounts
+      x-fern-sdk-method-name: get
+  /v0/pods/{pod_id}/accounts:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - accounts
+      x-fern-sdk-method-name: list
+  /v0/pods/{pod_id}/accounts/{account_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - accounts
+      x-fern-sdk-method-name: get
