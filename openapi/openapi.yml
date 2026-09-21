@@ -858,8 +858,20 @@ paths:
         Updates one account. Set `status` to `disabled` to stop the inbox from
         signing in at the provider again, or to `enabled` to re-enable it.
         Idempotent: disabling an already disabled account keeps its original
-        `disabled_at`, and enabling an enabled account is a no-op. An account
-        outside the key's scope is a 404. Requires `account_update`.
+        `disabled_at`, and enabling an enabled account is a no-op.
+
+        Find the `account_id` with List Accounts. An account exists only after an
+        inbox's first sign-in at a provider, so it cannot be disabled in advance.
+        A disable applies to that inbox at that provider whichever sign-in key is
+        used: the provider's next authorization ends in `access_denied`, and a code
+        issued earlier is refused with `invalid_grant`. Access tokens already
+        issued stay valid until they expire, and the provider's own session is
+        unaffected.
+
+        Requires `account_update`, which sign-in keys (`type: public_key`) cannot
+        hold, so call this with a bearer API key. An account outside the key's
+        scope is a 404. A 409 means the account changed during the write; read it
+        again and retry.
       operationId: accounts_update
       tags:
         - Accounts
