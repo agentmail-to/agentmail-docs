@@ -1,0 +1,139 @@
+name: Release SDKs
+
+# Releases the Python and/or Node SDK from main.
+# To run: Actions → Release SDKs → Run workflow, then fill in the version(s).
+# Fern pushes a tagged release to agentmail-to/agentmail-python or
+# agentmail-to/agentmail-node, and that repo's CI publishes it to PyPI or npm.
+on:
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: Python SDK version, e.g. 2.0.2 (empty = don't release Python)
+        required: false
+        type: string
+      node_version:
+        description: Node SDK version, e.g. 0.5.29 (empty = don't release Node)
+        required: false
+        type: string
+
+run-name: Release SDKs (python ${{ inputs.python_version || '-' }}, node ${{ inputs.node_version || '-' }}) by @${{ github.actor }}
+
+# A second click waits for the running release instead of racing it.
+concurrency:
+  group: release-sdks
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.versions.outputs.matrix }}
+    steps:
+      # The Run workflow menu accepts any branch, but only main is reviewed.
+      - name: Only release from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::SDKs can only be released from main, not '${GITHUB_REF_NAME}'. Choose main in the Run workflow menu."
+          exit 1
+
+      # Versions are explicit and must be newer than what is published. The old
+      # workflow guessed a version from another repo and shipped Python 2.0.1.
+      - name: Check versions
+        id: versions
+        env:
+          PYTHON_VERSION: ${{ inputs.python_version }}
+          NODE_VERSION: ${{ inputs.node_version }}
+        run: |
+          set -euo pipefail
+          entries=()
+
+          check() {  # check <sdk> <version> <latest published version>
+            if [[ ! "$2" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::$1 version '$2' must look like 1.2.3."
+              exit 1
+            fi
+            if [ "$2" = "$3" ] || [ "$(printf '%s\n%s\n' "$2" "$3" | sort -V | tail -n1)" != "$2" ]; then
+              echo "::error::$1 version $2 must be newer than the published $3."
+              exit 1
+            fi
+            echo "- $1: $3 → $2" >> "$GITHUB_STEP_SUMMARY"
+            entries+=("{\"sdk\":\"$1\",\"version\":\"$2\"}")
+          }
+
+          python_version="${PYTHON_VERSION//[[:space:]]/}"
+          node_version="${NODE_VERSION//[[:space:]]/}"
+          if [ -z "$python_version$node_version" ]; then
+            echo "::error::Fill in python_version, node_version, or both."
+            exit 1
+          fi
+          if [ -n "$python_version" ]; then
+            latest=$(curl -fsSL https://pypi.org/pypi/agentmail/json \
+              | jq -r '.releases | to_entries[] | select(any(.value[]; .yanked | not)) | .key' \
+              | sort -V | tail -n1)
+            check python "$python_version" "$latest"
+          fi
+          if [ -n "$node_version" ]; then
+            check node "$node_version" "$(npm view agentmail version)"
+          fi
+          echo "matrix={\"include\":[$(IFS=,; echo "${entries[*]}")]}" >> "$GITHUB_OUTPUT"
+
+  release:
+    name: Release ${{ matrix.sdk }} ${{ matrix.version }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Node 26's fetch drops long Fern requests at 300s; stay on Node 24.
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install Fern (version pinned in fern/fern.config.json)
+        run: npm install -g "fern-api@$(jq -r .version fern/fern.config.json)"
+
+      # generators.yml references ${PYPI_TOKEN}, so the variable must exist, but
+      # PyPI publishing uses agentmail-python's own secrets: no token needed here.
+      - name: Generate and push the SDK release
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+          PYPI_TOKEN: ''
+          GROUP: ${{ matrix.sdk }}-sdk
+          VERSION: ${{ matrix.version }}
+        run: fern generate --api api --group "$GROUP" --version "$VERSION" --log-level debug
+
+      # The SDK repo's CI builds, tests and publishes the tag (about 90s), so a
+      # green run means the package is really on PyPI/npm, not just pushed.
+      - name: Wait for the package to be published
+        env:
+          SDK: ${{ matrix.sdk }}
+          VERSION: ${{ matrix.version }}
+        run: |
+          if [ "$SDK" = python ]; then
+            repo=agentmail-python
+            page="https://pypi.org/project/agentmail/$VERSION/"
+            published() { curl -fs -o /dev/null "https://pypi.org/pypi/agentmail/$VERSION/json"; }
+          else
+            repo=agentmail-node
+            page="https://www.npmjs.com/package/agentmail/v/$VERSION"
+            published() { [ "$(npm view "agentmail@$VERSION" version 2>/dev/null)" = "$VERSION" ]; }
+          fi
+          for _ in $(seq 20); do
+            if published; then
+              echo "### agentmail $VERSION is live: $page" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::agentmail $VERSION is not published after 10 minutes. Check the Actions tab of agentmail-to/$repo."
+          exit 1
