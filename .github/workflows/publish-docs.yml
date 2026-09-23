@@ -1,0 +1,62 @@
+name: Publish Docs
+
+# Publishes main to production (docs.agentmail.to and agentmail.to/docs).
+# To run: Actions → Publish Docs → Run workflow.
+on:
+  workflow_dispatch:
+
+run-name: Publish docs by @${{ github.actor }}
+
+# A second click waits for the running publish instead of racing it.
+concurrency:
+  group: publish-docs
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # The Run workflow menu accepts any branch, but only main is reviewed.
+      - name: Only publish from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Docs can only be published from main, not '${GITHUB_REF_NAME}'. Choose main in the Run workflow menu."
+          exit 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Node 26's fetch drops the "Publishing docs to FDR" request at 300s
+      # whenever FDR is slow; Node 24 still honors Fern's longer timeout.
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Fern (version pinned in fern/fern.config.json)
+        run: npm install -g "fern-api@$(jq -r .version fern/fern.config.json)"
+
+      # Same command as a local publish: every instance in bin/agentmail-docs.ts.
+      # --no-prompt skips the "affect a production site?" confirmation.
+      - name: Publish docs
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: npm run docs:publish -- --no-prompt --log-level debug
+
+      - name: Write run summary
+        run: |
+          {
+            echo "### Published [\`${GITHUB_SHA::7}\`]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)"
+            git log -1 --format=%s
+            echo
+            echo "- https://docs.agentmail.to"
+            echo "- https://agentmail.to/docs"
+          } >> "$GITHUB_STEP_SUMMARY"
