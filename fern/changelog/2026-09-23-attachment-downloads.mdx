@@ -1,0 +1,36 @@
+---
+tags: ["messages-api", "breaking-change", "bug-fix"]
+---
+
+## Summary
+
+Attachment download URLs now tell browsers to download files instead of rendering them inline. This reduces the risk of executing sender-controlled attachment content in a browser.
+
+### What's new?
+
+- Attachment downloads enforce download disposition, disable MIME sniffing, and block framing.
+- API clients can continue fetching attachment bytes from `download_url`.
+
+### Breaking changes
+
+⚠️ **Direct browser previews of attachment download URLs are no longer supported.**
+
+Previously, opening a `download_url` in a browser tab or embedding it in an iframe could display the attachment. It now downloads instead, and iframe previews are blocked. Use a download link for this URL. If your application needs previews, fetch the bytes on your server and render only validated, supported file types through your own isolated preview flow; do not serve arbitrary HTML or SVG under your application origin.
+
+```html
+<!-- before: embedding the attachment download URL -->
+<iframe src="ATTACHMENT_DOWNLOAD_URL" title="Attachment preview"></iframe>
+
+<!-- after: offering the attachment as a download -->
+<a href="ATTACHMENT_DOWNLOAD_URL">Download attachment</a>
+```
+
+### Use cases
+
+- Let users download incoming attachments for local inspection.
+- Fetch attachment bytes in an agent's backend for document processing.
+
+<Note>
+  See the [attachments guide](https://docs.agentmail.to/attachments) for
+  fetching attachment download URLs.
+</Note>
