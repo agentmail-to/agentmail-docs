@@ -36,15 +36,15 @@ jobs:
             echo "Using provided version: ${{ inputs.version }}"
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
           else
-            echo "Fetching latest version from VapiAI/server-sdk-python..."
+            echo "Fetching latest version from agentmail-to/agentmail-python..."
             
             # Fetch latest release version from the Python SDK repository
-            LATEST_VERSION=$(curl -s https://api.github.com/repos/VapiAI/server-sdk-python/releases/latest | jq -r .tag_name || echo "")
+            LATEST_VERSION=$(curl -s https://api.github.com/repos/agentmail-to/agentmail-python/releases/latest | jq -r .tag_name || echo "")
             
             # If no release found, check tags
             if [ -z "$LATEST_VERSION" ] || [ "$LATEST_VERSION" = "null" ]; then
               echo "No release found, checking tags..."
-              LATEST_VERSION=$(curl -s https://api.github.com/repos/VapiAI/server-sdk-python/tags | jq -r '.[0].name' || echo "")
+              LATEST_VERSION=$(curl -s https://api.github.com/repos/agentmail-to/agentmail-python/tags | jq -r '.[0].name' || echo "")
             fi
             
             # If still no version found, default to 0.0.0
