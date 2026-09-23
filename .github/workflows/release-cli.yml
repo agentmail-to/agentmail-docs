@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Fern CLI
-        uses: fern-api/setup-fern-cli@v1
+        uses: fern-api/setup-fern-cli@d07601425e9c9ede8745d71ca75c4c462d98755d # v1.0.0
 
       - name: Re-export OpenAPI from definition
         env:
