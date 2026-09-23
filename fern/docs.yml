@@ -301,6 +301,9 @@ navigation:
           - page: Replit
             icon: fa-solid fa-laptop-code
             path: pages/integrations/replit.mdx
+          - page: Vercel
+            icon: fa-solid fa-cloud-arrow-up
+            path: pages/integrations/vercel.mdx
           - page: x402
             icon: fa-solid fa-credit-card
             path: pages/integrations/x402.mdx
