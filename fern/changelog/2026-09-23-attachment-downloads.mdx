@@ -1,21 +1,25 @@
 ---
-tags: ["messages-api", "breaking-change", "bug-fix"]
+tags: ["messages-api", "threads-api", "breaking-change", "security"]
 ---
 
 ## Summary
 
-Attachment download URLs now tell browsers to download files instead of rendering them inline. This reduces the risk of executing sender-controlled attachment content in a browser.
+Signed CDN URLs for attachments, raw messages, and extracted attachment text now tell browsers to download files on direct navigation instead of rendering them as pages. This reduces the risk of executing sender-controlled content in a browser.
 
 ### What's new?
 
-- Attachment downloads enforce download disposition, disable MIME sniffing, and block framing.
-- API clients can continue fetching attachment bytes from `download_url`.
+- The change covers attachment `download_url` values (including thread-level attachments), raw-message `.eml` `download_url` values, and extracted attachment `text_url` values.
+- Responses enforce download disposition and add browser hardening headers: `nosniff`, frame denial, a restrictive content security policy with sandboxing, a no-referrer policy, and HSTS.
+- File bytes, `content_type`, and `filename` metadata are unchanged. Existing filename parameters in download headers are preserved.
+- Server-side fetches still work. Supported images, video, and audio can still load as subresources through `img`, `video`, and `audio` elements, including images referenced by CSS. Stylesheets remain subject to correct MIME types with `nosniff`; this is not a guarantee that arbitrary attachments can load as CSS.
 
 ### Breaking changes
 
-⚠️ **Direct browser previews of attachment download URLs are no longer supported.**
+⚠️ **Direct navigation and iframe previews change to downloads.**
 
-Previously, opening a `download_url` in a browser tab or embedding it in an iframe could display the attachment. It now downloads instead, and iframe previews are blocked. Use a download link for this URL. If your application needs previews, fetch the bytes on your server and render only validated, supported file types through your own isolated preview flow; do not serve arbitrary HTML or SVG under your application origin.
+Previously, opening one of these signed URLs in a browser tab or embedding it in an iframe could display the file. It now downloads instead, and iframe previews are blocked. Use a download link for this URL. If your application needs previews, fetch the bytes on your server and render only validated, supported file types through your own isolated preview flow; do not serve arbitrary HTML or SVG under your application origin.
+
+Use the HTTPS URLs returned by the API without changing their scheme. Requests made over `http://` now receive `403 Forbidden` instead of an HTTPS redirect.
 
 ```html
 <!-- before: embedding the attachment download URL -->

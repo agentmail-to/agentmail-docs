@@ -233,7 +233,7 @@ types:
           `limit`.
 
   RawMessageResponse:
-    docs: S3 presigned URL to download the raw .eml file.
+    docs: CloudFront signed URL to download the raw .eml file.
     properties:
       message_id:
         type: MessageId
@@ -243,7 +243,7 @@ types:
         docs: Size of the raw message in bytes.
       download_url:
         type: string
-        docs: S3 presigned URL to download the raw message. Expires at expires_at.
+        docs: CloudFront signed URL to download the raw message. Expires at expires_at.
       expires_at:
         type: datetime
         docs: Time at which the download URL expires.
