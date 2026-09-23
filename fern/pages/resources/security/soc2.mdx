@@ -1,127 +1,31 @@
 ---
 title: "SOC 2 Compliance"
-description: "AgentMail's SOC 2 Type I and Type II compliance."
+description: "AgentMail's completed 2025 SOC 2 Type II audit and 2026 annual audit underway with A-LIGN."
 sidebar_position: 40
 lastUpdated: "2026-09-23"
 ---
 
-> AgentMail is **SOC 2 Type II compliant**. Our first Type II audit was completed in 2025, and our 2026 annual audit is underway with **A-LIGN**, an independent CPA firm.
+_Last updated: September 23, 2026_
 
----
+**AgentMail is SOC 2 Type II compliant.**
 
-## Current Status
+We completed our first SOC 2 Type II audit in 2025. Our 2026 annual audit is underway with A-LIGN, an independent CPA firm.
 
-<CardGroup cols={2}>
-  <Card title="SOC 2 Type II Compliant" icon="check-circle">
-    Our first Type II audit was completed in 2025.
-  </Card>
-  <Card title="2026 Annual Audit Underway" icon="clock">
-    A-LIGN, an independent CPA firm, is conducting our 2026 annual audit.
-  </Card>
-</CardGroup>
-
-### Compliance Timeline
-
-| Phase | Period | Status |
-|-------|--------|--------|
-| **First SOC 2 Type II Audit** | 2025 | Completed |
-| **2026 Annual SOC 2 Audit** | 2026 | Underway with A-LIGN |
-
----
+Our compliance program runs on Vanta, which monitors our security controls continuously and collects audit evidence automatically.
 
 ## What is SOC 2?
 
-**SOC 2** is an attestation standard by **AICPA** (The American Institute of Certified Public Accountants) evaluating controls over:
+SOC 2 is an audit standard from the AICPA. A Type I report checks controls at a single point in time. A Type II report tests that those controls worked over an observation period.
 
-1. **Security** - Protection against unauthorized access, both physical and logical
-2. **Availability** - System accessibility and operational performance as committed
-3. **Processing Integrity** - System processing is complete, valid, accurate, timely, and authorized
-4. **Confidentiality** - Information designated as confidential is protected
-5. **Privacy** - Personal information is collected, used, retained, disclosed, and disposed per privacy commitments
+## How can I access your reports?
 
-### Report Types
-
-- **Type I**: Verifies that security controls are properly **designed** at a point in time.
-- **Type II**: Validates that controls **operate effectively** over a period (typically 6–12 months).
-
-<Callout intent="success">
-  **Type I** reports assess whether controls are suitably designed at a point in time. **Type II** reports assess whether controls operate effectively over an observation period. AgentMail's first Type II audit was completed in 2025; our 2026 annual audit is underway.
-</Callout>
-
-AgentMail uses **Vanta** for continuous controls monitoring and automated evidence collection in support of our SOC 2 program.
-
----
-
-## Security Controls Implemented
-
-AgentMail maintains the following security controls and practices in support of its SOC 2 program:
-
-### Access Control
-
-- Role-based access; **least privilege** enforced
-- **MFA** (Multi-Factor Authentication) for administrative access and sensitive operations
-- Quarterly access reviews and revocation upon role change
-
-### Encryption & Key Management
-
-- **TLS 1.2+** for all service/API communications
-- Data at rest encrypted using industry-standard ciphers
-- Centralized **KMS** (Key Management Service) for key generation, rotation, and revocation
-- **Encrypted point-in-time backups** with 30-day retention
-
-See [Security Overview](https://agentmail.to/security) for more details.
-
-### Email Authentication & Anti-Abuse
-
-- **SPF, DKIM, DMARC** configured across all sending domains
-- Real-time scanning of inbound/outbound messages for malware/phishing
-- IP-based **rate limiting** and behavioral abuse detection
-
-See [Email Protocols](https://docs.agentmail.to/email-protocols) for technical details.
-
-### Monitoring & Incident Response
-
-- Centralized logging and anomaly detection with alerting
-- Documented incident response process: detect → triage → contain → eradicate → recover → post-incident review
-- Responsible disclosure channel for external security researchers
-
-### Resilience, Backup & Recovery
-
-- Daily encrypted backups with **30-day retention**
-- Regular **restore tests** to validate RTO/RPO targets
-- Multi-AZ/high-availability architecture for critical components
-
----
-
-## SOC 2 Control Mapping
-
-| Control Area | Implementation | SOC 2 Criteria |
-| --- | --- | --- |
-| Access Control | RBAC, MFA, quarterly reviews | CC6.1–CC6.7 |
-| Encryption & KMS | TLS 1.2+, at-rest encryption, key rotation | CC6.8–CC6.9 |
-| Email Authentication | SPF/DKIM/DMARC, anti-abuse filters | CC7.1–CC7.4 |
-| Threat Monitoring | Centralized logs, alerts, malware scanning | CC7.2–CC7.4 |
-| Backup & Recovery | Daily backups, 30-day retention, restore tests | CC7.3 |
-| Incident Response | Runbooks, post-mortems, disclosure program | CC7.4–CC7.5 |
-| Workforce Security | Security training, NDAs, background checks | CC5.3–CC5.4 |
-
-The table summarizes how these practices relate to SOC 2 criteria. For current report details, request access through our Trust Center.
-
----
-
-## SOC 2 Audit Status
-
-AgentMail's first SOC 2 Type II audit was completed in 2025. Our 2026 annual audit is underway with A-LIGN, an independent CPA firm. Vanta supports continuous controls monitoring and automated evidence collection for the program.
-
----
-
-## Accessing SOC 2 Reports
-
-Organizations evaluating AgentMail can visit the [AgentMail Trust Center](https://app.vanta.com/agentmail.to/trust/1oqosh1a62stku80d8hdep) for an overview of our security program and request access to these documents:
+Visit our [Trust Center](https://app.vanta.com/agentmail.to/trust/1oqosh1a62stku80d8hdep) to view our live control status and request:
 
 - Our 2025 SOC 2 Type II report
 - Our security policies
 
-Documents are available to customers and prospects after access approval. If you need to complete a security questionnaire, request access through the Trust Center and our team will work through the review with you.
+Documents are available to customers and prospects after access approval.
 
----
+## Security questionnaires
+
+Request access through our [Trust Center](https://app.vanta.com/agentmail.to/trust/1oqosh1a62stku80d8hdep) and our team will work through your review with you.
