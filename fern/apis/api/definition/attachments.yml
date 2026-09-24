@@ -48,10 +48,13 @@ types:
       content_id: optional<AttachmentContentId>
       download_url:
         type: string
-        docs: URL to download the attachment.
+        docs: Signed HTTPS CDN URL to download the attachment bytes. Retrieve a fresh URL when needed rather than storing it permanently.
+      text_url:
+        type: optional<string>
+        docs: Signed HTTPS CDN URL to download extracted plain text, when available. Omitted when no extracted text is available. Expires at the same time as download_url.
       expires_at:
         type: datetime
-        docs: Time at which the download URL expires.
+        docs: Time at which download_url and text_url (when present) expire. Retrieve the attachment again to obtain fresh URLs.
 
   SendAttachment:
     docs: Provide either `content` or `url` for each attachment.

@@ -1,0 +1,74 @@
+---
+tags: ["messages-api", "threads-api", "breaking-change", "bug-fix"]
+---
+
+## Summary
+
+This update makes signed CDN URLs download attachments on direct browser navigation instead of rendering them as pages. It reduces the risk of executing sender-controlled content while preserving backend file processing and supported image, video, and audio subresources.
+
+### What's new?
+
+- The change covers attachment `download_url` values, including thread-level attachments, raw-message `.eml` `download_url` values, and optional extracted attachment `text_url` values.
+- Responses add download disposition, `nosniff`, frame denial, a restrictive sandboxed content security policy, a no-referrer policy, and HSTS.
+- File bytes, `content_type`, and `filename` metadata are unchanged. Existing filename parameters in download headers are preserved. Email MIME disposition is separate from browser download behavior.
+- Server-side fetches and supported `img`, `video`, and `audio` subresources continue to work, including CSS image references. Stylesheets still need a correct MIME type with `nosniff`.
+
+### Breaking changes
+
+⚠️ **After rollout, direct navigation downloads files and document previews need a different flow.**
+
+Do not use these URLs for `iframe`, `embed`, or `object` document previews, such as embedded PDF viewers. Download disposition changes navigation behavior, and `X-Frame-Options: DENY` plus CSP `frame-ancestors 'none'` block framing in supporting browsers. Ordinary supported image, video, and audio subresources do not need a new proxy for this change.
+
+Use the HTTPS URLs returned by the API without changing their scheme. Requests made over `http://` receive `403 Forbidden` instead of an HTTPS redirect after rollout.
+
+Signed URLs expire at `expires_at`, currently one hour after retrieval. A URL saved in page markup can expire before a user clicks it. Point the download link at your own backend route instead:
+
+```html
+<!-- before: a document preview using a stored signed URL -->
+<iframe src="ATTACHMENT_DOWNLOAD_URL" title="Attachment preview"></iframe>
+<!-- after: your backend fetches a fresh URL when clicked -->
+<a href="/attachments/ATTACHMENT_ID/download">Download attachment</a>
+```
+
+In that route, authenticate the user and verify their access to the attachment before calling the helper below with its inbox, message, and attachment IDs. Redirect to the returned URL with `Cache-Control: private, no-store`, or stream the bytes with download headers. Keep the AgentMail API key on your server; a global API key does not replace your application's per-user authorization.
+
+<CodeBlocks>
+```python title="Python"
+import os
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+def fresh_download_url(inbox_id, message_id, attachment_id):
+    attachment = client.inboxes.messages.get_attachment(
+        inbox_id=inbox_id, message_id=message_id, attachment_id=attachment_id
+    )
+    return attachment.download_url
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
+
+async function freshDownloadUrl(
+  inboxId: string, messageId: string, attachmentId: string,
+) {
+  const attachment = await client.inboxes.messages.getAttachment(
+    inboxId, messageId, attachmentId,
+  );
+  return attachment.downloadUrl;
+}
+```
+</CodeBlocks>
+
+If your application needs document previews, fetch the bytes on your backend and render only validated file types through an isolated preview flow. Do not serve arbitrary HTML or SVG as documents under your application origin.
+
+### Use cases
+
+- Build agents that offer fresh attachment downloads for users to inspect locally.
+- Build agents that fetch attachment bytes on the backend for document processing.
+
+<Note>
+  See the [Get Attachment API reference](https://docs.agentmail.to/api-reference/inboxes/messages/get-attachment) for `download_url`, optional `text_url`, and `expires_at`.
+</Note>
