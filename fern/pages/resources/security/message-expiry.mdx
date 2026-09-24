@@ -50,13 +50,3 @@ Previously downloaded content and content copied into drafts or other systems
 are independent copies and are not withdrawn by expiry. Webhook payloads
 accepted for delivery before expiry can still be delivered or retried after the
 24-hour window and may contain message content.
-
-## Access expiry and deletion
-
-Expiry removes message access through the API; it does not guarantee deletion of
-all backend copies within 24 hours. It is not a zero data retention or permanent
-deletion guarantee.
-
-Do not rely on disabling the policy to recover expired messages. Disabling it
-does not restore deleted messages or automatically replay suppressed events or
-failed scheduled sends.
