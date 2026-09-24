@@ -42,8 +42,8 @@ jobs:
           echo "::error::SDKs can only be released from main, not '${GITHUB_REF_NAME}'. Choose main in the Run workflow menu."
           exit 1
 
-      # Versions come from the registries themselves. The old workflow guessed
-      # from another repo's releases and shipped Python 2.0.1.
+      # Versions come from each SDK's own registry and repo. The old workflow
+      # guessed from another repo's releases and shipped Python 2.0.1.
       - name: Pick versions
         id: versions
         env:
@@ -52,24 +52,27 @@ jobs:
           set -euo pipefail
           entries=()
 
-          next_patch() {  # next_patch <sdk> <latest published version>
-            if [[ ! "$2" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::Could not read the published $1 version (got '$2')."
+          next_patch() {  # next_patch <sdk> <versions on the registry> <SDK repo>
+            # PyPI/npm answer from a CDN that lagged about 2 minutes behind the
+            # 2.0.2 release, so also count the tags Fern pushes before publishing.
+            # Yanked versions count too: a version number can never be reused.
+            tags=$(git ls-remote --tags --refs "https://github.com/agentmail-to/$3" | sed 's#.*refs/tags/##') || tags=
+            latest=$(printf '%s\n%s\n' "$2" "$tags" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1) || latest=
+            if [ -z "$2" ] || [ -z "$tags" ] || [ -z "$latest" ]; then
+              echo "::error::Could not read the published $1 versions from the registry and agentmail-to/$3."
               exit 1
             fi
-            IFS=. read -r major minor patch <<< "$2"
+            IFS=. read -r major minor patch <<< "$latest"
             version="$major.$minor.$((patch + 1))"
-            echo "- $1: $2 → $version" >> "$GITHUB_STEP_SUMMARY"
+            echo "- $1: $latest → $version" >> "$GITHUB_STEP_SUMMARY"
             entries+=("{\"sdk\":\"$1\",\"version\":\"$version\"}")
           }
 
           if [ "$SDKS" != node ]; then
-            next_patch python "$(curl -fsSL https://pypi.org/pypi/agentmail/json \
-              | jq -r '.releases | to_entries[] | select(any(.value[]; .yanked | not)) | .key' \
-              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)"
+            next_patch python "$(curl -fsSL https://pypi.org/pypi/agentmail/json | jq -r '.releases | keys[]')" agentmail-python
           fi
           if [ "$SDKS" != python ]; then
-            next_patch node "$(npm view agentmail version)"
+            next_patch node "$(npm view agentmail versions --json | jq -r '.[]')" agentmail-node
           fi
           echo "matrix={\"include\":[$(IFS=,; echo "${entries[*]}")]}" >> "$GITHUB_OUTPUT"
 
