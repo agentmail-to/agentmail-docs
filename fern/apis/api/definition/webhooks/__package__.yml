@@ -38,6 +38,17 @@ types:
       event_types: optional<events.EventTypes>
       pod_ids: optional<events.PodIds>
       inbox_ids: optional<events.InboxIds>
+      pod_id:
+        type: optional<string>
+        docs: |
+          ID of the pod the webhook belongs to: the pod it was created in, or the pod of the inbox it
+          belongs to. Absent for an organization webhook and on some inbox webhooks. This is not the
+          list of pods it receives events for; see `pod_ids`.
+      inbox_id:
+        type: optional<string>
+        docs: |
+          ID of the inbox the webhook belongs to, if it was created for an inbox. This is not the list
+          of inboxes it receives events for; see `inbox_ids`.
       secret:
         type: string
         docs: Secret for webhook signature verification.
