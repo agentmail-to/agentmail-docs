@@ -125,7 +125,8 @@ types:
           Set to true to re-enable a webhook that was disabled after repeated failed deliveries, or false
           to disable it. Events that occurred while the webhook was disabled are not redelivered.
           Re-enabling a webhook subscribed to `message.received.spam`, `message.received.blocked`, or
-          `message.received.unauthenticated` requires the matching label permission on the API key.
+          `message.received.unauthenticated` (or to every event type, with no filter) requires the
+          matching label permissions on the API key.
 
   UpdatePodWebhookRequest:
     docs: |
