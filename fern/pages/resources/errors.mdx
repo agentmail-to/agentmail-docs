@@ -117,6 +117,14 @@ The message was not sent. The message names the reason, and the `fix` states whi
 - **A suspended account** — email support@agentmail.to; retrying will keep failing until the suspension is resolved.
 - **An unfetchable attachment URL** — use a URL that AgentMail can download without custom authentication headers or cookies, or send the attachment inline as Base64. Redirects and pre-signed URLs are supported, and the final response must be a successful 2xx response.
 
+### inbox_suspended
+
+Sending from this inbox has been suspended because its bounce or spam-complaint rate crossed AgentMail's moderation threshold. This applies only to organizations whose moderation is scoped per inbox; the rest of the organization keeps sending. The response carries `suspended_reason` (`message.bounced` or `message.complained`). Retrying will keep failing until the suspension is lifted, and changing the inbox's `status` does not clear it. Email support@agentmail.to to have it reviewed. The inbox can still receive mail and hold drafts.
+
+### pod_suspended
+
+Sending from this pod has been suspended because its bounce or spam-complaint rate crossed AgentMail's moderation threshold. This applies only to organizations whose moderation is scoped per pod; other pods keep sending. The response carries `suspended_reason` (`message.bounced` or `message.complained`). Retrying from any inbox in the pod will keep failing until the suspension is lifted. Email support@agentmail.to to have it reviewed.
+
 ## Request too large (413)
 
 Oversized inline attachment requests return an infrastructure-generated response:
