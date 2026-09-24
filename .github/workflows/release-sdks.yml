@@ -1,24 +1,26 @@
 name: Release SDKs
 
-# Releases the Python and/or Node SDK from main.
-# To run: Actions → Release SDKs → Run workflow, then fill in the version(s).
+# Releases the Python and/or Node SDK from main, each one patch version above
+# what PyPI/npm has now (e.g. 2.0.1 → 2.0.2).
+# To run: Actions → Release SDKs → Run workflow.
 # Fern pushes a tagged release to agentmail-to/agentmail-python or
 # agentmail-to/agentmail-node, and that repo's CI publishes it to PyPI or npm.
 on:
   workflow_dispatch:
     inputs:
-      python_version:
-        description: Python SDK version, e.g. 2.0.2 (empty = don't release Python)
-        required: false
-        type: string
-      node_version:
-        description: Node SDK version, e.g. 0.5.29 (empty = don't release Node)
-        required: false
-        type: string
+      sdks:
+        description: Which SDKs to release (each goes up one patch version, e.g. 2.0.1 → 2.0.2)
+        type: choice
+        options:
+          - both
+          - python
+          - node
+        default: both
 
-run-name: Release SDKs (python ${{ inputs.python_version || '-' }}, node ${{ inputs.node_version || '-' }}) by @${{ github.actor }}
+run-name: Release SDKs (${{ inputs.sdks }}) by @${{ github.actor }}
 
-# A second click waits for the running release instead of racing it.
+# A second click waits for the running release, then bumps from the version it
+# just published instead of racing it for the same one.
 concurrency:
   group: release-sdks
   cancel-in-progress: false
@@ -40,49 +42,38 @@ jobs:
           echo "::error::SDKs can only be released from main, not '${GITHUB_REF_NAME}'. Choose main in the Run workflow menu."
           exit 1
 
-      # Versions are explicit and must be newer than what is published. The old
-      # workflow guessed a version from another repo and shipped Python 2.0.1.
-      - name: Check versions
+      # Versions come from the registries themselves. The old workflow guessed
+      # from another repo's releases and shipped Python 2.0.1.
+      - name: Pick versions
         id: versions
         env:
-          PYTHON_VERSION: ${{ inputs.python_version }}
-          NODE_VERSION: ${{ inputs.node_version }}
+          SDKS: ${{ inputs.sdks }}
         run: |
           set -euo pipefail
           entries=()
 
-          check() {  # check <sdk> <version> <latest published version>
+          next_patch() {  # next_patch <sdk> <latest published version>
             if [[ ! "$2" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::$1 version '$2' must look like 1.2.3."
+              echo "::error::Could not read the published $1 version (got '$2')."
               exit 1
             fi
-            if [ "$2" = "$3" ] || [ "$(printf '%s\n%s\n' "$2" "$3" | sort -V | tail -n1)" != "$2" ]; then
-              echo "::error::$1 version $2 must be newer than the published $3."
-              exit 1
-            fi
-            echo "- $1: $3 → $2" >> "$GITHUB_STEP_SUMMARY"
-            entries+=("{\"sdk\":\"$1\",\"version\":\"$2\"}")
+            IFS=. read -r major minor patch <<< "$2"
+            version="$major.$minor.$((patch + 1))"
+            echo "- $1: $2 → $version" >> "$GITHUB_STEP_SUMMARY"
+            entries+=("{\"sdk\":\"$1\",\"version\":\"$version\"}")
           }
 
-          python_version="${PYTHON_VERSION//[[:space:]]/}"
-          node_version="${NODE_VERSION//[[:space:]]/}"
-          if [ -z "$python_version$node_version" ]; then
-            echo "::error::Fill in python_version, node_version, or both."
-            exit 1
-          fi
-          if [ -n "$python_version" ]; then
-            latest=$(curl -fsSL https://pypi.org/pypi/agentmail/json \
+          if [ "$SDKS" != node ]; then
+            next_patch python "$(curl -fsSL https://pypi.org/pypi/agentmail/json \
               | jq -r '.releases | to_entries[] | select(any(.value[]; .yanked | not)) | .key' \
-              | sort -V | tail -n1)
-            check python "$python_version" "$latest"
+              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)"
           fi
-          if [ -n "$node_version" ]; then
-            check node "$node_version" "$(npm view agentmail version)"
+          if [ "$SDKS" != python ]; then
+            next_patch node "$(npm view agentmail version)"
           fi
           echo "matrix={\"include\":[$(IFS=,; echo "${entries[*]}")]}" >> "$GITHUB_OUTPUT"
 
   release:
-    name: Release ${{ matrix.sdk }} ${{ matrix.version }}
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 20
