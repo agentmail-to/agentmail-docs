@@ -1,0 +1,51 @@
+---
+title: "24-hour Message Expiry"
+slug: message-expiry
+description: "Optional 24-hour message access expiry for your organization. Contact us about early access."
+---
+
+Message expiry is an optional, organization-wide access policy. When enabled,
+access to each message ends after 24 hours.
+
+## Request message expiry
+
+[Contact our team](https://www.agentmail.to/enterprise) about early access.
+Message expiry is off by default. Our team will confirm availability and
+activation for your organization.
+
+## Before you request
+
+Review the impact with your organization owner and the team responsible for your
+integration:
+
+- The policy applies to **existing and new messages**. Existing messages older than 24 hours become inaccessible once activation takes effect.
+- Replies, forwards, and drafts cannot read expired source messages. Scheduled sends that require an expired source message fail and are not automatically replayed if the policy is later disabled.
+- Message lists and search results omit expired messages. A page can be short or empty while still returning a `next_page_token`; continue paging until no token remains.
+- Thread summaries and fields are recalculated from accessible messages. Threads with no accessible messages are unavailable. Thread requests that exceed the processing time limit can return `503`; integrations should handle retries.
+
+## How it works
+
+The 24-hour window starts when AgentMail records the message's creation time.
+The sender's email date and later label updates do not restart the window.
+
+Direct reads of expired messages and their content return not found. Batch get
+and batch update requests omit expired messages from successful responses.
+Expired download links can return `403`. Explicitly deleting an expired message
+is still supported.
+
+The window applies to each message record. It is not a guarantee that the same
+content cannot appear in another message or inbox with a separate access window.
+IMAP may still list expired message metadata, although message content is unavailable.
+
+## Activation and existing copies
+
+Our team will confirm when activation takes effect. Cached access settings may
+take several minutes to refresh. Download links issued before activation can
+remain usable until their original expiry, normally up to one hour. New message
+content links issued under the expiry policy cannot outlive the message's
+access window.
+
+Previously downloaded content and content copied into drafts or other systems
+are independent copies and are not withdrawn by expiry. Webhook payloads
+accepted for delivery before expiry can still be delivered or retried after the
+24-hour window and may contain message content.
