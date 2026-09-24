@@ -441,6 +441,9 @@ navigation:
               - page: SPF, DKIM, DMARC
                 icon: fa-solid fa-key
                 path: pages/resources/security/email-protocols.mdx
+              - page: 24-hour Message Expiry
+                icon: fa-solid fa-clock
+                path: pages/resources/security/message-expiry.mdx
               - page: SOC 2 Compliance
                 icon: fa-solid fa-certificate
                 path: pages/resources/security/soc2.mdx
