@@ -65,3 +65,37 @@ service:
       response: metrics.QueryUsageResponse
       errors:
         - global.ValidationError
+
+    queryRates:
+      method: GET
+      path: /rates
+      display-name: Query Rates
+      docs: |
+        Rolling bounce and complaint rates for the inbox. At each `period`
+        grid point, the bounced (or complained) messages over the preceding
+        `window` divided by the messages sent over the same window, with both
+        counts alongside. Account moderation evaluates the organization-wide
+        rate, so use the organization endpoint to see the number it acts on;
+        the inbox view shows which inboxes contribute. Defaults to the rolling
+        24-hour rate sampled hourly over the last day; `start` must be within
+        the last 90 days, `window` must be a whole multiple of `period`, and
+        the range plus window divided by `period` must not exceed 1000
+        buckets.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes metrics query-rates --inbox-id <inbox_id>
+        ```
+      request:
+        name: QueryRatesRequest
+        query-parameters:
+          rate_types: optional<metrics.RateTypes>
+          start: optional<metrics.Start>
+          end: optional<metrics.End>
+          period: optional<metrics.RatePeriod>
+          window: optional<metrics.Window>
+          limit: optional<metrics.MetricLimit>
+          descending: optional<metrics.Descending>
+      response: metrics.QueryRatesResponse
+      errors:
+        - global.ValidationError
