@@ -114,9 +114,16 @@ types:
   # Update requests. `event_types` is editable at every scope; wider scopes can additionally
   # change which channels (inboxes, then pods) the webhook is subscribed to.
   UpdateInboxWebhookRequest:
-    docs: Update an inbox-scoped webhook. It is fixed to its inbox, so only `event_types` can change.
+    docs: |
+      Update an inbox-scoped webhook. It is fixed to its inbox, so only `event_types` and `enabled` can
+      change.
     properties:
       event_types: optional<UpdateWebhookEventTypes>
+      enabled:
+        type: optional<boolean>
+        docs: |
+          Set to true to re-enable a webhook that was disabled after repeated failed deliveries, or false
+          to disable it.
 
   UpdatePodWebhookRequest:
     docs: |
