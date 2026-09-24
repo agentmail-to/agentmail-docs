@@ -122,17 +122,27 @@ types:
           Pods for which to send events. Maximum 10 per webhook. The webhook receives an event that matches
           any listed pod or inbox, so a listed pod already covers every inbox in it.
 
-  # Update requests. `event_types` is editable at every scope; wider scopes can additionally
-  # change which channels (inboxes, then pods) the webhook is subscribed to.
+  # Update requests. `event_types` and `enabled` are editable at every scope; wider scopes can
+  # additionally change which channels (inboxes, then pods) the webhook is subscribed to.
   UpdateInboxWebhookRequest:
-    docs: Update an inbox-scoped webhook. It is fixed to its inbox, so only `event_types` can change.
+    docs: |
+      Update an inbox-scoped webhook. It is fixed to its inbox, so only `event_types` and `enabled` can
+      change.
     properties:
       event_types: optional<UpdateWebhookEventTypes>
+      enabled:
+        type: optional<boolean>
+        docs: |
+          Set to true to re-enable a webhook that was disabled after repeated failed deliveries, or false
+          to disable it. Events that occurred while the webhook was disabled are not redelivered.
+          Re-enabling a webhook subscribed to `message.received.spam`, `message.received.blocked`, or
+          `message.received.unauthenticated` (or to every event type, with no filter) requires the
+          matching label permissions on the API key.
 
   UpdatePodWebhookRequest:
     docs: |
-      Update a pod-scoped webhook. You can adjust which inboxes within the pod it listens to and replace
-      its `event_types`, but not the pod scope itself.
+      Update a pod-scoped webhook. You can adjust which inboxes within the pod it listens to, replace
+      its `event_types`, and set `enabled`, but not change the pod scope itself.
     extends: UpdateInboxWebhookRequest
     properties:
       add_inbox_ids:
