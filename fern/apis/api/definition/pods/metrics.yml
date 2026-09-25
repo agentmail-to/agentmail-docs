@@ -73,8 +73,8 @@ service:
       docs: |
         Rolling bounce and complaint rates for the pod. At each `period` grid
         point, the bounced (or complained) messages over the preceding
-        `window` divided by the messages sent over the same window, with both
-        counts alongside. Account moderation evaluates the organization-wide
+        `window` divided by the messages sent over the same window, with the
+        send count alongside. Account moderation evaluates the organization-wide
         rate, so use the organization endpoint to see the number it acts on;
         the pod view shows which pods contribute. Defaults to the rolling
         24-hour rate sampled hourly over the last day; `start` must be within

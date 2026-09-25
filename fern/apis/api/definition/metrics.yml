@@ -143,9 +143,6 @@ types:
           Bounced or complained messages divided by messages sent over the
           window, as a fraction (0.05 is 5%). Null when nothing was sent in
           the window.
-      count:
-        type: integer
-        docs: Bounced or complained messages in the window.
       sent:
         type: integer
         docs: Messages sent in the window, counted per recipient.
@@ -219,8 +216,8 @@ service:
         Rolling bounce and complaint rates for the organization. At each
         `period` grid point, the bounced (or complained) messages over the
         preceding `window` divided by the messages sent over the same window,
-        with both counts alongside so you can reconcile against your own
-        records. This is the number AgentMail's account moderation acts on: a
+        with the send count alongside so you can see the volume behind
+        it. This is the number AgentMail's account moderation acts on: a
         warning at a 5% bounce rate and suspension at 10%, evaluated over a
         rolling 24 hours once at least 1,000 messages were sent in that
         window. Defaults to the rolling 24-hour rate sampled hourly over the
