@@ -119,11 +119,11 @@ The message was not sent. The message names the reason, and the `fix` states whi
 
 ### inbox_suspended
 
-Sending from this inbox has been suspended because its bounce or spam-complaint rate crossed AgentMail's moderation threshold. This applies only to organizations whose moderation is scoped per inbox; the rest of the organization keeps sending. The response carries `suspended_reason` (`message.bounced` or `message.complained`). Retrying will keep failing until the suspension is lifted, and changing the inbox's `status` does not clear it. Email support@agentmail.to to have it reviewed. The inbox can still receive mail and hold drafts.
+Sending from this inbox has been suspended because its bounce or spam-complaint rate crossed AgentMail's moderation threshold. This applies only to organizations opted in to inbox- and pod-level moderation; the rest of the organization keeps sending. The response carries `suspended_reason` (`message.bounced` or `message.complained`). Retrying will keep failing until the suspension is lifted, and changing the inbox's `status` does not clear it. Email support@agentmail.to to have it reviewed. The inbox can still receive mail and hold drafts.
 
 ### pod_suspended
 
-Sending from this pod has been suspended because its bounce or spam-complaint rate crossed AgentMail's moderation threshold. This applies only to organizations whose moderation is scoped per pod; other pods keep sending. The response carries `suspended_reason` (`message.bounced` or `message.complained`). Retrying from any inbox in the pod will keep failing until the suspension is lifted. Email support@agentmail.to to have it reviewed.
+Sending from this pod has been suspended because its bounce or spam-complaint rate crossed AgentMail's moderation threshold. This applies only to organizations opted in to inbox- and pod-level moderation; other pods keep sending. The response carries `suspended_reason` (`message.bounced` or `message.complained`). Retrying from any inbox in the pod will keep failing until the suspension is lifted. Email support@agentmail.to to have it reviewed.
 
 ## Request too large (413)
 
