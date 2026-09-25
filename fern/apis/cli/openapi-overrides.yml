@@ -935,3 +935,20 @@ paths:
       - pods
       - accounts
       x-fern-sdk-method-name: get
+  /v0/inboxes/{inbox_id}/metrics/rates:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - metrics
+      x-fern-sdk-method-name: query-rates
+  /v0/metrics/rates:
+    get:
+      x-fern-sdk-group-name:
+      - metrics
+      x-fern-sdk-method-name: query-rates
+  /v0/pods/{pod_id}/metrics/rates:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - metrics
+      x-fern-sdk-method-name: query-rates

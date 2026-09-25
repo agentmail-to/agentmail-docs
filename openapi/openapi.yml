@@ -275,13 +275,11 @@ paths:
         - BearerAuth: []
   /v0/inboxes/{inbox_id}/authorize:
     post:
-      description: >-
+      description: |-
         Authorizes the AgentID sign-in a client is already waiting in, for the
-
-        inbox in the path, and returns the pending public key it will activate.
-        A
-
-        repeat for the same token, inbox, and bearer returns the same key.
+        inbox in the path, and returns the ID of the pending public key it will
+        activate. Read the key with Get API Key. A repeat for the same token,
+        inbox, and bearer returns the same key ID.
       operationId: inboxes_authorize
       tags:
         - Inboxes
@@ -297,7 +295,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicKeyCredential'
+                $ref: '#/components/schemas/inboxesAuthorizeInboxResponse'
         '400':
           description: ''
           content:
@@ -854,23 +852,43 @@ paths:
         - BearerAuth: []
   /v0/accounts/{account_id}/update:
     patch:
-      description: |-
+      description: >-
         Updates one account. Set `status` to `disabled` to stop the inbox from
+
         signing in at the provider again, or to `enabled` to re-enable it.
+
         Idempotent: disabling an already disabled account keeps its original
+
         `disabled_at`, and enabling an enabled account is a no-op.
 
-        Find the `account_id` with List Accounts. An account exists only after an
-        inbox's first sign-in at a provider, so it cannot be disabled in advance.
-        A disable applies to that inbox at that provider whichever sign-in key is
-        used: the provider's next authorization ends in `access_denied`, and a code
+
+        Find the `account_id` with List Accounts. An account exists only after
+        an
+
+        inbox's first sign-in at a provider, so it cannot be disabled in
+        advance.
+
+        A disable applies to that inbox at that provider whichever sign-in key
+        is
+
+        used: the provider's next authorization ends in `access_denied`, and a
+        code
+
         issued earlier is refused with `invalid_grant`. Access tokens already
+
         issued stay valid until they expire, and the provider's own session is
+
         unaffected.
 
-        Requires `account_update`, which sign-in keys (`type: public_key`) cannot
+
+        Requires `account_update`, which sign-in keys (`type: public_key`)
+        cannot
+
         hold, so call this with a bearer API key. An account outside the key's
-        scope is a 404. A 409 means the account changed during the write; read it
+
+        scope is a 404. A 409 means the account changed during the write; read
+        it
+
         again and retry.
       operationId: accounts_update
       tags:
@@ -1361,6 +1379,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Create Domain
       servers:
         - url: https://api.agentmail.to
@@ -3750,6 +3774,96 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/inboxes/{inbox_id}/metrics/rates:
+    get:
+      description: |-
+        Rolling bounce and complaint rates for the inbox. At each `period`
+        grid point, the bounced (or complained) messages over the preceding
+        `window` divided by the messages sent over the same window, with the
+        send count alongside. Account moderation evaluates the organization-wide
+        rate, so use the organization endpoint to see the number it acts on;
+        the inbox view shows which inboxes contribute. Defaults to the rolling
+        24-hour rate sampled hourly over the last day; `start` must be within
+        the last 90 days, `window` must be a whole multiple of `period`, and
+        the range plus window divided by `period` must not exceed 1000
+        buckets.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes metrics query-rates --inbox-id <inbox_id>
+        ```
+      operationId: inboxes_metrics_queryRates
+      tags:
+        - InboxesMetrics
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: rate_types
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RateTypes'
+            nullable: true
+        - name: start
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Start'
+            nullable: true
+        - name: end
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/End'
+            nullable: true
+        - name: period
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RatePeriod'
+            nullable: true
+        - name: window
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Window'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/MetricLimit'
+            nullable: true
+        - name: descending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Descending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryRatesResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Query Rates
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/inboxes/{inbox_id}/threads:
     get:
       description: |-
@@ -4846,6 +4960,92 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/metrics/rates:
+    get:
+      description: |-
+        Rolling bounce and complaint rates for the organization. At each
+        `period` grid point, the bounced (or complained) messages over the
+        preceding `window` divided by the messages sent over the same window,
+        with the send count alongside so you can see the volume behind
+        it. This is the number AgentMail's account moderation acts on: a
+        warning at a 5% bounce rate and suspension at 10%, evaluated over a
+        rolling 24 hours once at least 1,000 messages were sent in that
+        window. Defaults to the rolling 24-hour rate sampled hourly over the
+        last day; `start` must be within the last 90 days, `window` must be a
+        whole multiple of `period`, and the range plus window divided by
+        `period` must not exceed 1000 buckets.
+
+        **CLI:**
+        ```bash
+        agentmail metrics query-rates
+        ```
+      operationId: metrics_queryRates
+      tags:
+        - Metrics
+      parameters:
+        - name: rate_types
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RateTypes'
+            nullable: true
+        - name: start
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Start'
+            nullable: true
+        - name: end
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/End'
+            nullable: true
+        - name: period
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RatePeriod'
+            nullable: true
+        - name: window
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Window'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/MetricLimit'
+            nullable: true
+        - name: descending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Descending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryRatesResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Query Rates
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/organizations:
     get:
       description: >-
@@ -5253,6 +5453,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Create Domain
       servers:
         - url: https://api.agentmail.to
@@ -6307,6 +6513,96 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
       summary: Query Usage
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/pods/{pod_id}/metrics/rates:
+    get:
+      description: |-
+        Rolling bounce and complaint rates for the pod. At each `period` grid
+        point, the bounced (or complained) messages over the preceding
+        `window` divided by the messages sent over the same window, with the
+        send count alongside. Account moderation evaluates the organization-wide
+        rate, so use the organization endpoint to see the number it acts on;
+        the pod view shows which pods contribute. Defaults to the rolling
+        24-hour rate sampled hourly over the last day; `start` must be within
+        the last 90 days, `window` must be a whole multiple of `period`, and
+        the range plus window divided by `period` must not exceed 1000
+        buckets.
+
+        **CLI:**
+        ```bash
+        agentmail pods metrics query-rates --pod-id <pod_id>
+        ```
+      operationId: pods_metrics_queryRates
+      tags:
+        - PodsMetrics
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: rate_types
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RateTypes'
+            nullable: true
+        - name: start
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Start'
+            nullable: true
+        - name: end
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/End'
+            nullable: true
+        - name: period
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RatePeriod'
+            nullable: true
+        - name: window
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Window'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/MetricLimit'
+            nullable: true
+        - name: descending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Descending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryRatesResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Query Rates
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -7970,6 +8266,25 @@ components:
           nullable: true
       required:
         - auth_token
+    inboxesAuthorizeInboxResponse:
+      title: inboxesAuthorizeInboxResponse
+      type: object
+      description: >-
+        The authorized sign-in's key ID plus the agent's next step. The key
+        itself
+
+        is read with Get API Key.
+      properties:
+        api_key_id:
+          $ref: '#/components/schemas/ApiKeyId'
+          description: ID of the public key the client will activate.
+        instructions:
+          type: string
+          const: Authorization complete. Return to browser.
+          description: The agent's next step. Nothing further is required from the agent.
+      required:
+        - api_key_id
+        - instructions
     podsPodId:
       title: podsPodId
       type: string
@@ -8091,6 +8406,25 @@ components:
         inbox_ids:
           $ref: '#/components/schemas/InboxIds'
           nullable: true
+        pod_id:
+          type: string
+          nullable: true
+          description: >-
+            ID of the pod the webhook belongs to: the pod it was created in, or
+            the pod of the inbox it
+
+            belongs to. Absent for an organization webhook and on some inbox
+            webhooks. This is not the
+
+            list of pods it receives events for; see `pod_ids`.
+        inbox_id:
+          type: string
+          nullable: true
+          description: >-
+            ID of the inbox the webhook belongs to, if it was created for an
+            inbox. This is not the list
+
+            of inboxes it receives events for; see `inbox_ids`.
         secret:
           type: string
           description: Secret for webhook signature verification.
@@ -8213,6 +8547,12 @@ components:
         pod_ids:
           $ref: '#/components/schemas/PodIds'
           nullable: true
+          description: >-
+            Pods for which to send events. Maximum 10 per webhook. The webhook
+            receives an event that matches
+
+            any listed pod or inbox, so a listed pod already covers every inbox
+            in it.
       allOf:
         - $ref: '#/components/schemas/webhooksCreatePodWebhookRequest'
     webhooksUpdateInboxWebhookRequest:
@@ -8220,24 +8560,51 @@ components:
       type: object
       description: >-
         Update an inbox-scoped webhook. It is fixed to its inbox, so only
-        `event_types` can change.
+        `event_types` and `enabled` can
+
+        change.
       properties:
         event_types:
           $ref: '#/components/schemas/webhooksUpdateWebhookEventTypes'
           nullable: true
+        enabled:
+          type: boolean
+          nullable: true
+          description: >-
+            Set to true to re-enable a webhook that was disabled after repeated
+            failed deliveries, or false
+
+            to disable it. Events that occurred while the webhook was disabled
+            are not redelivered.
+
+            Re-enabling a webhook subscribed to `message.received.spam`,
+            `message.received.blocked`, or
+
+            `message.received.unauthenticated` (or to every event type, with no
+            filter) requires the
+
+            matching label permissions on the API key.
     webhooksUpdatePodWebhookRequest:
       title: webhooksUpdatePodWebhookRequest
       type: object
       description: >-
         Update a pod-scoped webhook. You can adjust which inboxes within the pod
-        it listens to and replace
+        it listens to, replace
 
-        its `event_types`, but not the pod scope itself.
+        its `event_types`, and set `enabled`, but not change the pod scope
+        itself.
       properties:
         add_inbox_ids:
           $ref: '#/components/schemas/InboxIds'
           nullable: true
-          description: Inbox IDs to subscribe to the webhook.
+          description: >-
+            Inbox IDs to subscribe to the webhook. This only adds to what the
+            webhook receives: on a webhook
+
+            that covers its whole pod, it changes nothing. To receive only
+            specific inboxes, create a webhook
+
+            with `inbox_ids` instead.
         remove_inbox_ids:
           $ref: '#/components/schemas/InboxIds'
           nullable: true
@@ -9093,11 +9460,22 @@ components:
           nullable: true
         download_url:
           type: string
-          description: URL to download the attachment.
+          description: >-
+            Signed HTTPS CDN URL to download the attachment bytes. Retrieve a
+            fresh URL when needed rather than storing it permanently.
+        text_url:
+          type: string
+          nullable: true
+          description: >-
+            Signed HTTPS CDN URL to download extracted plain text, when
+            available. Omitted when no extracted text is available. Expires at
+            the same time as download_url.
         expires_at:
           type: string
           format: date-time
-          description: Time at which the download URL expires.
+          description: >-
+            Time at which download_url and text_url (when present) expire.
+            Retrieve the attachment again to obtain fresh URLs.
       required:
         - attachment_id
         - size
@@ -9452,6 +9830,23 @@ components:
       properties:
         domain:
           $ref: '#/components/schemas/DomainName'
+        allow_conflicting_provider:
+          type: boolean
+          nullable: true
+          description: >-
+            Allow registration when the domain already has Google Workspace MX
+            records.
+
+            Defaults to false; registration otherwise returns 422 when a
+            conflicting
+
+            provider is detected.
+
+            This flag does not configure DNS or inbound routing. For shared
+            Google
+
+            Workspace domains, follow the [Google Workspace
+            guide](/google-workspace).
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
           nullable: true
@@ -10851,7 +11246,7 @@ components:
     RawMessageResponse:
       title: RawMessageResponse
       type: object
-      description: S3 presigned URL to download the raw .eml file.
+      description: CloudFront signed URL to download the raw .eml file.
       properties:
         message_id:
           $ref: '#/components/schemas/MessageId'
@@ -10861,7 +11256,9 @@ components:
           description: Size of the raw message in bytes.
         download_url:
           type: string
-          description: S3 presigned URL to download the raw message. Expires at expires_at.
+          description: >-
+            CloudFront signed URL to download the raw message. Expires at
+            expires_at.
         expires_at:
           type: string
           format: date-time
@@ -11181,6 +11578,67 @@ components:
         items:
           $ref: '#/components/schemas/UsagePoint'
       description: Cumulative usage series grouped by usage type.
+    RateType:
+      title: RateType
+      type: string
+      enum:
+        - bounce
+        - complaint
+      description: |-
+        Type of rate. `bounce` is bounced messages divided by messages sent,
+        counting permanent and transient bounces; `complaint` is spam complaints
+        divided by messages sent.
+    RateTypes:
+      title: RateTypes
+      type: array
+      items:
+        $ref: '#/components/schemas/RateType'
+      description: List of rate types to query. Omit to query both.
+    RatePeriod:
+      title: RatePeriod
+      type: integer
+      description: |-
+        How often a point is sampled, as a whole number of seconds between 60
+        and 86400. Defaults to 3600 (one point per hour).
+    Window:
+      title: Window
+      type: integer
+      description: |-
+        How far back each point looks, as a whole number of seconds. Must be a
+        whole multiple of `period`, at most 30 days (2592000). Defaults to 86400
+        (a rolling 24-hour rate).
+    RatePoint:
+      title: RatePoint
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: >-
+            End of the window the point covers; the window is the `window`
+            seconds before it.
+        rate:
+          type: number
+          format: double
+          nullable: true
+          description: |-
+            Bounced or complained messages divided by messages sent over the
+            window, as a fraction (0.05 is 5%). Null when nothing was sent in
+            the window.
+        sent:
+          type: integer
+          description: Messages sent in the window, counted per recipient.
+      required:
+        - timestamp
+        - sent
+    QueryRatesResponse:
+      title: QueryRatesResponse
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          $ref: '#/components/schemas/RatePoint'
+      description: Rate series grouped by rate type.
     Organization:
       title: Organization
       type: object
@@ -11267,9 +11725,9 @@ components:
           type: integer
           nullable: true
           description: >-
-            Maximum number of accounts your organization may sign up at this provider. Omitted when
-            the provider sets no limit. 0 means the provider has paused new sign-ups; existing accounts
-            keep signing in.
+            Maximum number of accounts your organization may sign up at this
+            provider. Omitted when the provider sets no limit. 0 means the
+            provider has paused new sign-ups; existing accounts keep signing in.
       required:
         - provider_id
     ListProvidersResponse:
