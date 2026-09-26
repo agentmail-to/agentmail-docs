@@ -11,6 +11,8 @@ types:
     enum:
       - name: MESSAGE_RECEIVED
         value: message.received
+      - name: MESSAGE_RECEIVED_ENVELOPE
+        value: message.received.envelope
       - name: MESSAGE_RECEIVED_SPAM
         value: message.received.spam
       - name: MESSAGE_RECEIVED_BLOCKED
@@ -37,6 +39,7 @@ types:
     docs: Event types for which to send events.
 
   MessageReceivedEventType:
+    docs: Full-content received variants only. The metadata-only envelope has a separate event schema.
     enum:
       - name: MESSAGE_RECEIVED
         value: message.received
@@ -140,6 +143,53 @@ types:
       thread_id: threads.ThreadId
       message_id: messages.MessageId
       timestamp: Timestamp
+
+  AuthenticationVerdict:
+    enum:
+      - pass
+      - fail
+      - none
+      - temperror
+      - permerror
+      - neutral
+      - softfail
+
+  MessageAuthenticationResults:
+    docs: Optional producer-verified verdicts. Absence does not imply authentication passed; raw Authentication-Results headers are not trusted evidence.
+    properties:
+      spf: optional<AuthenticationVerdict>
+      dkim: optional<AuthenticationVerdict>
+      dmarc: optional<AuthenticationVerdict>
+
+  ReceivedEnvelopeMessage:
+    docs: Selected metadata only. Labels and Message-ID remain user-controlled metadata; invalid addresses are omitted. No subject, body, preview, attachment or content URL is included.
+    properties:
+      organization_id: string
+      pod_id: string
+      inbox_id: inboxes.InboxId
+      thread_id: threads.ThreadId
+      message_id: messages.MessageId
+      timestamp: Timestamp
+      created_at: Timestamp
+      updated_at: Timestamp
+      from: optional<string>
+      to: optional<list<string>>
+      cc: optional<list<string>>
+      bcc: optional<list<string>>
+      reply_to: optional<list<string>>
+      labels: list<string>
+      authentication_results: optional<MessageAuthenticationResults>
+      headers:
+        type: map<string, string>
+        docs: Currently empty. No raw header values are allowlisted.
+
+  MessageReceivedEnvelopeEvent:
+    docs: Opt-in pilot webhook, separate from the full-content received event. Requires support activation. Not emitted on WebSocket connections.
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.received.envelope">
+      event_id: EventId
+      message: ReceivedEnvelopeMessage
 
   MessageReceivedEvent:
     docs: A message was received. Spam, blocked, and unauthenticated received-message events use the same payload shape with different `event_type` values.
