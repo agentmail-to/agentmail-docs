@@ -142,6 +142,30 @@ agentmail inboxes list
   domains](/managing-domains).
 </Tip>
 
+## Plus addressing
+
+AgentMail supports plus addressing, also known as sub-addressing, for inbound email. If you create an inbox like `agent@example.com`, email sent to `agent+support@example.com`, `agent+billing@example.com`, or any other `agent+tag@example.com` address is delivered to the same `agent@example.com` inbox.
+
+Create the base inbox address:
+
+<CodeBlocks>
+
+```python title="Python"
+inbox = client.inboxes.create(
+    username="agent",
+    domain="example.com",
+)
+```
+
+```typescript title="TypeScript"
+const inbox = await client.inboxes.create({
+  username: "agent",
+  domain: "example.com",
+});
+```
+
+</CodeBlocks>
+
 ## Metadata
 
 Attach your own key-value data to any `Inbox` with the `metadata` field. Use it to link an inbox to records in your own system: a user ID, an agent name, or feature flags. Metadata is returned on every inbox response.
