@@ -1,0 +1,157 @@
+---
+title: "AgentMail vs Resend for AI agents"
+subtitle: A feature-by-feature comparison for developers building autonomous AI agents that need email.
+slug: knowledge-base/agentmail-vs-resend
+---
+
+Both AgentMail and Resend offer email APIs, but they solve different problems. Resend is a transactional email service that recently added agent-friendly tooling. AgentMail is purpose-built for AI agents that need their own inboxes, with full two-way email, thread management, and real-time message streaming.
+
+This page helps you choose the right tool based on what your agent actually needs to do.
+
+## Quick comparison
+
+| Feature | AgentMail | Resend |
+|---|---|---|
+| **Agent gets its own inbox** | ✅ Dedicated email address per agent | ❌ Sends from shared domain |
+| **Receive and read email** | ✅ Full inbox with threads, labels, search | ⚠️ Inbound webhooks only |
+| **Two-way conversations** | ✅ Native reply, reply-all, forward | ⚠️ Must build conversation tracking yourself |
+| **Thread management** | ✅ Automatic threading with full history | ❌ No thread concept |
+| **Real-time streaming** | ✅ WebSockets for live message events | ❌ Webhooks only |
+| **MCP server** | ✅ 17 tools (inbox, thread, draft, message management) | ✅ Send-focused MCP server |
+| **Multi-agent isolation** | ✅ Pods for tenant isolation | ❌ Single account model |
+| **Draft scheduling** | ✅ Create, schedule, and manage drafts | ❌ No draft concept |
+| **Labels and state tracking** | ✅ Custom labels per message | ❌ No labeling system |
+| **Allowlists and blocklists** | ✅ Per-inbox send/receive filtering | ❌ Domain-level suppression only |
+| **IMAP/SMTP access** | ✅ Standard protocol support | ❌ REST API only |
+| **Framework integrations** | ✅ OpenAI Agents SDK, Vercel AI SDK, LangChain | ⚠️ SDK-based, no agent framework adapters |
+| **Broadcast/marketing email** | ❌ Not the focus | ✅ Broadcasts, audiences, automations |
+| **Email templates** | ❌ Agents compose programmatically | ✅ React Email templates |
+
+## When to use AgentMail
+
+AgentMail is the right choice when your agent needs to:
+
+- **Own an email address.** Each agent gets a real inbox (e.g., `support-agent@yourdomain.com`) that can send and receive email independently.
+- **Read and respond to email.** Agents can list threads, read messages, reply in context, and forward, all through the API.
+- **Manage ongoing conversations.** Built-in threading means your agent tracks conversation history without custom state management.
+- **React to email in real time.** WebSocket connections deliver messages instantly, no polling or webhook infrastructure required.
+- **Operate in multi-tenant environments.** Pods isolate inboxes, domains, and billing across tenants or agent instances.
+
+Common use cases: customer support agents, sales outreach agents, scheduling agents, email triage agents, multi-agent workflows where each agent has its own identity.
+
+## When to use Resend
+
+Resend is the right choice when you need to:
+
+- **Send transactional email from your app.** Password resets, receipts, notifications: Resend handles this well.
+- **Design email templates visually.** React Email and the template editor give you pixel-level control over email design.
+- **Run marketing campaigns.** Broadcasts, audiences, and automations are built in.
+- **Use an AI coding assistant to set up email.** Resend's MCP server and docs integrations make it easy for Cursor, Copilot, or Claude Code to scaffold email sending.
+
+## Key architectural differences
+
+### Inbox model
+
+AgentMail creates a real mailbox for each agent. The agent has an email address, receives mail, and can read its inbox just like a human would. This is the core abstraction: agents are first-class email users.
+
+Resend operates as a sending service. Your application sends email through Resend's API. Inbound email is handled via webhooks that forward to your application, which means you need to build and maintain your own inbox logic, threading, and state management.
+
+### Agent framework support
+
+AgentMail's toolkit package provides native adapters for agent frameworks:
+
+- **OpenAI Agents SDK**: Register email tools directly as agent functions
+- **Vercel AI SDK**: Use email tools with `ai` SDK tool calling
+- **LangChain**: LangChain tool wrappers for inbox operations
+- **MCP**: 17 tools covering inbox lifecycle, threads, messages, drafts, and attachments
+
+Resend's agent support centers on their MCP server, which exposes sending, contact management, and basic inbound operations. It integrates well with coding assistants like Cursor and Claude Code for setting up email sending in your codebase.
+
+### Real-time vs webhooks
+
+AgentMail supports WebSocket connections that stream message events in real time. An agent can subscribe to its inbox and react to new messages instantly without running a web server.
+
+Resend uses webhooks for event delivery. This works well for server-based applications but requires you to run an HTTP endpoint, handle retries, and manage webhook verification.
+
+### Multi-agent isolation
+
+AgentMail's Pod system provides full isolation between agent groups: separate inboxes, domains, API keys, and usage tracking. This is designed for platforms that run multiple agents or serve multiple customers.
+
+Resend uses a single-account model with team-based access control. There is no built-in concept of isolating resources between different agents or tenants.
+
+## Code comparison
+
+### Creating an inbox and reading messages
+
+<CodeBlocks>
+```python title="AgentMail (Python)"
+from agentmail import AgentMailClient
+
+client = AgentMailClient(api_key="am_...")
+
+# create a dedicated inbox for the agent
+inbox = client.inboxes.create(
+    username="support-agent",
+    domain="yourdomain.com"
+)
+
+# list threads in the inbox
+threads = client.inboxes.threads.list(inbox_id=inbox.address)
+
+# read the latest thread
+thread = client.inboxes.threads.get(
+    inbox_id=inbox.address,
+    thread_id=threads.threads[0].id
+)
+
+# reply to the latest message
+client.inboxes.messages.reply(
+    inbox_id=inbox.address,
+    message_id=thread.messages[0].id,
+    text="Thanks for reaching out. I'll look into this."
+)
+```
+
+```typescript title="AgentMail (TypeScript)"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+// create a dedicated inbox for the agent
+const inbox = await client.inboxes.create({
+  username: "support-agent",
+  domain: "yourdomain.com",
+});
+
+// list threads in the inbox
+const threads = await client.inboxes.threads.list(inbox.address);
+
+// read the latest thread
+const thread = await client.inboxes.threads.get(
+  inbox.address,
+  threads.threads[0].id
+);
+
+// reply to the latest message
+await client.inboxes.messages.reply(inbox.address, thread.messages[0].id, {
+  text: "Thanks for reaching out. I'll look into this.",
+});
+```
+</CodeBlocks>
+
+With Resend, you would send email through the API, then handle inbound replies via webhooks routed to your own server. There is no built-in inbox or thread to query.
+
+## Migrating from Resend
+
+If you are already using Resend for sending and want to add agent inbox capabilities, you do not need to choose one or the other. Many teams use Resend for transactional email (receipts, notifications) alongside AgentMail for agent-specific communication.
+
+To get started with AgentMail:
+
+1. [Get your API key](https://agentmail.to)
+2. [Create your first inbox](/knowledge-base/creating-first-inbox)
+3. [Set up inbound email handling](/knowledge-base/handling-inbound-emails)
+4. [Connect your agent framework](/integrations/skills)
+
+<Note>
+Have questions about which approach fits your use case? Reach out at [contact@agentmail.cc](mailto:contact@agentmail.cc) or join the [Discord community](https://discord.gg/hTYatWYWBc).
+</Note>
