@@ -109,6 +109,9 @@ redirects:
   - source: /integrations/ai-onboarding
     destination: /integrations/agent-onboarding
     permanent: true
+  - source: /talon-reply-extraction
+    destination: /reply-extraction
+    permanent: true
 
   # --- 404 redirects from crawl report ---
 
@@ -333,6 +336,9 @@ navigation:
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx
+          - page: Reply & Attachment Extraction
+            icon: fa-solid fa-scissors
+            path: pages/guides/reply-extraction.mdx
           - page: IMAP & SMTP
             icon: fa-solid fa-envelope-open-text
             path: pages/guides/imap-smtp.mdx
@@ -426,9 +432,6 @@ navigation:
           - page: Error Reference
             icon: fa-solid fa-triangle-exclamation
             path: pages/resources/errors.mdx
-          - page: Talon Reply Extraction
-            icon: fa-solid fa-scissors
-            path: pages/resources/talon.mdx
           - page: Community
             icon: fa-solid fa-users
             path: pages/resources/community.mdx

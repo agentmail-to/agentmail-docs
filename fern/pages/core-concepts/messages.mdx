@@ -250,7 +250,7 @@ agentmail inboxes messages get \
 ```
 </CodeBlocks>
 
-When receiving replies or forwards, use `extracted_text` or `extracted_html` for just the new content—quoted history is stripped automatically.
+When receiving replies, use `extracted_text` or `extracted_html` for just the new content: quoted history and trailing boilerplate are stripped automatically. For forwarded mail, read `text` or `html`, since extraction can drop the forwarded content. See [Reply & Attachment Extraction](/reply-extraction) for exactly what is removed and kept.
 
 ## Copy for Cursor / Claude
 

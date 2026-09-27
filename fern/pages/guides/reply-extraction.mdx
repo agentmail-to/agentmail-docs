@@ -1,0 +1,220 @@
+---
+title: "Reply & Attachment Extraction"
+subtitle: "Get just the new content from every email, plus the text inside its attachments, with nothing to install."
+slug: reply-extraction
+description: "AgentMail strips quoted history and boilerplate from every message into extracted_text and extracted_html, and extracts plain text from PDF, Word, Excel, and text attachments. No Talon or reply-parsing library required."
+---
+
+Every reply carries the conversation before it: an "On Tuesday, Priya wrote:" line, the quoted history, a "Sent from my iPhone" line, an unsubscribe footer. If you pass `text` straight to an LLM, your agent pays for that history on every turn and can mistake an old quoted request for a new one.
+
+AgentMail does this extraction for you. Every message has `extracted_text` and `extracted_html` alongside the raw `text` and `html`. Every attachment with extractable text has a `text_url`. You don't need Talon, `email-reply-parser`, or any other parsing library.
+
+## Reply extraction
+
+AgentMail computes `extracted_text` and `extracted_html` when it stores a message, for received and sent messages alike. They are returned wherever the message body is:
+
+| Where | Extracted fields included |
+|-------|---------------------------|
+| [Get Message](/api-reference/inboxes/messages/get) | Yes |
+| [Get Thread](/api-reference/inboxes/threads/get), on each item in `messages` | Yes |
+| `message.received` [webhook](/webhooks-overview) and [WebSocket](/websockets) events, on `message` | Yes |
+| List Messages, Batch Get Messages | No. These return metadata and `preview` only |
+
+Given this plain-text reply:
+
+```text
+Thursday at 2pm works. I'll send an invite.
+
+Sent from my iPhone
+
+On Tue, Sep 22, 2026 at 9:14 AM Priya Shah <priya@acme.com> wrote:
+> Can we move the demo to Thursday?
+> Anything after 1pm works for us.
+```
+
+`extracted_text` is:
+
+```text
+Thursday at 2pm works. I'll send an invite.
+```
+
+Read the extracted field first, and fall back to the full body when it's absent:
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+message = client.inboxes.messages.get(
+    inbox_id="support@yourdomain.com",
+    message_id="<CAF3x9Lq2mP7@mail.gmail.com>",
+)
+
+# new content only, falling back to the full body
+content = message.extracted_text or message.text
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+const message = await client.inboxes.messages.get(
+  "support@yourdomain.com",
+  "<CAF3x9Lq2mP7@mail.gmail.com>",
+);
+
+// new content only, falling back to the full body
+const content = message.extractedText ?? message.text;
+```
+</CodeBlocks>
+
+<Note>
+  To stay within delivery size limits, events for larger messages leave out the body fields, including `extracted_text` and `extracted_html`. WebSocket events reach that limit sooner than webhooks. If the fields are missing from an event, call [Get Message](/api-reference/inboxes/messages/get).
+</Note>
+
+### What gets removed
+
+- **Quoted history.** "On ... wrote:" lines in English and many other languages, including French, Spanish, German, Portuguese, Italian, Dutch, Polish, Russian, Chinese, and Arabic. Also `>` quoted lines, pasted `From:` / `Sent:` / `To:` / `Subject:` header blocks, `-----Original Message-----` dividers, and the quote markup that Gmail, Outlook, and Apple Mail add to HTML replies.
+- **Trailing boilerplate.** "Sent from my iPhone" and "Get Outlook for iOS" lines, unsubscribe and "manage preferences" footers, "view in browser" links, confidentiality notices, and legal disclaimers. Extraction cuts at the first such line, so everything below it is removed too.
+
+The sender's own signature is kept, including a `--` signature that their email client placed below the quoted history.
+
+### Messages that are kept whole
+
+Some messages contain quoted text that your agent needs, so extraction keeps them whole:
+
+- **Bounces**, in both `extracted_text` and `extracted_html`. Delivery failure notices quote your original message back, and that copy shows which message failed.
+- **Inline replies**, in `extracted_text`. When the sender answers between quoted lines, cutting at the first quote would lose their answers. `extracted_html` still cuts at the first quote, so prefer `extracted_text` when you pass content to a model.
+
+<Warning>
+  Don't rely on extraction to keep forwarded content. Depending on the sender's email client, `extracted_text` and `extracted_html` can drop the forwarded email and keep only the note above it. When your agent processes forwarded mail, read `text` or `html`.
+</Warning>
+
+### When to use `text` and `html` instead
+
+- **The extracted field is absent.** A message with no HTML part has no `extracted_html`, and event payloads for large messages leave out body fields. Fall back to the full body, as in the example above.
+- **You need the original.** Use `text` or `html` to archive a message, to show it to a person, or when the quoted context matters to the task.
+- **The result looks wrong.** Extraction is rule-based. An unusual layout can occasionally leave quoted text in, or remove content that follows a line that looks like boilerplate.
+
+## Building LLM context from a thread
+
+[Get Thread](/api-reference/inboxes/threads/get) returns every message with its extracted content, so you can build a compact transcript without resending quoted history on every turn. Within a page, messages are ordered oldest to newest. The first page holds the newest messages, and `next_page_token` fetches older ones.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+thread = client.inboxes.threads.get(
+    inbox_id="support@yourdomain.com",
+    thread_id="thread_abc123",
+)
+
+# one turn per message, new content only
+transcript = "\n\n".join(
+    f"{m.from_}: {m.extracted_text or m.text or ''}" for m in thread.messages
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+const thread = await client.inboxes.threads.get(
+  "support@yourdomain.com",
+  "thread_abc123",
+);
+
+// one turn per message, new content only
+const transcript = thread.messages
+  .map((m) => `${m.from}: ${m.extractedText ?? m.text ?? ""}`)
+  .join("\n\n");
+```
+</CodeBlocks>
+
+Token budgeting is up to you. For long threads, keep the most recent messages in full and summarize or drop older ones before sending the transcript to your model.
+
+## Attachment text extraction
+
+AgentMail also extracts plain text from attachments, so your agent can read a PDF invoice or a spreadsheet without running a document parser. [Get Attachment](/api-reference/inboxes/messages/get-attachment) returns `text_url`, a signed URL for the extracted text, alongside `download_url` for the original file. Both expire at `expires_at`, so fetch a fresh attachment response when you need the URLs again rather than storing them.
+
+| Format | Text extracted |
+|--------|----------------|
+| PDF | Yes, from the PDF's text layer. Scanned or image-only PDFs have no text |
+| Word (`.docx`, `.doc`) | Yes |
+| Excel (`.xlsx`) | Yes |
+| Plain text, CSV, Markdown, JSON, and HTML | Yes |
+| Images, PowerPoint, RTF, legacy Excel (`.xls`), archives, and attached emails (`.eml`) | No |
+
+Files larger than 10 MB are not extracted, and extracted text is cut off at 250,000 characters.
+
+<CodeBlocks>
+```python title="Python"
+import httpx
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+attachment = client.inboxes.messages.get_attachment(
+    inbox_id="support@yourdomain.com",
+    message_id="<CAF3x9Lq2mP7@mail.gmail.com>",
+    attachment_id="attach_789",
+)
+
+if attachment.text_url:
+    text = httpx.get(attachment.text_url).text
+else:
+    # no extracted text: download the original file instead
+    file_bytes = httpx.get(attachment.download_url).content
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+const attachment = await client.inboxes.messages.getAttachment(
+  "support@yourdomain.com",
+  "<CAF3x9Lq2mP7@mail.gmail.com>",
+  "attach_789",
+);
+
+// no textUrl: download the original file from attachment.downloadUrl instead
+const text = attachment.textUrl
+  ? await (await fetch(attachment.textUrl)).text()
+  : undefined;
+```
+</CodeBlocks>
+
+The thread-level [Get Attachment](/api-reference/inboxes/threads/get-attachment) endpoint returns `text_url` too.
+
+<Note>
+  Attachment text is extracted right after the message is stored, so a request made the moment a `message.received` event arrives can come back without `text_url`. When `text_url` is absent, the file is unsupported, has no text, or hasn't finished extracting. Use `download_url` if you need the file right away.
+</Note>
+
+## Run the extractor yourself
+
+The reply extractor that produces `extracted_text` and `extracted_html` is open source: [agentextract](https://github.com/agentmail-to/agentextract) on npm, under the MIT license. Use it to process mail that doesn't come through AgentMail, or to check how a message will be extracted. It's a TypeScript package built on pattern matching, with no ML model or DOM parser.
+
+```bash
+npm install agentextract
+```
+
+```typescript
+import { extractEmailBody } from "agentextract";
+
+const { extractedText } = extractEmailBody({
+  text: "Sounds good!\n\nOn Mon, Jun 1, 2026 at 9:00 AM Bob <bob@example.com> wrote:\n> old quoted message",
+});
+// extractedText === "Sounds good!"
+```
+
+The package also exports `extractAttachment` for attachment text. Its README includes a benchmark against Talon and TalonJS.
+
+<Tip>
+  If you followed our earlier guide to running Talon, you can remove it: `extracted_text` and `extracted_html` are already on every message.
+</Tip>
