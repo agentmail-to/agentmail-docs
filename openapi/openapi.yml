@@ -9324,6 +9324,10 @@ components:
           type: boolean
           nullable: true
           description: Create pods.
+        pod_update:
+          type: boolean
+          nullable: true
+          description: Update pods.
         pod_delete:
           type: boolean
           nullable: true

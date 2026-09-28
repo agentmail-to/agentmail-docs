@@ -32,6 +32,17 @@ Permissions are intersected with the key's scope. A key scoped to a single inbox
 
 A restricted API key cannot create a child key with more permissions than itself. When creating a new key, the child's permissions are automatically constrained to the parent's effective permissions. This prevents privilege escalation through key creation.
 
+### Agent verification
+
+An organization created through [agent sign-up](/agent-onboarding) is unverified until it completes `POST /v0/agent/verify`. Until then, these permissions are denied for every key at every scope, even keys with no `permissions` object:
+
+- `api_key_create`
+- `list_entry_create` and `list_entry_delete`
+- `pod_create`, `pod_update`, and `pod_delete`
+- `provider_connect`
+
+A denied request returns a `403` with `code: "missing_permission"`, and its `fix` says the organization must verify first. Creating another key won't help. An organization that signed up without a human email must attach one with `POST /v0/agent/human` before it can verify. After verifying, a key's cached permissions can take up to 5 minutes to update.
+
 ## Permissions Reference
 
 ### Inboxes
@@ -140,6 +151,7 @@ Threads are groupings of messages and have no permissions of their own. Every th
 | --- | --- |
 | `pod_read` | Read pods |
 | `pod_create` | Create pods |
+| `pod_update` | Update pods |
 | `pod_delete` | Delete pods |
 
 ## Code Examples
@@ -269,6 +281,7 @@ key = client.api_keys.create(
         "api_key_delete": True,
         "pod_read": True,
         "pod_create": True,
+        "pod_update": True,
         "pod_delete": True,
     }
 )
@@ -313,6 +326,7 @@ const key = await client.apiKeys.create({
     apiKeyDelete: true,
     podRead: true,
     podCreate: true,
+    podUpdate: true,
     podDelete: true,
   },
 });
@@ -358,6 +372,7 @@ agentmail api-keys create \
     "api_key_delete": true,
     "pod_read": true,
     "pod_create": true,
+    "pod_update": true,
     "pod_delete": true
   }'
 ```
@@ -386,7 +401,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     Lists: list_entry_read, list_entry_create, list_entry_delete
     Metrics: metrics_read
     API Keys: api_key_read, api_key_create, api_key_update, api_key_delete
-    Pods: pod_read, pod_create, pod_delete
+    Pods: pod_read, pod_create, pod_update, pod_delete
 
   Threads have no permissions of their own: thread reads use message_read,
   thread label updates use message_update, and thread deletes use message_delete.
@@ -423,7 +438,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *   Lists: listEntryRead, listEntryCreate, listEntryDelete
    *   Metrics: metricsRead
    *   API Keys: apiKeyRead, apiKeyCreate, apiKeyUpdate, apiKeyDelete
-   *   Pods: podRead, podCreate, podDelete
+   *   Pods: podRead, podCreate, podUpdate, podDelete
    *
    * Threads have no permissions of their own: thread reads use messageRead,
    * thread label updates use messageUpdate, and thread deletes use messageDelete.
