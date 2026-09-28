@@ -26,7 +26,7 @@ metadata:
   canonical-host: agentmail.to/docs
 
 agents:
-  page-directive: "For clean Markdown content of this page, append .md to this URL. For the complete documentation index, see https://docs.agentmail.to/llms.txt. For full content including API reference and SDK examples, see https://docs.agentmail.to/llms-full.txt."
+  page-directive: "For clean Markdown content of this page, append .md to this URL. For the complete documentation index, see https://docs.agentmail.to/llms.txt."
 
 ai-search:
   location:

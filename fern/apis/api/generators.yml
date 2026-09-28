@@ -95,7 +95,7 @@ groups:
               build: >-
                 npm run build:cjs && npm run build:esm && node -e "const
                 https=require('https'),fs=require('fs');const download=(f)=>new
-                Promise((res,rej)=>https.get('https://docs.agentmail.to/'+f,r=>r.pipe(fs.createWriteStream('dist/'+f)).on('finish',res).on('error',rej)));Promise.all(['llms.txt','llms-full.txt'].map(download)).catch(e=>{console.error(e);process.exit(1)});"
+                Promise((res,rej)=>https.get('https://docs.agentmail.to/'+f,r=>r.statusCode===200?r.pipe(fs.createWriteStream('dist/'+f)).on('finish',res).on('error',rej):rej(new Error(f+': HTTP '+r.statusCode))).on('error',rej));Promise.all(['llms.txt'].map(download)).catch(e=>{console.error(e);process.exit(1)});"
         smart-casing: false
   python-sdk:
     generators:
