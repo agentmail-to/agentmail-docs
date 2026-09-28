@@ -26,7 +26,7 @@ Note on naming: xAI's official product is Grok Bot (two words). Community and se
 2. Search for **AgentMail** in the plugin browser.
 3. Click **Install**.
 4. Your browser opens an AgentMail OAuth authorization screen. It identifies the requesting app as **Cursor**, not Grok Bot, because Grok Bot uses Cursor's plugin plumbing. Click **Allow**.
-5. The connector card should now show **24 tools**.
+5. The connector card should now list the AgentMail tools. See the [current tool catalog](/integrations/mcp#available-tools).
 
 **Fallback — add as a custom MCP connector** (for accounts where the plugin browser is restricted):
 
@@ -122,7 +122,7 @@ These are just a few select verticals, but we have seen AgentMail be effective i
 <AccordionGroup>
 
 <Accordion title="What's the difference between Grok Bot, Grok Build, and Grok API for AgentMail?">
-Same MCP server, same 24 tools, different clients. Grok Bot is the UI product with persistent cloud routines. Grok Build is a CLI session that ends when you close the terminal. Grok API is the raw REST endpoint for developers wiring AgentMail into their own agent runtime. Tool names are unprefixed on Grok Bot (`send_message`), prefixed with `agentmail__` on Grok Build, and follow xAI's remote MCP prefix convention on the API. Auth headers also differ: Grok Bot accepts either `x-api-key` or OAuth, Grok Build requires `Authorization: Bearer`, and the Grok API takes the token in the `authorization` field of the tool object.
+Same MCP server, same tools, different clients. Grok Bot is the UI product with persistent cloud routines. Grok Build is a CLI session that ends when you close the terminal. Grok API is the raw REST endpoint for developers wiring AgentMail into their own agent runtime. Tool names are unprefixed on Grok Bot (`send_message`), prefixed with `agentmail__` on Grok Build, and follow xAI's remote MCP prefix convention on the API. Auth headers also differ: Grok Bot accepts either `x-api-key` or OAuth, Grok Build requires `Authorization: Bearer`, and the Grok API takes the token in the `authorization` field of the tool object.
 </Accordion>
 
 <Accordion title="Does this work with SuperGrok Plus?">
