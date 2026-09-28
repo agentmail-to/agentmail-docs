@@ -952,3 +952,8 @@ paths:
       - pods
       - metrics
       x-fern-sdk-method-name: query-rates
+  /v0/agent/human:
+    post:
+      x-fern-sdk-group-name:
+      - agent
+      x-fern-sdk-method-name: attach-human

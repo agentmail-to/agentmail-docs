@@ -34,6 +34,9 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
     <Info>
       The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
     </Info>
+    <Note>
+      No human email yet? Leave `human_email` out to get a receive-only inbox, then attach a human later with `POST /agent/human`. See [Sign up without a human email](/agent-onboarding#sign-up-without-a-human-email).
+    </Note>
   </Step>
 
   <Step title="Verify with the OTP">
@@ -238,7 +241,8 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   Agent sign-up (no API key needed):
-  - agent.sign_up(human_email, username) — returns api_key, inbox_id, organization_id
+  - agent.sign_up(username, human_email?) — returns api_key, inbox_id, organization_id; without human_email the inbox is receive-only
+  - agent.attach_human(human_email) — attach a human later; emails them an OTP
   - agent.verify(otp_code) — verify with OTP sent to human_email
 
   API reference:
@@ -286,7 +290,8 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
    * Agent sign-up (no API key needed):
-   * - agent.signUp({ humanEmail, username }) — returns apiKey, inboxId, organizationId
+   * - agent.signUp({ username, humanEmail? }) — returns apiKey, inboxId, organizationId; without humanEmail the inbox is receive-only
+   * - agent.attachHuman({ humanEmail }) — attach a human later; emails them an OTP
    * - agent.verify({ otpCode }) — verify with OTP sent to humanEmail
    *
    * API reference:

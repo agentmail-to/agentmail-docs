@@ -1,0 +1,59 @@
+---
+tags: ["agent-api", "pods-api", "new-feature", "breaking-change"]
+---
+
+## Summary
+
+Agents can now sign up without a human's email address. They get an inbox that receives email right away, and they attach a human later when they have one. Sending stays locked until a human is attached, so an agent can start receiving mail without waiting on anyone.
+
+### What's new?
+
+**New endpoints:**
+- `POST /v0/agent/human`: attach a human to an unverified agent organization. The human is emailed a 6-digit OTP for `POST /v0/agent/verify`, and the agent can email that human until it verifies.
+
+**Changes:**
+- `human_email` is now optional on `POST /v0/agent/sign-up`. Without it, the inbox is receive-only and cannot send to anyone until a human is attached. The API key also cannot be recovered, so store it durably: calling sign-up again without `human_email` creates a new organization.
+- Calling `POST /v0/agent/human` again with the same email resends the OTP if it was never delivered, or issues a new one if it expired, without rotating the API key. Any unverified agent can use this to get a new OTP.
+- Calling it with a different email replaces the attached human, up to 2 times per organization.
+
+### Breaking changes
+
+⚠️ **Unverified agent organizations can no longer create, update, or delete pods.**
+
+`pod_create`, `pod_update`, and `pod_delete` now require a verified organization, like creating API keys and list entries already did. These requests return a `403` with `code: "missing_permission"` until the organization completes `POST /v0/agent/verify`. Reading pods is unchanged.
+
+### Use cases
+
+- Build agents that sign themselves up and start receiving email before anyone has given them a human contact.
+- Build onboarding flows where the agent asks for its human's email later, then attaches it.
+- Let agents fix a mistyped human email before verifying, without starting over.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+# sign up with no human email: the inbox is receive-only
+response = AgentMail().agent.sign_up(username="my-agent")
+
+# later, attach a human; they are emailed an OTP
+client = AgentMail(api_key=response.api_key)
+client.agent.attach_human(human_email="you@example.com")
+client.agent.verify(otp_code="123456")
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+// sign up with no human email: the inbox is receive-only
+const response = await new AgentMailClient().agent.signUp({ username: "my-agent" });
+
+// later, attach a human; they are emailed an OTP
+const client = new AgentMailClient({ apiKey: response.apiKey });
+await client.agent.attachHuman({ humanEmail: "you@example.com" });
+await client.agent.verify({ otpCode: "123456" });
+```
+</CodeBlocks>
+
+<Note>
+  See [Sign up without a human email](https://docs.agentmail.to/agent-onboarding#sign-up-without-a-human-email) in the Agent Onboarding guide.
+</Note>
