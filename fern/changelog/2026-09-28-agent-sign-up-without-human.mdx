@@ -12,7 +12,7 @@ Agents can now sign up without a human's email address. They get an inbox that r
 - `POST /v0/agent/human`: attach a human to an unverified agent organization. The human is emailed a 6-digit OTP for `POST /v0/agent/verify`, and the agent can email that human until it verifies.
 
 **Changes:**
-- `human_email` is now optional on `POST /v0/agent/sign-up`. Without it, the inbox is receive-only and cannot send to anyone until a human is attached. The API key also cannot be recovered, so store it durably: calling sign-up again without `human_email` creates a new organization.
+- `human_email` is now optional on `POST /v0/agent/sign-up`. Without it, the inbox is receive-only and cannot send to anyone until a human is attached. The API key also cannot be recovered, so store it durably: calling sign-up again without `human_email` creates a new organization, which needs a different `username`.
 - Calling `POST /v0/agent/human` again with the same email resends the OTP if it was never delivered, or issues a new one if it expired, without rotating the API key. Any unverified agent can use this to get a new OTP.
 - Calling it with a different email replaces the attached human, up to 2 times per organization.
 - The `pod_update` API key permission, which controls updating pods, is now listed in the API key permissions.

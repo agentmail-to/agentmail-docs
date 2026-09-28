@@ -66,6 +66,24 @@ agentmail agent verify --otp-code 123456
   The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
 </Info>
 
+<Warning>
+  **Unverified accounts can only send email to the attached human.** Until you complete OTP verification, sends to any other address are rejected with a `403` carrying `code: "message_rejected"`, whose `fix` explains that sending is restricted until verification and points at `POST /v0/agent/verify`. An account with no human attached cannot send at all until one is attached with `POST /v0/agent/human`. Always call `agent.verify()` before sending to external recipients. See the [Error Reference](/errors#message_rejected).
+</Warning>
+
+<Note>
+  Unverified accounts are also denied some permissions, such as creating API keys, managing list entries, and creating, updating, or deleting pods. These requests return a `403` with `code: "missing_permission"` until the organization is verified. See [Agent verification](/permissions#agent-verification) for the full list.
+</Note>
+
+<Warning>
+  **Some domains cannot be used for agent signup.** Common placeholder domains (e.g., `example.com`) and certain provider-specific domains are blocklisted. If signup fails, use a real email address from your own domain or a standard email provider.
+</Warning>
+
+Alternatively, a human can create an account at [console.agentmail.to](https://console.agentmail.to) and generate an API key from the dashboard.
+
+<Info>
+  AgentMail's free tier includes 3 inboxes and 3,000 emails/month. Your agent can start building immediately.
+</Info>
+
 ### Sign up without a human email
 
 If your agent doesn't have a human's email yet, leave `human_email` out. The agent still gets an API key and an inbox, but the inbox is **receive-only**: it can receive email and cannot send to anyone.
@@ -91,7 +109,7 @@ agentmail agent sign-up --username my-agent
 </CodeBlocks>
 
 <Warning>
-  **Without a human email, a lost API key cannot be recovered.** Calling sign-up again without `human_email` creates a new organization and inbox. Store the key durably, and attach a human as soon as you can.
+  **Without a human email, a lost API key cannot be recovered.** Calling sign-up again without `human_email` creates a new organization and inbox, which needs a different `username`: the original username stays with the lost organization. Store the key durably, and attach a human as soon as you can.
 </Warning>
 
 When you have the human's email, attach it. A 6-digit OTP is sent to the human, the agent can then email that human, and verifying with the OTP lifts the remaining restrictions:
@@ -119,28 +137,9 @@ agentmail agent verify --otp-code 123456
 
 Attaching a human is only possible until the organization is verified. Until then:
 
-- Calling it again with the same email does not rotate the API key. It resends the OTP if it was never delivered, or issues a new one if it expired. Any unverified agent can use this to get a new OTP, including one that signed up with a `human_email`.
+- Calling it again with the same email does not rotate the API key. It resends the OTP if it was never delivered, or issues a new one if it expired. While the current OTP is still valid, it keeps that OTP and its attempt count, so if all 10 attempts are used up, wait until the OTP expires (24 hours after it was issued) before calling it again. Any unverified agent can use this to get a new OTP, including one that signed up with a `human_email`.
 - Calling it with a different email replaces the attached human, for example to fix a typo. An organization can replace its human at most 2 times.
-- The API key can take up to 5 minutes to pick up a newly attached human.
-
-
-<Warning>
-  **Unverified accounts can only send email to the attached human.** Until you complete OTP verification, sends to any other address are rejected with a `403` carrying `code: "message_rejected"`, whose `fix` explains that sending is restricted until verification and points at `POST /v0/agent/verify`. An account with no human attached cannot send at all until one is attached with `POST /v0/agent/human`. Always call `agent.verify()` before sending to external recipients. See the [Error Reference](/errors#message_rejected).
-</Warning>
-
-<Note>
-  Unverified accounts also cannot create API keys, add send or receive list entries, or create, update, or delete pods. These requests return a `403` with `code: "missing_permission"` until the organization is verified.
-</Note>
-
-<Warning>
-  **Some domains cannot be used for agent signup.** Common placeholder domains (e.g., `example.com`) and certain provider-specific domains are blocklisted. If signup fails, use a real email address from your own domain or a standard email provider.
-</Warning>
-
-Alternatively, a human can create an account at [console.agentmail.to](https://console.agentmail.to) and generate an API key from the dashboard.
-
-<Info>
-  AgentMail's free tier includes 3 inboxes and 3,000 emails/month. Your agent can start building immediately.
-</Info>
+- For up to 5 minutes after attaching, sends to the human can still be rejected with a `429` daily send limit error while the API key's cached limits catch up. Wait and retry: this is not your real limit.
 
 ## AgentMail MCP Server
 
