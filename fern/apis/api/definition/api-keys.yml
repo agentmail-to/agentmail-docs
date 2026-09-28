@@ -257,6 +257,9 @@ types:
       pod_create:
         type: optional<boolean>
         docs: Create pods.
+      pod_update:
+        type: optional<boolean>
+        docs: Update pods.
       pod_delete:
         type: optional<boolean>
         docs: Delete pods.
