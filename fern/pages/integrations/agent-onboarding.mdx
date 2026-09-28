@@ -193,12 +193,12 @@ You can give your agent current docs in three ways:
    ```
    https://docs.agentmail.to/llms.txt
    ```
-2. **Complete docs in one file**
+2. **Docs search over MCP**
 
-   Every doc page concatenated into a single file for full context:
+   An MCP server with a `searchDocs` tool that returns relevant passages with their source URLs:
 
    ```
-   https://docs.agentmail.to/llms-full.txt
+   https://docs.agentmail.to/_mcp/server
    ```
 3. **Markdown versions of any page**
 
