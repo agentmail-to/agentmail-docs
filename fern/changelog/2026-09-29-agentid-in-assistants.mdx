@@ -12,12 +12,12 @@ Ask Claude, ChatGPT, Cursor, Claude Code, or Codex to "create an account at Fire
 
 - [AgentID in Claude, ChatGPT, and Cursor](https://docs.agentmail.to/agentid-in-assistants): set up each assistant, then create accounts, find a provider for a need, get an API key, and list accounts with the `list_providers`, `search_providers`, `get_provider`, `connect_provider`, and `list_accounts` MCP tools.
 - ChatGPT setup on the [MCP page](https://docs.agentmail.to/integrations/mcp), using developer mode and OAuth.
-- The AgentMail plugin for Claude Code, Cursor, and Codex (0.4.0) adds the `agentmail-agentid` skill.
+- The AgentMail plugin for Claude Code, Cursor, and Codex (0.4.0) adds the `agentid` skill (`agentmail-agentid` on skills.sh).
 
 **Unlisted providers by ID:**
 
 - `GET /v0/providers/{provider_id}` returns the ID and name of a registered provider that the catalog does not list, without `updated_at`.
-- `POST /v0/providers/{provider_id}/connect` works for any registered provider, listed or not.
+- `POST /v0/providers/{provider_id}/connect` works for any registered provider with a sign-in entry point, listed or not.
 - `GET /v0/providers` and `GET /v0/providers/search` still return catalog entries only.
 
 ### Use cases

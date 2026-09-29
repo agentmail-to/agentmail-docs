@@ -143,7 +143,8 @@ service:
         valid for five minutes, to open in the client that will hold the sign-in;
         the client enrolls as the inbox and continues to the provider. Poll
         [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
-        Works for any registered provider, whether or not the catalog lists it.
+        Works for any registered provider with a sign-in entry point, whether or not
+        the catalog lists it. A `404` names the missing resource: `Provider` or `Inbox`.
       path-parameters:
         provider_id: accounts.ProviderId
       request:
