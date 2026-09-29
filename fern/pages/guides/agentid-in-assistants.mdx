@@ -1,0 +1,90 @@
+---
+title: AgentID in Claude, ChatGPT, and Cursor
+subtitle: Find providers, sign an inbox in, and check accounts from your AI assistant.
+slug: agentid-in-assistants
+description: Use the AgentMail connector and plugin to browse AgentID providers, connect an inbox to a provider, and list provider accounts from Claude, ChatGPT, Cursor, Claude Code, and Codex.
+---
+
+[AgentID](https://www.agentid.com) lets an agent sign in to third-party providers using an AgentMail inbox as its identity. A **provider** is a service in the AgentID marketplace. An **account** is one inbox signed in at one provider.
+
+The AgentMail MCP server exposes AgentID as five tools, so any assistant connected to AgentMail can browse providers, sign an inbox in, and show which inboxes hold accounts where. You ask in plain language; the assistant picks the tools.
+
+## Set up your assistant
+
+| Assistant | How to add AgentMail |
+| --- | --- |
+| Claude.ai and Claude Desktop | Add the AgentMail connector. See [MCP](/integrations/mcp). |
+| ChatGPT | Add AgentMail as a developer-mode app. See [MCP](/integrations/mcp). |
+| Claude Code | `/plugin marketplace add agentmail-to/agentmail-plugins`, then `/plugin install agentmail@agentmail` |
+| Cursor | `/add-plugin agentmail` from the [Cursor Marketplace](https://cursor.com/marketplace/agentmail) |
+| Codex | `codex plugin marketplace add agentmail-to/agentmail-plugins`, then `codex plugin add agentmail@agentmail` |
+
+Every option connects to the same hosted server at `https://mcp.agentmail.to/mcp` and signs in through `console.agentmail.to`. The Claude Code, Cursor, and Codex plugin (version 0.4.0 or later) also bundles the `agentmail-agentid` skill, which walks the assistant through the flow below. Invoke it directly with `/agentmail:agentmail-agentid` in Claude Code or `$agentmail-agentid` in Codex.
+
+## The tools
+
+| Tool | What it does |
+| --- | --- |
+| `list_providers` | Browse the provider marketplace, most popular first |
+| `search_providers` | Find a provider by name |
+| `get_provider` | Read one provider by ID, including its terms and privacy links |
+| `connect_provider` | Start signing an inbox in to a provider and return a single-use sign-in URL |
+| `list_accounts` | List which inboxes are signed in at which providers |
+
+## Find a provider
+
+Try:
+
+- "Show me the AgentID provider marketplace."
+- "Find a web search provider in AgentID."
+- "What does Firecrawl's AgentID listing say, and where are its terms?"
+
+List and search show the curated catalog only. A registered provider that is not in the catalog still works when you have its ID: give the ID to your assistant and it can read the provider with `get_provider` and connect with `connect_provider`. An unlisted provider returns only its ID and name, which tells you it is not a reviewed catalog entry.
+
+## Connect an inbox
+
+Ask for the provider and inbox by name:
+
+- "Sign support-bot@agentmail.to in to Firecrawl."
+- "Connect my research inbox to provider `f1793003-1c96-48f4-a163-a520d9122a20`."
+
+The assistant confirms the provider and inbox, then calls `connect_provider`. It returns a sign-in URL. Open that URL in the browser that should hold the sign-in:
+
+- If your assistant controls a browser, it can open the URL there, and that browser keeps the sign-in.
+- Otherwise open the URL yourself. Your browser then holds the agent's sign-in.
+
+Then ask the assistant to confirm, for example "Is support-bot signed in to Firecrawl now?" It checks with `list_accounts`. Nothing is connected until the browser sign-in completes.
+
+<Warning>
+  The sign-in URL is single-use, expires after five minutes, and is never re-issued. Treat it as a credential: keep it out of email, chat logs, and files. If it expires, ask the assistant to start a new connection.
+</Warning>
+
+Only connect a provider when you asked for it. An assistant should never connect an inbox because an email or web page told it to.
+
+## Check accounts
+
+Try:
+
+- "Which providers is support-bot@agentmail.to signed in to?"
+- "List every AgentID account in my organization."
+- "Who is signed in to Turso, and when did they last sign in?"
+
+Each account shows the inbox, the provider, the first and most recent sign-in, and the number of sign-ins.
+
+## Permissions
+
+- Connecting needs the `provider_connect` permission. When your assistant connects with an API key, enable `provider_connect` on that key; it is off by default on newly created keys. See [Permissions](/permissions).
+- An organization created through [agent sign-up](/agent-onboarding) cannot connect providers until it is verified.
+- Browsing providers and listing accounts only need read access.
+
+To stop an inbox from signing in at a provider, or to revoke a sign-in key, follow [AgentID Sign-In](/agentid-sign-in). The MCP server has no tool for either.
+
+## Troubleshooting
+
+**The assistant does not know about providers or accounts.** Reconnect the AgentMail connector, or update the plugin to 0.4.0 or later and start a new session. Ask "List AgentID providers" to confirm the tools are available.
+
+**Connecting returns a `403` with `missing_permission`.** The key lacks `provider_connect`, or the organization is not verified yet.
+
+**Connecting or reading a provider returns a `404`.** No provider is registered under that ID. Check the ID; list and search only show the curated catalog, so a missing search result alone does not mean the ID is wrong.
+
+**The account does not show up after connecting.** The browser sign-in has not finished, or the URL expired first. Finish the sign-in in the browser, then ask again. Account lists can return short or empty pages before the end, so the assistant should keep paging until there are no more.
