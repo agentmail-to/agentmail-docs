@@ -320,6 +320,7 @@ types:
       inbox_id: optional<InboxScopeId>
       permissions: optional<ApiKeyPermissions>
       created_at: CreatedAt
+      expires_at: optional<ExpiresAt>
 
   ListApiKeysResponse:
     properties:
@@ -338,7 +339,15 @@ types:
       permissions: optional<ApiKeyPermissions>
 
   CreateBearerApiKeyRequest:
+    docs: |
+      `expires_at` must be in the future and is immutable once the key exists.
+      Omitted, the new key inherits the authenticating key's expiry, and never
+      expires only when that key never does. A key cannot create one that
+      outlives it: an `expires_at` later than the authenticating key's own
+      returns `403`.
     extends: ApiKeyMutableFields
+    properties:
+      expires_at: optional<ExpiresAt>
 
   CreateApiKeyRequest:
     docs: |

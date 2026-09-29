@@ -1,0 +1,23 @@
+---
+tags: ["api-keys", "enhancement", "docs"]
+---
+
+## Summary
+
+The API reference now documents `expires_at` on bearer API key creation. The API already accepted it: give an agent a key that stops working on a set date, so short-lived work never leaves a standing credential behind.
+
+### What's new?
+
+- `expires_at` on `POST /v0/api-keys`, `POST /v0/pods/{pod_id}/api-keys`, and `POST /v0/inboxes/{inbox_id}/api-keys` when creating a bearer key. It must be in the future and cannot be changed afterward.
+- Omitted, the new key inherits the expiry of the key that created it. A key cannot create a bearer key that outlives it: a later `expires_at` returns `403`.
+- The create response now lists `expires_at` when the new key has one.
+- Once a key's `expires_at` passes, requests made with it are rejected within about five minutes.
+
+### Use cases
+
+- Build agents that hand a subagent a key which expires when its task window ends.
+- Issue time-boxed keys for trials, contractors, or CI jobs without scheduling a cleanup.
+
+<Note>
+  See [Create API Key](https://docs.agentmail.to/api-reference/api-keys/create) in the API reference.
+</Note>

@@ -9440,6 +9440,9 @@ components:
           nullable: true
         created_at:
           $ref: '#/components/schemas/CreatedAt'
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+          nullable: true
       required:
         - api_key_id
         - api_key
@@ -9481,7 +9484,16 @@ components:
     CreateBearerApiKeyRequest:
       title: CreateBearerApiKeyRequest
       type: object
-      properties: {}
+      description: |-
+        `expires_at` must be in the future and is immutable once the key exists.
+        Omitted, the new key inherits the authenticating key's expiry, and never
+        expires only when that key never does. A key cannot create one that
+        outlives it: an `expires_at` later than the authenticating key's own
+        returns `403`.
+      properties:
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+          nullable: true
       allOf:
         - $ref: '#/components/schemas/ApiKeyMutableFields'
     CreateApiKeyRequest:
