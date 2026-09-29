@@ -25,6 +25,26 @@ To skip interactive prompts, specify the skill and agent directly:
 npx skills add agentmail-to/agentmail-skills --skill agentmail --agent claude-code
 ```
 
+### Plugins for Claude Code, Cursor, and Codex
+
+The AgentMail plugin bundles these skills with the hosted [MCP server](/integrations/mcp), so the assistant can act on your inboxes and sign them in to providers with [AgentID](/agentid-in-assistants). It signs in with OAuth on first use; no API key is needed.
+
+```text title="Claude Code"
+/plugin marketplace add agentmail-to/agentmail-plugins
+/plugin install agentmail@agentmail
+```
+
+```text title="Cursor"
+/add-plugin agentmail
+```
+
+```bash title="Codex"
+codex plugin marketplace add agentmail-to/agentmail-plugins
+codex plugin add agentmail@agentmail
+```
+
+Start a new session after installing. Plugin skills are namespaced in Claude Code, for example `/agentmail:check-email`, and use a `$` prefix in Codex, for example `$check-email`.
+
 ### OpenClaw
 
 OpenClaw users should install the official plugin instead, which bundles this skill along with the email channel. See [OpenClaw](/integrations/openclaw).
@@ -106,6 +126,10 @@ Multi-tenant isolation for SaaS platforms. Each customer gets isolated inboxes, 
 
 Use idempotency keys for safe retries on create operations. This prevents duplicate emails when network errors occur.
 
+### AgentID accounts
+
+Create accounts for your agent at services like Firecrawl with [AgentID](/agentid-in-assistants), using an inbox as its identity, and see where it already has accounts. The AgentID skill (`agentmail-agentid` from skills.sh, `agentid` in the plugin) carries the whole job: finding the provider, picking the inbox, the sign-in link, and storing the API key you came for.
+
 ### Real-time events
 
 The skill supports both WebSockets (persistent connection, no public URL needed) and webhooks (HTTP-based notifications) for real-time email notifications.
@@ -119,6 +143,8 @@ Once installed, you can ask your AI assistant to perform email tasks:
 - "Check my inbox for new emails"
 - "Reply to the latest email from Sarah"
 - "Create a draft response to the support ticket"
+- "Create an account at Firecrawl for my agent"
+- "My agent needs a web search API, set one up"
 
 ## Resources
 

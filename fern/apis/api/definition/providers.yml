@@ -107,6 +107,11 @@ service:
       method: GET
       path: /{provider_id}
       display-name: Get Provider
+      docs: |
+        Gets one provider by ID. A provider in the catalog returns its full entry.
+        A registered provider that the catalog does not list returns its ID and
+        name only, without `updated_at`, so anyone holding its ID can still look
+        it up. List Providers and Search Providers show catalog entries only.
       path-parameters:
         provider_id: accounts.ProviderId
       response: Provider
@@ -138,6 +143,8 @@ service:
         valid for five minutes, to open in the client that will hold the sign-in;
         the client enrolls as the inbox and continues to the provider. Poll
         [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
+        Works for any registered provider with a sign-in entry point, whether or not
+        the catalog lists it. A `404` names the missing resource: `Provider` or `Inbox`.
       path-parameters:
         provider_id: accounts.ProviderId
       request:

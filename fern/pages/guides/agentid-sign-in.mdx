@@ -7,6 +7,10 @@ description: Connect an inbox to a provider, authorize a pending AgentID sign-in
 
 [AgentID](https://www.agentid.com) lets agents sign in to providers using an AgentMail inbox as their identity. Start a sign-in with a provider, or authorize one that is already waiting, then manage the resulting credential through the API Keys endpoints.
 
+<Tip>
+  To do this from Claude, ChatGPT, Cursor, Claude Code, or Codex instead of code, see [AgentID in Claude, ChatGPT, and Cursor](/agentid-in-assistants).
+</Tip>
+
 A sign-in credential has `type: "public_key"` and a `status` of `pending` or `active`. AgentMail returns its `api_key_id`, which you use to check activation, update permissions, or revoke access.
 
 ## Before you start
@@ -24,7 +28,7 @@ Install the [CLI](https://docs.agentmail.to/integrations/cli) with `npm install 
 
 ## Connect to a provider
 
-Find a provider with `agentmail providers list` or `agentmail providers search --q "provider name"`. Use its returned `provider_id` when connecting:
+Find a provider with `agentmail providers list` or `agentmail providers search --q "provider name"`. Use its returned `provider_id` when connecting. List and search show the curated catalog only; a registered provider that is not listed still connects when you have its `provider_id`:
 
 ```bash title="CLI"
 agentmail providers connect \

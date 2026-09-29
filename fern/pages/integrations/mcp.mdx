@@ -1,17 +1,17 @@
 ---
 title: MCP
-subtitle: Connect AgentMail to Claude, Cursor, and other MCP clients
+subtitle: Connect AgentMail to Claude, ChatGPT, Cursor, and other MCP clients
 slug: integrations/mcp
-description: Connect AgentMail to Claude, Cursor, and other MCP clients
+description: Connect AgentMail to Claude, ChatGPT, Cursor, and other MCP clients
 ---
 
 ## Overview
 
-The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client.
+The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client, plus [AgentID](/agentid-in-assistants) tools that create accounts for your agent at services like Firecrawl.
 
 The server supports two authentication paths:
 
-- **OAuth** (default, recommended for Claude Desktop and Claude.ai). The client signs in through `console.agentmail.to` and the server uses your console identity for every call.
+- **OAuth** (default, recommended for Claude Desktop, Claude.ai, and ChatGPT). The client signs in through `console.agentmail.to` and the server uses your console identity for every call.
 - **API key** (for Cursor, Windsurf, and other clients that do not implement the MCP OAuth flow). Pass the key as an `x-api-key` header; query-string keys end up in logs and history.
 
 If you belong to more than one AgentMail organization, the OAuth consent screen will ask you to pick which one to use before completing the connection.
@@ -31,6 +31,16 @@ If you belong to more than one AgentMail organization, the OAuth consent screen 
 <Tip>
 OAuth is the recommended path for Claude products. You do not need an API key; the server uses your console identity to call AgentMail on your behalf.
 </Tip>
+
+### ChatGPT (OAuth)
+
+1. Open **Settings**, then **Security and login**, and turn on **Developer mode**. On a workspace plan, an admin must allow developer mode first.
+2. Open **ChatGPT Plugins** and click **+** to add a server.
+3. Set the name to `AgentMail` and the URL to `https://mcp.agentmail.to/mcp`, and choose **OAuth**.
+4. Sign in at `console.agentmail.to` when the browser window opens. If you belong to multiple organizations, pick one on the consent screen.
+5. In a chat, open the **+** menu, choose **Developer mode**, and select AgentMail. Send `List my AgentMail inboxes` to confirm the connection.
+
+ChatGPT asks you to confirm write actions, such as sending mail or connecting a provider, before it runs them.
 
 ### Cursor (API key)
 
@@ -62,6 +72,18 @@ claude mcp add --transport http agentmail https://mcp.agentmail.to/mcp
 
 Claude Code will run the same OAuth flow on first use. Connectors installed on Claude.ai do not automatically sync to Claude Code, so install it separately.
 
+For Claude Code, Cursor, and Codex, the [AgentMail plugin](/integrations/skills#plugins-for-claude-code-cursor-and-codex) installs this server together with the AgentMail skills.
+
+## Create accounts for your agent with AgentID
+
+The connector includes the AgentID tools, so your assistant can create an account for your agent at a provider, using an inbox as its identity:
+
+- "Create an account at Firecrawl for my agent."
+- "My agent needs a web search API. Set one up."
+- "Which services is support-bot@agentmail.to signed up for?"
+
+The assistant gives you a single-use sign-in link that expires after five minutes. Open it in the browser that should hold the agent's session, then ask the assistant to confirm. See [AgentID in Claude, ChatGPT, and Cursor](/agentid-in-assistants) for the full walkthrough, including getting an API key.
+
 ## Available tools
 
 MCP clients discover the live tool catalog from the hosted server. The canonical repository publishes the same runtime-generated contract in [`mcp-manifest.json`](https://github.com/agentmail-to/agentmail-mcp/blob/main/mcp-manifest.json), so tool names and schemas do not drift between the runtime, bridges, tests, and documentation.
@@ -71,6 +93,8 @@ MCP clients discover the live tool catalog from the hosted server. The canonical
 ## Troubleshooting
 
 **Claude says it cannot access AgentMail.** The connector is not installed or not connected. Follow the Claude Desktop setup steps above and confirm the connector shows as connected in **Settings**, then **Connectors**.
+
+**The assistant does not list the AgentID tools.** Disconnect and reconnect the AgentMail connector so the client reloads the tool list, then ask `List AgentID providers`.
 
 **OAuth opens `console.agentmail.to` but says you do not have an account.** Sign up at [console.agentmail.to](https://console.agentmail.to) first, then retry the connector flow.
 

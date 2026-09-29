@@ -333,6 +333,9 @@ navigation:
           - page: AgentID Public-Key Authentication
             icon: fa-solid fa-key
             path: pages/guides/agentid-public-key-authentication.mdx
+          - page: AgentID in Claude, ChatGPT, and Cursor
+            icon: fa-solid fa-robot
+            path: pages/guides/agentid-in-assistants.mdx
           - page: Sending & Receiving Email
             icon: fa-solid fa-right-left
             path: pages/guides/sending-receiving-email.mdx
