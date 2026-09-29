@@ -4,13 +4,13 @@ tags: ["agentid", "providers-api", "docs", "enhancement"]
 
 ## Summary
 
-Agents in Claude, ChatGPT, Cursor, Claude Code, and Codex can now find AgentID providers, sign an inbox in, and check accounts by asking in plain language. A new guide walks through the flow, and the AgentMail plugin ships a skill for it. A provider that is registered but not listed in the catalog can also be read and connected by its ID.
+Ask Claude, ChatGPT, Cursor, Claude Code, or Codex to "create an account at Firecrawl for my agent" and it does, using an AgentMail inbox as the agent's identity through AgentID. A new guide walks through creating accounts, getting API keys, and checking where your agent has accounts, and the AgentMail plugin ships a skill for it. A provider that is registered but not listed in the catalog can also be read and connected by its ID.
 
 ### What's new?
 
 **New docs and tooling:**
 
-- [AgentID in Claude, ChatGPT, and Cursor](https://docs.agentmail.to/agentid-in-assistants): set up each assistant, then find providers, connect an inbox, and list accounts with the `list_providers`, `search_providers`, `get_provider`, `connect_provider`, and `list_accounts` MCP tools.
+- [AgentID in Claude, ChatGPT, and Cursor](https://docs.agentmail.to/agentid-in-assistants): set up each assistant, then create accounts, find a provider for a need, get an API key, and list accounts with the `list_providers`, `search_providers`, `get_provider`, `connect_provider`, and `list_accounts` MCP tools.
 - ChatGPT setup on the [MCP page](https://docs.agentmail.to/integrations/mcp), using developer mode and OAuth.
 - The AgentMail plugin for Claude Code, Cursor, and Codex (0.4.0) adds the `agentmail-agentid` skill.
 
@@ -22,7 +22,7 @@ Agents in Claude, ChatGPT, Cursor, Claude Code, and Codex can now find AgentID p
 
 ### Use cases
 
-- Build agents that sign themselves up at a provider when you ask, from the assistant you already use.
+- Give your agent its own Firecrawl, search, or database account from the assistant you already use, without a sign-up form or password.
 - Audit which inboxes hold accounts at which providers without writing code.
 - Connect an inbox to a provider that shared its ID with you before it appears in the catalog.
 

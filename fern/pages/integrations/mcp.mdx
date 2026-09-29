@@ -7,7 +7,7 @@ description: Connect AgentMail to Claude, ChatGPT, Cursor, and other MCP clients
 
 ## Overview
 
-The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client, plus [AgentID](/agentid-in-assistants) tools for signing inboxes in to providers and listing their accounts.
+The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client, plus [AgentID](/agentid-in-assistants) tools that create accounts for your agent at services like Firecrawl.
 
 The server supports two authentication paths:
 
@@ -74,15 +74,15 @@ Claude Code will run the same OAuth flow on first use. Connectors installed on C
 
 For Claude Code, Cursor, and Codex, the [AgentMail plugin](/integrations/skills#plugins-for-claude-code-cursor-and-codex) installs this server together with the AgentMail skills.
 
-## Sign in to providers with AgentID
+## Create accounts for your agent with AgentID
 
-The connector includes the AgentID tools, so you can ask your assistant to find a provider, sign an inbox in, and list accounts:
+The connector includes the AgentID tools, so your assistant can create an account for your agent at a provider, using an inbox as its identity:
 
-- "Find a web search provider in AgentID."
-- "Sign support-bot@agentmail.to in to Firecrawl."
-- "Which providers is support-bot@agentmail.to signed in to?"
+- "Create an account at Firecrawl for my agent."
+- "My agent needs a web search API. Set one up."
+- "Which services is support-bot@agentmail.to signed up for?"
 
-Connecting returns a single-use sign-in URL that expires after five minutes. Open it in the browser that should hold the sign-in, then ask the assistant to confirm. See [AgentID in Claude, ChatGPT, and Cursor](/agentid-in-assistants) for the full walkthrough.
+The assistant gives you a single-use sign-in link that expires after five minutes. Open it in the browser that should hold the agent's session, then ask the assistant to confirm. See [AgentID in Claude, ChatGPT, and Cursor](/agentid-in-assistants) for the full walkthrough, including getting an API key.
 
 ## Available tools
 

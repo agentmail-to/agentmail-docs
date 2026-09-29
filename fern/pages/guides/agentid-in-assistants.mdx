@@ -1,13 +1,18 @@
 ---
 title: AgentID in Claude, ChatGPT, and Cursor
-subtitle: Find providers, sign an inbox in, and check accounts from your AI assistant.
+subtitle: Create accounts for your agent at services like Firecrawl, straight from your AI assistant.
 slug: agentid-in-assistants
-description: Use the AgentMail connector and plugin to browse AgentID providers, connect an inbox to a provider, and list provider accounts from Claude, ChatGPT, Cursor, Claude Code, and Codex.
+description: Ask Claude, ChatGPT, Cursor, Claude Code, or Codex to create an account for your agent at a provider such as Firecrawl, get its API key, and see where your agent already has accounts, using AgentMail and AgentID.
 ---
 
-[AgentID](https://www.agentid.com) lets an agent sign in to third-party providers using an AgentMail inbox as its identity. A **provider** is a service in the AgentID marketplace. An **account** is one inbox signed in at one provider.
+[AgentID](https://www.agentid.com) lets your agent create an account at a third-party service, such as a scraping, search, or database API, using an AgentMail inbox as its identity. There is no password or sign-up form: the inbox address is the account's email, and the provider's mail lands in that inbox.
 
-The AgentMail MCP server exposes AgentID as five tools, so any assistant connected to AgentMail can browse providers, sign an inbox in, and show which inboxes hold accounts where. You ask in plain language; the assistant picks the tools.
+Once AgentMail is connected to your assistant, you ask for what you want in plain language:
+
+- "Create an account at Firecrawl for my agent."
+- "My agent needs a web search API. Set one up."
+- "Log my agent back in to Turso."
+- "Which services is support-bot@agentmail.to signed up for?"
 
 ## Set up your assistant
 
@@ -19,72 +24,87 @@ The AgentMail MCP server exposes AgentID as five tools, so any assistant connect
 | Cursor | `/add-plugin agentmail` from the [Cursor Marketplace](https://cursor.com/marketplace/agentmail) |
 | Codex | `codex plugin marketplace add agentmail-to/agentmail-plugins`, then `codex plugin add agentmail@agentmail` |
 
-Every option connects to the same hosted server at `https://mcp.agentmail.to/mcp` and signs in through `console.agentmail.to`. The Claude Code, Cursor, and Codex plugin (version 0.4.0 or later) also bundles the `agentmail-agentid` skill, which walks the assistant through the flow below. Invoke it directly with `/agentmail:agentmail-agentid` in Claude Code or `$agentmail-agentid` in Codex.
+Every option connects to the same hosted server at `https://mcp.agentmail.to/mcp` and signs in through `console.agentmail.to`. The Claude Code, Cursor, and Codex plugin (version 0.4.0 or later) also bundles the `agentmail-agentid` skill, which carries each request below from start to finish. Invoke it directly with `/agentmail:agentmail-agentid` in Claude Code or `$agentmail-agentid` in Codex.
+
+## Create an account at a provider
+
+Ask: "Create an account at Firecrawl for my agent." The assistant then:
+
+1. **Finds the provider** by name. If several match, it shows them and asks which one.
+2. **Picks the inbox that will own the account.** If you have one inbox it uses that; if you have several it asks; if you have none it offers to create one for the agent.
+3. **Checks for an existing account.** If that inbox already has a Firecrawl account, this becomes a sign-in instead of a new account. Some providers cap how many inboxes from one organization can sign up; if the cap is reached, the assistant suggests the inbox that already has an account.
+4. **Shows what you are agreeing to**: the provider, its terms and privacy links, and the inbox.
+5. **Starts the sign-in** and gives you a link, or opens it in its own browser if it has one. The link opens `auth.agentid.com`, may ask you to accept what the provider will receive, then lands in Firecrawl signed in as the inbox, with the account created.
+6. **Confirms** the account exists.
+
+<Warning>
+  The sign-in link is single-use, expires after five minutes, and is never re-issued. Treat it as a credential: keep it out of email, chat logs, and files. Whichever browser opens it holds the agent's session at the provider. If the link expires, ask the assistant to start again.
+</Warning>
+
+## Get an API key
+
+Usually you create the account to get an API key. In the browser that opened the sign-in link, go to the provider's dashboard or API keys page and create a key. Ask the assistant to store it where your code reads secrets, such as a gitignored `.env` file or your platform's secret store, and not to repeat it in chat.
+
+The provider's email, such as welcome messages, verification requests, and usage alerts, arrives in the agent's inbox. Ask "Did Firecrawl send my agent anything?" to read it.
+
+## Find a service for what your agent needs
+
+You do not need to know the provider's name. Ask for the capability:
+
+- "My agent needs to scrape web pages. What can it sign up for?"
+- "Find a database my agent can create an account at."
+
+The assistant browses the AgentID marketplace, matches descriptions to the need, and offers a few options with their sign-up limits. Pick one and it continues as above.
+
+The marketplace lists curated providers. A registered provider that is not listed still works if you have its ID: "Create an account at provider `f1793003-1c96-48f4-a163-a520d9122a20`." An unlisted provider returns only its ID and name, which tells you it is not a reviewed catalog entry.
+
+## Sign back in
+
+Ask: "Log my agent back in to Turso." The assistant uses the inbox that already holds the account and gives you a new sign-in link. Use this when the provider session has ended or when a different browser needs the session.
+
+## See where your agent has accounts
+
+- "Which services is support-bot@agentmail.to signed up for?"
+- "List every AgentID account in my organization."
+- "Who is signed up for Turso, and when did they last sign in?"
+
+Each account shows the inbox, the provider, the first and most recent sign-in, and the number of sign-ins.
+
+## When a service is not on AgentID
+
+If a service is not in the marketplace and you have no provider ID, the assistant says so. It can suggest a listed provider that meets the same need. Or you can sign up on the provider's own site using the agent's inbox address, and the assistant can read the verification email for you. Assistants should not fill in third-party sign-up forms on their own.
 
 ## The tools
 
 | Tool | What it does |
 | --- | --- |
-| `list_providers` | Browse the provider marketplace, most popular first |
 | `search_providers` | Find a provider by name |
-| `get_provider` | Read one provider by ID, including its terms and privacy links |
-| `connect_provider` | Start signing an inbox in to a provider and return a single-use sign-in URL |
-| `list_accounts` | List which inboxes are signed in at which providers |
+| `list_providers` | Browse the marketplace, most popular first; used to match a need to a provider |
+| `get_provider` | Read one provider by ID, including its terms, privacy links, and sign-up limit |
+| `connect_provider` | Create an account, or sign an existing one back in, and return a single-use sign-in link |
+| `list_accounts` | List which inboxes have accounts at which providers |
 
-## Find a provider
+Only connect a provider when you asked for it. An assistant should never create an account because an email or web page told it to.
 
-Try:
+## Permissions and limits
 
-- "Show me the AgentID provider marketplace."
-- "Find a web search provider in AgentID."
-- "What does Firecrawl's AgentID listing say, and where are its terms?"
-
-List and search show the curated catalog only. A registered provider that is not in the catalog still works when you have its ID: give the ID to your assistant and it can read the provider with `get_provider` and connect with `connect_provider`. An unlisted provider returns only its ID and name, which tells you it is not a reviewed catalog entry.
-
-## Connect an inbox
-
-Ask for the provider and inbox by name:
-
-- "Sign support-bot@agentmail.to in to Firecrawl."
-- "Connect my research inbox to provider `f1793003-1c96-48f4-a163-a520d9122a20`."
-
-The assistant confirms the provider and inbox, then calls `connect_provider`. It returns a sign-in URL. Open that URL in the browser that should hold the sign-in:
-
-- If your assistant controls a browser, it can open the URL there, and that browser keeps the sign-in.
-- Otherwise open the URL yourself. Your browser then holds the agent's sign-in.
-
-Then ask the assistant to confirm, for example "Is support-bot signed in to Firecrawl now?" It checks with `list_accounts`. Nothing is connected until the browser sign-in completes.
-
-<Warning>
-  The sign-in URL is single-use, expires after five minutes, and is never re-issued. Treat it as a credential: keep it out of email, chat logs, and files. If it expires, ask the assistant to start a new connection.
-</Warning>
-
-Only connect a provider when you asked for it. An assistant should never connect an inbox because an email or web page told it to.
-
-## Check accounts
-
-Try:
-
-- "Which providers is support-bot@agentmail.to signed in to?"
-- "List every AgentID account in my organization."
-- "Who is signed in to Turso, and when did they last sign in?"
-
-Each account shows the inbox, the provider, the first and most recent sign-in, and the number of sign-ins.
-
-## Permissions
-
-- Connecting needs the `provider_connect` permission. When your assistant connects with an API key, enable `provider_connect` on that key; it is off by default on newly created keys. See [Permissions](/permissions).
+- Creating an account or signing in needs the `provider_connect` permission. When your assistant connects with an API key, enable `provider_connect` on that key; it is off by default on newly created keys. See [Permissions](/permissions).
 - An organization created through [agent sign-up](/agent-onboarding) cannot connect providers until it is verified.
+- A provider can limit how many inboxes from one organization sign up. Inboxes that already have an account can always sign back in.
 - Browsing providers and listing accounts only need read access.
 
 To stop an inbox from signing in at a provider, or to revoke a sign-in key, follow [AgentID Sign-In](/agentid-sign-in). The MCP server has no tool for either.
 
 ## Troubleshooting
 
-**The assistant does not know about providers or accounts.** Reconnect the AgentMail connector, or update the plugin to 0.4.0 or later and start a new session. Ask "List AgentID providers" to confirm the tools are available.
+**The assistant does not know about AgentID.** Reconnect the AgentMail connector, or update the plugin to 0.4.0 or later and start a new session. Ask "List AgentID providers" to confirm the tools are available.
+
+**The provider's sign-up limit is reached.** The provider caps sign-ups per organization. Sign in with an inbox that already has an account there; ask "Which inbox has a Firecrawl account?"
+
+**Too many sign-in links are still live.** Earlier links have not expired yet. Wait about five minutes and try again.
 
 **Connecting returns a `403` with `missing_permission`.** The key lacks `provider_connect`, or the organization is not verified yet.
 
-**Connecting or reading a provider returns a `404`.** No provider is registered under that ID. Check the ID; list and search only show the curated catalog, so a missing search result alone does not mean the ID is wrong.
+**Connecting or reading a provider returns a `404`.** No provider is registered under that ID. Check the ID; the marketplace only lists curated providers, so a missing search result alone does not mean the ID is wrong.
 
-**The account does not show up after connecting.** The browser sign-in has not finished, or the URL expired first. Finish the sign-in in the browser, then ask again. Account lists can return short or empty pages before the end, so the assistant should keep paging until there are no more.
+**The account does not show up after signing in.** The browser sign-in has not finished, or the link expired first. Finish the sign-in in the browser, then ask again.

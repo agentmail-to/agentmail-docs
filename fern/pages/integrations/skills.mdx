@@ -126,9 +126,9 @@ Multi-tenant isolation for SaaS platforms. Each customer gets isolated inboxes, 
 
 Use idempotency keys for safe retries on create operations. This prevents duplicate emails when network errors occur.
 
-### AgentID providers and accounts
+### AgentID accounts
 
-Sign an inbox in to third-party providers with [AgentID](/agentid-in-assistants), and see which inboxes hold accounts where. The `agentmail-agentid` skill finds a provider, starts the sign-in, and confirms it completed.
+Create accounts for your agent at services like Firecrawl with [AgentID](/agentid-in-assistants), using an inbox as its identity, and see where it already has accounts. The `agentmail-agentid` skill carries the whole job: finding the provider, picking the inbox, the sign-in link, and storing the API key you came for.
 
 ### Real-time events
 
@@ -143,8 +143,8 @@ Once installed, you can ask your AI assistant to perform email tasks:
 - "Check my inbox for new emails"
 - "Reply to the latest email from Sarah"
 - "Create a draft response to the support ticket"
-- "Sign my agent inbox in to Firecrawl with AgentID"
-- "Which providers is my agent inbox signed in to?"
+- "Create an account at Firecrawl for my agent"
+- "My agent needs a web search API, set one up"
 
 ## Resources
 
