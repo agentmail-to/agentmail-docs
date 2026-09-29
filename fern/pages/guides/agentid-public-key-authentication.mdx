@@ -103,7 +103,7 @@ Include `public_key` in the request (TypeScript: `publicKey`; CLI: `--public-key
 ## Permissions, expiry, and client IDs
 
 - `permissions` defaults to the creating key's permissions. Explicit grants cannot exceed what that key holds.
-- `expires_at` defaults to the creating key's expiry. An explicit expiry must be in the future and cannot exceed the creator's expiry. If the creator has no expiry and none is supplied, the registered key does not expire.
+- `expires_at` defaults to the creating key's expiry. An explicit expiry must be in the future and may be later than the creating key's own expiry, since the registered key is independent of its creator. If the creator has no expiry and none is supplied, the registered key does not expire.
 - Registered public keys are independent of their creator afterward. Changing or deleting the bearer key does not change or revoke them.
 - Update `name` and `permissions` with `PATCH /v0/api-keys/{api_key_id}`. Key material, type, scope, and expiry are immutable.
 - An optional `client_id` is a caller-chosen alias, unique within the organization. It must be URL-safe and contain no slash or `@`. You can use it instead of `api_key_id` to get, update, or delete a public key.
