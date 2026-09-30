@@ -59,6 +59,7 @@ A denied request returns a `403` with `code: "missing_permission"`, and its `fix
 | Permission | Description |
 | --- | --- |
 | `message_read` | Read messages |
+| `message_reply` | Reply and reply-all with a registered public key. Bearer keys reply with `message_send` |
 | `message_send` | Send messages |
 | `message_update` | Update message labels |
 | `message_delete` | Delete messages |
@@ -393,7 +394,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
 
   Permission fields (all optional<bool>, resource_action format):
     Inboxes: inbox_read, inbox_create, inbox_update, inbox_delete
-    Messages: message_read, message_send, message_update, message_delete
+    Messages: message_read, message_reply, message_send, message_update, message_delete
     Label visibility: label_spam_read, label_blocked_read, label_unauthenticated_read, label_trash_read
     Drafts: draft_read, draft_create, draft_update, draft_delete, draft_send
     Webhooks: webhook_read, webhook_create, webhook_update, webhook_delete

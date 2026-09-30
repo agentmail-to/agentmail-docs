@@ -152,6 +152,9 @@ types:
       message_read:
         type: optional<boolean>
         docs: Read messages. Also required to read threads.
+      message_reply:
+        type: optional<boolean>
+        docs: Reply and reply-all when the request is signed with a registered public key. Bearer keys reply with `message_send`.
       message_send:
         type: optional<boolean>
         docs: Send messages.

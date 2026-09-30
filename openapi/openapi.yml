@@ -7522,6 +7522,15 @@ paths:
         - BearerAuth: []
   /v0/providers/{provider_id}:
     get:
+      description: >-
+        Gets one provider by ID. A provider in the catalog returns its full
+        entry.
+
+        A registered provider that the catalog does not list returns its ID and
+
+        name only, without `updated_at`, so anyone holding its ID can still look
+
+        it up. List Providers and Search Providers show catalog entries only.
       operationId: providers_get
       tags:
         - Providers
@@ -7610,6 +7619,12 @@ paths:
 
         [Get API Key](/api-reference/api-keys/get) with `api_key_id` for
         `status`.
+
+        Works for any registered provider with a sign-in entry point, whether or
+        not
+
+        the catalog lists it. A `404` names the missing resource: `Provider` or
+        `Inbox`.
       operationId: providers_connect
       tags:
         - Providers
@@ -9187,6 +9202,12 @@ components:
           type: boolean
           nullable: true
           description: Read messages. Also required to read threads.
+        message_reply:
+          type: boolean
+          nullable: true
+          description: >-
+            Reply and reply-all when the request is signed with a registered
+            public key. Bearer keys reply with `message_send`.
         message_send:
           type: boolean
           nullable: true
