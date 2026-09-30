@@ -141,6 +141,23 @@ Shell completions (`agentmail completion`) and man pages (`agentmail man`) are b
 - **`--dry-run` is not an acceptance guarantee.** Flag values are type-checked locally, so `--limit abc` fails before a request is made. `--dry-run` then shows the request that would be sent — the API can still reject it on grounds the CLI cannot check, such as an unknown ID or a permission error.
 - **No auto-pagination.** List commands return one page. Paginate manually: pass `--limit`, read `next_page_token` from the response, and pass it back as `--page-token`.
 
+## Apps commands
+
+`agentmail apps` replaces `agentmail providers`, following the API's move from
+`/v0/providers` to `/v0/apps`. The `providers` commands still work but are
+deprecated. Upgrade with `npm install -g agentmail-cli@latest` to get `apps`:
+
+| Deprecated | Current |
+| --- | --- |
+| `agentmail providers list` | `agentmail apps list` |
+| `agentmail providers search --q <name>` | `agentmail apps search --q <name>` |
+| `agentmail providers get --provider-id <provider_id>` | `agentmail apps get --app-id <app_id>` |
+| `agentmail providers list-accounts --provider-id <provider_id>` | `agentmail apps list-accounts --app-id <app_id>` |
+| `agentmail providers connect --provider-id <provider_id> --inbox-id <inbox_id>` | `agentmail apps connect --app-id <app_id> --inbox-id <inbox_id>` |
+
+Accounts now carry `app_id` and `app_name`; `provider_id` and `provider_name` stay
+for the deprecation window with the same values.
+
 ## Upgrading to 1.4
 
 Public keys and AgentID sign-in keys use the same `api-keys` commands as bearer
@@ -148,9 +165,9 @@ keys. Upgrade with `npm install -g agentmail-cli@latest` to use these commands:
 
 | Operation | Current command |
 | --- | --- |
-| Start a provider sign-in | `agentmail providers connect --provider-id <provider_id> --inbox-id <inbox_id>` |
+| Start an app sign-in | `agentmail apps connect --app-id <app_id> --inbox-id <inbox_id>` |
 | Authorize a pending sign-in | `agentmail inboxes authorize --inbox-id <inbox_id> --auth-token <auth_token>` |
-| Accept a provider's disclosure | Add `--accept-disclosure true` to connect or authorize |
+| Accept an app's disclosure | Add `--accept-disclosure true` to connect or authorize |
 | List public keys | `agentmail api-keys list --type public_key` |
 | Register a public key | `agentmail api-keys create --public-key '<jwk>'` |
 | Check sign-in key status | `agentmail api-keys get --api-key-id <api_key_id>` |

@@ -40,7 +40,7 @@ OAuth is the recommended path for Claude products. You do not need an API key; t
 4. Sign in at `console.agentmail.to` when the browser window opens. If you belong to multiple organizations, pick one on the consent screen.
 5. In a chat, open the **+** menu, choose **Developer mode**, and select AgentMail. Send `List my AgentMail inboxes` to confirm the connection.
 
-ChatGPT asks you to confirm write actions, such as sending mail or connecting a provider, before it runs them.
+ChatGPT asks you to confirm write actions, such as sending mail or connecting an app, before it runs them.
 
 ### Cursor (API key)
 
@@ -76,7 +76,7 @@ For Claude Code, Cursor, and Codex, the [AgentMail plugin](/integrations/skills#
 
 ## Create accounts for your agent with AgentID
 
-The connector includes the AgentID tools, so your assistant can create an account for your agent at a provider, using an inbox as its identity:
+The connector includes the AgentID tools, so your assistant can create an account for your agent at an app, using an inbox as its identity:
 
 - "Create an account at Firecrawl for my agent."
 - "My agent needs a web search API. Set one up."
@@ -94,7 +94,7 @@ MCP clients discover the live tool catalog from the hosted server. The canonical
 
 **Claude says it cannot access AgentMail.** The connector is not installed or not connected. Follow the Claude Desktop setup steps above and confirm the connector shows as connected in **Settings**, then **Connectors**.
 
-**The assistant does not list the AgentID tools.** Disconnect and reconnect the AgentMail connector so the client reloads the tool list, then ask `List AgentID providers`.
+**The assistant does not list the AgentID tools.** Disconnect and reconnect the AgentMail connector so the client reloads the tool list, then ask `List AgentID apps`.
 
 **OAuth opens `console.agentmail.to` but says you do not have an account.** Sign up at [console.agentmail.to](https://console.agentmail.to) first, then retry the connector flow.
 

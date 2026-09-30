@@ -1,0 +1,159 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  accounts: accounts.yml
+  api-keys: api-keys.yml
+  providers: providers.yml
+
+types:
+  AppId:
+    type: uuid
+    docs: ID of app.
+
+  App:
+    docs: An app an inbox can sign in to.
+    properties:
+      app_id: AppId
+      name: optional<string>
+      updated_at:
+        type: optional<datetime>
+        docs: Time at which app was last updated.
+      description: optional<string>
+      logo_url: optional<string>
+      terms_url: optional<string>
+      privacy_url: optional<string>
+      owner_signup_limit:
+        type: optional<integer>
+        docs: >-
+          Maximum number of accounts your organization may sign up at this app. Omitted when
+          the app sets no limit. 0 means the app has paused new sign-ups; existing accounts
+          keep signing in.
+
+  ListAppsResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      apps: list<App>
+
+  SearchAppsResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      apps: list<App>
+
+  ListAppAccountsResponse:
+    properties:
+      app: optional<App>
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      accounts: list<accounts.Account>
+
+  ConnectAppBody:
+    properties:
+      inbox_id: optional<providers.ConnectInboxId>
+      accept_disclosure: optional<api-keys.AcceptDisclosure>
+
+errors:
+  AppSignupLimitError:
+    status-code: 403
+    type: global.ErrorResponse
+    docs: |
+      The app's sign-up limit for your organization is reached, or the app has paused new
+      sign-ups. `code` is `limit_exceeded` and `fix` says which. Inboxes that already have an
+      account at the app can still sign in.
+
+service:
+  url: Http
+  base-path: /apps
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Apps
+      docs: Lists apps, most popular first.
+      request:
+        name: ListAppsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListAppsResponse
+      errors:
+        - global.ValidationError
+
+    search:
+      method: GET
+      path: /search
+      display-name: Search Apps
+      docs: Searches apps by name prefix.
+      request:
+        name: SearchAppsRequest
+        query-parameters:
+          q:
+            type: string
+            docs: Name prefix to search for.
+          limit: optional<global.Limit>
+      response: SearchAppsResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{app_id}
+      display-name: Get App
+      docs: |
+        Gets one app by ID. An app in the catalog returns its full entry.
+        A registered app that the catalog does not list returns its ID and
+        name only, without `updated_at`, so anyone holding its ID can still look
+        it up. List Apps and Search Apps show catalog entries only.
+      path-parameters:
+        app_id: AppId
+      response: App
+      errors:
+        - global.NotFoundError
+
+    listAccounts:
+      method: GET
+      path: /{app_id}/accounts
+      display-name: List App Accounts
+      docs: Lists accounts at one app, most recent sign-in first.
+      path-parameters:
+        app_id: AppId
+      request:
+        name: ListAppAccountsRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+      response: ListAppAccountsResponse
+      errors:
+        - global.ValidationError
+
+    connect:
+      method: POST
+      path: /{app_id}/connect
+      display-name: Connect App
+      docs: |
+        Starts signing an inbox in to an app. Returns a single-use `magic_url`,
+        valid for five minutes, to open in the client that will hold the sign-in;
+        the client enrolls as the inbox and continues to the app. Poll
+        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
+        Works for any registered app with a sign-in entry point, whether or not
+        the catalog lists it. A `404` names the missing resource: `App` or `Inbox`.
+        A `403` `AppSignupLimitError` means the app accepts no more sign-ups from
+        your organization; sign in with an inbox that already has an account there.
+      path-parameters:
+        app_id: AppId
+      request:
+        name: ConnectAppRequest
+        body: optional<ConnectAppBody>
+      response:
+        status-code: 202
+        type: providers.ConnectAccepted
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - AppSignupLimitError

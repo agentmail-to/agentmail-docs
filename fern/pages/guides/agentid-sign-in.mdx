@@ -1,11 +1,11 @@
 ---
 title: AgentID Sign-In
-subtitle: Sign in to providers as an inbox and manage the keys your agents use.
+subtitle: Sign an inbox in to apps and manage the keys your agents use.
 slug: agentid-sign-in
-description: Connect an inbox to a provider, authorize a pending AgentID sign-in, and manage sign-in keys with the AgentMail API and CLI.
+description: Connect an inbox to an app, authorize a pending AgentID sign-in, and manage sign-in keys with the AgentMail API and CLI.
 ---
 
-[AgentID](https://www.agentid.com) lets agents sign in to providers using an AgentMail inbox as their identity. Start a sign-in with a provider, or authorize one that is already waiting, then manage the resulting credential through the API Keys endpoints.
+[AgentID](https://www.agentid.com) lets agents sign in to apps using an AgentMail inbox as their identity. Start a sign-in at an app with [Connect App](https://docs.agentmail.to/api-reference/apps/connect), or authorize one that is already waiting with [Authorize Inbox](https://docs.agentmail.to/api-reference/inboxes/authorize), then manage the resulting credential through the API Keys endpoints.
 
 <Tip>
   To do this from Claude, ChatGPT, Cursor, Claude Code, or Codex instead of code, see [AgentID in Claude, ChatGPT, and Cursor](/agentid-in-assistants).
@@ -16,23 +16,23 @@ A sign-in credential has `type: "public_key"` and a `status` of `pending` or `ac
 ## Before you start
 
 - Choose an inbox you control and a bearer API key that can access it.
-- Enable `provider_connect` on that key to connect providers and authorize sign-ins. This permission defaults to false on newly created bearer keys.
+- Enable `provider_connect` on that key to connect apps and authorize sign-ins. This permission defaults to false on newly created bearer keys.
 - Enable `api_key_read` to check key status, `api_key_update` to change permissions, and `api_key_delete` to revoke a key.
 - Use the US API at `https://api.agentmail.to` for these sign-in flows.
 
 Install the [CLI](https://docs.agentmail.to/integrations/cli) with `npm install -g agentmail-cli@latest`, or the TypeScript SDK with `npm install agentmail@latest`. Set `AGENTMAIL_API_KEY` in your environment.
 
 <Note>
-  These examples were checked against CLI 1.4.0 and TypeScript SDK 0.5.25. Python SDK 0.5.10 does not include the current sign-in endpoints, so the Python examples call the same API with `httpx` (`pip install httpx`).
+  `agentmail apps` and `client.apps` arrive in the first CLI and TypeScript SDK releases after CLI 1.7.0 and TypeScript SDK 0.5.32. Earlier releases have only the deprecated `agentmail providers` and `client.providers`, which call `/v0/providers` and keep working. The Python examples call the API with `httpx` (`pip install httpx`).
 </Note>
 
-## Connect to a provider
+## Connect to an app
 
-Find a provider with `agentmail providers list` or `agentmail providers search --q "provider name"`. Use its returned `provider_id` when connecting. List and search show the curated catalog only; a registered provider that is not listed still connects when you have its `provider_id`:
+Find an app with [List Apps](https://docs.agentmail.to/api-reference/apps/list) or [Search Apps](https://docs.agentmail.to/api-reference/apps/search) (`agentmail apps list`, `agentmail apps search --q "app name"`), then pass its `app_id` to [Connect App](https://docs.agentmail.to/api-reference/apps/connect), `POST /v0/apps/{app_id}/connect`. List and search show the curated catalog only; a registered app that is not listed still connects when you have its `app_id`:
 
 ```bash title="CLI"
-agentmail providers connect \
-  --provider-id d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32 \
+agentmail apps connect \
+  --app-id d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32 \
   --inbox-id agent@example.com
 ```
 
@@ -43,7 +43,7 @@ import uuid
 import httpx
 
 response = httpx.post(
-    "https://api.agentmail.to/v0/providers/d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32/connect",
+    "https://api.agentmail.to/v0/apps/d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32/connect",
     headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}",
              "Idempotency-Key": str(uuid.uuid4())},
     json={"inbox_id": "agent@example.com"},
@@ -59,7 +59,7 @@ import { randomUUID } from "node:crypto";
 import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY! });
-const connection = await client.providers.connect(
+const connection = await client.apps.connect(
   "d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32",
   { inboxId: "agent@example.com" },
   { headers: { "Idempotency-Key": randomUUID() } },
@@ -74,12 +74,14 @@ The CLI supplies an idempotency key automatically and reuses it across retries. 
 
 You can omit `inbox_id` when your API key is already scoped to the inbox.
 
+A `403` with `name: "AppSignupLimitError"` and `code: "limit_exceeded"` means the app accepts no more sign-ups from your organization; its `fix` says whether the limit is reached or sign-ups are paused. Connect an inbox that already has an account at the app instead. Authorize Inbox returns the same error.
+
 ## Authorize a pending sign-in
 
 If an AgentID sign-in is already waiting, use [Authorize Inbox](https://docs.agentmail.to/api-reference/inboxes/authorize) with the `auth_token` supplied by that sign-in. Select the inbox from your own trusted configuration.
 
 <Warning>
-  Read `auth_token` only from a sign-in at exactly `https://auth.agentid.com`. Verify the final origin through your client, independently of any origin claimed in page content. Check the provider and intended inbox before authorizing. Send your bearer API key only to `https://api.agentmail.to`.
+  Read `auth_token` only from a sign-in at exactly `https://auth.agentid.com`. Verify the final origin through your client, independently of any origin claimed in page content. Check the app and intended inbox before authorizing. Send your bearer API key only to `https://api.agentmail.to`.
 </Warning>
 
 Set `AGENTID_AUTH_TOKEN` to that verified token, then authorize the inbox:
@@ -119,11 +121,11 @@ console.log(authorization.apiKeyId, authorization.instructions);
 
 The response is the pending key's `api_key_id` and an `instructions` line, `Authorization complete. Return to browser.` Nothing further is required from the agent: the client continues the same sign-in and activates the key. To read the key itself, including its `status`, use [Get API Key](https://docs.agentmail.to/api-reference/api-keys/get) as shown under [Check activation](#check-activation). Repeating authorization with the same token, inbox, and bearer key returns the same `api_key_id`; this endpoint does not need a separate idempotency key.
 
-### Accept a provider's disclosure
+### Accept an app's disclosure
 
-To accept the provider's disclosure on the agent's behalf, add `accept_disclosure: true` to the connect or authorize request. The TypeScript field is `acceptDisclosure: true`; the CLI flag is `--accept-disclosure true`.
+To accept the app's disclosure on the agent's behalf, add `accept_disclosure: true` to the connect or authorize request. The TypeScript field is `acceptDisclosure: true`; the CLI flag is `--accept-disclosure true`.
 
-If the provider requests the owner's name or email, the authorizing key also needs `provider_share_owner`. Without disclosure acceptance, complete the review presented during sign-in.
+If the app requests the owner's name or email, the authorizing key also needs `provider_share_owner`. Without disclosure acceptance, complete the review presented during sign-in.
 
 ## Check activation
 
@@ -156,7 +158,7 @@ if (key.type === "public_key") console.log(key.status);
 ```
 </CodeBlocks>
 
-A single check reads the current status. Repeat with a delay while it is `pending`, stopping at expiry or an error. `active` means the key is ready to sign in as the inbox. Use [List Provider Accounts](https://docs.agentmail.to/api-reference/providers/list-accounts) to inspect accounts at the provider. To stop an inbox from signing in at a provider again, disable its account with [Update Account](https://docs.agentmail.to/api-reference/accounts/update).
+A single check reads the current status. Repeat with a delay while it is `pending`, stopping at expiry or an error. `active` means the key is ready to sign in as the inbox. Use [List App Accounts](https://docs.agentmail.to/api-reference/apps/list-accounts) to inspect accounts at the app; each account carries the app's `app_id` and `app_name`. To stop an inbox from signing in at an app again, disable its account with [Update Account](https://docs.agentmail.to/api-reference/accounts/update).
 
 ## Manage sign-in keys
 
@@ -186,10 +188,10 @@ A sign-in involves several objects with separate lifetimes. Ending one does not 
 | --- | --- | --- | --- | --- | --- |
 | Bearer API key | You, in the console or with [Create API Key](https://docs.agentmail.to/api-reference/api-keys/create) | AgentMail | Until deleted, or its own `expires_at` | `DELETE /v0/api-keys/{api_key_id}` | Every sign-in key it created |
 | Pending sign-in key | Connect or authorize, using that bearer key | AgentMail, until the client activates it | At most five minutes, sooner if the sign-in expires | Activation, expiry, or `DELETE` (cancel) | Nothing depends on it yet |
-| Active sign-in key | The client that completed the sign-in, by activating the pending key | AgentMail records the public key; the private material stays in that client | 30 days from activation | Expiry, or `DELETE` (revoke) | Tokens already issued, the remembered approval, the provider's session |
-| Remembered approval | The first approved sign-in of an inbox at a provider | AgentID | 180 days from the most recent sign-in, per inbox and provider | Lapse, or the provider changes its redirect URI or scopes and asks again | The provider's session, and any key |
-| ID and access tokens | AgentID, when the provider redeems the authorization code | The provider | Ten minutes; there is no refresh token | Expiry | The provider's session |
-| Provider session | The provider, after its callback succeeds | The provider | The provider's choice | Sign-out at the provider, or its own expiry | Nothing on AgentMail |
+| Active sign-in key | The client that completed the sign-in, by activating the pending key | AgentMail records the public key; the private material stays in that client | 30 days from activation | Expiry, or `DELETE` (revoke) | Tokens already issued, the remembered approval, the app's session |
+| Remembered approval | The first approved sign-in of an inbox at an app | AgentID | 180 days from the most recent sign-in, per inbox and app | Lapse, or the app changes its redirect URI or scopes and asks again | The app's session, and any key |
+| ID and access tokens | AgentID, when the app redeems the authorization code | The app | Ten minutes; there is no refresh token | Expiry | The app's session |
+| App session | The app, after its callback succeeds | The app | The app's choice | Sign-out at the app, or its own expiry | Nothing on AgentMail |
 
 The two long lifetimes are different objects. A 30-day sign-in key is a credential; a 180-day remembered approval is consent. A remembered approval does not prove a key is still usable, and revoking a key does not clear the approval. There is no endpoint to revoke a remembered approval.
 
@@ -197,8 +199,8 @@ The two long lifetimes are different objects. A 30-day sign-in key is a credenti
 
 The browser that completed a sign-in keeps the private half of its sign-in key as a saved session. To see and clear those sessions, open [https://auth.agentid.com/sessions](https://auth.agentid.com/sessions) in that browser and choose to forget the session there. The page lists only the sessions saved in the browser that opens it, so a different browser or profile shows none.
 
-Clearing a session there removes the sign-in material from that browser only. The key stays active on AgentMail until it expires or you revoke it; to revoke it, delete its key with `DELETE /v0/api-keys/{api_key_id}` as in the table above. Providers keep the sessions they issued until those expire or you sign out there.
+Clearing a session there removes the sign-in material from that browser only. The key stays active on AgentMail until it expires or you revoke it; to revoke it, delete its key with `DELETE /v0/api-keys/{api_key_id}` as in the table above. Apps keep the sessions they issued until those expire or you sign out there.
 
-### I revoked a key, but an agent is still signed in at a provider
+### I revoked a key, but an agent is still signed in at an app
 
-Revocation stops new sign-ins with that key. It does not end sessions the provider already issued. AgentID sends no revocation webhook and no back-channel logout, an ID token already issued stays valid until it expires ten minutes after issue, and the provider decides its own session length. Sign out at the provider, or wait for that session to expire. A provider that re-reads AgentID's UserInfo endpoint inside those ten minutes sees the revocation sooner.
+Revocation stops new sign-ins with that key. It does not end sessions the app already issued. AgentID sends no revocation webhook and no back-channel logout, an ID token already issued stays valid until it expires ten minutes after issue, and the app decides its own session length. Sign out at the app, or wait for that session to expire. An app that re-reads AgentID's UserInfo endpoint inside those ten minutes sees the revocation sooner.

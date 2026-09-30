@@ -279,7 +279,8 @@ paths:
         Authorizes the AgentID sign-in a client is already waiting in, for the
         inbox in the path, and returns the ID of the pending public key it will
         activate. Read the key with Get API Key. A repeat for the same token,
-        inbox, and bearer returns the same key ID.
+        inbox, and bearer returns the same key ID. A `403` `AppSignupLimitError`
+        means the app accepts no more sign-ups from your organization.
       operationId: inboxes_authorize
       tags:
         - Inboxes
@@ -302,6 +303,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: ''
           content:
@@ -769,7 +776,7 @@ paths:
   /v0/accounts:
     get:
       description: |-
-        Lists accounts across all providers, scoped to the API key: an
+        Lists accounts across all apps, scoped to the API key: an
         organization key sees every account, a pod key its pod's, an inbox key
         its inbox's. Requires `inbox_read`.
       operationId: accounts_list
@@ -855,7 +862,7 @@ paths:
       description: >-
         Updates one account. Set `status` to `disabled` to stop the inbox from
 
-        signing in at the provider again, or to `enabled` to re-enable it.
+        signing in at the app again, or to `enabled` to re-enable it.
 
         Idempotent: disabling an already disabled account keeps its original
 
@@ -865,18 +872,15 @@ paths:
         Find the `account_id` with List Accounts. An account exists only after
         an
 
-        inbox's first sign-in at a provider, so it cannot be disabled in
-        advance.
+        inbox's first sign-in at an app, so it cannot be disabled in advance.
 
-        A disable applies to that inbox at that provider whichever sign-in key
-        is
+        A disable applies to that inbox at that app whichever sign-in key is
 
-        used: the provider's next authorization ends in `access_denied`, and a
-        code
+        used: the app's next authorization ends in `access_denied`, and a code
 
         issued earlier is refused with `invalid_grant`. Access tokens already
 
-        issued stay valid until they expire, and the provider's own session is
+        issued stay valid until they expire, and the app's own session is
 
         unaffected.
 
@@ -1366,6 +1370,240 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/apps:
+    get:
+      description: Lists apps, most popular first.
+      operationId: apps_list
+      tags:
+        - Apps
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAppsResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: List Apps
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/apps/search:
+    get:
+      description: Searches apps by name prefix.
+      operationId: apps_search
+      tags:
+        - Apps
+      parameters:
+        - name: q
+          in: query
+          description: Name prefix to search for.
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppsResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: Search Apps
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/apps/{app_id}:
+    get:
+      description: |-
+        Gets one app by ID. An app in the catalog returns its full entry.
+        A registered app that the catalog does not list returns its ID and
+        name only, without `updated_at`, so anyone holding its ID can still look
+        it up. List Apps and Search Apps show catalog entries only.
+      operationId: apps_get
+      tags:
+        - Apps
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AppId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get App
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/apps/{app_id}/accounts:
+    get:
+      description: Lists accounts at one app, most recent sign-in first.
+      operationId: apps_listAccounts
+      tags:
+        - Apps
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AppId'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAppAccountsResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: List App Accounts
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/apps/{app_id}/connect:
+    post:
+      description: >-
+        Starts signing an inbox in to an app. Returns a single-use `magic_url`,
+
+        valid for five minutes, to open in the client that will hold the
+        sign-in;
+
+        the client enrolls as the inbox and continues to the app. Poll
+
+        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for
+        `status`.
+
+        Works for any registered app with a sign-in entry point, whether or not
+
+        the catalog lists it. A `404` names the missing resource: `App` or
+        `Inbox`.
+
+        A `403` `AppSignupLimitError` means the app accepts no more sign-ups
+        from
+
+        your organization; sign in with an inbox that already has an account
+        there.
+      operationId: apps_connect
+      tags:
+        - Apps
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AppId'
+      responses:
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectAccepted'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Connect App
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectAppBody'
+              nullable: true
   /v0/auth/me:
     get:
       description: >-
@@ -1882,7 +2120,7 @@ paths:
   /v0/inboxes/{inbox_id}/accounts:
     get:
       description: >-
-        Lists accounts held by the inbox, across all providers. Requires
+        Lists accounts held by the inbox, across all apps. Requires
         `inbox_read`.
       operationId: inboxes_accounts_list
       tags:
@@ -5170,8 +5408,8 @@ paths:
   /v0/pods/{pod_id}/accounts:
     get:
       description: >-
-        Lists accounts held by inboxes in the pod, across all providers.
-        Requires `inbox_read`.
+        Lists accounts held by inboxes in the pod, across all apps. Requires
+        `inbox_read`.
       operationId: pods_accounts_list
       tags:
         - PodsAccounts
@@ -7442,7 +7680,11 @@ paths:
               $ref: '#/components/schemas/webhooksUpdateWebhookHeadersRequest'
   /v0/providers:
     get:
-      description: Lists providers, most popular first.
+      description: |-
+        Deprecated: use [List Apps](/api-reference/apps/list), which returns the
+        same entries in an `apps` array keyed by `app_id`.
+
+        Lists providers, most popular first.
       operationId: providers_list
       tags:
         - Providers
@@ -7482,7 +7724,14 @@ paths:
         - BearerAuth: []
   /v0/providers/search:
     get:
-      description: Searches providers by name prefix.
+      description: >-
+        Deprecated: use [Search Apps](/api-reference/apps/search), which returns
+        the
+
+        same entries in an `apps` array keyed by `app_id`.
+
+
+        Searches providers by name prefix.
       operationId: providers_search
       tags:
         - Providers
@@ -7523,6 +7772,12 @@ paths:
   /v0/providers/{provider_id}:
     get:
       description: >-
+        Deprecated: use [Get App](/api-reference/apps/get), which returns the
+        same
+
+        entry keyed by `app_id`.
+
+
         Gets one provider by ID. A provider in the catalog returns its full
         entry.
 
@@ -7563,7 +7818,14 @@ paths:
         - BearerAuth: []
   /v0/providers/{provider_id}/accounts:
     get:
-      description: Lists accounts at one provider, most recent sign-in first.
+      description: >-
+        Deprecated: use [List App Accounts](/api-reference/apps/list-accounts),
+        which
+
+        embeds the app as `app` instead of `provider`.
+
+
+        Lists accounts at one provider, most recent sign-in first.
       operationId: providers_listAccounts
       tags:
         - Providers
@@ -7609,6 +7871,12 @@ paths:
   /v0/providers/{provider_id}/connect:
     post:
       description: >-
+        Deprecated: use [Connect App](/api-reference/apps/connect), which takes
+        the
+
+        same body and returns the same response.
+
+
         Starts signing an inbox in to a provider. Returns a single-use
         `magic_url`,
 
@@ -8756,7 +9024,7 @@ components:
       title: ProviderId
       type: string
       format: uuid
-      description: ID of provider.
+      description: ID of app. Deprecated spelling of `AppId`, with the same value.
     AccountStatus:
       title: AccountStatus
       type: string
@@ -8773,21 +9041,30 @@ components:
         - disabled
       description: |-
         Status to set. `disabled` stops the inbox from signing in at the
-        provider; `enabled` re-enables it. An enabled account reads back with no
+        app; `enabled` re-enables it. An enabled account reads back with no
         `status`.
     Account:
       title: Account
       type: object
-      description: One inbox signed in at one provider.
+      description: One inbox signed in at one app.
       properties:
         account_id:
           $ref: '#/components/schemas/AccountId'
+        app_id:
+          $ref: '#/components/schemas/AppId'
+        app_name:
+          type: string
+          nullable: true
+          description: Display name of app.
         provider_id:
           $ref: '#/components/schemas/ProviderId'
+          description: Deprecated. Use `app_id`, which has the same value.
         provider_name:
           type: string
           nullable: true
-          description: Display name of provider.
+          description: >-
+            Deprecated. Use `app_name`, which has the same value and is present
+            whenever this is.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
         pod_id:
@@ -8797,14 +9074,14 @@ components:
         first_signed_in_at:
           type: string
           format: date-time
-          description: Time of first sign-in at provider.
+          description: Time of first sign-in at app.
         last_signed_in_at:
           type: string
           format: date-time
-          description: Time of most recent sign-in at provider.
+          description: Time of most recent sign-in at app.
         sign_in_count:
           type: integer
-          description: Number of sign-ins at provider.
+          description: Number of sign-ins at app.
         status:
           $ref: '#/components/schemas/AccountStatus'
           nullable: true
@@ -8820,6 +9097,7 @@ components:
             is `disabled`.
       required:
         - account_id
+        - app_id
         - provider_id
         - inbox_id
         - pod_id
@@ -9026,7 +9304,7 @@ components:
       title: AcceptDisclosure
       type: boolean
       description: |-
-        Accept the provider's disclosure on the agent's behalf, skipping the
+        Accept the app's disclosure on the agent's behalf, skipping the
         first-use disclosure page. Requires `provider_share_owner` when owner
         scopes are involved.
     PublicJwkCoordinate:
@@ -9542,6 +9820,114 @@ components:
       properties: {}
       allOf:
         - $ref: '#/components/schemas/ApiKeyMutableFields'
+    AppId:
+      title: AppId
+      type: string
+      format: uuid
+      description: ID of app.
+    App:
+      title: App
+      type: object
+      description: An app an inbox can sign in to.
+      properties:
+        app_id:
+          $ref: '#/components/schemas/AppId'
+        name:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Time at which app was last updated.
+        description:
+          type: string
+          nullable: true
+        logo_url:
+          type: string
+          nullable: true
+        terms_url:
+          type: string
+          nullable: true
+        privacy_url:
+          type: string
+          nullable: true
+        owner_signup_limit:
+          type: integer
+          nullable: true
+          description: >-
+            Maximum number of accounts your organization may sign up at this
+            app. Omitted when the app sets no limit. 0 means the app has paused
+            new sign-ups; existing accounts keep signing in.
+      required:
+        - app_id
+    ListAppsResponse:
+      title: ListAppsResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/Limit'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/App'
+      required:
+        - count
+        - limit
+        - apps
+    SearchAppsResponse:
+      title: SearchAppsResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/Limit'
+        apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/App'
+      required:
+        - count
+        - limit
+        - apps
+    ListAppAccountsResponse:
+      title: ListAppAccountsResponse
+      type: object
+      properties:
+        app:
+          $ref: '#/components/schemas/App'
+          nullable: true
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/Limit'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+      required:
+        - count
+        - limit
+        - accounts
+    ConnectAppBody:
+      title: ConnectAppBody
+      type: object
+      properties:
+        inbox_id:
+          $ref: '#/components/schemas/ConnectInboxId'
+          nullable: true
+        accept_disclosure:
+          $ref: '#/components/schemas/AcceptDisclosure'
+          nullable: true
     AttachmentId:
       title: AttachmentId
       type: string
@@ -11851,7 +12237,11 @@ components:
     Provider:
       title: Provider
       type: object
-      description: A provider an inbox can sign in to.
+      description: >-
+        An app an inbox can sign in to, under the deprecated `provider_id` name.
+
+        The `/providers` endpoints return it; use `App` from the `/apps`
+        endpoints instead.
       properties:
         provider_id:
           $ref: '#/components/schemas/ProviderId'

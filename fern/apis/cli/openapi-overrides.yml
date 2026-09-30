@@ -852,6 +852,50 @@ paths:
       x-fern-sdk-group-name:
       - accounts
       x-fern-sdk-method-name: get
+  # `agentmail apps` is canonical. `agentmail providers` stays for the
+  # deprecation window: the API still serves /v0/providers*, and the
+  # definition marks those endpoints deprecated, so their --help text opens
+  # with "Deprecated: use ...". No `deprecated: true` here: generator
+  # 0.38.10's handling of it is unverified, and these commands must keep
+  # working until the API retires /v0/providers*.
+  /v0/apps:
+    get:
+      x-fern-sdk-group-name:
+      - apps
+      x-fern-sdk-method-name: list
+  /v0/apps/search:
+    get:
+      x-fern-sdk-group-name:
+      - apps
+      x-fern-sdk-method-name: search
+  /v0/apps/{app_id}:
+    get:
+      x-fern-sdk-group-name:
+      - apps
+      x-fern-sdk-method-name: get
+  /v0/apps/{app_id}/accounts:
+    get:
+      x-fern-sdk-group-name:
+      - apps
+      x-fern-sdk-method-name: list-accounts
+  /v0/apps/{app_id}/connect:
+    post:
+      x-fern-idempotent: true
+      x-fern-sdk-group-name:
+      - apps
+      x-fern-sdk-method-name: connect
+      parameters:
+      - name: app_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/AppId'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: Unique key that makes the connect idempotent. The endpoint requires one; the CLI generates a UUID when the flag is omitted and reuses it across retries, so a transient failure cannot start a second sign-in. Pass a value to make a manual re-run resolve to the same attempt.
+        schema:
+          type: string
   /v0/providers:
     get:
       x-fern-sdk-group-name:

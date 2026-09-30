@@ -4,6 +4,7 @@ imports:
   global: __package__.yml
   pods: pods/__package__.yml
   inboxes: inboxes/__package__.yml
+  apps: apps.yml
 
 types:
   AccountId:
@@ -12,7 +13,7 @@ types:
 
   ProviderId:
     type: uuid
-    docs: ID of provider.
+    docs: ID of app. Deprecated spelling of `AppId`, with the same value.
 
   AccountStatus:
     enum:
@@ -27,29 +28,37 @@ types:
       - disabled
     docs: |
       Status to set. `disabled` stops the inbox from signing in at the
-      provider; `enabled` re-enables it. An enabled account reads back with no
+      app; `enabled` re-enables it. An enabled account reads back with no
       `status`.
 
   Account:
-    docs: One inbox signed in at one provider.
+    docs: One inbox signed in at one app.
     properties:
       account_id: AccountId
-      provider_id: ProviderId
+      app_id: apps.AppId
+      app_name:
+        type: optional<string>
+        docs: Display name of app.
+      provider_id:
+        type: ProviderId
+        availability: deprecated
+        docs: Deprecated. Use `app_id`, which has the same value.
       provider_name:
         type: optional<string>
-        docs: Display name of provider.
+        availability: deprecated
+        docs: Deprecated. Use `app_name`, which has the same value and is present whenever this is.
       inbox_id: inboxes.InboxId
       pod_id: pods.PodId
       organization_id: global.OrganizationId
       first_signed_in_at:
         type: datetime
-        docs: Time of first sign-in at provider.
+        docs: Time of first sign-in at app.
       last_signed_in_at:
         type: datetime
-        docs: Time of most recent sign-in at provider.
+        docs: Time of most recent sign-in at app.
       sign_in_count:
         type: integer
-        docs: Number of sign-ins at provider.
+        docs: Number of sign-ins at app.
       status:
         type: optional<AccountStatus>
         docs: Present only while the account is disabled. Absent means the inbox may sign in.
@@ -83,7 +92,7 @@ service:
       path: ""
       display-name: List Accounts
       docs: |
-        Lists accounts across all providers, scoped to the API key: an
+        Lists accounts across all apps, scoped to the API key: an
         organization key sees every account, a pod key its pod's, an inbox key
         its inbox's. Requires `inbox_read`.
       request:
@@ -115,16 +124,16 @@ service:
       display-name: Update Account
       docs: |
         Updates one account. Set `status` to `disabled` to stop the inbox from
-        signing in at the provider again, or to `enabled` to re-enable it.
+        signing in at the app again, or to `enabled` to re-enable it.
         Idempotent: disabling an already disabled account keeps its original
         `disabled_at`, and enabling an enabled account is a no-op.
 
         Find the `account_id` with List Accounts. An account exists only after an
-        inbox's first sign-in at a provider, so it cannot be disabled in advance.
-        A disable applies to that inbox at that provider whichever sign-in key is
-        used: the provider's next authorization ends in `access_denied`, and a code
+        inbox's first sign-in at an app, so it cannot be disabled in advance.
+        A disable applies to that inbox at that app whichever sign-in key is
+        used: the app's next authorization ends in `access_denied`, and a code
         issued earlier is refused with `invalid_grant`. Access tokens already
-        issued stay valid until they expire, and the provider's own session is
+        issued stay valid until they expire, and the app's own session is
         unaffected.
 
         Requires `account_update`, which sign-in keys (`type: public_key`) cannot

@@ -8,7 +8,9 @@ imports:
 
 types:
   Provider:
-    docs: A provider an inbox can sign in to.
+    docs: |
+      An app an inbox can sign in to, under the deprecated `provider_id` name.
+      The `/providers` endpoints return it; use `App` from the `/apps` endpoints instead.
     properties:
       provider_id: accounts.ProviderId
       name: optional<string>
@@ -77,7 +79,12 @@ service:
       method: GET
       path: ""
       display-name: List Providers
-      docs: Lists providers, most popular first.
+      availability: deprecated
+      docs: |
+        Deprecated: use [List Apps](/api-reference/apps/list), which returns the
+        same entries in an `apps` array keyed by `app_id`.
+
+        Lists providers, most popular first.
       request:
         name: ListProvidersRequest
         query-parameters:
@@ -91,7 +98,12 @@ service:
       method: GET
       path: /search
       display-name: Search Providers
-      docs: Searches providers by name prefix.
+      availability: deprecated
+      docs: |
+        Deprecated: use [Search Apps](/api-reference/apps/search), which returns the
+        same entries in an `apps` array keyed by `app_id`.
+
+        Searches providers by name prefix.
       request:
         name: SearchProvidersRequest
         query-parameters:
@@ -107,7 +119,11 @@ service:
       method: GET
       path: /{provider_id}
       display-name: Get Provider
+      availability: deprecated
       docs: |
+        Deprecated: use [Get App](/api-reference/apps/get), which returns the same
+        entry keyed by `app_id`.
+
         Gets one provider by ID. A provider in the catalog returns its full entry.
         A registered provider that the catalog does not list returns its ID and
         name only, without `updated_at`, so anyone holding its ID can still look
@@ -122,7 +138,12 @@ service:
       method: GET
       path: /{provider_id}/accounts
       display-name: List Provider Accounts
-      docs: Lists accounts at one provider, most recent sign-in first.
+      availability: deprecated
+      docs: |
+        Deprecated: use [List App Accounts](/api-reference/apps/list-accounts), which
+        embeds the app as `app` instead of `provider`.
+
+        Lists accounts at one provider, most recent sign-in first.
       path-parameters:
         provider_id: accounts.ProviderId
       request:
@@ -138,7 +159,11 @@ service:
       method: POST
       path: /{provider_id}/connect
       display-name: Connect Provider
+      availability: deprecated
       docs: |
+        Deprecated: use [Connect App](/api-reference/apps/connect), which takes the
+        same body and returns the same response.
+
         Starts signing an inbox in to a provider. Returns a single-use `magic_url`,
         valid for five minutes, to open in the client that will hold the sign-in;
         the client enrolls as the inbox and continues to the provider. Poll
