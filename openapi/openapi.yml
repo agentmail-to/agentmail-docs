@@ -1540,15 +1540,9 @@ paths:
         valid for five minutes, to open in the client that will hold the
         sign-in;
 
-        the client enrolls as the inbox and continues to the app. Poll
+        the client enrolls as the inbox and continues to the app.
 
-        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for
-        `status`.
-
-        Works for any registered app with a sign-in entry point, whether or not
-
-        the catalog lists it. A `404` names the missing resource: `App` or
-        `Inbox`.
+        A `404` names the missing resource: `App` or `Inbox`.
 
         A `403` `AppSignupLimitError` means the app accepts no more sign-ups
         from
