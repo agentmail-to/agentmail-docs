@@ -13,7 +13,7 @@ types:
 
   ProviderId:
     type: uuid
-    docs: ID of app. Deprecated spelling of `AppId`, with the same value.
+    docs: Deprecated. The former name for an app ID; use `AppId` (`app_id`), which holds the same value.
 
   AccountStatus:
     enum:

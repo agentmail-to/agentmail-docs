@@ -9024,7 +9024,7 @@ components:
       title: ProviderId
       type: string
       format: uuid
-      description: ID of app. Deprecated spelling of `AppId`, with the same value.
+      description: Deprecated. The former name for an app ID; use `AppId` (`app_id`), which holds the same value.
     AccountStatus:
       title: AccountStatus
       type: string
