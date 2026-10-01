@@ -155,7 +155,7 @@ Threads are groupings of messages and have no permissions of their own. Every th
 | `account_update` | Disable or re-enable an inbox's sign-in at an app. Reading accounts needs only `inbox_read` |
 
 <Note>
-  `app_connect` and `app_share_owner` were named `provider_connect` and `provider_share_owner`. Until the `/v0/providers` endpoints are removed, the API accepts either name in requests and returns both, with the same value, in responses. Sending both names with different values returns a `400`. SDK and CLI releases from the rename on expose only the new names (TypeScript: `appConnect` and `appShareOwner`); earlier releases expose only the former ones.
+  `app_connect` and `app_share_owner` were named `provider_connect` and `provider_share_owner`. The old names are rejected with a `400`; responses return only the new names. SDK and CLI releases from the rename on expose only the new names (TypeScript: `appConnect` and `appShareOwner`); earlier releases know only the old ones, so upgrade before setting these permissions.
 </Note>
 
 ### Pods

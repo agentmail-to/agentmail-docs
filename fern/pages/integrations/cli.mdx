@@ -163,7 +163,7 @@ The `provider_connect` and `provider_share_owner` permissions are now `app_conne
 and `app_share_owner`. The CLI checks `--permissions` against the names it knows, so
 releases from the permission rename on reject `provider_connect` as an unknown
 property, and earlier releases reject `app_connect`. Switch the names in your
-scripts when you upgrade. The API accepts either name while `/v0/providers` remains.
+scripts when you upgrade. The API rejects the old names with a `400`.
 
 ## Upgrading to 1.4
 

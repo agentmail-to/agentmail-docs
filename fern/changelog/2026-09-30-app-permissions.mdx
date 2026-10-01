@@ -4,14 +4,14 @@ tags: ["api-keys", "agentid", "breaking-change", "sdk"]
 
 ## Summary
 
-The two API key permissions behind AgentID sign-in now use the app noun: `provider_connect` is `app_connect`, and `provider_share_owner` is `app_share_owner`. Existing keys keep their grants, and the API accepts either name while you move over.
+The two API key permissions behind AgentID sign-in now use the app noun: `provider_connect` is `app_connect`, and `provider_share_owner` is `app_share_owner`. Existing keys keep their grants. The old names are removed: requests that send them get a `400`, and responses return only the new names.
 
 ### What's new?
 
 - **`app_connect`**: sign in to apps as an inbox: connect an app, authorize an inbox, and mint sign-in keys. Same meaning and default as `provider_connect`.
 - **`app_share_owner`**: share the organization owner's name and email with apps at sign-in. Same meaning as `provider_share_owner`.
-- **Either name in requests**: `POST /v0/api-keys`, `POST /v0/pods/{pod_id}/api-keys`, `POST /v0/inboxes/{inbox_id}/api-keys`, and `PATCH /v0/api-keys/{api_key_id}` accept the new or the former name. Sending both names with different values returns a `400`.
-- **Both names in responses**: API key responses carry each of these permissions under both names, with the same value, so code that reads `provider_connect` keeps working.
+- **New names in requests**: `POST /v0/api-keys`, `POST /v0/pods/{pod_id}/api-keys`, `POST /v0/inboxes/{inbox_id}/api-keys`, and `PATCH /v0/api-keys/{api_key_id}` accept only `app_connect` and `app_share_owner`.
+- **New names in responses**: API key responses return only `app_connect` and `app_share_owner`.
 - **Error text**: a `403` with `code: "missing_permission"` names the new permission in its `fix`, for example `app_connect`. Branch on `code`, not on the text.
 
 ### Breaking changes
@@ -23,7 +23,7 @@ The two API key permissions behind AgentID sign-in now use the app noun: `provid
 
 Earlier releases know only the former names: earlier SDKs drop `appConnect` the same way, and earlier CLIs reject `app_connect`.
 
-⚠️ **The former names retire with `/v0/providers`.** Until then the API keeps accepting and returning `provider_connect` and `provider_share_owner`, so earlier SDK and CLI releases keep working. A later changelog will announce the removal.
+⚠️ **The API rejects the former names.** A create or update that sends `provider_connect` or `provider_share_owner` returns a `400` `ValidationError` at that field, for example `'provider_connect' was renamed to 'app_connect'`, instead of creating a key without the permission. Responses no longer include the former names. There is no deprecation window, so TypeScript SDK 0.5.32, Python SDK 2.0.6, CLI 1.7.0, and earlier releases cannot set or read these permissions; upgrade first.
 
 <CodeBlocks>
 ```python title="Python"
