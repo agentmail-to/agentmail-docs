@@ -16,7 +16,7 @@ Use a bearer API key with `api_key_create` to register keys. Reading, updating, 
 Install the TypeScript SDK with `npm install agentmail@latest`, or the CLI with `npm install -g agentmail-cli@latest`. Set `AGENTMAIL_API_KEY` in your environment.
 
 <Note>
-  The examples use TypeScript SDK 0.5.25 and CLI 1.4.0. Python SDK 0.5.10 still exposes the previous public-key endpoints. The Python example uses the current HTTP route with `httpx`; install its dependencies with `pip install httpx cryptography`.
+  The examples use TypeScript SDK 0.5.25 and CLI 1.4.0, apart from the `app_connect` permission: it needs the first TypeScript SDK and CLI releases after the permission rename, and earlier releases call it `provider_connect` (TypeScript: `providerConnect`). Python SDK 0.5.10 still exposes the previous public-key endpoints. The Python example uses the current HTTP route with `httpx`; install its dependencies with `pip install httpx cryptography`.
 </Note>
 
 <Warning>
@@ -48,7 +48,7 @@ response = httpx.post(
     "https://api.agentmail.to/v0/inboxes/agent%40example.com/api-keys",
     headers={"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"},
     json={"public_key": public_key, "client_id": "production-signer-v1",
-          "name": "production signer", "permissions": {"provider_connect": True}},
+          "name": "production signer", "permissions": {"app_connect": True}},
     timeout=30,
 )
 response.raise_for_status()
@@ -68,7 +68,7 @@ const credential = await client.inboxes.apiKeys.create("agent@example.com", {
   publicKey: { kty: "EC", crv: "P-256", x: jwk.x!, y: jwk.y! },
   clientId: "production-signer-v1",
   name: "production signer",
-  permissions: { providerConnect: true },
+  permissions: { appConnect: true },
 });
 console.log(credential.apiKeyId);
 ```
@@ -81,7 +81,7 @@ agentmail inboxes api-keys create \
   --inbox-id agent@example.com \
   --name "production signer" \
   --public-key "$(cat public-jwk.json)" \
-  --permissions '{"provider_connect":true}'
+  --permissions '{"app_connect":true}'
 ```
 
 The response has `type: "public_key"`, an `api_key_id`, and the public key's server-computed fingerprint. It does not contain a bearer secret. Registered keys have no `status`; sign-in keys created by connect or authorize do.

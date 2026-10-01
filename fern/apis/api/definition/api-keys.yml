@@ -52,7 +52,7 @@ types:
     type: boolean
     docs: |
       Accept the app's disclosure on the agent's behalf, skipping the
-      first-use disclosure page. Requires `provider_share_owner` when owner
+      first-use disclosure page. Requires `app_share_owner` when owner
       scopes are involved.
 
   PublicJwkCoordinate:
@@ -92,8 +92,8 @@ types:
       An AgentID sign-in credential, scoped like a bearer key; `api_key_id` is
       the JWS `kid`. A sign-in key carries `status`, gains `public_key` once
       the client has proved it, expires 30 days after
-      activation, and carries exactly `provider_connect` and
-      `provider_share_owner`, snapshotted from the bearer key that created it
+      activation, and carries exactly `app_connect` and
+      `app_share_owner`, snapshotted from the bearer key that created it
       and enforced from the key itself.
     properties:
       type: literal<"public_key">
@@ -239,20 +239,20 @@ types:
       api_key_delete:
         type: optional<boolean>
         docs: Delete API keys.
-      provider_connect:
+      app_connect:
         type: optional<boolean>
         docs: |
-          Sign in to providers as an inbox: connect a provider, authorize an inbox, and mint the
+          Sign in to apps as an inbox: connect an app, authorize an inbox, and mint the
           sign-in keys. Omitted on a new bearer key means false, whatever else the key holds.
-      provider_share_owner:
+      app_share_owner:
         type: optional<boolean>
         docs: |
-          Share the organization owner's name and email with providers at sign-in. One permission
+          Share the organization owner's name and email with apps at sign-in. One permission
           for both values.
       account_update:
         type: optional<boolean>
         docs: |
-          Update accounts: disable or re-enable an inbox's sign-in at a provider. Reading accounts
+          Update accounts: disable or re-enable an inbox's sign-in at an app. Reading accounts
           needs only `inbox_read`.
       pod_read:
         type: optional<boolean>
@@ -441,8 +441,8 @@ service:
       display-name: Update API Key
       docs: |
         Renames a credential or changes its permissions. Public keys also resolve
-        by `client_id`; a sign-in key accepts only `provider_connect` and
-        `provider_share_owner`.
+        by `client_id`; a sign-in key accepts only `app_connect` and
+        `app_share_owner`.
       path-parameters:
         api_key_id: ApiKeyId
       request: UpdateApiKeyRequest

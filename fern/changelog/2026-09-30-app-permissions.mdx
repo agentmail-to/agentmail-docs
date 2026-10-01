@@ -1,0 +1,65 @@
+---
+tags: ["api-keys", "agentid", "breaking-change", "sdk"]
+---
+
+## Summary
+
+The two API key permissions behind AgentID sign-in now use the app noun: `provider_connect` is `app_connect`, and `provider_share_owner` is `app_share_owner`. Existing keys keep their grants, and the API accepts either name while you move over.
+
+### What's new?
+
+- **`app_connect`**: sign in to apps as an inbox: connect an app, authorize an inbox, and mint sign-in keys. Same meaning and default as `provider_connect`.
+- **`app_share_owner`**: share the organization owner's name and email with apps at sign-in. Same meaning as `provider_share_owner`.
+- **Either name in requests**: `POST /v0/api-keys`, `POST /v0/pods/{pod_id}/api-keys`, `POST /v0/inboxes/{inbox_id}/api-keys`, and `PATCH /v0/api-keys/{api_key_id}` accept the new or the former name. Sending both names with different values returns a `400`.
+- **Both names in responses**: API key responses carry each of these permissions under both names, with the same value, so code that reads `provider_connect` keeps working.
+- **Error text**: a `403` with `code: "missing_permission"` names the new permission in its `fix`, for example `app_connect`. Branch on `code`, not on the text.
+
+### Breaking changes
+
+⚠️ **New SDK and CLI releases expose only the new names.** The SDK and CLI releases that follow this change drop `provider_connect` and `provider_share_owner` from `ApiKeyPermissions` (TypeScript: `providerConnect` and `providerShareOwner`). Switch the field names when you upgrade:
+
+- **TypeScript**: `providerConnect` is a type error. In untyped JavaScript the SDK drops fields it does not know before sending, so a key created with `providerConnect: true` would not get the permission.
+- **CLI**: `--permissions` is checked locally, so `provider_connect` fails as an unknown property.
+
+Earlier releases know only the former names: earlier SDKs drop `appConnect` the same way, and earlier CLIs reject `app_connect`.
+
+⚠️ **The former names retire with `/v0/providers`.** Until then the API keeps accepting and returning `provider_connect` and `provider_share_owner`, so earlier SDK and CLI releases keep working. A later changelog will announce the removal.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# before: permissions={"inbox_read": True, "provider_connect": True}
+key = client.api_keys.create(
+    name="sign-in agent",
+    permissions={"inbox_read": True, "app_connect": True},
+)
+print(key.api_key_id)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// before: permissions: { inboxRead: true, providerConnect: true }
+const key = await client.apiKeys.create({
+  name: "sign-in agent",
+  permissions: { inboxRead: true, appConnect: true },
+});
+console.log(key.apiKeyId);
+```
+</CodeBlocks>
+
+### Use cases
+
+Build agents that:
+
+- Hold a key that signs in to apps with `app_connect` alone, without `api_key_create`
+- Share the owner's name and email with an app only from keys granted `app_share_owner`
+
+<Note>
+  See [Permissions](https://docs.agentmail.to/permissions) for every API key permission.
+</Note>
