@@ -39,7 +39,7 @@ An organization created through [agent sign-up](/agent-onboarding) is unverified
 - `api_key_create`
 - `list_entry_create` and `list_entry_delete`
 - `pod_create`, `pod_update`, and `pod_delete`
-- `provider_connect`
+- `app_connect`
 
 A denied request returns a `403` with `code: "missing_permission"`, and its `fix` says the organization must verify first. Creating another key won't help. An organization that signed up without a human email must attach one with `POST /v0/agent/human` before it can verify. After verifying, a key's cached permissions can take up to 5 minutes to update.
 
@@ -145,6 +145,18 @@ Threads are groupings of messages and have no permissions of their own. Every th
 | `api_key_create` | Create API keys |
 | `api_key_update` | Update API keys |
 | `api_key_delete` | Delete API keys |
+
+### Apps
+
+| Permission | Description |
+| --- | --- |
+| `app_connect` | Sign in to apps as an inbox: connect an app, authorize an inbox, and mint sign-in keys |
+| `app_share_owner` | Share the organization owner's name and email with apps at sign-in. One permission for both values |
+| `account_update` | Disable or re-enable an inbox's sign-in at an app. Reading accounts needs only `inbox_read` |
+
+<Note>
+  `app_connect` and `app_share_owner` were named `provider_connect` and `provider_share_owner`. The old names are rejected with a `400`; responses return only the new names. SDK and CLI releases from the rename on expose only the new names (TypeScript: `appConnect` and `appShareOwner`); earlier releases know only the old ones, so upgrade before setting these permissions.
+</Note>
 
 ### Pods
 
@@ -402,6 +414,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     Lists: list_entry_read, list_entry_create, list_entry_delete
     Metrics: metrics_read
     API Keys: api_key_read, api_key_create, api_key_update, api_key_delete
+    Apps: app_connect, app_share_owner, account_update
     Pods: pod_read, pod_create, pod_update, pod_delete
 
   Threads have no permissions of their own: thread reads use message_read,
@@ -439,6 +452,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *   Lists: listEntryRead, listEntryCreate, listEntryDelete
    *   Metrics: metricsRead
    *   API Keys: apiKeyRead, apiKeyCreate, apiKeyUpdate, apiKeyDelete
+   *   Apps: appConnect, appShareOwner, accountUpdate
    *   Pods: podRead, podCreate, podUpdate, podDelete
    *
    * Threads have no permissions of their own: thread reads use messageRead,

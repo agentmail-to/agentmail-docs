@@ -159,6 +159,12 @@ Upgrade with `npm install -g agentmail-cli@latest` and use `apps`:
 Accounts carry `app_id` and `app_name` in place of `provider_id` and
 `provider_name`.
 
+The `provider_connect` and `provider_share_owner` permissions are now `app_connect`
+and `app_share_owner`. The CLI checks `--permissions` against the names it knows, so
+releases from the permission rename on reject `provider_connect` as an unknown
+property, and earlier releases reject `app_connect`. Switch the names in your
+scripts when you upgrade. The API rejects the old names with a `400`.
+
 ## Upgrading to 1.4
 
 Public keys and AgentID sign-in keys use the same `api-keys` commands as bearer
@@ -175,8 +181,8 @@ keys. Upgrade with `npm install -g agentmail-cli@latest` to use these commands:
 | Rename a key | `agentmail api-keys update --api-key-id <api_key_id> --name <name>` |
 | Revoke a key or cancel a pending sign-in key | `agentmail api-keys delete --api-key-id <api_key_id>` |
 
-Connect and authorize require `provider_connect`. Accepting a disclosure that
-shares the owner's name or email also requires `provider_share_owner`. Connect
+Connect and authorize require `app_connect`. Accepting a disclosure that
+shares the owner's name or email also requires `app_share_owner`. Connect
 automatically supplies an idempotency key; use `--idempotency-key` to reuse the
 same attempt across manual runs.
 

@@ -88,7 +88,7 @@ Only connect an app when you asked for it. An assistant should never create an a
 
 ## Permissions and limits
 
-- Creating an account or signing in needs the `provider_connect` permission. When your assistant connects with an API key, enable `provider_connect` on that key; it is off by default on newly created keys. See [Permissions](/permissions).
+- Creating an account or signing in needs the `app_connect` permission. When your assistant connects with an API key, enable `app_connect` on that key; it is off by default on newly created keys. See [Permissions](/permissions).
 - An organization created through [agent sign-up](/agent-onboarding) cannot connect apps until it is verified.
 - An app can limit how many inboxes from one organization sign up. The limit counts every inbox that has ever signed up there, including disabled accounts. Inboxes that already have an account can always sign back in.
 - Browsing apps and listing accounts only need read access.
@@ -103,7 +103,7 @@ To stop an inbox from signing in at an app, or to revoke a sign-in key, follow [
 
 **Connecting returns a `429`.** At most five sign-in links can be live at once. Wait for the earlier ones to expire, up to five minutes, and try again.
 
-**Connecting returns a `403` with `missing_permission`.** The key lacks `provider_connect`, or the organization is not verified yet.
+**Connecting returns a `403` with `missing_permission`.** The key lacks `app_connect`, or the organization is not verified yet.
 
 **Connecting or reading an app returns a `404`.** Check which resource the error names:
 

@@ -16,7 +16,7 @@ A sign-in credential has `type: "public_key"` and a `status` of `pending` or `ac
 ## Before you start
 
 - Choose an inbox you control and a bearer API key that can access it.
-- Enable `provider_connect` on that key to connect apps and authorize sign-ins. This permission defaults to false on newly created bearer keys.
+- Enable `app_connect` on that key to connect apps and authorize sign-ins. This permission defaults to false on newly created bearer keys. SDK and CLI releases before the permission rename know it only as `provider_connect`, which the API rejects, so upgrade first; see [Permissions](/permissions#apps).
 - Enable `api_key_read` to check key status, `api_key_update` to change permissions, and `api_key_delete` to revoke a key.
 - Use the US API at `https://api.agentmail.to` for these sign-in flows.
 
@@ -125,7 +125,7 @@ The response is the pending key's `api_key_id` and an `instructions` line, `Auth
 
 To accept the app's disclosure on the agent's behalf, add `accept_disclosure: true` to the connect or authorize request. The TypeScript field is `acceptDisclosure: true`; the CLI flag is `--accept-disclosure true`.
 
-If the app requests the owner's name or email, the authorizing key also needs `provider_share_owner`. Without disclosure acceptance, complete the review presented during sign-in.
+If the app requests the owner's name or email, the authorizing key also needs `app_share_owner`. Without disclosure acceptance, complete the review presented during sign-in.
 
 ## Check activation
 
@@ -172,7 +172,7 @@ A single check reads the current status. Repeat with a delay while it is `pendin
 
 List responses contain `api_keys`, `count`, and an optional `next_page_token`. Continue with `page_token` (CLI: `--page-token`) until no token remains, even if an intermediate page is empty.
 
-Sign-in keys carry `provider_connect` and `provider_share_owner`, copied from the creating bearer key and enforced independently. Change them through [Update API Key](https://docs.agentmail.to/api-reference/api-keys/update). Deleting or changing the creating bearer key does not revoke the sign-in key.
+Sign-in keys carry `app_connect` and `app_share_owner`, copied from the creating bearer key and enforced independently. Change them through [Update API Key](https://docs.agentmail.to/api-reference/api-keys/update). Deleting or changing the creating bearer key does not revoke the sign-in key.
 
 An active sign-in key expires 30 days after activation. To rotate, create and activate a replacement, then delete the old key. Deleting a pending key cancels it; deleting an active key revokes it. There is no bulk revocation endpoint.
 
