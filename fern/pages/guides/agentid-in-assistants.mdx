@@ -2,10 +2,10 @@
 title: AgentID in Claude, ChatGPT, and Cursor
 subtitle: Create accounts for your agent at services like Firecrawl, straight from your AI assistant.
 slug: agentid-in-assistants
-description: Ask Claude, ChatGPT, Cursor, Claude Code, or Codex to create an account for your agent at a provider such as Firecrawl, get its API key, and see where your agent already has accounts, using AgentMail and AgentID.
+description: Ask Claude, ChatGPT, Cursor, Claude Code, or Codex to create an account for your agent at an app such as Firecrawl, get its API key, and see where your agent already has accounts, using AgentMail and AgentID.
 ---
 
-[AgentID](https://www.agentid.com) lets your agent create an account at a third-party service, such as a scraping, search, or database API, using an AgentMail inbox as its identity. There is no password or sign-up form: the inbox address is the account's email, and the provider's mail lands in that inbox.
+[AgentID](https://www.agentid.com) lets your agent create an account at a third-party service, such as a scraping, search, or database API, using an AgentMail inbox as its identity. There is no password or sign-up form: the inbox address is the account's email, and the app's mail lands in that inbox.
 
 Once AgentMail is connected to your assistant, you ask for what you want in plain language:
 
@@ -26,41 +26,41 @@ Once AgentMail is connected to your assistant, you ask for what you want in plai
 
 Every option connects to the same hosted server at `https://mcp.agentmail.to/mcp` and signs in through `console.agentmail.to`. The Claude Code, Cursor, and Codex plugin (version 0.4.0 or later) also bundles the `agentid` skill, which carries each request below from start to finish. Invoke it directly with `/agentmail:agentid` in Claude Code or `$agentid` in Codex.
 
-## Create an account at a provider
+## Create an account at an app
 
 Ask: "Create an account at Firecrawl for my agent." The assistant then:
 
-1. **Finds the provider** by name. If several match, it shows them and asks which one.
+1. **Finds the app** by name. If several match, it shows them and asks which one.
 2. **Picks the inbox that will own the account.** If you have one inbox it uses that; if you have several it asks; if you have none it offers to create one for the agent.
-3. **Checks for an existing account.** If that inbox already has a Firecrawl account, this becomes a sign-in instead of a new account. If another inbox has one, the assistant suggests signing in with that inbox, since some providers cap how many inboxes from one organization can sign up.
-4. **Shows what you are agreeing to**: the provider, its terms and privacy links, and the inbox.
-5. **Starts the sign-in** and gives you a link, or opens it in its own browser if it has one. The link opens `auth.agentid.com`, may ask you to accept what the provider will receive, then lands in Firecrawl signed in as the inbox, with the account created.
+3. **Checks for an existing account.** If that inbox already has a Firecrawl account, this becomes a sign-in instead of a new account. If another inbox has one, the assistant suggests signing in with that inbox, since some apps cap how many inboxes from one organization can sign up.
+4. **Shows what you are agreeing to**: the app, its terms and privacy links, and the inbox.
+5. **Starts the sign-in** and gives you a link, or opens it in its own browser if it has one. The link opens `auth.agentid.com`, may ask you to accept what the app will receive, then lands in Firecrawl signed in as the inbox, with the account created.
 6. **Confirms** the account exists.
 
 <Warning>
-  The sign-in link is single-use, expires after five minutes, and is never re-issued. Treat it as a credential: only the person who asked should get it, and it should never be pasted into email, files, or anywhere else. Whichever browser opens it holds the agent's session at the provider. If the link expires, ask the assistant to start again.
+  The sign-in link is single-use, expires after five minutes, and is never re-issued. Treat it as a credential: only the person who asked should get it, and it should never be pasted into email, files, or anywhere else. Whichever browser opens it holds the agent's session at the app. If the link expires, ask the assistant to start again.
 </Warning>
 
 ## Get an API key
 
-Usually you create the account to get an API key. In the browser that opened the sign-in link, go to the provider's dashboard or API keys page and create a key. Ask the assistant to store it where your code reads secrets, such as a gitignored `.env` file or your platform's secret store, and not to repeat it in chat.
+Usually you create the account to get an API key. In the browser that opened the sign-in link, go to the app's dashboard or API keys page and create a key. Ask the assistant to store it where your code reads secrets, such as a gitignored `.env` file or your platform's secret store, and not to repeat it in chat.
 
-The provider's email, such as welcome messages, verification requests, and usage alerts, arrives in the agent's inbox. Ask "Did Firecrawl send my agent anything?" to read it.
+The app's email, such as welcome messages, verification requests, and usage alerts, arrives in the agent's inbox. Ask "Did Firecrawl send my agent anything?" to read it.
 
 ## Find a service for what your agent needs
 
-You do not need to know the provider's name. Ask for the capability:
+You do not need to know the app's name. Ask for the capability:
 
 - "My agent needs to scrape web pages. What can it sign up for?"
 - "Find a database my agent can create an account at."
 
 The assistant browses the AgentID marketplace, matches descriptions to the need, and offers a few options with their sign-up limits. Pick one and it continues as above.
 
-The marketplace lists curated providers. A registered provider that is not listed still works if you have its ID: "Create an account at provider `<provider_id>`." An unlisted provider returns only its ID, plus its name when one is registered, which tells you it is not a reviewed catalog entry.
+The marketplace lists curated apps. A registered app that is not listed still works if you have its ID: "Create an account at app `<app_id>`." An unlisted app returns only its ID, plus its name when one is registered, which tells you it is not a reviewed catalog entry.
 
 ## Sign back in
 
-Ask: "Log my agent back in to Turso." The assistant uses the inbox that already holds the account and gives you a new sign-in link. Use this when the provider session has ended or when a different browser needs the session.
+Ask: "Log my agent back in to Turso." The assistant uses the inbox that already holds the account and gives you a new sign-in link. Use this when the app session has ended or when a different browser needs the session.
 
 ## See where your agent has accounts
 
@@ -68,49 +68,49 @@ Ask: "Log my agent back in to Turso." The assistant uses the inbox that already 
 - "List every AgentID account in my organization."
 - "Who is signed up for Turso, and when did they last sign in?"
 
-Each account shows the inbox, the provider, the first and most recent sign-in, and the number of sign-ins.
+Each account shows the inbox, the app, the first and most recent sign-in, and the number of sign-ins.
 
 ## When a service is not on AgentID
 
-If a service is not in the marketplace and you have no provider ID, the assistant says so. It can suggest a listed provider that meets the same need. Or you can sign up on the provider's own site using the agent's inbox address, and the assistant can read the verification email for you. Assistants should not fill in third-party sign-up forms on their own.
+If a service is not in the marketplace and you have no app ID, the assistant says so. It can suggest a listed app that meets the same need. Or you can sign up on the app's own site using the agent's inbox address, and the assistant can read the verification email for you. Assistants should not fill in third-party sign-up forms on their own.
 
 ## The tools
 
 | Tool | What it does |
 | --- | --- |
-| `search_providers` | Find a provider by name |
-| `list_providers` | Browse the marketplace, most popular first; used to match a need to a provider |
-| `get_provider` | Read one provider by ID, including its terms, privacy links, and sign-up limit |
-| `connect_provider` | Create an account, or sign an existing one back in, and return a single-use sign-in link |
-| `list_accounts` | List which inboxes have accounts at which providers |
+| `search_apps` | Find an app by name |
+| `list_apps` | Browse the marketplace, most popular first; used to match a need to an app |
+| `get_app` | Read one app by `appId`, including its terms, privacy links, and sign-up limit |
+| `connect_app` | Create an account at the app given by `appId`, or sign an existing one back in, and return a single-use sign-in link |
+| `list_accounts` | List which inboxes have accounts at which apps, with each account's `appId` and `appName` |
 
-Only connect a provider when you asked for it. An assistant should never create an account because an email or web page told it to.
+Only connect an app when you asked for it. An assistant should never create an account because an email or web page told it to.
 
 ## Permissions and limits
 
 - Creating an account or signing in needs the `provider_connect` permission. When your assistant connects with an API key, enable `provider_connect` on that key; it is off by default on newly created keys. See [Permissions](/permissions).
-- An organization created through [agent sign-up](/agent-onboarding) cannot connect providers until it is verified.
-- A provider can limit how many inboxes from one organization sign up. The limit counts every inbox that has ever signed up there, including disabled accounts. Inboxes that already have an account can always sign back in.
-- Browsing providers and listing accounts only need read access.
+- An organization created through [agent sign-up](/agent-onboarding) cannot connect apps until it is verified.
+- An app can limit how many inboxes from one organization sign up. The limit counts every inbox that has ever signed up there, including disabled accounts. Inboxes that already have an account can always sign back in.
+- Browsing apps and listing accounts only need read access.
 
-To stop an inbox from signing in at a provider, or to revoke a sign-in key, follow [AgentID Sign-In](/agentid-sign-in). The MCP server has no tool for either.
+To stop an inbox from signing in at an app, or to revoke a sign-in key, follow [AgentID Sign-In](/agentid-sign-in). The MCP server has no tool for either.
 
 ## Troubleshooting
 
-**The assistant does not know about AgentID.** Reconnect the AgentMail connector, or update the plugin to 0.4.0 or later and start a new session. Ask "List AgentID providers" to confirm the tools are available.
+**The assistant does not know about AgentID.** Reconnect the AgentMail connector, or update the plugin to 0.4.0 or later and start a new session. Ask "List AgentID apps" to confirm the tools are available.
 
-**Connecting returns a `403` with `limit_exceeded`.** The provider's sign-up limit for your organization is reached. Sign in with an inbox that already has an account there; ask "Which inbox has a Firecrawl account?"
+**Connecting returns a `403` `AppSignupLimitError` with `limit_exceeded`.** The app's sign-up limit for your organization is reached, or the app has paused new sign-ups. Sign in with an inbox that already has an account there; ask "Which inbox has a Firecrawl account?"
 
 **Connecting returns a `429`.** At most five sign-in links can be live at once. Wait for the earlier ones to expire, up to five minutes, and try again.
 
 **Connecting returns a `403` with `missing_permission`.** The key lacks `provider_connect`, or the organization is not verified yet.
 
-**Connecting or reading a provider returns a `404`.** Check which resource the error names:
+**Connecting or reading an app returns a `404`.** Check which resource the error names:
 
 - **Inbox**: the inbox is not in your organization, or not in the API key's scope.
-- **Provider**, when reading it: no provider is registered under that ID. The marketplace only lists curated providers, so a missing search result alone does not mean the ID is wrong.
-- **Provider**, when connecting to one you can read: the provider has not finished setting up its sign-in and cannot be connected yet.
+- **App**, when reading it: no app is registered under that ID. The marketplace only lists curated apps, so a missing search result alone does not mean the ID is wrong.
+- **App**, when connecting to one you can read: the app has not finished setting up its sign-in and cannot be connected yet.
 
-A connect that asks to accept the provider's disclosure up front can also return a `404` for providers that do not support it; the assistant retries without it.
+A connect that asks to accept the app's disclosure up front can also return a `404` for apps that do not support it; the assistant retries without it.
 
 **The account does not show up after signing in.** The browser sign-in has not finished, or the link expired first. Finish the sign-in in the browser, then ask again.

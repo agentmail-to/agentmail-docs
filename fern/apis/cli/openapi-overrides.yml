@@ -852,38 +852,38 @@ paths:
       x-fern-sdk-group-name:
       - accounts
       x-fern-sdk-method-name: get
-  /v0/providers:
+  /v0/apps:
     get:
       x-fern-sdk-group-name:
-      - providers
+      - apps
       x-fern-sdk-method-name: list
-  /v0/providers/search:
+  /v0/apps/search:
     get:
       x-fern-sdk-group-name:
-      - providers
+      - apps
       x-fern-sdk-method-name: search
-  /v0/providers/{provider_id}:
+  /v0/apps/{app_id}:
     get:
       x-fern-sdk-group-name:
-      - providers
+      - apps
       x-fern-sdk-method-name: get
-  /v0/providers/{provider_id}/accounts:
+  /v0/apps/{app_id}/accounts:
     get:
       x-fern-sdk-group-name:
-      - providers
+      - apps
       x-fern-sdk-method-name: list-accounts
-  /v0/providers/{provider_id}/connect:
+  /v0/apps/{app_id}/connect:
     post:
       x-fern-idempotent: true
       x-fern-sdk-group-name:
-      - providers
+      - apps
       x-fern-sdk-method-name: connect
       parameters:
-      - name: provider_id
+      - name: app_id
         in: path
         required: true
         schema:
-          $ref: '#/components/schemas/ProviderId'
+          $ref: '#/components/schemas/AppId'
       - name: Idempotency-Key
         in: header
         required: false

@@ -7,14 +7,18 @@ imports:
   api-keys: api-keys.yml
 
 types:
-  Provider:
-    docs: A provider an inbox can sign in to.
+  AppId:
+    type: uuid
+    docs: ID of app.
+
+  App:
+    docs: An app an inbox can sign in to.
     properties:
-      provider_id: accounts.ProviderId
+      app_id: AppId
       name: optional<string>
       updated_at:
         type: optional<datetime>
-        docs: Time at which provider was last updated.
+        docs: Time at which app was last updated.
       description: optional<string>
       logo_url: optional<string>
       terms_url: optional<string>
@@ -22,26 +26,26 @@ types:
       owner_signup_limit:
         type: optional<integer>
         docs: >-
-          Maximum number of accounts your organization may sign up at this provider. Omitted when
-          the provider sets no limit. 0 means the provider has paused new sign-ups; existing accounts
+          Maximum number of accounts your organization may sign up at this app. Omitted when
+          the app sets no limit. 0 means the app has paused new sign-ups; existing accounts
           keep signing in.
 
-  ListProvidersResponse:
+  ListAppsResponse:
     properties:
       count: global.Count
       limit: global.Limit
       next_page_token: optional<global.PageToken>
-      providers: list<Provider>
+      apps: list<App>
 
-  SearchProvidersResponse:
+  SearchAppsResponse:
     properties:
       count: global.Count
       limit: global.Limit
-      providers: list<Provider>
+      apps: list<App>
 
-  ListProviderAccountsResponse:
+  ListAppAccountsResponse:
     properties:
-      provider: optional<Provider>
+      app: optional<App>
       count: global.Count
       limit: global.Limit
       next_page_token: optional<global.PageToken>
@@ -51,7 +55,7 @@ types:
     type: inboxes.InboxId
     docs: Inbox to sign in as. Required unless the API key is scoped to an inbox.
 
-  ConnectProviderBody:
+  ConnectAppBody:
     properties:
       inbox_id: optional<ConnectInboxId>
       accept_disclosure: optional<api-keys.AcceptDisclosure>
@@ -67,93 +71,102 @@ types:
       magic_url: MagicUrl
       expires_at: api-keys.ExpiresAt
 
+errors:
+  AppSignupLimitError:
+    status-code: 403
+    type: global.ErrorResponse
+    docs: |
+      The app's sign-up limit for your organization is reached, or the app has paused new
+      sign-ups. `code` is `limit_exceeded` and `fix` says which. Inboxes that already have an
+      account at the app can still sign in.
+
 service:
   url: Http
-  base-path: /providers
+  base-path: /apps
   auth: true
 
   endpoints:
     list:
       method: GET
       path: ""
-      display-name: List Providers
-      docs: Lists providers, most popular first.
+      display-name: List Apps
+      docs: Lists apps, most popular first.
       request:
-        name: ListProvidersRequest
+        name: ListAppsRequest
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
-      response: ListProvidersResponse
+      response: ListAppsResponse
       errors:
         - global.ValidationError
 
     search:
       method: GET
       path: /search
-      display-name: Search Providers
-      docs: Searches providers by name prefix.
+      display-name: Search Apps
+      docs: Searches apps by name prefix.
       request:
-        name: SearchProvidersRequest
+        name: SearchAppsRequest
         query-parameters:
           q:
             type: string
             docs: Name prefix to search for.
           limit: optional<global.Limit>
-      response: SearchProvidersResponse
+      response: SearchAppsResponse
       errors:
         - global.ValidationError
 
     get:
       method: GET
-      path: /{provider_id}
-      display-name: Get Provider
+      path: /{app_id}
+      display-name: Get App
       docs: |
-        Gets one provider by ID. A provider in the catalog returns its full entry.
-        A registered provider that the catalog does not list returns its ID and
+        Gets one app by ID. An app in the catalog returns its full entry.
+        A registered app that the catalog does not list returns its ID and
         name only, without `updated_at`, so anyone holding its ID can still look
-        it up. List Providers and Search Providers show catalog entries only.
+        it up. List Apps and Search Apps show catalog entries only.
       path-parameters:
-        provider_id: accounts.ProviderId
-      response: Provider
+        app_id: AppId
+      response: App
       errors:
         - global.NotFoundError
 
     listAccounts:
       method: GET
-      path: /{provider_id}/accounts
-      display-name: List Provider Accounts
-      docs: Lists accounts at one provider, most recent sign-in first.
+      path: /{app_id}/accounts
+      display-name: List App Accounts
+      docs: Lists accounts at one app, most recent sign-in first.
       path-parameters:
-        provider_id: accounts.ProviderId
+        app_id: AppId
       request:
-        name: ListProviderAccountsRequest
+        name: ListAppAccountsRequest
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
-      response: ListProviderAccountsResponse
+      response: ListAppAccountsResponse
       errors:
         - global.ValidationError
 
     connect:
       method: POST
-      path: /{provider_id}/connect
-      display-name: Connect Provider
+      path: /{app_id}/connect
+      display-name: Connect App
       docs: |
-        Starts signing an inbox in to a provider. Returns a single-use `magic_url`,
+        Starts signing an inbox in to an app. Returns a single-use `magic_url`,
         valid for five minutes, to open in the client that will hold the sign-in;
-        the client enrolls as the inbox and continues to the provider. Poll
-        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for `status`.
-        Works for any registered provider with a sign-in entry point, whether or not
-        the catalog lists it. A `404` names the missing resource: `Provider` or `Inbox`.
+        the client enrolls as the inbox and continues to the app.
+        A `404` names the missing resource: `App` or `Inbox`.
+        A `403` `AppSignupLimitError` means the app accepts no more sign-ups from
+        your organization; sign in with an inbox that already has an account there.
       path-parameters:
-        provider_id: accounts.ProviderId
+        app_id: AppId
       request:
-        name: ConnectProviderRequest
-        body: optional<ConnectProviderBody>
+        name: ConnectAppRequest
+        body: optional<ConnectAppBody>
       response:
         status-code: 202
         type: ConnectAccepted
       errors:
         - global.ValidationError
         - global.NotFoundError
-
+        - AppSignupLimitError

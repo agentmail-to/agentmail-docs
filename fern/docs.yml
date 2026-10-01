@@ -112,6 +112,10 @@ redirects:
   - source: /talon-reply-extraction
     destination: /reply-extraction
     permanent: true
+  # /v0/providers* was renamed to /v0/apps* and removed; each endpoint keeps its slug.
+  - source: /api-reference/providers/:slug*
+    destination: /api-reference/apps/:slug*
+    permanent: true
 
   # --- 404 redirects from crawl report ---
 
@@ -480,7 +484,7 @@ navigation:
           - lists
           - metrics
           - api-keys
-          - providers
+          - apps
           - accounts
           - pods
           - organizations

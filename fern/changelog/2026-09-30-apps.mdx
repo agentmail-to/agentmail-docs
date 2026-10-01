@@ -1,0 +1,67 @@
+---
+tags: ["apps-api", "accounts-api", "breaking-change", "sdk"]
+---
+
+## Summary
+
+Providers are now apps. Find an app, connect an inbox to it, and list the accounts your agents hold there through `/v0/apps`, `client.apps`, and `agentmail apps`. The provider names are removed, not deprecated: `/v0/providers`, `client.providers`, `agentmail providers`, and the `provider_id` and `provider_name` account fields are gone.
+
+### What's new?
+
+**New endpoints:**
+
+- `GET /v0/apps`: The curated app catalog, most popular first, in an `apps` array.
+- `GET /v0/apps/search`: Prefix search over the catalog by `q`.
+- `GET /v0/apps/{app_id}`: One app, keyed by `app_id`.
+- `GET /v0/apps/{app_id}/accounts`: Your accounts at one app, with the app embedded under `app`.
+- `POST /v0/apps/{app_id}/connect`: Start signing an inbox in to an app. Same body, `202` response, required permission, and `Idempotency-Key` header as before.
+
+**New features:**
+
+- **SDKs and CLI**: `client.apps` with `list`, `search`, `get`, `listAccounts` (`list_accounts` in Python), and `connect`. The CLI adds `agentmail apps list`, `search`, `get`, `list-accounts`, and `connect`, taking `--app-id`.
+- **App fields on accounts**: every account, from every route that returns one, carries `app_id` and `app_name` in place of `provider_id` and `provider_name`.
+- **`AppSignupLimitError`**: Connect App returns a `403` named `AppSignupLimitError`, with `code: "limit_exceeded"`, when the app accepts no more sign-ups from your organization. A `404` on an app route says `App not found`.
+- **Discovery**: the `connect_endpoint` in `https://api.agentmail.to/.well-known/agentid-configuration` is now `https://api.agentmail.to/v0/apps/{app_id}/connect`.
+
+### Breaking changes
+
+⚠️ **The providers endpoints, SDK namespace, and CLI commands are renamed and removed.** `/v0/providers*`, `client.providers`, `agentmail providers`, and the `provider_id` and `provider_name` account fields are removed, with no deprecation window. Code on TypeScript SDK 0.5.32, Python SDK 2.0.6, CLI 1.7.0, or earlier releases that calls the providers endpoints or reads `provider_id` / `provider_name` stops working. Upgrade and switch to the app names shown below. Old `/api-reference/providers/...` links redirect to the apps pages.
+
+⚠️ **The discovery `connect_endpoint` uses an `{app_id}` placeholder.** It was `https://api.agentmail.to/v0/providers/{provider_id}/connect`. Clients that fill the template by placeholder name must substitute `{app_id}`.
+
+⚠️ **Authorize Inbox renames its sign-up limit error.** `POST /v0/inboxes/{inbox_id}/authorize` now returns `AppSignupLimitError` instead of `ProviderSignupLimitError`. The status, `403`, and the `code`, `limit_exceeded`, are unchanged, so branch on `code`.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# before: client.providers.list_accounts(provider_id=...)
+page = client.apps.list_accounts(app_id="d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32")
+for item in page.accounts:
+    print(item.inbox_id, item.app_name)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// before: client.providers.listAccounts(...)
+const page = await client.apps.listAccounts("d5e9c84f-c2b2-4bf4-b4b0-7ffd7a9ffc32");
+for (const item of page.accounts) console.log(item.inboxId, item.appName);
+```
+</CodeBlocks>
+
+### Use cases
+
+Build agents that:
+
+- Browse the app catalog and create an account at an app, with an inbox as the agent's identity
+- Audit which apps each inbox has accounts at, keyed by `app_id`
+- Catch a reached sign-up limit on connect (`code: "limit_exceeded"`) and sign in with an inbox that already has an account at the app
+
+<Note>
+  See the [Apps API reference](https://docs.agentmail.to/api-reference/apps) for request and response shapes.
+</Note>
