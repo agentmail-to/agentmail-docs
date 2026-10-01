@@ -32,6 +32,10 @@ The endpoint requires an API key, but the request carried a console session toke
 
 The API key was not recognized. Confirm you copied the full value (keys start with `am_`) and that the key has not been revoked. Create a new key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
 
+### api_key_expired
+
+The API key is valid but its `expires_at` has passed, so it no longer authenticates. Expiry is set when a key is created and cannot be extended or changed. Create a new key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`, choosing its lifetime with `expires_at`, and retry with it. Depending on how the request is routed, an expired key can instead be refused with a bare `403` whose body is `{"message":"Forbidden"}`; the remedy is the same.
+
 ### unauthorized
 
 Generic authentication failure. Send a valid API key in the `Authorization: Bearer <api_key>` header. Create or rotate keys at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
