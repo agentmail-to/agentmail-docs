@@ -1,10 +1,10 @@
 ---
-tags: ["apps-api", "accounts-api", "enhancement", "sdk"]
+tags: ["apps-api", "accounts-api", "breaking-change", "sdk"]
 ---
 
 ## Summary
 
-Providers are now apps. Find an app, connect an inbox to it, and list the accounts your agents hold there through `/v0/apps`, `client.apps`, and `agentmail apps`. The `/v0/providers` endpoints keep working unchanged while you move over.
+Providers are now apps. Find an app, connect an inbox to it, and list the accounts your agents hold there through `/v0/apps`, `client.apps`, and `agentmail apps`. The provider names are removed, not deprecated: `/v0/providers`, `client.providers`, `agentmail providers`, and the `provider_id` and `provider_name` account fields are gone.
 
 ### What's new?
 
@@ -14,18 +14,20 @@ Providers are now apps. Find an app, connect an inbox to it, and list the accoun
 - `GET /v0/apps/search`: Prefix search over the catalog by `q`.
 - `GET /v0/apps/{app_id}`: One app, keyed by `app_id`.
 - `GET /v0/apps/{app_id}/accounts`: Your accounts at one app, with the app embedded under `app`.
-- `POST /v0/apps/{app_id}/connect`: Start signing an inbox in to an app. Same body, `202` response, `provider_connect` permission, and `Idempotency-Key` header as before.
+- `POST /v0/apps/{app_id}/connect`: Start signing an inbox in to an app. Same body, `202` response, required permission, and `Idempotency-Key` header as before.
 
 **New features:**
 
 - **SDKs and CLI**: `client.apps` with `list`, `search`, `get`, `listAccounts` (`list_accounts` in Python), and `connect`. The CLI adds `agentmail apps list`, `search`, `get`, `list-accounts`, and `connect`, taking `--app-id`.
-- **App fields on accounts**: every account, from every route that returns one, now carries `app_id` (the same value as `provider_id`) and `app_name` (present whenever `provider_name` is).
+- **App fields on accounts**: every account, from every route that returns one, carries `app_id` and `app_name` in place of `provider_id` and `provider_name`.
 - **`AppSignupLimitError`**: Connect App returns a `403` named `AppSignupLimitError`, with `code: "limit_exceeded"`, when the app accepts no more sign-ups from your organization. A `404` on an app route says `App not found`.
-- **Discovery**: `https://api.agentmail.to/.well-known/agentid-configuration` adds `app_connect_endpoint` (`https://api.agentmail.to/v0/apps/{app_id}/connect`). `connect_endpoint` keeps its `{provider_id}` template until `/v0/providers` is retired, so clients that fill it by placeholder name keep working.
+- **Discovery**: the `connect_endpoint` in `https://api.agentmail.to/.well-known/agentid-configuration` is now `https://api.agentmail.to/v0/apps/{app_id}/connect`.
 
 ### Breaking changes
 
-⚠️ **The providers endpoints, SDK namespace, and CLI commands are deprecated.** `/v0/providers*`, `client.providers`, `agentmail providers`, and the `provider_id` and `provider_name` account fields keep working with unchanged responses. Move to the app names now; a later changelog will announce when the providers endpoints are removed.
+⚠️ **The providers endpoints, SDK namespace, and CLI commands are renamed and removed.** `/v0/providers*`, `client.providers`, `agentmail providers`, and the `provider_id` and `provider_name` account fields are removed, with no deprecation window. Code on TypeScript SDK 0.5.32, Python SDK 2.0.6, CLI 1.7.0, or earlier releases that calls the providers endpoints or reads `provider_id` / `provider_name` stops working. Upgrade and switch to the app names shown below. Old `/api-reference/providers/...` links redirect to the apps pages.
+
+⚠️ **The discovery `connect_endpoint` uses an `{app_id}` placeholder.** It was `https://api.agentmail.to/v0/providers/{provider_id}/connect`. Clients that fill the template by placeholder name must substitute `{app_id}`.
 
 ⚠️ **Authorize Inbox renames its sign-up limit error.** `POST /v0/inboxes/{inbox_id}/authorize` now returns `AppSignupLimitError` instead of `ProviderSignupLimitError`. The status, `403`, and the `code`, `limit_exceeded`, are unchanged, so branch on `code`.
 

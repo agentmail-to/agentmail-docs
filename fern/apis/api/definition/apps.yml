@@ -3,8 +3,8 @@
 imports:
   global: __package__.yml
   accounts: accounts.yml
+  inboxes: inboxes/__package__.yml
   api-keys: api-keys.yml
-  providers: providers.yml
 
 types:
   AppId:
@@ -51,10 +51,25 @@ types:
       next_page_token: optional<global.PageToken>
       accounts: list<accounts.Account>
 
+  ConnectInboxId:
+    type: inboxes.InboxId
+    docs: Inbox to sign in as. Required unless the API key is scoped to an inbox.
+
   ConnectAppBody:
     properties:
-      inbox_id: optional<providers.ConnectInboxId>
+      inbox_id: optional<ConnectInboxId>
       accept_disclosure: optional<api-keys.AcceptDisclosure>
+
+  MagicUrl:
+    type: string
+    docs: Single-use URL to open in the client that will hold the key.
+
+  ConnectAccepted:
+    docs: The pending sign-in key the client will activate. Poll Get API Key with `api_key_id` for `status`.
+    properties:
+      api_key_id: api-keys.ApiKeyId
+      magic_url: MagicUrl
+      expires_at: api-keys.ExpiresAt
 
 errors:
   AppSignupLimitError:
@@ -150,7 +165,7 @@ service:
         body: optional<ConnectAppBody>
       response:
         status-code: 202
-        type: providers.ConnectAccepted
+        type: ConnectAccepted
       errors:
         - global.ValidationError
         - global.NotFoundError

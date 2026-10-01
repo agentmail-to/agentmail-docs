@@ -7672,264 +7672,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/webhooksUpdateWebhookHeadersRequest'
-  /v0/providers:
-    get:
-      description: |-
-        Deprecated: use [List Apps](/api-reference/apps/list), which returns the
-        same entries in an `apps` array keyed by `app_id`.
-
-        Lists providers, most popular first.
-      operationId: providers_list
-      tags:
-        - Providers
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/Limit'
-            nullable: true
-        - name: page_token
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/PageToken'
-            nullable: true
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListProvidersResponse'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-      summary: List Providers
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-  /v0/providers/search:
-    get:
-      description: >-
-        Deprecated: use [Search Apps](/api-reference/apps/search), which returns
-        the
-
-        same entries in an `apps` array keyed by `app_id`.
-
-
-        Searches providers by name prefix.
-      operationId: providers_search
-      tags:
-        - Providers
-      parameters:
-        - name: q
-          in: query
-          description: Name prefix to search for.
-          required: true
-          schema:
-            type: string
-        - name: limit
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/Limit'
-            nullable: true
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SearchProvidersResponse'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-      summary: Search Providers
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-  /v0/providers/{provider_id}:
-    get:
-      description: >-
-        Deprecated: use [Get App](/api-reference/apps/get), which returns the
-        same
-
-        entry keyed by `app_id`.
-
-
-        Gets one provider by ID. A provider in the catalog returns its full
-        entry.
-
-        A registered provider that the catalog does not list returns its ID and
-
-        name only, without `updated_at`, so anyone holding its ID can still look
-
-        it up. List Providers and Search Providers show catalog entries only.
-      operationId: providers_get
-      tags:
-        - Providers
-      parameters:
-        - name: provider_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/ProviderId'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Provider'
-        '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Get Provider
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-  /v0/providers/{provider_id}/accounts:
-    get:
-      description: >-
-        Deprecated: use [List App Accounts](/api-reference/apps/list-accounts),
-        which
-
-        embeds the app as `app` instead of `provider`.
-
-
-        Lists accounts at one provider, most recent sign-in first.
-      operationId: providers_listAccounts
-      tags:
-        - Providers
-      parameters:
-        - name: provider_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/ProviderId'
-        - name: limit
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/Limit'
-            nullable: true
-        - name: page_token
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/PageToken'
-            nullable: true
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListProviderAccountsResponse'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-      summary: List Provider Accounts
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-  /v0/providers/{provider_id}/connect:
-    post:
-      description: >-
-        Deprecated: use [Connect App](/api-reference/apps/connect), which takes
-        the
-
-        same body and returns the same response.
-
-
-        Starts signing an inbox in to a provider. Returns a single-use
-        `magic_url`,
-
-        valid for five minutes, to open in the client that will hold the
-        sign-in;
-
-        the client enrolls as the inbox and continues to the provider. Poll
-
-        [Get API Key](/api-reference/api-keys/get) with `api_key_id` for
-        `status`.
-
-        Works for any registered provider with a sign-in entry point, whether or
-        not
-
-        the catalog lists it. A `404` names the missing resource: `Provider` or
-        `Inbox`.
-      operationId: providers_connect
-      tags:
-        - Providers
-      parameters:
-        - name: provider_id
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/ProviderId'
-      responses:
-        '202':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConnectAccepted'
-        '400':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '404':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Connect Provider
-      servers:
-        - url: https://api.agentmail.to
-        - url: https://x402.api.agentmail.to
-        - url: https://mpp.api.agentmail.to
-        - url: https://api.agentmail.eu
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConnectProviderBody'
-              nullable: true
   /v0/threads:
     get:
       description: |-
@@ -9014,11 +8756,6 @@ components:
       type: string
       format: uuid
       description: ID of account.
-    ProviderId:
-      title: ProviderId
-      type: string
-      format: uuid
-      description: Deprecated. The former name for an app ID; use `AppId` (`app_id`), which holds the same value.
     AccountStatus:
       title: AccountStatus
       type: string
@@ -9050,15 +8787,6 @@ components:
           type: string
           nullable: true
           description: Display name of app.
-        provider_id:
-          $ref: '#/components/schemas/ProviderId'
-          description: Deprecated. Use `app_id`, which has the same value.
-        provider_name:
-          type: string
-          nullable: true
-          description: >-
-            Deprecated. Use `app_name`, which has the same value and is present
-            whenever this is.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
         pod_id:
@@ -9092,7 +8820,6 @@ components:
       required:
         - account_id
         - app_id
-        - provider_id
         - inbox_id
         - pod_id
         - organization_id
@@ -9912,6 +9639,10 @@ components:
         - count
         - limit
         - accounts
+    ConnectInboxId:
+      title: ConnectInboxId
+      $ref: '#/components/schemas/inboxesInboxId'
+      description: Inbox to sign in as. Required unless the API key is scoped to an inbox.
     ConnectAppBody:
       title: ConnectAppBody
       type: object
@@ -9922,6 +9653,27 @@ components:
         accept_disclosure:
           $ref: '#/components/schemas/AcceptDisclosure'
           nullable: true
+    MagicUrl:
+      title: MagicUrl
+      type: string
+      description: Single-use URL to open in the client that will hold the key.
+    ConnectAccepted:
+      title: ConnectAccepted
+      type: object
+      description: >-
+        The pending sign-in key the client will activate. Poll Get API Key with
+        `api_key_id` for `status`.
+      properties:
+        api_key_id:
+          $ref: '#/components/schemas/ApiKeyId'
+        magic_url:
+          $ref: '#/components/schemas/MagicUrl'
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+      required:
+        - api_key_id
+        - magic_url
+        - expires_at
     AttachmentId:
       title: AttachmentId
       type: string
@@ -12228,138 +11980,6 @@ components:
         - domain_count
         - updated_at
         - created_at
-    Provider:
-      title: Provider
-      type: object
-      description: >-
-        An app an inbox can sign in to, under the deprecated `provider_id` name.
-
-        The `/providers` endpoints return it; use `App` from the `/apps`
-        endpoints instead.
-      properties:
-        provider_id:
-          $ref: '#/components/schemas/ProviderId'
-        name:
-          type: string
-          nullable: true
-        updated_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: Time at which provider was last updated.
-        description:
-          type: string
-          nullable: true
-        logo_url:
-          type: string
-          nullable: true
-        terms_url:
-          type: string
-          nullable: true
-        privacy_url:
-          type: string
-          nullable: true
-        owner_signup_limit:
-          type: integer
-          nullable: true
-          description: >-
-            Maximum number of accounts your organization may sign up at this
-            provider. Omitted when the provider sets no limit. 0 means the
-            provider has paused new sign-ups; existing accounts keep signing in.
-      required:
-        - provider_id
-    ListProvidersResponse:
-      title: ListProvidersResponse
-      type: object
-      properties:
-        count:
-          $ref: '#/components/schemas/Count'
-        limit:
-          $ref: '#/components/schemas/Limit'
-        next_page_token:
-          $ref: '#/components/schemas/PageToken'
-          nullable: true
-        providers:
-          type: array
-          items:
-            $ref: '#/components/schemas/Provider'
-      required:
-        - count
-        - limit
-        - providers
-    SearchProvidersResponse:
-      title: SearchProvidersResponse
-      type: object
-      properties:
-        count:
-          $ref: '#/components/schemas/Count'
-        limit:
-          $ref: '#/components/schemas/Limit'
-        providers:
-          type: array
-          items:
-            $ref: '#/components/schemas/Provider'
-      required:
-        - count
-        - limit
-        - providers
-    ListProviderAccountsResponse:
-      title: ListProviderAccountsResponse
-      type: object
-      properties:
-        provider:
-          $ref: '#/components/schemas/Provider'
-          nullable: true
-        count:
-          $ref: '#/components/schemas/Count'
-        limit:
-          $ref: '#/components/schemas/Limit'
-        next_page_token:
-          $ref: '#/components/schemas/PageToken'
-          nullable: true
-        accounts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Account'
-      required:
-        - count
-        - limit
-        - accounts
-    ConnectInboxId:
-      title: ConnectInboxId
-      $ref: '#/components/schemas/inboxesInboxId'
-      description: Inbox to sign in as. Required unless the API key is scoped to an inbox.
-    ConnectProviderBody:
-      title: ConnectProviderBody
-      type: object
-      properties:
-        inbox_id:
-          $ref: '#/components/schemas/ConnectInboxId'
-          nullable: true
-        accept_disclosure:
-          $ref: '#/components/schemas/AcceptDisclosure'
-          nullable: true
-    MagicUrl:
-      title: MagicUrl
-      type: string
-      description: Single-use URL to open in the client that will hold the key.
-    ConnectAccepted:
-      title: ConnectAccepted
-      type: object
-      description: >-
-        The pending sign-in key the client will activate. Poll Get API Key with
-        `api_key_id` for `status`.
-      properties:
-        api_key_id:
-          $ref: '#/components/schemas/ApiKeyId'
-        magic_url:
-          $ref: '#/components/schemas/MagicUrl'
-        expires_at:
-          $ref: '#/components/schemas/ExpiresAt'
-      required:
-        - api_key_id
-        - magic_url
-        - expires_at
     ThreadId:
       title: ThreadId
       type: string

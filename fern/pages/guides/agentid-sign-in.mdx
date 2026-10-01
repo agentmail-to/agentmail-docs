@@ -23,7 +23,7 @@ A sign-in credential has `type: "public_key"` and a `status` of `pending` or `ac
 Install the [CLI](https://docs.agentmail.to/integrations/cli) with `npm install -g agentmail-cli@latest`, or the TypeScript SDK with `npm install agentmail@latest`. Set `AGENTMAIL_API_KEY` in your environment.
 
 <Note>
-  `agentmail apps` and `client.apps` arrive in the first CLI and TypeScript SDK releases after CLI 1.7.0 and TypeScript SDK 0.5.32. Earlier releases have only the deprecated `agentmail providers` and `client.providers`, which call `/v0/providers` and keep working. The Python examples call the API with `httpx` (`pip install httpx`).
+  `agentmail apps` and `client.apps` arrive in the first CLI and TypeScript SDK releases after CLI 1.7.0 and TypeScript SDK 0.5.32. Earlier releases have only `agentmail providers` and `client.providers`, which call the removed `/v0/providers` endpoints, so upgrade before running these examples. The Python examples call the API with `httpx` (`pip install httpx`).
 </Note>
 
 ## Connect to an app

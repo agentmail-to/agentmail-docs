@@ -143,11 +143,12 @@ Shell completions (`agentmail completion`) and man pages (`agentmail man`) are b
 
 ## Apps commands
 
-`agentmail apps` replaces `agentmail providers`, following the API's move from
-`/v0/providers` to `/v0/apps`. The `providers` commands still work but are
-deprecated. Upgrade with `npm install -g agentmail-cli@latest` to get `apps`:
+`agentmail providers` was renamed to `agentmail apps` when the API renamed
+`/v0/providers` to `/v0/apps`. The `providers` commands and the endpoints they
+call are removed, so CLI 1.7.0 and earlier cannot browse or connect apps.
+Upgrade with `npm install -g agentmail-cli@latest` and use `apps`:
 
-| Deprecated | Current |
+| Removed | Use instead |
 | --- | --- |
 | `agentmail providers list` | `agentmail apps list` |
 | `agentmail providers search --q <name>` | `agentmail apps search --q <name>` |
@@ -155,8 +156,8 @@ deprecated. Upgrade with `npm install -g agentmail-cli@latest` to get `apps`:
 | `agentmail providers list-accounts --provider-id <provider_id>` | `agentmail apps list-accounts --app-id <app_id>` |
 | `agentmail providers connect --provider-id <provider_id> --inbox-id <inbox_id>` | `agentmail apps connect --app-id <app_id> --inbox-id <inbox_id>` |
 
-Accounts now carry `app_id` and `app_name`; `provider_id` and `provider_name` stay
-for the deprecation window with the same values.
+Accounts carry `app_id` and `app_name` in place of `provider_id` and
+`provider_name`.
 
 ## Upgrading to 1.4
 

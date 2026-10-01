@@ -112,7 +112,7 @@ redirects:
   - source: /talon-reply-extraction
     destination: /reply-extraction
     permanent: true
-  # Providers were renamed to apps; each endpoint keeps its slug.
+  # /v0/providers* was renamed to /v0/apps* and removed; each endpoint keeps its slug.
   - source: /api-reference/providers/:slug*
     destination: /api-reference/apps/:slug*
     permanent: true
@@ -488,10 +488,6 @@ navigation:
           - accounts
           - pods
           - organizations
-          # Deprecated /v0/providers* endpoints. Unlisted packages are appended
-          # to the sidebar, so hide it; its pages redirect to the apps pages.
-          - providers:
-              hidden: true
   - tab: kb
     layout:
       - page: Introduction

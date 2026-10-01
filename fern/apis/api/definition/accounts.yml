@@ -11,10 +11,6 @@ types:
     type: uuid
     docs: ID of account.
 
-  ProviderId:
-    type: uuid
-    docs: Deprecated. The former name for an app ID; use `AppId` (`app_id`), which holds the same value.
-
   AccountStatus:
     enum:
       - disabled
@@ -39,14 +35,6 @@ types:
       app_name:
         type: optional<string>
         docs: Display name of app.
-      provider_id:
-        type: ProviderId
-        availability: deprecated
-        docs: Deprecated. Use `app_id`, which has the same value.
-      provider_name:
-        type: optional<string>
-        availability: deprecated
-        docs: Deprecated. Use `app_name`, which has the same value and is present whenever this is.
       inbox_id: inboxes.InboxId
       pod_id: pods.PodId
       organization_id: global.OrganizationId
