@@ -626,8 +626,8 @@ Calendar events report changes to an inbox's [calendar](/calendar) and fire when
 | Event | Triggered when |
 | --- | --- |
 | `calendar.event.created` | A calendar event is created through the API or from a received invitation, or a date of a recurring event is edited for the first time. |
-| `calendar.event.updated` | A calendar event, or one or more dates of a recurring event, changes. |
-| `calendar.event.deleted` | A calendar event is deleted, or dates of a recurring event are cancelled. |
+| `calendar.event.updated` | A calendar event, or one or more dates of a recurring event, changes. Also sent when dates of a recurring event are cancelled. |
+| `calendar.event.deleted` | A one-off or recurring calendar event is deleted. |
 | `calendar.event.responded` | The inbox responds to an invitation, or an attendee replies to an invitation the inbox sent. |
 | `calendar.event.starting` | A calendar event, or one date of a recurring event, starts. |
 | `calendar.event.ending` | A calendar event, or one date of a recurring event, ends. |

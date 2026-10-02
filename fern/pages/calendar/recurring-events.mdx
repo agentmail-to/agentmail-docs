@@ -128,7 +128,7 @@ A dated event has `kind: instance` and three extra fields:
 
 There are two ways to list dates:
 
-- `GET /calendar/events?expand=true` lists every date of every event in a window. This is the agenda view.
+- `GET /calendar/events?expand=true` lists every date of every event in a window. This is the agenda view. It includes recurring events' dates only up to about 90 days from now.
 - `GET /calendar/events/{series_id}/instances` lists the dates of one series in a window. It computes them from the rule, so it works for any window up to 366 days, including far in the future.
 
 <CodeBlocks>
@@ -193,7 +193,7 @@ console.log(moved.event.isException); // true
 ```
 </CodeBlocks>
 
-You can change `title`, `description`, `location`, `metadata`, `status`, `start`, `end`, `duration_mode` and `attendees` for a date. `all_day`, `timezone` and `recurrence` belong to the series and are rejected for a date.
+You can change `title`, `description`, `location`, `metadata`, `status`, `start`, `end`, `duration_mode` and `attendees` for a date. Unlike a series or one-off event, a date accepts `end` without `start`. `all_day`, `timezone` and `recurrence` belong to the series and are rejected for a date.
 
 An edited date keeps the fields you changed for it. Its other fields keep following the series, so renaming the series later also renames the moved date. The first edit to a date sends `calendar.event.created` for that date; later edits send `calendar.event.updated`.
 
@@ -237,7 +237,7 @@ A `mode=future` change cannot include `start`; it returns `409` `future_edit_sta
 
 `DELETE` a dated ID to cancel dates without deleting the series:
 
-- `mode=single` (default) cancels that one date by adding its original start to the series' `recurrence.exdates`. The response shows the date with `status: cancelled`; afterwards it no longer appears in lists and gets no start or end webhooks.
+- `mode=single` (default) cancels that one date by adding its original start to the series' `recurrence.exdates`. The response shows the date with `status: cancelled`; afterwards it no longer appears in lists and gets no start or end webhooks. A date that is already running still gets its `calendar.event.ending`.
 - `mode=future` cancels that date and every later one, ending the series. The series' `recurrence.truncate_before` records where it now stops.
 - `mode=future` from the first date deletes the whole series and returns a `deletion_id`, like deleting the series UUID.
 
@@ -260,7 +260,7 @@ await client.inboxes.calendar.deleteEvent(inboxId, cancelId, {
 ```
 </CodeBlocks>
 
-Each sends `calendar.event.deleted` with the cancelled date. Add `send_invites=true` to email the cancellation to attendees.
+Each sends `calendar.event.updated` with the cancelled date (deleting the whole series from its first date sends `calendar.event.deleted`). Add `send_invites=true` to email the cancellation to attendees.
 
 ## Change the whole series
 

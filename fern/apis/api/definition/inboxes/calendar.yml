@@ -115,7 +115,8 @@ service:
           into their individual dates and cancelled dates left out. Ordered by start time. Use this
           view to answer "what is on the calendar". Agenda items omit `description`, `metadata` and
           `attendees`; get an event by ID for the full object. The window defaults to now through
-          90 days from now and can be at most 366 days.
+          90 days from now and can be at most 366 days. Dates of recurring events appear only up to
+          about 90 days from now; use List Event Instances for a recurring event's later dates.
 
         `after`, `before` and `include_overlapping` require `expand=true`.
 
@@ -754,9 +755,11 @@ service:
         - **Dated ID (`<uuid>_<slot>`):** cancels that date (`mode=single`, the default) or that date
           and every later date (`mode=future`). Returns `202` with the cancelled date. A `mode=future`
           delete from the first date deletes the whole series and returns a `deletion_id` instead.
+          A date that is already running still gets its `calendar.event.ending`.
 
-        Sends `calendar.event.deleted`. With `send_invites=true` the organizer inbox also emails a
-        cancellation to every attendee. Requires the `calendar_event_delete` permission and the
+        Deleting a one-off or series event sends `calendar.event.deleted`. Cancelling dates sends
+        `calendar.event.updated` with the cancelled date. With `send_invites=true` the organizer
+        inbox also emails a cancellation to every attendee. Requires the `calendar_event_delete` permission and the
         current `ETag` in `If-Match`.
       path-parameters:
         event_id: calendar.CalendarEventId

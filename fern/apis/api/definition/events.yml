@@ -223,7 +223,7 @@ types:
       title: optional<string>
       description: optional<string>
       location: optional<string>
-      metadata: optional<map<string, unknown>>
+      metadata: optional<unknown>
       status: optional<calendar.CalendarEventStatus>
       all_day: optional<boolean>
       start: optional<calendar.WallTime>
@@ -249,7 +249,8 @@ types:
   CalendarEventUpdatedEvent:
     docs: |
       An event, or one or more dates of a recurring event, changed. `event` is the event (or the
-      date) after the change.
+      date) after the change. Cancelling dates with a delete on a dated ID also sends this event,
+      with the cancelled date as `event`.
     properties:
       type: literal<"event">
       event_type: literal<"calendar.event.updated">
@@ -264,14 +265,14 @@ types:
 
   CalendarEventDeletedEvent:
     docs: |
-      An event was deleted, or dates of a recurring event were cancelled with a delete. `event` is
-      the event as it was, or the cancelled date.
+      A one-off or recurring event was deleted. `event` is the event as it was. Cancelling dates of a
+      recurring event sends `calendar.event.updated` instead.
     properties:
       type: literal<"event">
       event_type: literal<"calendar.event.deleted">
       event_id:
         type: EventId
-        docs: Equals the `operation_id` or `deletion_id` returned by the request that made the change.
+        docs: Equals the `deletion_id` returned by the request that made the change.
       inbox_id: inboxes.InboxId
       event: calendar.CalendarEvent
 

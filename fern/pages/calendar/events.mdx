@@ -99,7 +99,7 @@ The response is `201` with the stored `event` and an `operation_id`:
 | `duration_mode` | `exact` (default for one-off events) or `nominal`. See [Time and time zones](/calendar#time-and-time-zones). |
 | `description` | Up to 65,536 bytes. |
 | `location` | Up to 1,024 characters. Any text, such as an address or a meeting link. |
-| `metadata` | A JSON object, up to 16,384 bytes serialized. Returned on every read and in webhooks, never sent to attendees. Use it to link the event to your own records. |
+| `metadata` | Any JSON value, usually an object, up to 16,384 bytes serialized. Returned on every read and in webhooks, never sent to attendees. Use it to link the event to your own records. |
 | `status` | `confirmed` (default), `tentative` or `cancelled`. |
 | `attendees` | Up to 100. Each has an `email` and optional `name`, `role` (`required` or `optional`) and `status`. |
 | `send_invites` | `true` emails an invitation to every attendee. See [Invitations](/calendar-invitations). |
@@ -183,6 +183,7 @@ for (const event of page.events) {
 </CodeBlocks>
 
 - The window defaults to now through 90 days from now, and can be at most 366 days wide. A wider window returns `400` `query_range_too_wide`; page through long periods in pieces.
+- Dates of recurring events appear only up to about 90 days from now. To list a recurring event's later dates, use [List Event Instances](/calendar-recurring-events#list-the-dates).
 - By default an event that started before `after` but is still running is included. Pass `include_overlapping=false` to get only events that start inside the window.
 - Agenda items leave out `description`, `metadata` and `attendees` to stay small (`attendee_count` is still there). Get an event by its `event_id` for the full object.
 
@@ -242,7 +243,7 @@ curl -X PATCH https://api.agentmail.to/v0/inboxes/scheduler@agentmail.to/calenda
 
 Rules for updates:
 
-- Send `start` and `end` together.
+- Send `start` and `end` together. (A single date of a recurring event also accepts `end` alone; see [Recurring Events](/calendar-recurring-events#change-one-date).)
 - Set a field to `null` to clear it (`description`, `location`, `metadata`). `attendees` replaces the whole list.
 - To switch between timed and all-day, send `all_day`, `start`, `end` and `timezone` together.
 - Without `If-Match` the request fails with `428` `precondition_required`.

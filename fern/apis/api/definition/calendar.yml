@@ -293,8 +293,8 @@ types:
         type: optional<string>
         docs: Location of the event.
       metadata:
-        type: optional<map<string, unknown>>
-        docs: Your own JSON object for the event. Never sent to attendees. Omitted from expanded list items.
+        type: optional<unknown>
+        docs: Your own JSON value for the event, usually an object. Never sent to attendees. Omitted from expanded list items.
       status: CalendarEventStatus
       all_day:
         type: boolean
@@ -394,8 +394,8 @@ types:
         type: optional<string>
         docs: Location of the event. At most 1,024 characters.
       metadata:
-        type: optional<map<string, unknown>>
-        docs: Your own JSON object, returned on every read and in webhooks. Never sent to attendees. At most 16,384 bytes serialized.
+        type: optional<unknown>
+        docs: Your own JSON value (usually an object), returned on every read and in webhooks. Never sent to attendees. At most 16,384 bytes serialized.
       status:
         type: optional<CalendarEventStatus>
         docs: Defaults to `confirmed`.
@@ -445,18 +445,18 @@ types:
         type: optional<nullable<string>>
         docs: Set to `null` to clear.
       metadata:
-        type: optional<nullable<map<string, unknown>>>
-        docs: Replaces the metadata (a JSON object). Set to `null` to clear.
+        type: optional<nullable<unknown>>
+        docs: Replaces the metadata (any JSON value, usually an object). Set to `null` to clear.
       status: optional<CalendarEventStatus>
       all_day:
         type: optional<boolean>
         docs: Changing `all_day` requires `start`, `end` and `timezone` in the same request. Not accepted for dated event IDs.
       start:
         type: optional<WallTime>
-        docs: New start. Must be sent together with `end`.
+        docs: New start. For a one-off or series UUID, send it together with `end`. Not accepted with `mode=future`.
       end:
         type: optional<WallTime>
-        docs: New end. Must be sent together with `start`.
+        docs: New end. For a one-off or series UUID, send it together with `start`. A dated ID accepts `end` alone.
       timezone:
         type: optional<IanaTimezone>
         docs: New time zone. Not accepted for dated event IDs.

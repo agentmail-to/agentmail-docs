@@ -85,7 +85,7 @@ Responses add the matching UTC instants, `start_at` and `end_at`. These are the 
 | Question | Request | Returns |
 | --- | --- | --- |
 | "What have I created?" | `GET /calendar/events` | One item per one-off and recurring event, plus each individually edited date. Most recently updated first. |
-| "What is on the calendar?" | `GET /calendar/events?expand=true` | Every date in a time window (default: the next 90 days), with recurring events expanded and cancelled dates left out. In start order. |
+| "What is on the calendar?" | `GET /calendar/events?expand=true` | Every date in a time window (default: the next 90 days), with recurring events expanded and cancelled dates left out. In start order. Recurring events' dates are included only up to about 90 days from now. |
 
 ## Quick start
 

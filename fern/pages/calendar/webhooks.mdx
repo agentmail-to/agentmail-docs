@@ -12,8 +12,8 @@ Calendar webhooks let your agent act at the right moment without polling or runn
 | Event | Sent when | `event` is |
 | --- | --- | --- |
 | `calendar.event.created` | An event is created through the API or from a received invitation, or a date of a recurring event is edited for the first time. | The new event, or the edited date |
-| `calendar.event.updated` | An event changes, or one or more dates of a recurring event change. | The event or date after the change |
-| `calendar.event.deleted` | An event is deleted, or dates are cancelled with a delete. | The event as it was, or the cancelled date |
+| `calendar.event.updated` | An event changes, or one or more dates of a recurring event change or are cancelled. | The event or date after the change |
+| `calendar.event.deleted` | A one-off or recurring event is deleted. | The event as it was |
 | `calendar.event.responded` | The inbox responds to an invitation, or an attendee replies to one the inbox sent. | The event or date with updated `attendees` |
 | `calendar.event.starting` | An event or date starts (`start_at`). | The event or date |
 | `calendar.event.ending` | An event or date ends (`end_at`). | The event or date |
@@ -106,7 +106,8 @@ All-day events start and end at local midnight in their `timezone`.
 | End changed while it is running | Already sent | Sent at the new end |
 | Created after its start but before its end | Sent right away | Sent |
 | Created entirely in the past | Not sent | Not sent |
-| Deleted, or its inbox deleted | Not sent after the delete is accepted | Not sent after the delete is accepted |
+| Event deleted by its UUID, or its inbox deleted | Not sent after the delete is accepted | Not sent after the delete is accepted |
+| Date cancelled by its dated ID while it is running | Already sent | Sent |
 
 The rule behind "created entirely in the past": if a date is first picked up after it has already ended and more than 5 minutes after its start, neither webhook is sent for it. In normal operation this only happens to events created in the past.
 
@@ -190,11 +191,11 @@ Changes to a one-off or series event include `previous`, the old values of the f
 }
 ```
 
-Changes to dates of a recurring event (a dated ID with `mode=single` or `mode=future`) carry the changed date as `event` and no `previous`.
+Changes to dates of a recurring event (a dated ID with `mode=single` or `mode=future`) carry the changed date as `event` and no `previous`. This includes dates cancelled with `DELETE` on a dated ID: `event` is that date with `status: cancelled`, without `description`, `metadata` or `attendees`.
 
 ### `calendar.event.deleted`
 
-`event` is the event as it was when deleted. For a cancelled date, `event` is that date with `status: cancelled`, without `description`, `metadata` or `attendees`.
+Sent when a one-off or recurring event is deleted. `event` is the event as it was when deleted. Cancelling dates of a recurring event sends `calendar.event.updated` instead.
 
 ### `calendar.event.responded`
 

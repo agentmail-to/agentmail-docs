@@ -2607,7 +2607,8 @@ paths:
           into their individual dates and cancelled dates left out. Ordered by start time. Use this
           view to answer "what is on the calendar". Agenda items omit `description`, `metadata` and
           `attendees`; get an event by ID for the full object. The window defaults to now through
-          90 days from now and can be at most 366 days.
+          90 days from now and can be at most 366 days. Dates of recurring events appear only up to
+          about 90 days from now; use List Event Instances for a recurring event's later dates.
 
         `after`, `before` and `include_overlapping` require `expand=true`.
 
@@ -3444,12 +3445,16 @@ paths:
         default) or that date
           and every later date (`mode=future`). Returns `202` with the cancelled date. A `mode=future`
           delete from the first date deletes the whole series and returns a `deletion_id` instead.
+          A date that is already running still gets its `calendar.event.ending`.
 
-        Sends `calendar.event.deleted`. With `send_invites=true` the organizer
-        inbox also emails a
+        Deleting a one-off or series event sends `calendar.event.deleted`.
+        Cancelling dates sends
 
-        cancellation to every attendee. Requires the `calendar_event_delete`
-        permission and the
+        `calendar.event.updated` with the cancelled date. With
+        `send_invites=true` the organizer
+
+        inbox also emails a cancellation to every attendee. Requires the
+        `calendar_event_delete` permission and the
 
         current `ETag` in `If-Match`.
       operationId: inboxes_calendar_deleteEvent
@@ -11889,12 +11894,10 @@ components:
           nullable: true
           description: Location of the event.
         metadata:
-          type: object
-          additionalProperties: true
           nullable: true
           description: >-
-            Your own JSON object for the event. Never sent to attendees. Omitted
-            from expanded list items.
+            Your own JSON value for the event, usually an object. Never sent to
+            attendees. Omitted from expanded list items.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
         all_day:
@@ -12096,12 +12099,11 @@ components:
           nullable: true
           description: Location of the event. At most 1,024 characters.
         metadata:
-          type: object
-          additionalProperties: true
           nullable: true
           description: >-
-            Your own JSON object, returned on every read and in webhooks. Never
-            sent to attendees. At most 16,384 bytes serialized.
+            Your own JSON value (usually an object), returned on every read and
+            in webhooks. Never sent to attendees. At most 16,384 bytes
+            serialized.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
           nullable: true
@@ -12186,10 +12188,10 @@ components:
           nullable: true
           description: Set to `null` to clear.
         metadata:
-          type: object
-          additionalProperties: true
           nullable: true
-          description: Replaces the metadata (a JSON object). Set to `null` to clear.
+          description: >-
+            Replaces the metadata (any JSON value, usually an object). Set to
+            `null` to clear.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
           nullable: true
@@ -12202,11 +12204,15 @@ components:
         start:
           $ref: '#/components/schemas/WallTime'
           nullable: true
-          description: New start. Must be sent together with `end`.
+          description: >-
+            New start. For a one-off or series UUID, send it together with
+            `end`. Not accepted with `mode=future`.
         end:
           $ref: '#/components/schemas/WallTime'
           nullable: true
-          description: New end. Must be sent together with `start`.
+          description: >-
+            New end. For a one-off or series UUID, send it together with
+            `start`. A dated ID accepts `end` alone.
         timezone:
           $ref: '#/components/schemas/IanaTimezone'
           nullable: true
@@ -13375,8 +13381,6 @@ components:
           type: string
           nullable: true
         metadata:
-          type: object
-          additionalProperties: true
           nullable: true
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
@@ -13442,7 +13446,10 @@ components:
         An event, or one or more dates of a recurring event, changed. `event` is
         the event (or the
 
-        date) after the change.
+        date) after the change. Cancelling dates with a delete on a dated ID
+        also sends this event,
+
+        with the cancelled date as `event`.
       properties:
         type:
           type: string
@@ -13475,10 +13482,10 @@ components:
       title: CalendarEventDeletedEvent
       type: object
       description: >-
-        An event was deleted, or dates of a recurring event were cancelled with
-        a delete. `event` is
+        A one-off or recurring event was deleted. `event` is the event as it
+        was. Cancelling dates of a
 
-        the event as it was, or the cancelled date.
+        recurring event sends `calendar.event.updated` instead.
       properties:
         type:
           type: string
@@ -13489,8 +13496,8 @@ components:
         event_id:
           $ref: '#/components/schemas/EventId'
           description: >-
-            Equals the `operation_id` or `deletion_id` returned by the request
-            that made the change.
+            Equals the `deletion_id` returned by the request that made the
+            change.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
         event:
