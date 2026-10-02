@@ -5,6 +5,12 @@ slug: calendar-reference
 description: Reference for the AgentMail calendar API. How If-Match and ETags work, how to retry safely, size and rate limits, and every calendar error code.
 ---
 
+<Note>
+  Calendar is in private beta. Organizations without access receive a `403` with the message
+  `Calendar access is not enabled for this organization`. Email
+  [support@agentmail.to](mailto:support@agentmail.to) to request access.
+</Note>
+
 ## ETags and `If-Match`
 
 Every request that changes a calendar or an event must say which version it is changing. Read and write responses carry an `ETag` header; send it back in the `If-Match` header of the next change. If the resource changed in the meantime, the request fails with `412` instead of overwriting the other change.

@@ -5,6 +5,13 @@ slug: calendar-webhooks
 description: The calendar.event.* webhook and WebSocket events. Payloads, when start and end events are sent, delivery guarantees, and how to handle duplicates.
 ---
 
+<Note>
+  Calendar is in private beta. Organizations without access receive a `403` with the message
+  `Calendar access is not enabled for this organization`. Email
+  [support@agentmail.to](mailto:support@agentmail.to) to request access. Subscribing a webhook to calendar
+  event types works without access, but nothing fires until your organization can create events.
+</Note>
+
 Calendar webhooks let your agent act at the right moment without polling or running its own scheduler. They use the same webhook endpoints, signatures and retries as message webhooks.
 
 ## Event types

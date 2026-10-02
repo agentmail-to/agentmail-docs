@@ -59,6 +59,8 @@ service:
 
         Requires the `calendar_update` permission and an `If-Match` header with the calendar's
         current `ETag`. A stale `If-Match` returns `412`; a missing one returns `428`.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       request:
         name: UpdateCalendarRequestWrapper
         headers:
@@ -124,6 +126,8 @@ service:
         few seconds, the agenda can briefly leave out some of that event's dates.
 
         Requires the `calendar_event_read` permission.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       request:
         name: ListCalendarEventsRequest
         query-parameters:
@@ -342,6 +346,8 @@ service:
 
         The `ETag` response header (`"rv-<n>"`) is the value to send in `If-Match` when updating or
         deleting the event. Requires the `calendar_event_create` permission.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       request: calendar.CreateCalendarEventRequest
       response:
         status-code: 201
@@ -486,6 +492,8 @@ service:
 
         `consistency` applies to UUIDs only; dated IDs are always read from the primary region.
         Requires the `calendar_event_read` permission.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id: calendar.CalendarEventId
       request:
@@ -603,6 +611,8 @@ service:
 
         Sends `calendar.event.updated`. With `send_invites: true` the organizer inbox also emails the
         updated invitation to every attendee. Requires the `calendar_event_update` permission.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id: calendar.CalendarEventId
       request:
@@ -761,6 +771,8 @@ service:
         `calendar.event.updated` with the cancelled date. With `send_invites=true` the organizer
         inbox also emails a cancellation to every attendee. Requires the `calendar_event_delete` permission and the
         current `ETag` in `If-Match`.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id: calendar.CalendarEventId
       request:
@@ -873,6 +885,8 @@ service:
         The window defaults to now through 90 days from now. Items omit `description`, `metadata`
         and `attendees`; get a date by its ID for the full object. Requires the
         `calendar_event_read` permission.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id:
           type: string
@@ -1003,6 +1017,8 @@ service:
         to the organizer.
 
         Requires the `calendar_event_update` permission and the current `ETag` in `If-Match`.
+
+        Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id: calendar.CalendarEventId
       request:
