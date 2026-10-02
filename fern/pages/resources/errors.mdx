@@ -117,6 +117,12 @@ The message was not sent. The message names the reason, and the `fix` states whi
 - **A suspended account** — email support@agentmail.to; retrying will keep failing until the suspension is resolved.
 - **An unfetchable attachment URL** — use a URL that AgentMail can download without custom authentication headers or cookies, or send the attachment inline as Base64. Redirects and pre-signed URLs are supported, and the final response must be a successful 2xx response.
 
+### inbox_paused
+
+The inbox is paused, so it cannot send. Resume it with `PATCH /v0/inboxes/{inbox_id}` and `{"status": "active"}` using a key with the `inbox_update` permission, then send again. Mail that arrived while the inbox was paused was dropped and is not delivered on resume. See [Pausing an inbox](/inboxes#pausing-an-inbox).
+
+If the inbox has also been suspended for its bounce or complaint rate, the send reports that suspension instead. Resuming the inbox does not lift a suspension: email support@agentmail.to.
+
 ## Request too large (413)
 
 Oversized inline attachment requests return an infrastructure-generated response:

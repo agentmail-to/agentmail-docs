@@ -57,6 +57,16 @@ types:
       removes it. Up to 256 keys; keys and string values are each limited to
       256 characters.
 
+  InboxStatus:
+    enum:
+      - active
+      - paused
+    docs: |
+      Whether the inbox sends and receives mail. `paused` stops both: sends
+      return `403` with code `inbox_paused`, and incoming mail is dropped
+      without a bounce and cannot be recovered. Mail already in the inbox,
+      its drafts, and its API keys are kept. Set `active` to resume.
+
   Inbox:
     properties:
       pod_id: pods.PodId
@@ -64,6 +74,12 @@ types:
       email: Email
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
+      status:
+        type: optional<InboxStatus>
+        docs: |
+          `paused` when the inbox is paused. Omitted when the inbox is active.
+          Treat any value other than `paused` as an inbox that sends and
+          receives normally.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata attached to the inbox.
@@ -105,6 +121,9 @@ types:
           Defaults to `agentmail.to`.
       display_name: optional<DisplayName>
       client_id: optional<ClientId>
+      status:
+        type: optional<InboxStatus>
+        docs: Create the inbox paused. Defaults to `active`.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata to attach to the inbox.
@@ -112,6 +131,12 @@ types:
   UpdateInboxRequest:
     properties:
       display_name: optional<DisplayName>
+      status:
+        type: optional<InboxStatus>
+        docs: |
+          `paused` stops the inbox sending and receiving mail; `active` resumes
+          it. Mail that arrived while the inbox was paused is not delivered on
+          resume.
       metadata:
         type: optional<nullable<UpdateMetadata>>
         docs: |
@@ -119,8 +144,8 @@ types:
           are added or overwritten; keys you omit are left unchanged. To remove a
           single key, send it with a null value. To clear all metadata, send
           `metadata` as null. Sending an empty object is rejected; use null to
-          clear. Each update must include at least one of `display_name` or
-          `metadata`.
+          clear. Each update must include at least one of `display_name`,
+          `status`, or `metadata`.
 
   AuthorizeInboxRequest:
     docs: |
@@ -228,12 +253,15 @@ service:
         ```bash
         agentmail inboxes update --inbox-id <inbox_id> --display-name "Updated Name"
         ```
+
+        To pause an inbox, set `status` to `paused`; set it back to `active` to
+        resume. See [Pausing an inbox](/inboxes#pausing-an-inbox).
       path-parameters:
         inbox_id: InboxId
       request:
         body:
           type: UpdateInboxRequest
-          docs: Expects an object; provide at least one of `display_name` or `metadata`.
+          docs: Expects an object; provide at least one of `display_name`, `status`, or `metadata`.
       response: Inbox
       errors:
         - global.NotFoundError
