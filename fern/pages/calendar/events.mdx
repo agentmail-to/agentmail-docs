@@ -207,7 +207,7 @@ Updates use optimistic concurrency so that two writers cannot silently overwrite
 inbox_id = "scheduler@agentmail.to"
 event_id = "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36"
 
-event = client.inboxes.calendar.get_event(inbox_id, event_id)
+event = client.inboxes.calendar.get_event(inbox_id, event_id, consistency="primary")
 updated = client.inboxes.calendar.update_event(
     inbox_id,
     event_id,
@@ -222,7 +222,7 @@ print(updated.event.start_at)  # 2026-10-15T19:00:00Z
 const inboxId = "scheduler@agentmail.to";
 const eventId = "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36";
 
-const event = await client.inboxes.calendar.getEvent(inboxId, eventId);
+const event = await client.inboxes.calendar.getEvent(inboxId, eventId, { consistency: "primary" });
 const updated = await client.inboxes.calendar.updateEvent(inboxId, eventId, {
   ifMatch: `"rv-${event.resourceRevision}"`,
   start: "2026-10-15T15:00:00",

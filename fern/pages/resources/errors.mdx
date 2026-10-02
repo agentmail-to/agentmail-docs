@@ -156,7 +156,7 @@ The calendar cannot do this for the event (`409`): only events the inbox organiz
 
 ### calendar_inbox_required
 
-Sending invitations or cancellations requires the calendar's inbox (`409`). Retry with `send_invites` set to `false`.
+Sending invitations or cancellations needs the inbox the calendar belongs to (`409`). Every calendar is linked to its inbox, so this is not expected in normal use. If you see it, email [support@agentmail.to](mailto:support@agentmail.to); retrying with `send_invites` set to `false` applies the change without emailing attendees.
 
 ### event_expired
 

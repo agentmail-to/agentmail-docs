@@ -2711,7 +2711,7 @@ paths:
                         original_start: '2026-10-07T09:00:00'
                         original_start_at: '2026-10-07T13:00:00Z'
                         is_exception: false
-                        title: Daily standup
+                        title: Team standup
                         location: https://meet.example.com/standup
                         status: confirmed
                         all_day: false
@@ -2735,7 +2735,7 @@ paths:
                         original_start: '2026-10-09T09:00:00'
                         original_start_at: '2026-10-09T13:00:00Z'
                         is_exception: false
-                        title: Daily standup
+                        title: Team standup
                         location: https://meet.example.com/standup
                         status: confirmed
                         all_day: false
@@ -2753,27 +2753,31 @@ paths:
                         organizer_email: scheduler@agentmail.to
                         created_at: '2026-10-01T16:25:00Z'
                         updated_at: '2026-10-01T16:25:00Z'
-                      - event_id: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
-                        kind: single
-                        title: Intro call with Acme
-                        location: https://meet.example.com/acme-intro
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-12T09:00:00'
+                        original_start_at: '2026-10-12T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
                         status: confirmed
                         all_day: false
-                        start: '2026-10-15T14:00:00'
-                        end: '2026-10-15T14:30:00'
+                        start: '2026-10-12T09:00:00'
+                        end: '2026-10-12T09:15:00'
                         timezone: America/New_York
-                        duration_mode: exact
-                        duration_value: 1800000
-                        start_at: '2026-10-15T18:00:00Z'
-                        end_at: '2026-10-15T18:30:00Z'
-                        attendee_count: 1
-                        uid: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-12T13:00:00Z'
+                        end_at: '2026-10-12T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
                         sequence: 0
                         source: api
                         organizer_email: scheduler@agentmail.to
-                        created_at: '2026-10-01T16:30:00Z'
-                        updated_at: '2026-10-01T16:30:00Z'
-                    next_page_token: eyJzIjoiMjAyNi0xMC0xNVQxODowMDowMFoifQ
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                    next_page_token: eyJzIjoiMjAyNi0xMC0xMlQxMzowMDowMFoifQ
                 Stored events:
                   value:
                     count: 2
@@ -2810,7 +2814,7 @@ paths:
                         updated_at: '2026-10-01T16:30:00Z'
                       - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
                         kind: series
-                        title: Daily standup
+                        title: Team standup
                         location: https://meet.example.com/standup
                         status: confirmed
                         all_day: false
@@ -2949,7 +2953,7 @@ paths:
                     event:
                       event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
                       kind: series
-                      title: Daily standup
+                      title: Team standup
                       location: https://meet.example.com/standup
                       status: confirmed
                       all_day: false
@@ -3034,7 +3038,7 @@ paths:
                   send_invites: true
               Recurring event:
                 value:
-                  title: Daily standup
+                  title: Team standup
                   location: https://meet.example.com/standup
                   start: '2026-10-05T09:00:00'
                   end: '2026-10-05T09:15:00'
@@ -3145,7 +3149,7 @@ paths:
                     original_start: '2026-10-07T09:00:00'
                     original_start_at: '2026-10-07T13:00:00Z'
                     is_exception: false
-                    title: Daily standup
+                    title: Team standup
                     location: https://meet.example.com/standup
                     status: confirmed
                     all_day: false
@@ -3329,7 +3333,7 @@ paths:
                       original_start: '2026-10-07T09:00:00'
                       original_start_at: '2026-10-07T13:00:00Z'
                       is_exception: true
-                      title: Daily standup
+                      title: Team standup
                       location: https://meet.example.com/standup
                       status: confirmed
                       all_day: false
@@ -3544,7 +3548,7 @@ paths:
                       original_start: '2026-10-07T09:00:00'
                       original_start_at: '2026-10-07T13:00:00Z'
                       is_exception: true
-                      title: Daily standup
+                      title: Team standup
                       location: https://meet.example.com/standup
                       status: cancelled
                       all_day: false
@@ -3711,7 +3715,7 @@ paths:
                         original_start: '2026-10-05T09:00:00'
                         original_start_at: '2026-10-05T13:00:00Z'
                         is_exception: false
-                        title: Daily standup
+                        title: Team standup
                         location: https://meet.example.com/standup
                         status: confirmed
                         all_day: false
@@ -3735,7 +3739,7 @@ paths:
                         original_start: '2026-10-07T09:00:00'
                         original_start_at: '2026-10-07T13:00:00Z'
                         is_exception: false
-                        title: Daily standup
+                        title: Team standup
                         location: https://meet.example.com/standup
                         status: confirmed
                         all_day: false
@@ -3759,7 +3763,7 @@ paths:
                         original_start: '2026-10-09T09:00:00'
                         original_start_at: '2026-10-09T13:00:00Z'
                         is_exception: false
-                        title: Daily standup
+                        title: Team standup
                         location: https://meet.example.com/standup
                         status: confirmed
                         all_day: false
@@ -11660,8 +11664,8 @@ components:
           type: string
           format: date-time
           description: >-
-            Time at which the calendar was created. For a calendar that has
-            never been written to, this is the time of the request.
+            Time at which the calendar was created. The calendar exists from the
+            moment the inbox does, so this is the inbox's creation time.
           example: '2026-10-01T16:20:00Z'
         updated_at:
           type: string
@@ -12249,7 +12253,14 @@ components:
         comment:
           type: string
           nullable: true
-          description: Comment to include with the response. At most 4,096 characters.
+          description: >-
+            Comment to include with the response. At most 4,096 characters. It
+            is stored as the inbox's
+
+            attendee `comment`, which updates limit to 4,096 UTF-8 bytes, so
+            keep it within 4,096 bytes
+
+            if you will send the attendee list back in an update.
         send_reply:
           type: boolean
           nullable: true

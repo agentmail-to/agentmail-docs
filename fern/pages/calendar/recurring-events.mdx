@@ -19,7 +19,7 @@ client = AgentMail()
 
 created = client.inboxes.calendar.create_event(
     "scheduler@agentmail.to",
-    title="Daily standup",
+    title="Team standup",
     location="https://meet.example.com/standup",
     start="2026-10-05T09:00:00",  # a Monday
     end="2026-10-05T09:15:00",
@@ -36,7 +36,7 @@ import { AgentMailClient } from "agentmail";
 const client = new AgentMailClient();
 
 const created = await client.inboxes.calendar.createEvent("scheduler@agentmail.to", {
-  title: "Daily standup",
+  title: "Team standup",
   location: "https://meet.example.com/standup",
   start: "2026-10-05T09:00:00", // a Monday
   end: "2026-10-05T09:15:00",
@@ -77,7 +77,7 @@ The stored rule is normalized, so the `rule` you read back can differ textually 
 
 ```json
 {
-  "title": "Daily standup",
+  "title": "Team standup",
   "start": "2026-10-05T09:00:00",
   "end": "2026-10-05T09:15:00",
   "timezone": "America/New_York",

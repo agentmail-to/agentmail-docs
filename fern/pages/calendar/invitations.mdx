@@ -112,7 +112,7 @@ Use Respond to Event to accept, decline or tentatively accept an invitation the 
 inbox_id = "scheduler@agentmail.to"
 event_id = "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20"
 
-event = client.inboxes.calendar.get_event(inbox_id, event_id)
+event = client.inboxes.calendar.get_event(inbox_id, event_id, consistency="primary")
 response = client.inboxes.calendar.respond_to_event(
     inbox_id,
     event_id,
@@ -126,7 +126,7 @@ response = client.inboxes.calendar.respond_to_event(
 const inboxId = "scheduler@agentmail.to";
 const eventId = "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20";
 
-const event = await client.inboxes.calendar.getEvent(inboxId, eventId);
+const event = await client.inboxes.calendar.getEvent(inboxId, eventId, { consistency: "primary" });
 const response = await client.inboxes.calendar.respondToEvent(inboxId, eventId, {
   ifMatch: `"rv-${event.resourceRevision}"`,
   status: "accepted",

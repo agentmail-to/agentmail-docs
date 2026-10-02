@@ -154,7 +154,7 @@ types:
         docs: Number of one-off and recurring events on the calendar. Each recurring event counts once.
       created_at:
         type: datetime
-        docs: Time at which the calendar was created. For a calendar that has never been written to, this is the time of the request.
+        docs: Time at which the calendar was created. The calendar exists from the moment the inbox does, so this is the inbox's creation time.
       updated_at:
         type: datetime
         docs: Time at which the calendar was last updated.
@@ -487,7 +487,10 @@ types:
       status: RespondStatus
       comment:
         type: optional<string>
-        docs: Comment to include with the response. At most 4,096 characters.
+        docs: |
+          Comment to include with the response. At most 4,096 characters. It is stored as the inbox's
+          attendee `comment`, which updates limit to 4,096 UTF-8 bytes, so keep it within 4,096 bytes
+          if you will send the attendee list back in an update.
       send_reply:
         type: optional<boolean>
         docs: When `true` (default), emails the response (iCalendar `REPLY`) to the organizer.

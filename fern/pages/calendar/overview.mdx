@@ -48,7 +48,7 @@ Every event object has a `kind`:
 | `series`   | The definition of a recurring event.             | A UUID                         |
 | `instance` | One date of a recurring event.                   | A dated ID, `<uuid>_<slot>`    |
 
-A dated ID names a date by its original start in the series' time zone: `7c4e9b2a-…_t20261007T090000` for a timed date, or `…_d20261007` for an all-day date. It never changes, even if you move that date to another time. Every endpoint under `/calendar/events/{event_id}` accepts either kind of ID. See [Recurring Events](/calendar-recurring-events).
+A dated ID names a date by its original start in the series' time zone: `7c4e9b2a-…_t20261007T090000` for a timed date, or `…_d20261007` for an all-day date. It never changes, even if you move that date to another time. Get, Update, Delete and Respond accept either kind of ID; List Event Instances takes the event's UUID. See [Recurring Events](/calendar-recurring-events).
 
 ### Time and time zones
 
@@ -76,7 +76,7 @@ Responses add the matching UTC instants, `start_at` and `end_at`. These are the 
 
 ### Status
 
-`status` is `confirmed`, `tentative` or `cancelled`. A cancelled event or date stays readable, but no `calendar.event.starting` or `calendar.event.ending` webhook is sent for it.
+`status` is `confirmed`, `tentative` or `cancelled`. A cancelled event or date stays readable, but no `calendar.event.starting` or `calendar.event.ending` webhook is sent for it. The exception is a date cancelled while it is running: it still gets its `calendar.event.ending`.
 
 ## Two ways to list events
 
