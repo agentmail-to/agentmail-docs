@@ -5,6 +5,7 @@ imports:
   threads: threads.yml
   messages: messages.yml
   domains: domains.yml
+  calendar: calendar.yml
 
 types:
   EventType:
@@ -31,6 +32,18 @@ types:
         value: message.opened
       - name: DOMAIN_VERIFIED
         value: domain.verified
+      - name: CALENDAR_EVENT_CREATED
+        value: calendar.event.created
+      - name: CALENDAR_EVENT_UPDATED
+        value: calendar.event.updated
+      - name: CALENDAR_EVENT_DELETED
+        value: calendar.event.deleted
+      - name: CALENDAR_EVENT_RESPONDED
+        value: calendar.event.responded
+      - name: CALENDAR_EVENT_STARTING
+        value: calendar.event.starting
+      - name: CALENDAR_EVENT_ENDING
+        value: calendar.event.ending
 
   EventTypes:
     type: list<EventType>
@@ -201,3 +214,111 @@ types:
       event_type: literal<"domain.verified">
       event_id: EventId
       domain: domains.Domain
+
+  CalendarEventPrevious:
+    docs: |
+      The values that a `calendar.event.updated` change replaced, for the fields it changed. Only
+      changed fields appear; a field that had no value before the change is absent.
+    properties:
+      title: optional<string>
+      description: optional<string>
+      location: optional<string>
+      metadata: optional<unknown>
+      status: optional<calendar.CalendarEventStatus>
+      all_day: optional<boolean>
+      start: optional<calendar.WallTime>
+      end: optional<calendar.WallTime>
+      timezone: optional<calendar.IanaTimezone>
+      duration_mode: optional<calendar.DurationMode>
+      recurrence: optional<calendar.Recurrence>
+      attendees: optional<list<calendar.Attendee>>
+
+  CalendarEventCreatedEvent:
+    docs: |
+      An event was created, through the API or from an invitation the inbox received. Also sent when
+      one date of a recurring event is edited for the first time; `event` is then that date.
+    properties:
+      type: literal<"event">
+      event_type: literal<"calendar.event.created">
+      event_id:
+        type: EventId
+        docs: Equals the `operation_id` returned by the request that made the change.
+      inbox_id: inboxes.InboxId
+      event: calendar.CalendarEvent
+
+  CalendarEventUpdatedEvent:
+    docs: |
+      An event, or one or more dates of a recurring event, changed. `event` is the event (or the
+      date) after the change.
+    properties:
+      type: literal<"event">
+      event_type: literal<"calendar.event.updated">
+      event_id:
+        type: EventId
+        docs: Equals the `operation_id` returned by the request that made the change.
+      inbox_id: inboxes.InboxId
+      event: calendar.CalendarEvent
+      previous:
+        type: optional<CalendarEventPrevious>
+        docs: For changes to a one-off or series event, the prior values of the fields that changed.
+
+  CalendarEventDeletedEvent:
+    docs: |
+      An event was deleted, or dates of a recurring event were cancelled with a delete. `event` is
+      the event as it was, or the cancelled date.
+    properties:
+      type: literal<"event">
+      event_type: literal<"calendar.event.deleted">
+      event_id:
+        type: EventId
+        docs: Equals the `operation_id` or `deletion_id` returned by the request that made the change.
+      inbox_id: inboxes.InboxId
+      event: calendar.CalendarEvent
+
+  CalendarEventRespondedEvent:
+    docs: |
+      An attendee's response changed: the inbox responded with the respond endpoint, or an attendee
+      replied by email to an invitation the inbox sent. `event.attendees` holds the new statuses.
+    properties:
+      type: literal<"event">
+      event_type: literal<"calendar.event.responded">
+      event_id: EventId
+      inbox_id: inboxes.InboxId
+      event: calendar.CalendarEvent
+
+  CalendarEventStartingEvent:
+    docs: |
+      An event, or one date of a recurring event, has started. Sent within about a minute after
+      `scheduled_at`. A start that could not be sent within 5 minutes and whose date has already
+      ended is skipped, not sent late. Retries carry the same `event_id` and an identical body.
+    properties:
+      type: literal<"event">
+      event_type: literal<"calendar.event.starting">
+      event_id:
+        type: EventId
+        docs: Stable for this date and boundary. Use it to deduplicate deliveries.
+      inbox_id: inboxes.InboxId
+      event:
+        type: calendar.CalendarEvent
+        docs: The event or date as it stood when the boundary was first processed.
+      scheduled_at:
+        type: datetime
+        docs: The start this webhook is for (the event's `start_at`).
+
+  CalendarEventEndingEvent:
+    docs: |
+      An event, or one date of a recurring event, has ended. Sent within about a minute after
+      `scheduled_at`. Retries carry the same `event_id` and an identical body.
+    properties:
+      type: literal<"event">
+      event_type: literal<"calendar.event.ending">
+      event_id:
+        type: EventId
+        docs: Stable for this date and boundary. Use it to deduplicate deliveries.
+      inbox_id: inboxes.InboxId
+      event:
+        type: calendar.CalendarEvent
+        docs: The event or date as it stood when the boundary was first processed.
+      scheduled_at:
+        type: datetime
+        docs: The end this webhook is for (the event's `end_at`).

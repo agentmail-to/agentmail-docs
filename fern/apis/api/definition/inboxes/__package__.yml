@@ -10,6 +10,7 @@ navigation:
   - events.yml
   - api-keys.yml
   - accounts.yml
+  - calendar.yml
 
 imports:
   global: ../__package__.yml
