@@ -223,7 +223,7 @@ types:
       title: optional<string>
       description: optional<string>
       location: optional<string>
-      metadata: optional<unknown>
+      metadata: optional<map<string, unknown>>
       status: optional<calendar.CalendarEventStatus>
       all_day: optional<boolean>
       start: optional<calendar.WallTime>
@@ -288,9 +288,11 @@ types:
 
   CalendarEventStartingEvent:
     docs: |
-      An event, or one date of a recurring event, has started. Sent within about a minute after
-      `scheduled_at`. A start that could not be sent within 5 minutes and whose date has already
-      ended is skipped, not sent late. Retries carry the same `event_id` and an identical body.
+      An event, or one date of a recurring event, has started. Usually sent within a minute after
+      `scheduled_at`. If a date is first picked up after it has already ended and more than 5
+      minutes after its start (for example, an event created entirely in the past), neither its
+      `calendar.event.starting` nor its `calendar.event.ending` is sent. Retries carry the same
+      `event_id` and an identical body.
     properties:
       type: literal<"event">
       event_type: literal<"calendar.event.starting">
@@ -307,7 +309,7 @@ types:
 
   CalendarEventEndingEvent:
     docs: |
-      An event, or one date of a recurring event, has ended. Sent within about a minute after
+      An event, or one date of a recurring event, has ended. Usually sent within a minute after
       `scheduled_at`. Retries carry the same `event_id` and an identical body.
     properties:
       type: literal<"event">

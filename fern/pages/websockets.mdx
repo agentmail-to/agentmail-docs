@@ -309,6 +309,19 @@ socket.sendSubscribe({
 |-------|--------|------------|-------------|
 | `domain_verified` | `DomainVerifiedEvent` | `AgentMail.DomainVerifiedEvent` | Domain verification completed |
 
+### Calendar Events
+
+Calendar events require the `calendar_event_read` permission. See [Calendar Webhooks](/calendar-webhooks) for payloads and timing.
+
+| Event | Python | TypeScript | Description |
+|-------|--------|------------|-------------|
+| `calendar_event_created` | `CalendarEventCreatedEvent` | `AgentMail.CalendarEventCreatedEvent` | A calendar event was created, or a date of a recurring event was first edited |
+| `calendar_event_updated` | `CalendarEventUpdatedEvent` | `AgentMail.CalendarEventUpdatedEvent` | A calendar event or date changed |
+| `calendar_event_deleted` | `CalendarEventDeletedEvent` | `AgentMail.CalendarEventDeletedEvent` | A calendar event was deleted or a date cancelled |
+| `calendar_event_responded` | `CalendarEventRespondedEvent` | `AgentMail.CalendarEventRespondedEvent` | An attendee's response changed |
+| `calendar_event_starting` | `CalendarEventStartingEvent` | `AgentMail.CalendarEventStartingEvent` | A calendar event or date started |
+| `calendar_event_ending` | `CalendarEventEndingEvent` | `AgentMail.CalendarEventEndingEvent` | A calendar event or date ended |
+
 ---
 
 ## Message Properties

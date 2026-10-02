@@ -3433,9 +3433,9 @@ paths:
         Requires an
           `Idempotency-Key` header. The event disappears from reads immediately and is removed in the
           background; the response is `202` with a `deletion_id`. Retrying with the same
-          `Idempotency-Key` returns the same `deletion_id`, or `204` once the deletion has finished.
-          No `calendar.event.starting` or `calendar.event.ending` webhook is sent for the event after
-          the delete is accepted.
+          `Idempotency-Key` returns the same `deletion_id` while removal runs; once it has finished,
+          the event no longer exists and a retry returns `404`. No `calendar.event.starting` or
+          `calendar.event.ending` webhook is sent for the event after the delete is accepted.
         - **Dated ID (`<uuid>_<slot>`):** cancels that date (`mode=single`, the
         default) or that date
           and every later date (`mode=future`). Returns `202` with the cancelled date. A `mode=future`
@@ -11885,9 +11885,11 @@ components:
           nullable: true
           description: Location of the event.
         metadata:
+          type: object
+          additionalProperties: true
           nullable: true
           description: >-
-            Your own JSON data for the event. Never sent to attendees. Omitted
+            Your own JSON object for the event. Never sent to attendees. Omitted
             from expanded list items.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
@@ -12090,9 +12092,11 @@ components:
           nullable: true
           description: Location of the event. At most 1,024 characters.
         metadata:
+          type: object
+          additionalProperties: true
           nullable: true
           description: >-
-            Your own JSON data, returned on every read and in webhooks. Never
+            Your own JSON object, returned on every read and in webhooks. Never
             sent to attendees. At most 16,384 bytes serialized.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
@@ -12178,8 +12182,10 @@ components:
           nullable: true
           description: Set to `null` to clear.
         metadata:
+          type: object
+          additionalProperties: true
           nullable: true
-          description: Replaces the metadata. Set to `null` to clear.
+          description: Replaces the metadata (a JSON object). Set to `null` to clear.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
           nullable: true
@@ -13358,6 +13364,8 @@ components:
           type: string
           nullable: true
         metadata:
+          type: object
+          additionalProperties: true
           nullable: true
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
@@ -13514,14 +13522,19 @@ components:
       title: CalendarEventStartingEvent
       type: object
       description: >-
-        An event, or one date of a recurring event, has started. Sent within
-        about a minute after
+        An event, or one date of a recurring event, has started. Usually sent
+        within a minute after
 
-        `scheduled_at`. A start that could not be sent within 5 minutes and
-        whose date has already
+        `scheduled_at`. If a date is first picked up after it has already ended
+        and more than 5
 
-        ended is skipped, not sent late. Retries carry the same `event_id` and
-        an identical body.
+        minutes after its start (for example, an event created entirely in the
+        past), neither its
+
+        `calendar.event.starting` nor its `calendar.event.ending` is sent.
+        Retries carry the same
+
+        `event_id` and an identical body.
       properties:
         type:
           type: string
@@ -13552,8 +13565,8 @@ components:
       title: CalendarEventEndingEvent
       type: object
       description: >-
-        An event, or one date of a recurring event, has ended. Sent within about
-        a minute after
+        An event, or one date of a recurring event, has ended. Usually sent
+        within a minute after
 
         `scheduled_at`. Retries carry the same `event_id` and an identical body.
       properties:

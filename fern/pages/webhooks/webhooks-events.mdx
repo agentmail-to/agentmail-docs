@@ -619,6 +619,37 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 ```
 </CodeGroup>
 
+## Calendar Events
+
+Calendar events report changes to an inbox's [calendar](/calendar) and fire when its events start and end. They require the `calendar_event_read` permission. See [Calendar Webhooks](/calendar-webhooks) for full payloads, timing and delivery guarantees.
+
+| Event | Triggered when |
+| --- | --- |
+| `calendar.event.created` | A calendar event is created through the API or from a received invitation, or a date of a recurring event is edited for the first time. |
+| `calendar.event.updated` | A calendar event, or one or more dates of a recurring event, changes. |
+| `calendar.event.deleted` | A calendar event is deleted, or dates of a recurring event are cancelled. |
+| `calendar.event.responded` | The inbox responds to an invitation, or an attendee replies to an invitation the inbox sent. |
+| `calendar.event.starting` | A calendar event, or one date of a recurring event, starts. |
+| `calendar.event.ending` | A calendar event, or one date of a recurring event, ends. |
+
+```json
+{
+  "type": "event",
+  "event_type": "calendar.event.starting",
+  "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36_single.start",
+  "inbox_id": "scheduler@agentmail.to",
+  "event": {
+    "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    "kind": "single",
+    "title": "Intro call with Acme",
+    "start_at": "2026-10-15T18:00:00Z",
+    "end_at": "2026-10-15T18:30:00Z"
+    // ... the full calendar event
+  },
+  "scheduled_at": "2026-10-15T18:00:00Z"
+}
+```
+
 ## Event Filtering
 
 When creating a webhook, you can specify which events to subscribe to. This allows you to:

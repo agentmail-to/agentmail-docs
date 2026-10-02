@@ -744,9 +744,9 @@ service:
         - **One-off or series UUID:** deletes the event and every date of it. Requires an
           `Idempotency-Key` header. The event disappears from reads immediately and is removed in the
           background; the response is `202` with a `deletion_id`. Retrying with the same
-          `Idempotency-Key` returns the same `deletion_id`, or `204` once the deletion has finished.
-          No `calendar.event.starting` or `calendar.event.ending` webhook is sent for the event after
-          the delete is accepted.
+          `Idempotency-Key` returns the same `deletion_id` while removal runs; once it has finished,
+          the event no longer exists and a retry returns `404`. No `calendar.event.starting` or
+          `calendar.event.ending` webhook is sent for the event after the delete is accepted.
         - **Dated ID (`<uuid>_<slot>`):** cancels that date (`mode=single`, the default) or that date
           and every later date (`mode=future`). Returns `202` with the cancelled date. A `mode=future`
           delete from the first date deletes the whole series and returns a `deletion_id` instead.

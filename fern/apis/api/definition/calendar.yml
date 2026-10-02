@@ -293,8 +293,8 @@ types:
         type: optional<string>
         docs: Location of the event.
       metadata:
-        type: optional<unknown>
-        docs: Your own JSON data for the event. Never sent to attendees. Omitted from expanded list items.
+        type: optional<map<string, unknown>>
+        docs: Your own JSON object for the event. Never sent to attendees. Omitted from expanded list items.
       status: CalendarEventStatus
       all_day:
         type: boolean
@@ -394,8 +394,8 @@ types:
         type: optional<string>
         docs: Location of the event. At most 1,024 characters.
       metadata:
-        type: optional<unknown>
-        docs: Your own JSON data, returned on every read and in webhooks. Never sent to attendees. At most 16,384 bytes serialized.
+        type: optional<map<string, unknown>>
+        docs: Your own JSON object, returned on every read and in webhooks. Never sent to attendees. At most 16,384 bytes serialized.
       status:
         type: optional<CalendarEventStatus>
         docs: Defaults to `confirmed`.
@@ -445,8 +445,8 @@ types:
         type: optional<nullable<string>>
         docs: Set to `null` to clear.
       metadata:
-        type: optional<nullable<unknown>>
-        docs: Replaces the metadata. Set to `null` to clear.
+        type: optional<nullable<map<string, unknown>>>
+        docs: Replaces the metadata (a JSON object). Set to `null` to clear.
       status: optional<CalendarEventStatus>
       all_day:
         type: optional<boolean>
