@@ -121,7 +121,7 @@ The message was not sent. The message names the reason, and the `fix` states whi
 
 The inbox is paused, so it cannot send. Resume it with `PATCH /v0/inboxes/{inbox_id}` and `{"status": "active"}` using a key with the `inbox_update` permission, then send again. Mail that arrived while the inbox was paused was dropped and is not delivered on resume. See [Pausing an inbox](/inboxes#pausing-an-inbox).
 
-If the inbox has also been suspended for its bounce or complaint rate, the send reports that suspension instead. Resuming the inbox does not lift a suspension: email support@agentmail.to.
+If the inbox has also been suspended for its bounce or complaint rate, the send reports that suspension instead. A suspension of the inbox's pod is reported only after the inbox is resumed. Resuming the inbox does not lift either suspension: email support@agentmail.to.
 
 ## Request too large (413)
 

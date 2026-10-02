@@ -63,8 +63,8 @@ types:
       - paused
     docs: |
       Whether the inbox sends and receives mail. `paused` stops both: sends
-      return `403` with code `inbox_paused`, and incoming mail is dropped
-      without a bounce and cannot be recovered. Mail already in the inbox,
+      return `403` with code `inbox_paused`, and incoming mail is not
+      delivered and not bounced, then or on resume. Mail already in the inbox,
       its drafts, and its API keys are kept. Set `active` to resume.
 
   Inbox:
@@ -123,7 +123,7 @@ types:
       client_id: optional<ClientId>
       status:
         type: optional<InboxStatus>
-        docs: Create the inbox paused. Defaults to `active`.
+        docs: Set `paused` to create the inbox paused.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata to attach to the inbox.
@@ -266,6 +266,7 @@ service:
       errors:
         - global.NotFoundError
         - global.ValidationError
+        - global.ConflictError
 
     delete:
       method: DELETE

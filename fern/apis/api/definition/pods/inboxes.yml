@@ -101,6 +101,7 @@ service:
       response: inboxes.Inbox
       errors:
         - global.NotFoundError
+        - global.ConflictError
 
     delete:
       method: DELETE

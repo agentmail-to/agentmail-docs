@@ -240,57 +240,37 @@ await client.inboxes.update("support-agent@agentmail.to", {
 Pause an inbox to stop it sending and receiving mail without deleting it. The address stays yours, and you can resume the inbox at any time. Pausing and resuming need the `inbox_update` permission.
 
 <Warning>
-  Mail sent to a paused inbox is dropped. It is not stored or bounced, the
-  sender is not told, and it is not delivered when you resume the inbox.
+  Mail sent to a paused inbox is not delivered. It is not bounced, the sender
+  is not told, and it is not delivered when you resume the inbox.
 </Warning>
 
 While an inbox is paused:
 
-- **Sending is blocked.** Send, reply, forward, and sending a draft return `403` with code [`inbox_paused`](/errors#inbox_paused).
+- **Sending is blocked.** Send, reply, forward, and sending a draft return `403` with code [`inbox_paused`](/errors#inbox_paused). A retry of a send that already completed before the pause, with the same `Idempotency-Key`, still returns the original result; it sends nothing.
 - **Scheduled drafts fail.** A draft scheduled to send while the inbox is paused is not sent and its `send_status` becomes `failed`. Resuming the inbox does not retry it.
-- **Incoming mail is dropped**, and no `message.received` event is sent for it. A message also addressed to other inboxes is still delivered to them.
+- **Incoming mail is not delivered**, and no `message.received` event is sent for it. A message also addressed to other inboxes is still delivered to them.
 - **AgentID sign-ins are refused** for the inbox.
 - **Everything already in the inbox is kept.** Its threads, messages, drafts, and API keys stay in place.
 
-A paused inbox has `status: "paused"`. An active inbox has no `status` field.
+A paused inbox has `status: "paused"`. Treat any other value, or no `status` field, as an inbox that sends and receives normally.
 
-<CodeBlocks>
+The current SDK releases do not accept `status` yet, so call the API directly:
 
-```python title="Python"
+```bash
 # pause the inbox
-client.inboxes.update(
-    inbox_id="support-agent@agentmail.to",
-    status="paused",
-)
-
-# check whether an inbox is paused
-inbox = client.inboxes.get(inbox_id="support-agent@agentmail.to")
-print(inbox.status == "paused")
+curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "paused"}'
 
 # resume it
-client.inboxes.update(
-    inbox_id="support-agent@agentmail.to",
-    status="active",
-)
+curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "active"}'
 ```
 
-```typescript title="TypeScript"
-// pause the inbox
-await client.inboxes.update("support-agent@agentmail.to", {
-  status: "paused",
-});
-
-// check whether an inbox is paused
-const inbox = await client.inboxes.get("support-agent@agentmail.to");
-console.log(inbox.status === "paused");
-
-// resume it
-await client.inboxes.update("support-agent@agentmail.to", {
-  status: "active",
-});
-```
-
-</CodeBlocks>
+To check whether an inbox is paused, read `status` from `GET /v0/inboxes/{inbox_id}`. If two requests change the status at once, one returns `409` with code [`race_condition`](/errors#race_condition): read the inbox again before retrying.
 
 You can also create an inbox already paused by passing `status: "paused"` to create.
 
@@ -334,10 +314,11 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.create(username?, domain?, display_name?, client_id?, status?, metadata?) — client_id for idempotent retries; metadata is custom key-value data
+  - inboxes.create(username?, domain?, display_name?, client_id?, metadata?) — client_id for idempotent retries; metadata is custom key-value data
   - inboxes.get(inbox_id)
   - inboxes.list(limit?, page_token?)
-  - inboxes.update(inbox_id, display_name?, status?, metadata?) — at least one field required; metadata is merged, not replaced; status "paused" stops sending and drops incoming mail, "active" resumes
+  - inboxes.update(inbox_id, display_name?, metadata?) — at least one field required; metadata is merged, not replaced
+  - pause/resume: not in the SDK yet; PATCH /v0/inboxes/{inbox_id} with {"status": "paused"} stops sending and receiving, {"status": "active"} resumes
   - inboxes.delete(inbox_id)
   - inboxes.api_keys.create(inbox_id, name) — inbox-scoped key
   - inboxes.api_keys.list(inbox_id)
@@ -368,10 +349,11 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
    * API reference:
-   * - inboxes.create({ username?, domain?, displayName?, clientId?, status?, metadata? }) — metadata is custom key-value data
+   * - inboxes.create({ username?, domain?, displayName?, clientId?, metadata? }) — metadata is custom key-value data
    * - inboxes.get(inboxId)
    * - inboxes.list({ limit?, pageToken? })
-   * - inboxes.update(inboxId, { displayName?, status?, metadata? }) — at least one field required; status "paused" stops sending and drops incoming mail, "active" resumes
+   * - inboxes.update(inboxId, { displayName?, metadata? }) — at least one field required
+   * - pause/resume: not in the SDK yet; PATCH /v0/inboxes/{inbox_id} with {"status": "paused"} stops sending and receiving, {"status": "active"} resumes
    * - inboxes.delete(inboxId)
    * - inboxes.apiKeys.create(inboxId, { name }) — inbox-scoped key
    * - inboxes.apiKeys.list(inboxId)
