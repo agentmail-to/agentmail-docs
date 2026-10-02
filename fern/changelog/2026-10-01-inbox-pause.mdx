@@ -1,0 +1,37 @@
+---
+tags: ["inboxes-api", "enhancement", "docs"]
+---
+
+## Summary
+
+The API reference now documents pausing an inbox. The API already supported it: set an inbox's `status` to `paused` to stop it sending and receiving mail without deleting it, and set it back to `active` to resume.
+
+### What's new?
+
+- `status` on `PATCH /v0/inboxes/{inbox_id}` and `POST /v0/inboxes`, and on the pod routes for the same operations. Values are `paused` and `active`.
+- Inbox responses include `status: "paused"` while an inbox is paused. Treat any other value, or no `status` field, as an inbox that sends and receives normally.
+- Sends from a paused inbox return `403` with code `inbox_paused`. Scheduled drafts that come due while it is paused fail and are not retried on resume.
+- Mail sent to a paused inbox is neither delivered nor bounced, then or when the inbox is resumed.
+- The current Python and TypeScript SDK releases do not accept `status` yet; call the API directly until they do.
+
+### Use cases
+
+- Build agents that stop an inbox from acting on its own while a human reviews it.
+- Take an inbox out of service without giving up its address, then bring it back later.
+
+```bash
+# pause, then resume
+curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "paused"}'
+
+curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "active"}'
+```
+
+<Note>
+  See [Pausing an inbox](https://docs.agentmail.to/inboxes#pausing-an-inbox) for everything that stops and everything that is kept.
+</Note>
