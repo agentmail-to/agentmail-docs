@@ -74,7 +74,7 @@ The request was well-formed but cannot be processed as-is (for example, a send w
 
 ### query_range_too_wide
 
-A metrics query requested too wide a time range. Narrow the requested time range, or increase the period/bucket size, then retry.
+A metrics query requested too wide a time range, or a calendar list asked for an `after` to `before` window wider than 366 days (or one holding too many dates of a recurring event). Narrow the requested time range, or increase the metrics period/bucket size, then retry.
 
 ## Resource state (403 / 409)
 
@@ -110,6 +110,62 @@ The resource is currently being deleted and cannot be used. Wait for deletion to
 
 The resource cannot be deleted yet, usually because dependent resources still exist. Resolve the blocker described in the message, then retry.
 
+## Calendar (409 / 410 / 412 / 428)
+
+These codes come from the [calendar API](/calendar). See [Concurrency, Limits & Errors](/calendar-reference) for how ETags and retries work.
+
+### precondition_required
+
+The request changes a calendar or event but has no `If-Match` header (`428`). Read the resource, copy its `ETag` response header into `If-Match`, and retry.
+
+### precondition_failed
+
+The resource changed since the version in your `If-Match` was read (`412`). The body includes `current_revision`. Read the resource again, reapply your change and retry with its new `ETag`.
+
+### idempotency_conflict
+
+The `client_id` on a create was already used for a different event request (`409`). Reuse a `client_id` only to retry the identical request, or choose a new one.
+
+### event_starting
+
+The event or date is starting at this moment, so its schedule cannot change for a few seconds (`409`). Retry shortly. Once it has started, its end and status can still change.
+
+### event_already_started
+
+The event or date has already started, so its start can no longer change, or it has ended, so only its title, description, location, metadata and attendees can change (`409`). Keep the start and change only the end or status, or apply a wider change from a later date.
+
+### event_in_progress
+
+The change conflicts with edits already made (`409`): a recurring event with edited dates cannot become a one-off event, or a date first edited with one `mode` was changed with the other. Create a replacement event, or repeat the change with the date's original `mode`.
+
+### future_edit_start_move_not_supported
+
+A `mode=future` change tried to move `start` (`409`). Use `mode=single` to move one date, or update the series to move every date.
+
+### recurrence_density_limit
+
+The recurrence produces more than 730 dates in some 90-day window (`409`). Increase `INTERVAL`, add `COUNT` or `UNTIL`, remove extra dates, or use a lower `FREQ`.
+
+### materialization_failed
+
+The recurrence's first date could not be found within the evaluation bound (`409`). Add `COUNT` or `UNTIL`, or simplify the rule.
+
+### page_token_stale
+
+The recurring event changed while you were paging through its dates (`409`). Restart the list without `page_token`.
+
+### calendar_response_invalid
+
+The calendar cannot do this for the event (`409`): only events the inbox organizes can send invitations or cancellations, and only invitations the inbox received (where it is an attendee) can be responded to.
+
+### calendar_inbox_required
+
+Sending invitations or cancellations needs the inbox the calendar belongs to (`409`). Every calendar is linked to its inbox, so this is not expected in normal use. If you see it, email [support@agentmail.to](mailto:support@agentmail.to); retrying with `send_invites` set to `false` applies the change without emailing attendees.
+
+### event_expired
+
+The date ended more than 30 days ago and its record is no longer kept, or it was removed from its series (`410`). It can no longer be read or changed.
+
 ## Sending (403)
 
 ### message_rejected
@@ -140,6 +196,10 @@ This response is an exception to the standard `code`, `fix`, and `docs` error en
 Requests with inline `content` attachments are limited to 6 MB total, including the message body, metadata, and attachment content.
 
 Reduce the attachment size or provide larger attachments through the `url` field. Keep URL-backed attachments around 30 MB total per message.
+
+### payload_too_large
+
+A calendar request body is larger than its limit: 128 KB for events, 8 KB for calendar settings. Unlike the response above, this one uses the standard error envelope. Shorten the description or metadata and retry.
 
 ## Transient errors (429 / 500 / 503)
 

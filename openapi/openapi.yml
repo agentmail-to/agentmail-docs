@@ -2402,6 +2402,1618 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/inboxes/{inbox_id}/calendar:
+    get:
+      description: >-
+        Gets the inbox's calendar. Every inbox has one calendar, so this works
+        before any event is
+
+        created. The `ETag` response header (`"rv-<n>"`) is the value to send in
+        `If-Match` when
+
+        updating it.
+
+
+        Requires the `calendar_read` permission. Calendar is in private beta:
+        organizations without
+
+        access receive a `403`.
+      operationId: inboxes_calendar_get
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Example1:
+              value: scheduler@agentmail.to
+        - name: consistency
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CalendarConsistency'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+              examples:
+                Example1:
+                  value:
+                    inbox_id: scheduler@agentmail.to
+                    timezone: America/New_York
+                    event_count: 2
+                    created_at: '2026-10-01T16:20:00Z'
+                    updated_at: '2026-10-01T16:25:00Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Calendar
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        Updates the calendar's default time zone. Existing events keep their own
+        `timezone`; only
+
+        events created later without a `timezone` use the new default.
+
+
+        Requires the `calendar_update` permission and an `If-Match` header with
+        the calendar's
+
+        current `ETag`. A stale `If-Match` returns `412`; a missing one returns
+        `428`.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_update
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Example1:
+              value: scheduler@agentmail.to
+        - name: If-Match
+          in: header
+          description: The calendar's current `ETag`, for example `"rv-0"`.
+          required: true
+          schema:
+            type: string
+          example: '"rv-0"'
+          examples:
+            Example1:
+              value: '"rv-0"'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+              examples:
+                Example1:
+                  value:
+                    inbox_id: scheduler@agentmail.to
+                    timezone: America/New_York
+                    event_count: 2
+                    created_at: '2026-10-01T16:20:00Z'
+                    updated_at: '2026-10-01T16:25:00Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreconditionFailedErrorResponse'
+        '413':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update Calendar
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              allOf:
+                - $ref: '#/components/schemas/UpdateCalendarRequest'
+            examples:
+              Example1:
+                value:
+                  timezone: America/New_York
+  /v0/inboxes/{inbox_id}/calendar/events:
+    get:
+      description: >-
+        Lists the calendar's events in one of two views.
+
+
+        - **Stored events** (default): one item per one-off or recurring event,
+        plus one item for
+          each edited date of a recurring event (as that dated event, with `is_exception: true`).
+          Ordered by most recently updated. Use this view to sync or manage what you created.
+        - **Agenda** (`expand=true`): every date in a time window, with
+        recurring events expanded
+          into their individual dates and cancelled dates left out. Ordered by start time. Use this
+          view to answer "what is on the calendar". Agenda items omit `description`, `metadata` and
+          `attendees`; get an event by ID for the full object. The window defaults to now through
+          90 days from now and can be at most 366 days. Dates of recurring events appear only up to
+          about 90 days from now; use List Event Instances for a recurring event's later dates.
+
+        `after`, `before` and `include_overlapping` require `expand=true`.
+
+
+        While a recurring event's dates are being regenerated after a schedule
+        change, which takes a
+
+        few seconds, the agenda can briefly leave out some of that event's
+        dates.
+
+
+        Requires the `calendar_event_read` permission.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_listEvents
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Agenda:
+              value: scheduler@agentmail.to
+            Stored events:
+              value: scheduler@agentmail.to
+        - name: expand
+          in: query
+          description: >-
+            When `true`, returns the agenda view described above. Defaults to
+            `false`.
+          required: false
+          schema:
+            type: boolean
+            nullable: true
+          example: true
+          examples:
+            Agenda:
+              value: true
+        - name: after
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WindowAfter'
+            nullable: true
+          example: '2026-10-07T00:00:00Z'
+          examples:
+            Agenda:
+              value: '2026-10-07T00:00:00Z'
+        - name: before
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WindowBefore'
+            nullable: true
+          example: '2026-10-16T00:00:00Z'
+          examples:
+            Agenda:
+              value: '2026-10-16T00:00:00Z'
+        - name: include_overlapping
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/IncludeOverlapping'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CalendarLimit'
+            nullable: true
+          example: 3
+          examples:
+            Agenda:
+              value: 3
+            Stored events:
+              value: 50
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCalendarEventsResponse'
+              examples:
+                Agenda:
+                  value:
+                    count: 3
+                    limit: 3
+                    events:
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-07T09:00:00'
+                        original_start_at: '2026-10-07T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-07T09:00:00'
+                        end: '2026-10-07T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-07T13:00:00Z'
+                        end_at: '2026-10-07T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-09T09:00:00'
+                        original_start_at: '2026-10-09T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-09T09:00:00'
+                        end: '2026-10-09T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-09T13:00:00Z'
+                        end_at: '2026-10-09T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-12T09:00:00'
+                        original_start_at: '2026-10-12T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-12T09:00:00'
+                        end: '2026-10-12T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-12T13:00:00Z'
+                        end_at: '2026-10-12T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                    next_page_token: eyJzIjoiMjAyNi0xMC0xMlQxMzowMDowMFoifQ
+                Stored events:
+                  value:
+                    count: 2
+                    limit: 50
+                    events:
+                      - event_id: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+                        kind: single
+                        title: Intro call with Acme
+                        description: Walk Jane through the onboarding plan.
+                        location: https://meet.example.com/acme-intro
+                        metadata:
+                          crm_deal_id: D-1042
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-15T14:00:00'
+                        end: '2026-10-15T14:30:00'
+                        timezone: America/New_York
+                        duration_mode: exact
+                        duration_value: 1800000
+                        start_at: '2026-10-15T18:00:00Z'
+                        end_at: '2026-10-15T18:30:00Z'
+                        attendees:
+                          - email: jane@acme.com
+                            name: Jane Doe
+                            status: needs_action
+                            role: required
+                        attendee_count: 1
+                        uid: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        resource_revision: 0
+                        created_at: '2026-10-01T16:30:00Z'
+                        updated_at: '2026-10-01T16:30:00Z'
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        kind: series
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-05T09:00:00'
+                        end: '2026-10-05T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-05T13:00:00Z'
+                        end_at: '2026-10-05T13:15:00Z'
+                        recurrence:
+                          rule: FREQ=WEEKLY;BYDAY=MO,WE,FR
+                        attendees: []
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        resource_revision: 0
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List Events
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: >-
+        Creates a one-off or recurring event on the inbox's calendar. Times are
+        wall-clock values in
+
+        `timezone` (the calendar's default time zone if omitted); the response
+        also gives each
+
+        boundary as a UTC instant in `start_at` and `end_at`.
+
+
+        `calendar.event.created` is sent once the event is stored, then
+        `calendar.event.starting`
+
+        and `calendar.event.ending` as each date begins and ends. With
+        `send_invites: true` the
+
+        inbox also emails an invitation to every attendee.
+
+
+        Pass `client_id` to make retries safe: repeating the request with the
+        same `client_id` and
+
+        body returns the original event with status `200` instead of `201`.
+
+
+        The `ETag` response header (`"rv-<n>"`) is the value to send in
+        `If-Match` when updating or
+
+        deleting the event. Requires the `calendar_event_create` permission.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_createEvent
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            One-off event with an invitation:
+              value: scheduler@agentmail.to
+            Recurring event:
+              value: scheduler@agentmail.to
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEventMutationResponse'
+              examples:
+                One-off event with an invitation:
+                  value:
+                    event:
+                      event_id: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+                      kind: single
+                      title: Intro call with Acme
+                      description: Walk Jane through the onboarding plan.
+                      location: https://meet.example.com/acme-intro
+                      metadata:
+                        crm_deal_id: D-1042
+                      status: confirmed
+                      all_day: false
+                      start: '2026-10-15T14:00:00'
+                      end: '2026-10-15T14:30:00'
+                      timezone: America/New_York
+                      duration_mode: exact
+                      duration_value: 1800000
+                      start_at: '2026-10-15T18:00:00Z'
+                      end_at: '2026-10-15T18:30:00Z'
+                      attendees:
+                        - email: jane@acme.com
+                          name: Jane Doe
+                          status: needs_action
+                          role: required
+                      attendee_count: 1
+                      uid: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to
+                      sequence: 0
+                      source: api
+                      organizer_email: scheduler@agentmail.to
+                      resource_revision: 0
+                      created_at: '2026-10-01T16:30:00Z'
+                      updated_at: '2026-10-01T16:30:00Z'
+                    operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
+                Recurring event:
+                  value:
+                    event:
+                      event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                      kind: series
+                      title: Team standup
+                      location: https://meet.example.com/standup
+                      status: confirmed
+                      all_day: false
+                      start: '2026-10-05T09:00:00'
+                      end: '2026-10-05T09:15:00'
+                      timezone: America/New_York
+                      duration_mode: nominal
+                      duration_value: 900000
+                      start_at: '2026-10-05T13:00:00Z'
+                      end_at: '2026-10-05T13:15:00Z'
+                      recurrence:
+                        rule: FREQ=WEEKLY;BYDAY=MO,WE,FR
+                      attendees: []
+                      attendee_count: 0
+                      uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                      sequence: 0
+                      source: api
+                      organizer_email: scheduler@agentmail.to
+                      resource_revision: 0
+                      created_at: '2026-10-01T16:25:00Z'
+                      updated_at: '2026-10-01T16:25:00Z'
+                    operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Event
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCalendarEventRequest'
+            examples:
+              One-off event with an invitation:
+                value:
+                  client_id: intro-acme-2026-10-15
+                  title: Intro call with Acme
+                  description: Walk Jane through the onboarding plan.
+                  location: https://meet.example.com/acme-intro
+                  metadata:
+                    crm_deal_id: D-1042
+                  start: '2026-10-15T14:00:00'
+                  end: '2026-10-15T14:30:00'
+                  timezone: America/New_York
+                  attendees:
+                    - email: jane@acme.com
+                      name: Jane Doe
+                  send_invites: true
+              Recurring event:
+                value:
+                  title: Team standup
+                  location: https://meet.example.com/standup
+                  start: '2026-10-05T09:00:00'
+                  end: '2026-10-05T09:15:00'
+                  timezone: America/New_York
+                  recurrence:
+                    rule: FREQ=WEEKLY;BYDAY=MO,WE,FR
+  /v0/inboxes/{inbox_id}/calendar/events/{event_id}:
+    get:
+      description: >-
+        Gets an event by its UUID, or one date of a recurring event by its dated
+        ID
+
+        (`<uuid>_<slot>`). A dated ID returns the date as it currently stands,
+        including any edit
+
+        to it, with `kind: instance`.
+
+
+        The `ETag` response header is the value to send in `If-Match` when
+        updating, deleting or
+
+        responding to this event or date. For a dated ID the `ETag` is opaque
+        (`"occ-..."`); always
+
+        copy it from this header.
+
+
+        `consistency` applies to UUIDs only; dated IDs are always read from the
+        primary region.
+
+        Requires the `calendar_event_read` permission.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_getEvent
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            One-off event:
+              value: scheduler@agentmail.to
+            One date of a series:
+              value: scheduler@agentmail.to
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarEventId'
+          example: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+          examples:
+            One-off event:
+              value: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+            One date of a series:
+              value: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+        - name: consistency
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CalendarConsistency'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEvent'
+              examples:
+                One-off event:
+                  value:
+                    event_id: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+                    kind: single
+                    title: Intro call with Acme
+                    description: Walk Jane through the onboarding plan.
+                    location: https://meet.example.com/acme-intro
+                    metadata:
+                      crm_deal_id: D-1042
+                    status: confirmed
+                    all_day: false
+                    start: '2026-10-15T14:00:00'
+                    end: '2026-10-15T14:30:00'
+                    timezone: America/New_York
+                    duration_mode: exact
+                    duration_value: 1800000
+                    start_at: '2026-10-15T18:00:00Z'
+                    end_at: '2026-10-15T18:30:00Z'
+                    attendees:
+                      - email: jane@acme.com
+                        name: Jane Doe
+                        status: needs_action
+                        role: required
+                    attendee_count: 1
+                    uid: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to
+                    sequence: 0
+                    source: api
+                    organizer_email: scheduler@agentmail.to
+                    resource_revision: 0
+                    created_at: '2026-10-01T16:30:00Z'
+                    updated_at: '2026-10-01T16:30:00Z'
+                One date of a series:
+                  value:
+                    event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+                    kind: instance
+                    series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                    original_start: '2026-10-07T09:00:00'
+                    original_start_at: '2026-10-07T13:00:00Z'
+                    is_exception: false
+                    title: Team standup
+                    location: https://meet.example.com/standup
+                    status: confirmed
+                    all_day: false
+                    start: '2026-10-07T09:00:00'
+                    end: '2026-10-07T09:15:00'
+                    timezone: America/New_York
+                    duration_mode: nominal
+                    duration_value: 900000
+                    start_at: '2026-10-07T13:00:00Z'
+                    end_at: '2026-10-07T13:15:00Z'
+                    attendee_count: 0
+                    uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                    sequence: 0
+                    source: api
+                    organizer_email: scheduler@agentmail.to
+                    created_at: '2026-10-01T16:25:00Z'
+                    updated_at: '2026-10-01T16:25:00Z'
+                    attendees: []
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Event
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    patch:
+      description: >-
+        Updates an event. Send only the fields to change, with the event's
+        current `ETag` in
+
+        `If-Match`.
+
+
+        - **One-off or series UUID:** changes the event itself. For a series,
+        the change applies to
+          every date that has not been edited individually.
+        - **Dated ID (`<uuid>_<slot>`):** changes one date (`mode=single`, the
+        default) or that date
+          and every later date (`mode=future`). `all_day`, `timezone` and `recurrence` cannot be sent
+          for a dated ID.
+
+        Once a date has started, its start can no longer change, but its end and
+        status can (409
+
+        `event_already_started`). Once it has ended, only `title`,
+        `description`, `location`,
+
+        `metadata` and `attendees` can change. During the few seconds a date is
+        starting, schedule
+
+        changes return 409 `event_starting`; retry shortly.
+
+
+        Sends `calendar.event.updated`. With `send_invites: true` the organizer
+        inbox also emails the
+
+        updated invitation to every attendee. Requires the
+        `calendar_event_update` permission.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_updateEvent
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Reschedule a one-off event:
+              value: scheduler@agentmail.to
+            Move one date of a series:
+              value: scheduler@agentmail.to
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarEventId'
+          example: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+          examples:
+            Reschedule a one-off event:
+              value: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+            Move one date of a series:
+              value: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+        - name: mode
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/InstanceMutationMode'
+            nullable: true
+          example: single
+          examples:
+            Move one date of a series:
+              value: single
+        - name: If-Match
+          in: header
+          description: >-
+            The event's or date's current `ETag`, from the latest read or write
+            response.
+          required: true
+          schema:
+            type: string
+          example: '"rv-0"'
+          examples:
+            Reschedule a one-off event:
+              value: '"rv-0"'
+            Move one date of a series:
+              value: '"occ-0-0-0-none-none"'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEventMutationResponse'
+              examples:
+                Reschedule a one-off event:
+                  value:
+                    event:
+                      event_id: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+                      kind: single
+                      title: Intro call with Acme
+                      description: Walk Jane through the onboarding plan.
+                      location: https://meet.example.com/acme-intro
+                      metadata:
+                        crm_deal_id: D-1042
+                      status: confirmed
+                      all_day: false
+                      start: '2026-10-15T15:00:00'
+                      end: '2026-10-15T15:30:00'
+                      timezone: America/New_York
+                      duration_mode: exact
+                      duration_value: 1800000
+                      start_at: '2026-10-15T19:00:00Z'
+                      end_at: '2026-10-15T19:30:00Z'
+                      attendees:
+                        - email: jane@acme.com
+                          name: Jane Doe
+                          status: needs_action
+                          role: required
+                      attendee_count: 1
+                      uid: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to
+                      sequence: 1
+                      source: api
+                      organizer_email: scheduler@agentmail.to
+                      resource_revision: 1
+                      created_at: '2026-10-01T16:30:00Z'
+                      updated_at: '2026-10-02T09:12:00Z'
+                    operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
+                Move one date of a series:
+                  value:
+                    event:
+                      event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+                      kind: instance
+                      series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                      original_start: '2026-10-07T09:00:00'
+                      original_start_at: '2026-10-07T13:00:00Z'
+                      is_exception: true
+                      title: Team standup
+                      location: https://meet.example.com/standup
+                      status: confirmed
+                      all_day: false
+                      start: '2026-10-07T10:00:00'
+                      end: '2026-10-07T10:15:00'
+                      timezone: America/New_York
+                      duration_mode: nominal
+                      duration_value: 900000
+                      start_at: '2026-10-07T14:00:00Z'
+                      end_at: '2026-10-07T14:15:00Z'
+                      attendee_count: 0
+                      uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                      sequence: 0
+                      source: api
+                      organizer_email: scheduler@agentmail.to
+                      created_at: '2026-10-02T09:20:00Z'
+                      updated_at: '2026-10-02T09:20:00Z'
+                      attendees: []
+                    operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreconditionFailedErrorResponse'
+        '413':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update Event
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              allOf:
+                - $ref: '#/components/schemas/UpdateCalendarEventRequest'
+            examples:
+              Reschedule a one-off event:
+                value:
+                  start: '2026-10-15T15:00:00'
+                  end: '2026-10-15T15:30:00'
+                  send_invites: true
+              Move one date of a series:
+                value:
+                  start: '2026-10-07T10:00:00'
+                  end: '2026-10-07T10:15:00'
+    delete:
+      description: >-
+        Deletes an event, or cancels dates of a recurring event.
+
+
+        - **One-off or series UUID:** deletes the event and every date of it.
+        Requires an
+          `Idempotency-Key` header. The event disappears from reads immediately and is removed in the
+          background; the response is `202` with a `deletion_id`. Retrying with the same
+          `Idempotency-Key` returns the same `deletion_id` while removal runs; once it has finished,
+          the event no longer exists and a retry returns `404`. No `calendar.event.starting` or
+          `calendar.event.ending` webhook is sent for the event after the delete is accepted.
+        - **Dated ID (`<uuid>_<slot>`):** cancels that date (`mode=single`, the
+        default) or that date
+          and every later date (`mode=future`). Returns `202` with the cancelled date. A `mode=future`
+          delete from the first date deletes the whole series and returns a `deletion_id` instead.
+          A date that is already running still gets its `calendar.event.ending`.
+
+        Deleting a one-off or series event sends `calendar.event.deleted`.
+        Cancelling dates sends
+
+        `calendar.event.updated` with the cancelled date. With
+        `send_invites=true` the organizer
+
+        inbox also emails a cancellation to every attendee. Requires the
+        `calendar_event_delete` permission and the
+
+        current `ETag` in `If-Match`.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_deleteEvent
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Delete an event:
+              value: scheduler@agentmail.to
+            Cancel one date of a series:
+              value: scheduler@agentmail.to
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarEventId'
+          example: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+          examples:
+            Delete an event:
+              value: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36
+            Cancel one date of a series:
+              value: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+        - name: mode
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/InstanceMutationMode'
+            nullable: true
+          example: single
+          examples:
+            Cancel one date of a series:
+              value: single
+        - name: send_invites
+          in: query
+          description: >-
+            When `true`, emails a cancellation (iCalendar `CANCEL`) to every
+            attendee. Only the organizer can send. Defaults to `false`.
+          required: false
+          schema:
+            type: boolean
+            nullable: true
+          example: true
+          examples:
+            Delete an event:
+              value: true
+        - name: If-Match
+          in: header
+          description: The event's or date's current `ETag`.
+          required: true
+          schema:
+            type: string
+          example: '"rv-1"'
+          examples:
+            Delete an event:
+              value: '"rv-1"'
+            Cancel one date of a series:
+              value: '"occ-0-0-0-none-none"'
+        - name: Idempotency-Key
+          in: header
+          description: >-
+            1 to 128 visible ASCII characters. Required when deleting a one-off
+            or series UUID.
+
+            Retrying a delete with the same key returns the original result.
+          required: false
+          schema:
+            type: string
+            nullable: true
+          example: delete-intro-acme
+          examples:
+            Delete an event:
+              value: delete-intro-acme
+      responses:
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteCalendarEventResponse'
+              examples:
+                Delete an event:
+                  value:
+                    deletion_id: 5e2b7d9f-4a1c-4e8b-b3d6-8c0a2f4e6b19
+                Cancel one date of a series:
+                  value:
+                    event:
+                      event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+                      kind: instance
+                      series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                      original_start: '2026-10-07T09:00:00'
+                      original_start_at: '2026-10-07T13:00:00Z'
+                      is_exception: true
+                      title: Team standup
+                      location: https://meet.example.com/standup
+                      status: cancelled
+                      all_day: false
+                      start: '2026-10-07T09:00:00'
+                      end: '2026-10-07T09:15:00'
+                      timezone: America/New_York
+                      duration_mode: nominal
+                      duration_value: 900000
+                      start_at: '2026-10-07T13:00:00Z'
+                      end_at: '2026-10-07T13:15:00Z'
+                      attendee_count: 0
+                      uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                      sequence: 0
+                      source: api
+                      organizer_email: scheduler@agentmail.to
+                      created_at: '2026-10-02T09:30:00Z'
+                      updated_at: '2026-10-02T09:30:00Z'
+                    operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreconditionFailedErrorResponse'
+        '428':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Event
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/inboxes/{inbox_id}/calendar/events/{event_id}/instances:
+    get:
+      description: >-
+        Lists the dates of one recurring event in a time window, in start order,
+        with each date's
+
+        edits applied. Dates are computed from the rule, so this works for any
+        window up to 366
+
+        days, including dates far in the future. Cancelled dates are left out.
+
+
+        The window defaults to now through 90 days from now. Items omit
+        `description`, `metadata`
+
+        and `attendees`; get a date by its ID for the full object. Requires the
+
+        `calendar_event_read` permission.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_listEventInstances
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Example1:
+              value: scheduler@agentmail.to
+        - name: event_id
+          in: path
+          description: UUID of the recurring event.
+          required: true
+          schema:
+            type: string
+          example: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+          examples:
+            Example1:
+              value: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+        - name: after
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WindowAfter'
+            nullable: true
+          example: '2026-10-05T00:00:00Z'
+          examples:
+            Example1:
+              value: '2026-10-05T00:00:00Z'
+        - name: before
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WindowBefore'
+            nullable: true
+          example: '2026-10-10T00:00:00Z'
+          examples:
+            Example1:
+              value: '2026-10-10T00:00:00Z'
+        - name: include_overlapping
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/IncludeOverlapping'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CalendarLimit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCalendarEventsResponse'
+              examples:
+                Example1:
+                  value:
+                    count: 3
+                    limit: 50
+                    events:
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261005T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-05T09:00:00'
+                        original_start_at: '2026-10-05T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-05T09:00:00'
+                        end: '2026-10-05T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-05T13:00:00Z'
+                        end_at: '2026-10-05T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-07T09:00:00'
+                        original_start_at: '2026-10-07T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-07T09:00:00'
+                        end: '2026-10-07T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-07T13:00:00Z'
+                        end_at: '2026-10-07T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-09T09:00:00'
+                        original_start_at: '2026-10-09T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-09T09:00:00'
+                        end: '2026-10-09T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-09T13:00:00Z'
+                        end_at: '2026-10-09T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List Event Instances
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/inboxes/{inbox_id}/calendar/events/{event_id}/respond:
+    post:
+      description: >-
+        Accepts, declines or tentatively accepts an invitation the inbox
+        received by email. Pass the
+
+        event's UUID to respond for every date, or a dated ID to respond for one
+        date only.
+
+
+        Only works on `email` events where the inbox is an attendee; anything
+        else returns 409
+
+        `calendar_response_invalid`. Updates the inbox's attendee entry and
+        sends
+
+        `calendar.event.responded`. With `send_reply` (default `true`) the inbox
+        emails the response
+
+        to the organizer.
+
+
+        Requires the `calendar_event_update` permission and the current `ETag`
+        in `If-Match`.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_respondToEvent
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Example1:
+              value: scheduler@agentmail.to
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarEventId'
+          example: a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20
+          examples:
+            Example1:
+              value: a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20
+        - name: If-Match
+          in: header
+          description: The event's or date's current `ETag`.
+          required: true
+          schema:
+            type: string
+          example: '"rv-0"'
+          examples:
+            Example1:
+              value: '"rv-0"'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEventMutationResponse'
+              examples:
+                Example1:
+                  value:
+                    event:
+                      event_id: a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20
+                      kind: single
+                      title: Quarterly review
+                      description: Agenda attached.
+                      status: confirmed
+                      all_day: false
+                      start: '2026-10-20T11:00:00'
+                      end: '2026-10-20T12:00:00'
+                      timezone: Europe/London
+                      duration_mode: exact
+                      duration_value: 3600000
+                      start_at: '2026-10-20T10:00:00Z'
+                      end_at: '2026-10-20T11:00:00Z'
+                      attendees:
+                        - email: jane@acme.com
+                          name: Jane Doe
+                          status: accepted
+                          role: required
+                        - email: scheduler@agentmail.to
+                          status: accepted
+                          role: required
+                          comment: See you there.
+                          responded_at: '2026-10-02T08:05:00Z'
+                      attendee_count: 2
+                      uid: 4q2m9x8k1v7c@google.com
+                      sequence: 0
+                      source: email
+                      organizer_email: jane@acme.com
+                      origin_message_id: <CAF1x2y3zQ@mail.gmail.com>
+                      resource_revision: 1
+                      created_at: '2026-10-02T07:58:00Z'
+                      updated_at: '2026-10-02T08:05:00Z'
+                    operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreconditionFailedErrorResponse'
+        '413':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Respond to Event
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              allOf:
+                - $ref: '#/components/schemas/RespondCalendarEventRequest'
+            examples:
+              Example1:
+                value:
+                  status: accepted
+                  comment: See you there.
   /v0/inboxes/{inbox_id}/drafts:
     get:
       description: |-
@@ -9360,6 +10972,32 @@ components:
           type: boolean
           nullable: true
           description: Delete pods.
+        calendar_read:
+          type: boolean
+          nullable: true
+          description: Read inbox calendar settings.
+        calendar_update:
+          type: boolean
+          nullable: true
+          description: Update inbox calendar settings.
+        calendar_event_read:
+          type: boolean
+          nullable: true
+          description: >-
+            Read calendar events, and receive `calendar.event.*` webhook and
+            WebSocket events.
+        calendar_event_create:
+          type: boolean
+          nullable: true
+          description: Create calendar events.
+        calendar_event_update:
+          type: boolean
+          nullable: true
+          description: Update calendar events and respond to invitations.
+        calendar_event_delete:
+          type: boolean
+          nullable: true
+          description: Delete calendar events.
     BearerApiKey:
       title: BearerApiKey
       type: object
@@ -9848,6 +11486,851 @@ components:
         - scope_type
         - scope_id
         - organization_id
+    CalendarEventId:
+      title: CalendarEventId
+      type: string
+      description: >-
+        ID of a calendar event. A one-off or recurring event is addressed by its
+        UUID. One date of a
+
+        recurring event is addressed by a dated ID, `<uuid>_<slot>`:
+        `<uuid>_t20261015T090000` for a
+
+        timed date (the original wall-clock start in the event's time zone) or
+        `<uuid>_d20261015` for an
+
+        all-day date. Dated IDs are stable: moving a date keeps its original ID.
+    CalendarEventKind:
+      title: CalendarEventKind
+      type: string
+      enum:
+        - single
+        - series
+        - instance
+      description: >-
+        What the event object represents.
+
+
+        - `single`: a one-off event, addressed by its UUID.
+
+        - `series`: the definition of a recurring event, addressed by its UUID.
+        It carries
+          `recurrence`; `start` and `end` describe its first date.
+        - `instance`: one date of a recurring event, addressed by its dated ID.
+        It carries `series_id`,
+          `original_start` and `is_exception`.
+    CalendarEventStatus:
+      title: CalendarEventStatus
+      type: string
+      enum:
+        - confirmed
+        - tentative
+        - cancelled
+      description: >-
+        Status of the event. A `cancelled` event or date stays readable but
+        sends no
+
+        `calendar.event.starting` or `calendar.event.ending` webhooks
+        (cancelling a date that is
+
+        already running still sends its `calendar.event.ending`).
+    CalendarEventSource:
+      title: CalendarEventSource
+      type: string
+      enum:
+        - api
+        - email
+      description: >-
+        Where the event came from. `api` events were created through this API
+        and the inbox is their
+
+        organizer. `email` events were created from a calendar invitation (iMIP)
+        received by the inbox;
+
+        their organizer is the sender of the invitation.
+    DurationMode:
+      title: DurationMode
+      type: string
+      enum:
+        - nominal
+        - exact
+      description: >-
+        How the event's length is kept when a date crosses a daylight-saving
+        change.
+
+
+        - `exact`: the event lasts the same elapsed time. Default for one-off
+        timed events.
+
+        - `nominal`: the event keeps its wall-clock end time (a 09:00 to 10:00
+        meeting stays 09:00 to
+          10:00 local time). Default for recurring timed events.
+
+        All-day events are always `nominal`.
+    WallTime:
+      title: WallTime
+      type: string
+      description: >-
+        A local wall-clock time without an offset, interpreted in the event's
+        `timezone`.
+
+        Timed events use `YYYY-MM-DDTHH:mm:ss` (for example
+        `2026-10-15T09:00:00`). All-day events use
+
+        `YYYY-MM-DD`. Years must be between 1900 and 9999.
+    IanaTimezone:
+      title: IanaTimezone
+      type: string
+      description: >-
+        Canonical IANA time zone name, for example `America/New_York`,
+        `Europe/London` or `UTC`.
+
+        Abbreviations such as `PST`, Windows names such as `Pacific Standard
+        Time`, and spellings that
+
+        differ from the canonical name are rejected.
+    ResourceRevision:
+      title: ResourceRevision
+      type: integer
+      description: >-
+        Revision of the resource. It increases on every change. The `ETag`
+        response header carries it
+
+        as `"rv-<resource_revision>"`; send that value back in `If-Match` to
+        update or delete.
+    OperationId:
+      title: OperationId
+      type: string
+      description: >-
+        ID of the change this request made. The `calendar.event.created`,
+        `calendar.event.updated`,
+
+        `calendar.event.deleted` or `calendar.event.responded` webhook for the
+        change carries the same
+
+        value as its `event_id`, so you can match webhooks to your own requests.
+    DeletionId:
+      title: DeletionId
+      type: string
+      description: >-
+        ID of an accepted deletion. Retrying the same delete with the same
+        `Idempotency-Key` returns it again.
+    CalendarConsistency:
+      title: CalendarConsistency
+      type: string
+      enum:
+        - eventual
+        - primary
+      description: >-
+        Read consistency. `eventual` (default) reads from the region that serves
+        your request and may
+
+        lag a write made moments earlier by up to a few seconds. `primary` reads
+        from the primary region
+
+        and always reflects every completed write.
+    CalendarLimit:
+      title: CalendarLimit
+      type: integer
+      description: Maximum number of events to return, from 1 to 100. Defaults to 50.
+    WindowAfter:
+      title: WindowAfter
+      type: string
+      format: date-time
+      description: >-
+        Start of the window (UTC). Defaults to now. The window between `after`
+        and `before` can be at
+
+        most 366 days.
+    WindowBefore:
+      title: WindowBefore
+      type: string
+      format: date-time
+      description: >-
+        End of the window (UTC). Defaults to 90 days after `after`. The window
+        between `after` and
+
+        `before` can be at most 366 days.
+    IncludeOverlapping:
+      title: IncludeOverlapping
+      type: boolean
+      description: >-
+        When `true` (default), include events that started before `after` but
+        are still running at
+
+        `after`. When `false`, include only events that start inside the window.
+    InstanceMutationMode:
+      title: InstanceMutationMode
+      type: string
+      enum:
+        - single
+        - future
+      description: >-
+        Which dates a change to a dated event applies to. `single` (default)
+        changes only this date.
+
+        `future` changes this date and every later date of the series. Applies
+        only to dated event IDs;
+
+        sending `mode` with a one-off or series UUID is a `400`.
+    Calendar:
+      title: Calendar
+      type: object
+      description: >-
+        An inbox's calendar. Every inbox has exactly one calendar; it exists
+        from the moment the inbox
+
+        does and is deleted with it.
+      properties:
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        timezone:
+          $ref: '#/components/schemas/IanaTimezone'
+          description: >-
+            Default time zone for events created without a `timezone`. Defaults
+            to `UTC`. Changing it
+
+            does not move existing events.
+        event_count:
+          type: integer
+          description: >-
+            Number of one-off and recurring events on the calendar. Each
+            recurring event counts once.
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+          description: >-
+            Time at which the calendar was created. The calendar exists from the
+            moment the inbox does, so this is the inbox's creation time.
+          example: '2026-10-01T16:20:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Time at which the calendar was last updated.
+          example: '2026-10-01T16:25:00Z'
+      required:
+        - inbox_id
+        - timezone
+        - event_count
+        - created_at
+        - updated_at
+    UpdateCalendarRequest:
+      title: UpdateCalendarRequest
+      type: object
+      properties:
+        timezone:
+          $ref: '#/components/schemas/IanaTimezone'
+          description: New default time zone for events created without a `timezone`.
+      required:
+        - timezone
+    AttendeeStatus:
+      title: AttendeeStatus
+      type: string
+      enum:
+        - needs_action
+        - accepted
+        - declined
+        - tentative
+      description: The attendee's response to the invitation.
+    AttendeeRole:
+      title: AttendeeRole
+      type: string
+      enum:
+        - required
+        - optional
+      description: Whether the attendee's presence is required.
+    Attendee:
+      title: Attendee
+      type: object
+      properties:
+        email:
+          type: string
+          description: >-
+            Email address of the attendee. Stored in lowercase. Must be unique
+            within the event.
+        name:
+          type: string
+          nullable: true
+          description: Display name of the attendee. At most 256 characters.
+        status:
+          $ref: '#/components/schemas/AttendeeStatus'
+          nullable: true
+          description: Response status. Defaults to `needs_action`.
+        role:
+          $ref: '#/components/schemas/AttendeeRole'
+          nullable: true
+          description: Defaults to `required`.
+        comment:
+          type: string
+          nullable: true
+          description: Comment the attendee sent with their response. At most 4,096 bytes.
+        responded_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Time at which the attendee last responded.
+      required:
+        - email
+    RecurrencePeriod:
+      title: RecurrencePeriod
+      type: object
+      description: >-
+        An extra date (RDATE) given as a period. Specify exactly one of `end` or
+        `duration`.
+      properties:
+        start:
+          $ref: '#/components/schemas/WallTime'
+        end:
+          $ref: '#/components/schemas/WallTime'
+          nullable: true
+        duration:
+          type: string
+          nullable: true
+          description: ISO 8601 duration, for example `PT30M`.
+      required:
+        - start
+    RecurrenceDate:
+      title: RecurrenceDate
+      oneOf:
+        - $ref: '#/components/schemas/WallTime'
+        - $ref: '#/components/schemas/RecurrencePeriod'
+      description: A wall-clock date or date-time, or (timed events only) a period.
+    RecurrenceInput:
+      title: RecurrenceInput
+      type: object
+      description: >-
+        Repeats the event. `rule` is an RFC 5545 RRULE, evaluated in the event's
+        `timezone` from the
+
+        event's `start`. Each date keeps its wall-clock time across
+        daylight-saving changes.
+      properties:
+        rule:
+          type: string
+          description: >-
+            RFC 5545 RRULE body, with or without the `RRULE:` prefix, for
+            example
+
+            `FREQ=WEEKLY;BYDAY=MO,WE,FR` or `FREQ=MONTHLY;BYDAY=-1FR;COUNT=12`.
+            Supported parts: `FREQ`,
+
+            `INTERVAL` (1 to 366), `COUNT` (1 to 10,000), `UNTIL` (`YYYYMMDD` or
+            `YYYYMMDDTHHMMSSZ`),
+
+            `WKST`, `BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`,
+            `BYHOUR`, `BYMINUTE`,
+
+            `BYSECOND` and `BYSETPOS`. `COUNT` and `UNTIL` are mutually
+            exclusive. The rule is stored in
+
+            a normalized form, so a response can differ textually from what you
+            sent. At most 512
+
+            characters after normalization.
+        exdates:
+          type: array
+          items:
+            $ref: '#/components/schemas/WallTime'
+          nullable: true
+          description: >-
+            Dates to skip, matching the original start of a date:
+            `YYYY-MM-DDTHH:mm:ss` for timed events,
+
+            `YYYY-MM-DD` for all-day events. At most 366.
+        rdates:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecurrenceDate'
+          nullable: true
+          description: >-
+            Extra dates to add. Timed events take date-times or periods; all-day
+            events take dates. At
+
+            most 100.
+      required:
+        - rule
+    Recurrence:
+      title: Recurrence
+      type: object
+      description: The recurrence of a series, as stored.
+      properties:
+        rule:
+          type: string
+          description: Normalized RRULE body, without the `RRULE:` prefix.
+        exdates:
+          type: array
+          items:
+            $ref: '#/components/schemas/WallTime'
+          nullable: true
+        rdates:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecurrenceDate'
+          nullable: true
+        truncate_before:
+          $ref: '#/components/schemas/WallTime'
+          nullable: true
+          description: >-
+            Set when the series was ended with a `mode=future` delete: no date
+            starting at or after
+
+            this wall-clock time occurs.
+      required:
+        - rule
+    CalendarEvent:
+      title: CalendarEvent
+      type: object
+      description: >-
+        A calendar event. The same shape is used by every response, list item
+        and webhook. `kind` says
+
+        whether it is a one-off event, the definition of a recurring series, or
+        one date of a series.
+      properties:
+        event_id:
+          $ref: '#/components/schemas/CalendarEventId'
+        kind:
+          $ref: '#/components/schemas/CalendarEventKind'
+        series_id:
+          type: string
+          nullable: true
+          description: For `instance` events, the UUID of the series this date belongs to.
+        original_start:
+          $ref: '#/components/schemas/WallTime'
+          nullable: true
+          description: >-
+            For `instance` events, the date's start as the series rule generated
+            it, before any edit.
+        original_start_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: For `instance` events, `original_start` as a UTC instant.
+        is_exception:
+          type: boolean
+          nullable: true
+          description: >-
+            For `instance` events, `true` when this date was edited or moved,
+            individually or by a `mode=future` change.
+        title:
+          type: string
+          description: Title of the event.
+          example: Intro call with Acme
+        description:
+          type: string
+          nullable: true
+          description: Description of the event. Omitted from expanded list items.
+        location:
+          type: string
+          nullable: true
+          description: Location of the event.
+        metadata:
+          nullable: true
+          description: >-
+            Your own JSON value for the event, usually an object. Never sent to
+            attendees. Omitted from expanded list items.
+        status:
+          $ref: '#/components/schemas/CalendarEventStatus'
+        all_day:
+          type: boolean
+          description: Whether this is an all-day event.
+          example: false
+        start:
+          $ref: '#/components/schemas/WallTime'
+          description: Local start time in `timezone`. For all-day events, the first day.
+        end:
+          $ref: '#/components/schemas/WallTime'
+          description: >-
+            Local end time in `timezone`. For all-day events, the last day
+            (inclusive).
+        timezone:
+          $ref: '#/components/schemas/IanaTimezone'
+        duration_mode:
+          $ref: '#/components/schemas/DurationMode'
+        duration_value:
+          type: integer
+          description: >-
+            Length of the event, in milliseconds for timed events and in days
+            for all-day events.
+          example: 1800000
+        start_at:
+          type: string
+          format: date-time
+          description: >-
+            Start as a UTC instant. This is when `calendar.event.starting` is
+            due.
+          example: '2026-10-15T18:00:00Z'
+        end_at:
+          type: string
+          format: date-time
+          description: End as a UTC instant. This is when `calendar.event.ending` is due.
+          example: '2026-10-15T18:30:00Z'
+        recurrence:
+          $ref: '#/components/schemas/Recurrence'
+          nullable: true
+          description: For `series` events, the recurrence.
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendee'
+          nullable: true
+          description: >-
+            Attendees of the event. Omitted from expanded list items;
+            `attendee_count` is always present.
+        attendee_count:
+          type: integer
+          description: Number of attendees.
+          example: 1
+        uid:
+          type: string
+          description: >-
+            iCalendar UID of the event. Invitations about this event carry the
+            same UID.
+          example: 3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to
+        sequence:
+          type: integer
+          description: >-
+            iCalendar SEQUENCE number. It increases when a change affects what
+            attendees see (time,
+
+            status, title, description, location, recurrence or attendees).
+          example: 0
+        source:
+          $ref: '#/components/schemas/CalendarEventSource'
+        organizer_email:
+          type: string
+          nullable: true
+          description: Email address of the organizer. For `api` events, the inbox.
+        origin_message_id:
+          type: string
+          nullable: true
+          description: >-
+            For `email` events, the ID of the message whose invitation last
+            created or updated the event.
+        resource_revision:
+          $ref: '#/components/schemas/ResourceRevision'
+          nullable: true
+          description: >-
+            Present on `single` and `series` events. Dated events use an opaque
+            `ETag` instead.
+        created_at:
+          type: string
+          format: date-time
+          description: >-
+            Time at which the event (or, for a date, the definition governing
+            it) was created.
+          example: '2026-10-01T16:30:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: >-
+            Time at which the event (or, for a date, the definition governing
+            it) was last updated.
+          example: '2026-10-01T16:30:00Z'
+      required:
+        - event_id
+        - kind
+        - title
+        - status
+        - all_day
+        - start
+        - end
+        - timezone
+        - duration_mode
+        - duration_value
+        - start_at
+        - end_at
+        - attendee_count
+        - uid
+        - sequence
+        - source
+        - created_at
+        - updated_at
+    CalendarEventMutationResponse:
+      title: CalendarEventMutationResponse
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+        operation_id:
+          $ref: '#/components/schemas/OperationId'
+      required:
+        - event
+        - operation_id
+    DeleteCalendarEventResponse:
+      title: DeleteCalendarEventResponse
+      type: object
+      description: >-
+        Deleting a one-off or recurring event (or a `mode=future` delete that
+        covers a whole series)
+
+        returns `deletion_id`. Deleting dates of a series returns the cancelled
+        date as `event` with an
+
+        `operation_id`.
+      properties:
+        deletion_id:
+          $ref: '#/components/schemas/DeletionId'
+          nullable: true
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+          nullable: true
+        operation_id:
+          $ref: '#/components/schemas/OperationId'
+          nullable: true
+    ListCalendarEventsResponse:
+      title: ListCalendarEventsResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/Limit'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarEvent'
+          description: >-
+            Without `expand`, ordered by `updated_at` descending. With
+            `expand=true` and on the
+
+            instances endpoint, ordered by `start_at` ascending.
+      required:
+        - count
+        - limit
+        - events
+    CreateCalendarEventRequest:
+      title: CreateCalendarEventRequest
+      type: object
+      properties:
+        client_id:
+          type: string
+          nullable: true
+          description: >-
+            Your idempotency key for this create. Retrying with the same
+            `client_id` and the same body
+
+            returns the original event with `200` instead of creating a second
+            one. Reusing it with a
+
+            different body is a `409` `idempotency_conflict`.
+        title:
+          type: string
+          description: Title of the event. 1 to 1,000 characters.
+          example: Intro call with Acme
+        description:
+          type: string
+          nullable: true
+          description: Description of the event. At most 65,536 bytes.
+        location:
+          type: string
+          nullable: true
+          description: Location of the event. At most 1,024 characters.
+        metadata:
+          nullable: true
+          description: >-
+            Your own JSON value (usually an object), returned on every read and
+            in webhooks. Never sent to attendees. At most 16,384 bytes
+            serialized.
+        status:
+          $ref: '#/components/schemas/CalendarEventStatus'
+          nullable: true
+          description: Defaults to `confirmed`.
+        all_day:
+          type: boolean
+          nullable: true
+          description: Set to `true` for an all-day event. Defaults to `false`.
+        start:
+          $ref: '#/components/schemas/WallTime'
+          description: >-
+            Local start time in `timezone`: `YYYY-MM-DDTHH:mm:ss` for timed
+            events, `YYYY-MM-DD` for
+
+            all-day events. For a recurring event, this is the first date.
+        end:
+          $ref: '#/components/schemas/WallTime'
+          description: >-
+            Local end time in `timezone`, in the same format as `start`. For
+            timed events it must be
+
+            after `start`; for all-day events it is the last day (inclusive) and
+            can equal `start`.
+
+            One-off events can last up to 366 days; each date of a recurring
+            event up to 31 days.
+        timezone:
+          $ref: '#/components/schemas/IanaTimezone'
+          nullable: true
+          description: >-
+            Time zone of `start` and `end`. Defaults to the calendar's
+            `timezone`.
+        duration_mode:
+          $ref: '#/components/schemas/DurationMode'
+          nullable: true
+          description: >-
+            Timed events only. Defaults to `exact` for one-off events and
+            `nominal` for recurring events.
+        recurrence:
+          $ref: '#/components/schemas/RecurrenceInput'
+          nullable: true
+          description: Makes this a recurring event.
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendee'
+          nullable: true
+          description: Attendees of the event. At most 100.
+        send_invites:
+          type: boolean
+          nullable: true
+          description: >-
+            When `true`, the inbox emails an invitation (iCalendar `REQUEST`) to
+            every attendee. Defaults
+
+            to `false`.
+      required:
+        - title
+        - start
+        - end
+    UpdateCalendarEventRequest:
+      title: UpdateCalendarEventRequest
+      type: object
+      description: >-
+        Send only the fields to change. Fields set to `null` are cleared. At
+        least one field is required.
+
+        `all_day`, `timezone` and `recurrence` can only be changed on a one-off
+        or series UUID, not on a
+
+        dated event ID.
+      properties:
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+          description: Set to `null` to clear.
+        location:
+          type: string
+          nullable: true
+          description: Set to `null` to clear.
+        metadata:
+          nullable: true
+          description: >-
+            Replaces the metadata (any JSON value, usually an object). Set to
+            `null` to clear.
+        status:
+          $ref: '#/components/schemas/CalendarEventStatus'
+          nullable: true
+        all_day:
+          type: boolean
+          nullable: true
+          description: >-
+            Changing `all_day` requires `start`, `end` and `timezone` in the
+            same request. Not accepted for dated event IDs.
+        start:
+          $ref: '#/components/schemas/WallTime'
+          nullable: true
+          description: >-
+            New start. For a one-off or series UUID, send it together with
+            `end`. Not accepted with `mode=future`.
+        end:
+          $ref: '#/components/schemas/WallTime'
+          nullable: true
+          description: >-
+            New end. For a one-off or series UUID, send it together with
+            `start`. A dated ID accepts `end` alone.
+        timezone:
+          $ref: '#/components/schemas/IanaTimezone'
+          nullable: true
+          description: New time zone. Not accepted for dated event IDs.
+        duration_mode:
+          $ref: '#/components/schemas/DurationMode'
+          nullable: true
+        recurrence:
+          $ref: '#/components/schemas/RecurrenceInput'
+          nullable: true
+          description: >-
+            Replaces the recurrence. Set to `null` to turn a series into a
+            one-off event (only when no
+
+            date of it has been edited). Not accepted for dated event IDs.
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendee'
+          nullable: true
+          description: Replaces the attendee list.
+        send_invites:
+          type: boolean
+          nullable: true
+          description: >-
+            When `true`, emails the updated invitation to every attendee. Only
+            the organizer (an `api`
+
+            event) can send. Defaults to `false`.
+    RespondStatus:
+      title: RespondStatus
+      type: string
+      enum:
+        - accepted
+        - declined
+        - tentative
+      description: Your response to the invitation.
+    RespondCalendarEventRequest:
+      title: RespondCalendarEventRequest
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/RespondStatus'
+        comment:
+          type: string
+          nullable: true
+          description: >-
+            Comment to include with the response. At most 4,096 characters. It
+            is stored as the inbox's
+
+            attendee `comment`, which updates limit to 4,096 UTF-8 bytes, so
+            keep it within 4,096 bytes
+
+            if you will send the attendee list back in an update.
+        send_reply:
+          type: boolean
+          nullable: true
+          description: >-
+            When `true` (default), emails the response (iCalendar `REPLY`) to
+            the organizer.
+      required:
+        - status
+    PreconditionFailedErrorResponse:
+      title: PreconditionFailedErrorResponse
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/ErrorName'
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+          nullable: true
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+        current_revision:
+          type: integer
+          nullable: true
+          description: The resource's current revision.
+        fix:
+          $ref: '#/components/schemas/ErrorFix'
+          nullable: true
+        docs:
+          $ref: '#/components/schemas/ErrorDocs'
+          nullable: true
+      required:
+        - name
+        - message
     DomainId:
       title: DomainId
       type: string
@@ -10547,6 +13030,12 @@ components:
         - message.rejected
         - message.opened
         - domain.verified
+        - calendar.event.created
+        - calendar.event.updated
+        - calendar.event.deleted
+        - calendar.event.responded
+        - calendar.event.starting
+        - calendar.event.ending
     EventTypes:
       title: EventTypes
       type: array
@@ -10904,6 +13393,258 @@ components:
         - event_type
         - event_id
         - domain
+    CalendarEventPrevious:
+      title: CalendarEventPrevious
+      type: object
+      description: >-
+        The values that a `calendar.event.updated` change replaced, for the
+        fields it changed. Only
+
+        changed fields appear; a field that had no value before the change is
+        absent.
+      properties:
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        metadata:
+          nullable: true
+        status:
+          $ref: '#/components/schemas/CalendarEventStatus'
+          nullable: true
+        all_day:
+          type: boolean
+          nullable: true
+        start:
+          $ref: '#/components/schemas/WallTime'
+          nullable: true
+        end:
+          $ref: '#/components/schemas/WallTime'
+          nullable: true
+        timezone:
+          $ref: '#/components/schemas/IanaTimezone'
+          nullable: true
+        duration_mode:
+          $ref: '#/components/schemas/DurationMode'
+          nullable: true
+        recurrence:
+          $ref: '#/components/schemas/Recurrence'
+          nullable: true
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendee'
+          nullable: true
+    CalendarEventCreatedEvent:
+      title: CalendarEventCreatedEvent
+      type: object
+      description: >-
+        An event was created, through the API or from an invitation the inbox
+        received. Also sent when
+
+        one date of a recurring event is edited for the first time; `event` is
+        then that date.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: calendar.event.created
+        event_id:
+          $ref: '#/components/schemas/EventId'
+          description: >-
+            Equals the `operation_id` returned by the request that made the
+            change.
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+      required:
+        - type
+        - event_type
+        - event_id
+        - inbox_id
+        - event
+    CalendarEventUpdatedEvent:
+      title: CalendarEventUpdatedEvent
+      type: object
+      description: >-
+        An event, or one or more dates of a recurring event, changed. `event` is
+        the event (or the
+
+        date) after the change. Cancelling dates with a delete on a dated ID
+        also sends this event,
+
+        with the cancelled date as `event`.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: calendar.event.updated
+        event_id:
+          $ref: '#/components/schemas/EventId'
+          description: >-
+            Equals the `operation_id` returned by the request that made the
+            change.
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+        previous:
+          $ref: '#/components/schemas/CalendarEventPrevious'
+          nullable: true
+          description: >-
+            For changes to a one-off or series event, the prior values of the
+            fields that changed.
+      required:
+        - type
+        - event_type
+        - event_id
+        - inbox_id
+        - event
+    CalendarEventDeletedEvent:
+      title: CalendarEventDeletedEvent
+      type: object
+      description: >-
+        A one-off or recurring event was deleted. `event` is the event as it
+        was. Cancelling dates of a
+
+        recurring event sends `calendar.event.updated` instead.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: calendar.event.deleted
+        event_id:
+          $ref: '#/components/schemas/EventId'
+          description: >-
+            Equals the `deletion_id` returned by the request that made the
+            change.
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+      required:
+        - type
+        - event_type
+        - event_id
+        - inbox_id
+        - event
+    CalendarEventRespondedEvent:
+      title: CalendarEventRespondedEvent
+      type: object
+      description: >-
+        An attendee's response changed: the inbox responded with the respond
+        endpoint, or an attendee
+
+        replied by email to an invitation the inbox sent. `event.attendees`
+        holds the new statuses.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: calendar.event.responded
+        event_id:
+          $ref: '#/components/schemas/EventId'
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+      required:
+        - type
+        - event_type
+        - event_id
+        - inbox_id
+        - event
+    CalendarEventStartingEvent:
+      title: CalendarEventStartingEvent
+      type: object
+      description: >-
+        An event, or one date of a recurring event, has started. Usually sent
+        within a minute after
+
+        `scheduled_at`. If a date is first picked up after it has already ended
+        and more than 5
+
+        minutes after its start (for example, an event created entirely in the
+        past), neither its
+
+        `calendar.event.starting` nor its `calendar.event.ending` is sent.
+        Retries carry the same
+
+        `event_id` and an identical body.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: calendar.event.starting
+        event_id:
+          $ref: '#/components/schemas/EventId'
+          description: Stable for this date and boundary. Use it to deduplicate deliveries.
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+          description: The event or date as it stood when the boundary was first processed.
+        scheduled_at:
+          type: string
+          format: date-time
+          description: The start this webhook is for (the event's `start_at`).
+      required:
+        - type
+        - event_type
+        - event_id
+        - inbox_id
+        - event
+        - scheduled_at
+    CalendarEventEndingEvent:
+      title: CalendarEventEndingEvent
+      type: object
+      description: >-
+        An event, or one date of a recurring event, has ended. Usually sent
+        within a minute after
+
+        `scheduled_at`. Retries carry the same `event_id` and an identical body.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: calendar.event.ending
+        event_id:
+          $ref: '#/components/schemas/EventId'
+          description: Stable for this date and boundary. Use it to deduplicate deliveries.
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        event:
+          $ref: '#/components/schemas/CalendarEvent'
+          description: The event or date as it stood when the boundary was first processed.
+        scheduled_at:
+          type: string
+          format: date-time
+          description: The end this webhook is for (the event's `end_at`).
+      required:
+        - type
+        - event_type
+        - event_id
+        - inbox_id
+        - event
+        - scheduled_at
     InboxEventId:
       title: InboxEventId
       type: string

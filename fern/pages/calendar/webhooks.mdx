@@ -1,0 +1,314 @@
+---
+title: Calendar Webhooks
+subtitle: React when events change, start and end.
+slug: calendar-webhooks
+description: The calendar.event.* webhook and WebSocket events. Payloads, when start and end events are sent, delivery guarantees, and how to handle duplicates.
+---
+
+<Note>
+  Calendar is in private beta. Organizations without access receive a `403` with the message
+  `Calendar access is not enabled for this organization`. Email
+  [support@agentmail.to](mailto:support@agentmail.to) to request access. Subscribing a webhook to calendar
+  event types works without access, but nothing fires until your organization can create events.
+</Note>
+
+Calendar webhooks let your agent act at the right moment without polling or running its own scheduler. They use the same webhook endpoints, signatures and retries as message webhooks.
+
+## Event types
+
+| Event | Sent when | `event` is |
+| --- | --- | --- |
+| `calendar.event.created` | An event is created through the API or from a received invitation, or a date of a recurring event is edited for the first time. | The new event, or the edited date |
+| `calendar.event.updated` | An event changes, or one or more dates of a recurring event change or are cancelled. | The event or date after the change |
+| `calendar.event.deleted` | A one-off or recurring event is deleted. | The event as it was |
+| `calendar.event.responded` | The inbox responds to an invitation, or an attendee replies to one the inbox sent. | The event or date with updated `attendees` |
+| `calendar.event.starting` | An event or date starts (`start_at`). | The event or date |
+| `calendar.event.ending` | An event or date ends (`end_at`). | The event or date |
+
+Every payload has the same envelope. `event` uses the same shape as the API's [CalendarEvent](/api-reference/inboxes/calendar/get-event), and `inbox_id` says which inbox's calendar it belongs to:
+
+```json
+{
+  "type": "event",
+  "event_type": "calendar.event.starting",
+  "event_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000.start",
+  "inbox_id": "scheduler@agentmail.to",
+  "event": { "event_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000", "kind": "instance", "...": "..." },
+  "scheduled_at": "2026-10-07T13:00:00Z"
+}
+```
+
+Treat `event_id` values as opaque strings; the format above is illustrative.
+
+## Subscribing
+
+Create a webhook with the calendar event types you need. Scope it to inboxes with `inbox_ids` or to pods with `pod_ids`, as with any webhook.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+webhook = client.webhooks.create(
+    url="https://example.com/webhooks/calendar",
+    event_types=[
+        "calendar.event.starting",
+        "calendar.event.ending",
+        "calendar.event.created",
+        "calendar.event.updated",
+        "calendar.event.deleted",
+        "calendar.event.responded",
+    ],
+    inbox_ids=["scheduler@agentmail.to"],
+    client_id="calendar-webhook",
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+
+const webhook = await client.webhooks.create({
+  url: "https://example.com/webhooks/calendar",
+  eventTypes: [
+    "calendar.event.starting",
+    "calendar.event.ending",
+    "calendar.event.created",
+    "calendar.event.updated",
+    "calendar.event.deleted",
+    "calendar.event.responded",
+  ],
+  inboxIds: ["scheduler@agentmail.to"],
+  clientId: "calendar-webhook",
+});
+```
+</CodeBlocks>
+
+The API key that creates the webhook needs the `calendar_event_read` permission to subscribe to calendar events.
+
+Calendar events are also delivered over [WebSockets](/websockets). Include them in `event_types` when you subscribe. A subscription without `event_types` receives them too, as long as the API key had `calendar_event_read` when the connection opened.
+
+## Start and end events
+
+`calendar.event.starting` and `calendar.event.ending` are sent for every one-off event and for every date of every recurring event, with no setup beyond the webhook subscription.
+
+### Timing
+
+Each is due at the event's `start_at` or `end_at`, and is usually sent within a minute after that moment. It is never sent early. If you need to act ahead of time, for example to send a reminder ten minutes before, create the reminder as its own event or schedule it in your system using `start_at`.
+
+`scheduled_at` in the payload is the boundary the webhook is for, so you can measure how late a delivery was.
+
+All-day events start and end at local midnight in their `timezone`.
+
+### Which dates get them
+
+| Situation | `starting` | `ending` |
+| --- | --- | --- |
+| A normal event or date | Sent | Sent |
+| Rescheduled before it starts | Sent at the new time | Sent at the new time |
+| Cancelled (`status: cancelled`) before it starts | Not sent | Not sent |
+| Cancelled while it is running | Already sent | Sent |
+| End changed while it is running | Already sent | Sent at the new end |
+| Created after its start but before its end | Sent right away | Sent |
+| Created entirely in the past | Not sent | Not sent |
+| Event deleted by its UUID, or its inbox deleted | Not sent after the delete is accepted | Not sent after the delete is accepted |
+| Date cancelled by its dated ID while it is running | Already sent | Sent |
+
+The rule behind "created entirely in the past": if a date is first picked up after it has already ended and more than 5 minutes after its start, neither webhook is sent for it. In normal operation this only happens to events created in the past.
+
+### The payload is fixed when first sent
+
+The `event` in a start or end webhook is the event as it stood when that boundary was first processed. If delivery is retried, the retry carries the identical body, even if the event was edited in between. Use the API to read the current state.
+
+## Delivery guarantees
+
+- **At least once.** A webhook can be delivered more than once. Use `event_id` to deduplicate.
+- **Stable IDs.** For start and end events, `event_id` is the same for every delivery of a given date and boundary. For the other events, `event_id` identifies the change.
+- **Matching your requests.** For `created`, `updated`, `deleted` and `responded`, `event_id` equals the `operation_id` (or, for a delete, the `deletion_id`) returned by the request that made the change. Changes that arrive by email have IDs your requests never returned.
+- **No ordering guarantee.** Webhooks of different types can arrive out of order. For example, an event created a moment before it starts can deliver `calendar.event.starting` before `calendar.event.created`. Use `event.updated_at` or read the event to resolve conflicts.
+- **Retries.** Failed deliveries are retried with backoff, as for every AgentMail webhook. Return a `2xx` quickly and do slow work in the background.
+
+## Payloads
+
+### `calendar.event.created`
+
+```json
+{
+  "type": "event",
+  "event_type": "calendar.event.created",
+  "event_id": "0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50",
+  "inbox_id": "scheduler@agentmail.to",
+  "event": {
+    "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    "kind": "single",
+    "title": "Intro call with Acme",
+    "location": "https://meet.example.com/acme-intro",
+    "metadata": { "crm_deal_id": "D-1042" },
+    "status": "confirmed",
+    "all_day": false,
+    "start": "2026-10-15T14:00:00",
+    "end": "2026-10-15T14:30:00",
+    "timezone": "America/New_York",
+    "duration_mode": "exact",
+    "duration_value": 1800000,
+    "start_at": "2026-10-15T18:00:00Z",
+    "end_at": "2026-10-15T18:30:00Z",
+    "attendees": [
+      { "email": "jane@acme.com", "name": "Jane Doe", "status": "needs_action", "role": "required" }
+    ],
+    "attendee_count": 1,
+    "uid": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to",
+    "sequence": 0,
+    "source": "api",
+    "organizer_email": "scheduler@agentmail.to",
+    "resource_revision": 0,
+    "created_at": "2026-10-01T16:30:00Z",
+    "updated_at": "2026-10-01T16:30:00Z"
+  }
+}
+```
+
+### `calendar.event.updated`
+
+Changes to a one-off or series event include `previous`, the old values of the fields that changed. A field that had no value before the change is absent from `previous`.
+
+```json
+{
+  "type": "event",
+  "event_type": "calendar.event.updated",
+  "event_id": "9a7b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d",
+  "inbox_id": "scheduler@agentmail.to",
+  "event": {
+    "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    "kind": "single",
+    "start": "2026-10-15T15:00:00",
+    "end": "2026-10-15T15:30:00",
+    "start_at": "2026-10-15T19:00:00Z",
+    "end_at": "2026-10-15T19:30:00Z",
+    "sequence": 1,
+    "resource_revision": 1,
+    "...": "..."
+  },
+  "previous": {
+    "start": "2026-10-15T14:00:00",
+    "end": "2026-10-15T14:30:00"
+  }
+}
+```
+
+Changes to dates of a recurring event (a dated ID with `mode=single` or `mode=future`) carry the changed date as `event` and no `previous`. This includes dates cancelled with `DELETE` on a dated ID: `event` is that date with `status: cancelled`, without `description`, `metadata` or `attendees`.
+
+### `calendar.event.deleted`
+
+Sent when a one-off or recurring event is deleted. `event` is the event as it was when deleted. Cancelling dates of a recurring event sends `calendar.event.updated` instead.
+
+### `calendar.event.responded`
+
+`event.attendees` holds every attendee's current `status`, `comment` and `responded_at`. Compare it with your copy to see who changed their answer.
+
+### `calendar.event.starting` and `calendar.event.ending`
+
+```json
+{
+  "type": "event",
+  "event_type": "calendar.event.ending",
+  "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36_single.end",
+  "inbox_id": "scheduler@agentmail.to",
+  "event": {
+    "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    "kind": "single",
+    "title": "Intro call with Acme",
+    "status": "confirmed",
+    "start_at": "2026-10-15T19:00:00Z",
+    "end_at": "2026-10-15T19:30:00Z",
+    "...": "..."
+  },
+  "scheduled_at": "2026-10-15T19:30:00Z"
+}
+```
+
+For a date of a recurring event, `event` has `kind: instance` and its dated `event_id`, plus `series_id` and `original_start`.
+
+## Example handler
+
+This handler verifies the signature, ignores duplicates and dispatches on `event_type`. See [Verifying Webhooks](/webhook-verification) for the signature details.
+
+<CodeBlocks>
+```python title="Python"
+import os
+from flask import Flask, request, Response
+from svix.webhooks import Webhook, WebhookVerificationError
+
+app = Flask(__name__)
+verifier = Webhook(os.environ["AGENTMAIL_WEBHOOK_SECRET"])
+seen = set()  # use a durable store in production
+
+
+@app.post("/webhooks/calendar")
+def calendar_webhook():
+    try:
+        payload = verifier.verify(request.get_data(), dict(request.headers))
+    except WebhookVerificationError:
+        return Response(status=400)
+
+    if payload["event_id"] in seen:
+        return Response(status=200)
+    seen.add(payload["event_id"])
+
+    event = payload["event"]
+    if payload["event_type"] == "calendar.event.starting":
+        print(f"starting now: {event['title']} ({event['event_id']})")
+    elif payload["event_type"] == "calendar.event.ending":
+        print(f"just ended: {event['title']}")
+    elif payload["event_type"] == "calendar.event.responded":
+        for attendee in event.get("attendees", []):
+            print(attendee["email"], attendee["status"])
+
+    return Response(status=200)
+```
+
+```typescript title="TypeScript"
+import express from "express";
+import { Webhook } from "svix";
+
+const app = express();
+const verifier = new Webhook(process.env.AGENTMAIL_WEBHOOK_SECRET!);
+const seen = new Set<string>(); // use a durable store in production
+
+app.post("/webhooks/calendar", express.raw({ type: "application/json" }), (req, res) => {
+  let payload: any;
+  try {
+    payload = verifier.verify(req.body, req.headers as Record<string, string>);
+  } catch {
+    return res.sendStatus(400);
+  }
+
+  if (seen.has(payload.event_id)) return res.sendStatus(200);
+  seen.add(payload.event_id);
+
+  const event = payload.event;
+  switch (payload.event_type) {
+    case "calendar.event.starting":
+      console.log(`starting now: ${event.title} (${event.event_id})`);
+      break;
+    case "calendar.event.ending":
+      console.log(`just ended: ${event.title}`);
+      break;
+    case "calendar.event.responded":
+      for (const attendee of event.attendees ?? []) console.log(attendee.email, attendee.status);
+      break;
+  }
+  res.sendStatus(200);
+});
+
+app.listen(3000);
+```
+</CodeBlocks>
+
+<Tip>
+  Store your own context in the event's `metadata` when you create it, such as a deal ID or the
+  conversation the meeting came from. It arrives in every webhook, so your handler does not need a
+  lookup to know what the event is about.
+</Tip>

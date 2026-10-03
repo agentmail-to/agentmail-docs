@@ -1,0 +1,154 @@
+---
+title: Invitations
+subtitle: Send calendar invitations, receive them by email and respond.
+slug: calendar-invitations
+description: How AgentMail calendars exchange standard iCalendar (iMIP) invitations. Send invitations from an inbox, turn emailed invitations into events automatically, and accept or decline them.
+---
+
+<Note>
+  Calendar is in private beta. Organizations without access receive a `403` with the message
+  `Calendar access is not enabled for this organization`. Email
+  [support@agentmail.to](mailto:support@agentmail.to) to request access.
+</Note>
+
+AgentMail calendars speak iMIP, the standard behind calendar invitations in email. Invitations your agent sends open as normal meeting invitations in Google Calendar, Outlook and Apple Calendar, and invitations those apps send to the inbox appear on its calendar.
+
+## Sending invitations
+
+Add attendees and set `send_invites: true` when you create an event. The inbox becomes the organizer and emails an invitation to each attendee.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+created = client.inboxes.calendar.create_event(
+    "scheduler@agentmail.to",
+    title="Intro call with Acme",
+    start="2026-10-15T14:00:00",
+    end="2026-10-15T14:30:00",
+    timezone="America/New_York",
+    location="https://meet.example.com/acme-intro",
+    attendees=[
+        {"email": "jane@acme.com", "name": "Jane Doe"},
+        {"email": "sam@acme.com", "role": "optional"},
+    ],
+    send_invites=True,
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+
+const created = await client.inboxes.calendar.createEvent("scheduler@agentmail.to", {
+  title: "Intro call with Acme",
+  start: "2026-10-15T14:00:00",
+  end: "2026-10-15T14:30:00",
+  timezone: "America/New_York",
+  location: "https://meet.example.com/acme-intro",
+  attendees: [
+    { email: "jane@acme.com", name: "Jane Doe" },
+    { email: "sam@acme.com", role: "optional" },
+  ],
+  sendInvites: true,
+});
+```
+</CodeBlocks>
+
+Each attendee receives a separate email from the inbox with the subject `Invitation: <title>`, a short text body with the time, and the event as an `invite.ics` attachment (`METHOD:REQUEST`). The emails are sent like any other message from the inbox and appear among its sent messages.
+
+Invitations are sent in the background after the event is stored. They are not sent unless you ask: `send_invites` defaults to `false`, so you can add attendees for your own records without emailing anyone.
+
+### Sending changes and cancellations
+
+Pass `send_invites` again whenever attendees should hear about a change:
+
+| Action | Request | Attendees receive |
+| --- | --- | --- |
+| Update the event | `PATCH` with `"send_invites": true` in the body | An updated invitation (`REQUEST`) |
+| Cancel one date | `DELETE` a dated ID with `?send_invites=true` | A cancellation for that date (`CANCEL`) |
+| Delete the event | `DELETE` the event UUID with `?send_invites=true` | A cancellation (`CANCEL`) |
+
+A change that is not sent stays on your calendar only; attendees keep their previous version. `sequence` increases whenever a change affects what attendees see, so their calendar apps apply the newest update.
+
+Only events the inbox organizes can send. Using `send_invites` on an event that came from someone else's invitation returns `409` `calendar_response_invalid`.
+
+### Attendee replies
+
+When an attendee accepts, declines or tentatively accepts, their calendar app emails a reply to the inbox. AgentMail matches it to the event, updates that attendee's `status`, `comment` and `responded_at`, and sends a `calendar.event.responded` webhook. A reply about a single date of a recurring event updates only that date.
+
+A reply is only applied to the attendee whose address sent it, so one attendee cannot answer for another.
+
+## Receiving invitations
+
+When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the sender, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself.
+
+Later emails from the organizer keep the event in sync:
+
+- An updated invitation (`REQUEST`) updates the event, or one date of it.
+- A cancellation (`CANCEL`) sets the event, or one date of it, to `cancelled`.
+- Updates are ordered by iCalendar `SEQUENCE`, so an older update that arrives late does not overwrite a newer one. A change to one date is compared only with earlier changes to that same date.
+
+### Which invitations are accepted
+
+To keep strangers from writing to your agent's calendar, an invitation is applied only when all of these hold:
+
+- The email passed sender authentication and is not labeled `spam`, `blocked` or `unauthenticated`. Messages held for a security review are processed if they are released.
+- The authenticated sender is the event's organizer. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
+- The invitation is a `text/calendar` or `application/ics` attachment of at most 1 MB, containing exactly one event.
+- The organization has calendar access.
+
+Invitations that fail these checks leave the calendar unchanged. The email is still delivered to the inbox like any other message.
+
+### Current limitations
+
+- **Outlook time zones.** Invitations that name a Windows time zone (such as `Pacific Standard Time`) instead of an IANA zone are not imported.
+- **Recurring invitations with exceptions.** Invitations that bundle a series and its edited dates as several events in one file, as Google Calendar does for recurring meetings with exceptions, are not imported.
+- **All-day invitations** are stored with the `UTC` time zone.
+
+## Responding to an invitation
+
+Use Respond to Event to accept, decline or tentatively accept an invitation the inbox received. AgentMail updates the inbox's own attendee entry and, by default, emails the reply to the organizer.
+
+<CodeBlocks>
+```python title="Python"
+inbox_id = "scheduler@agentmail.to"
+event_id = "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20"
+
+event = client.inboxes.calendar.get_event(inbox_id, event_id, consistency="primary")
+response = client.inboxes.calendar.respond_to_event(
+    inbox_id,
+    event_id,
+    if_match=f'"rv-{event.resource_revision}"',
+    status="accepted",
+    comment="See you there.",
+)
+```
+
+```typescript title="TypeScript"
+const inboxId = "scheduler@agentmail.to";
+const eventId = "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20";
+
+const event = await client.inboxes.calendar.getEvent(inboxId, eventId, { consistency: "primary" });
+const response = await client.inboxes.calendar.respondToEvent(inboxId, eventId, {
+  ifMatch: `"rv-${event.resourceRevision}"`,
+  status: "accepted",
+  comment: "See you there.",
+});
+```
+</CodeBlocks>
+
+- `status` is `accepted`, `declined` or `tentative`.
+- `send_reply` defaults to `true`. Set it to `false` to record your answer without emailing the organizer.
+- Pass a dated ID instead of the event UUID to answer for one date of a recurring invitation.
+- Responding only works on `email` events where the inbox is an attendee. Anything else returns `409` `calendar_response_invalid`.
+- A `calendar.event.responded` webhook is sent.
+
+The reply email has the subject `Responded: <title>` and is threaded with the original invitation.
+
+## Editing an invitation you received
+
+You can `PATCH` an `email` event to change your copy, for example to add `metadata` that links it to your own records. Those edits are not sent to the organizer. A later update from the organizer replaces the fields its invitation carries, such as the time, title and attendees; invitations never change `metadata`.

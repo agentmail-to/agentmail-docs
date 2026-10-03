@@ -1,0 +1,283 @@
+---
+title: Recurring Events
+subtitle: Repeat events with RFC 5545 rules and change individual dates.
+slug: calendar-recurring-events
+description: How to create recurring events on an AgentMail calendar with RRULE, EXDATE and RDATE, list their dates, and edit or cancel one date or every later date.
+---
+
+<Note>
+  Calendar is in private beta. Organizations without access receive a `403` with the message
+  `Calendar access is not enabled for this organization`. Email
+  [support@agentmail.to](mailto:support@agentmail.to) to request access.
+</Note>
+
+A recurring event is one `series` plus the dates it generates. You create and change the series by its UUID, and address each date by a dated ID.
+
+## Create a recurring event
+
+Add `recurrence` to a normal create request. `start` and `end` describe the first date; the rule generates the rest.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+created = client.inboxes.calendar.create_event(
+    "scheduler@agentmail.to",
+    title="Team standup",
+    location="https://meet.example.com/standup",
+    start="2026-10-05T09:00:00",  # a Monday
+    end="2026-10-05T09:15:00",
+    timezone="America/New_York",
+    recurrence={"rule": "FREQ=WEEKLY;BYDAY=MO,WE,FR"},
+)
+series = created.event
+print(series.kind, series.event_id)  # series 7c4e9b2a-...
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+
+const created = await client.inboxes.calendar.createEvent("scheduler@agentmail.to", {
+  title: "Team standup",
+  location: "https://meet.example.com/standup",
+  start: "2026-10-05T09:00:00", // a Monday
+  end: "2026-10-05T09:15:00",
+  timezone: "America/New_York",
+  recurrence: { rule: "FREQ=WEEKLY;BYDAY=MO,WE,FR" },
+});
+const series = created.event;
+console.log(series.kind, series.eventId); // series 7c4e9b2a-...
+```
+</CodeBlocks>
+
+Each date happens at 09:00 New York time, before and after the November daylight-saving change. Recurring timed events default to `duration_mode: nominal`, so each date also keeps its 09:15 end.
+
+`start` must itself be a date the rule produces. Starting the example above on a Tuesday returns `400` with `DTSTART must match recurrence.rule; it does not satisfy BYDAY`.
+
+### Writing rules
+
+`recurrence.rule` is an [RFC 5545 RRULE](https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.10), with or without the `RRULE:` prefix.
+
+| Schedule | Rule |
+| --- | --- |
+| Every weekday | `FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR` |
+| Every other Tuesday | `FREQ=WEEKLY;INTERVAL=2;BYDAY=TU` |
+| The 15th of every month | `FREQ=MONTHLY;BYMONTHDAY=15` |
+| The last Friday of every month | `FREQ=MONTHLY;BYDAY=-1FR` |
+| The first Monday of every quarter | `FREQ=MONTHLY;INTERVAL=3;BYDAY=1MO` |
+| Every day, ten times | `FREQ=DAILY;COUNT=10` |
+| Weekly until the end of 2026 | `FREQ=WEEKLY;UNTIL=20261231T235959Z` |
+| Every year | `FREQ=YEARLY` |
+
+Supported parts are `FREQ`, `INTERVAL`, `COUNT`, `UNTIL`, `WKST`, `BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`, `BYHOUR`, `BYMINUTE`, `BYSECOND` and `BYSETPOS`. `COUNT` and `UNTIL` cannot be combined. `UNTIL` is a date (`20261231`) or a UTC date-time (`20261231T235959Z`).
+
+The stored rule is normalized, so the `rule` you read back can differ textually from the one you sent while meaning the same thing.
+
+### Skipping and adding dates
+
+`exdates` removes dates the rule would produce, and `rdates` adds dates it would not. Use the same format as `start`: date-times for timed events, dates for all-day events.
+
+```json
+{
+  "title": "Team standup",
+  "start": "2026-10-05T09:00:00",
+  "end": "2026-10-05T09:15:00",
+  "timezone": "America/New_York",
+  "recurrence": {
+    "rule": "FREQ=WEEKLY;BYDAY=MO,WE,FR",
+    "exdates": ["2026-11-27T09:00:00"],
+    "rdates": ["2026-11-28T09:00:00"]
+  }
+}
+```
+
+An `exdates` entry must match the date's original start exactly. For timed events, an `rdates` entry can also be a period, such as `{"start": "2026-11-28T09:00:00", "duration": "PT30M"}`.
+
+To skip a single date later, [cancel that date](#cancel-dates); it adds the date to `exdates` for you.
+
+### Limits
+
+| Limit | Value |
+| --- | --- |
+| Dates in any 90-day window | 730. Denser rules return `409` `recurrence_density_limit`. |
+| Length of each date | 31 days |
+| `INTERVAL` | 1 to 366 |
+| `COUNT` | 1 to 10,000 |
+| `exdates` / `rdates` | 366 / 100 |
+| Individually edited dates per series | 730 |
+| `mode=future` edits per series | 64 |
+
+A rule with no `COUNT` or `UNTIL` repeats indefinitely, which is fine.
+
+## Dated IDs
+
+Each date of a series has its own ID: the series UUID, an underscore, and the date's original start.
+
+| Date | ID |
+| --- | --- |
+| Timed: Wednesday Oct 7, 2026 at 09:00 | `7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000` |
+| All-day: Oct 7, 2026 | `7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_d20261007` |
+
+The time is the original wall-clock start in the series' time zone, as the rule generated it. The ID stays the same after you move the date, so you can safely store it. Read it from `event_id` on agenda items, or build it yourself from a known date.
+
+A dated event has `kind: instance` and three extra fields:
+
+- `series_id`: the series UUID.
+- `original_start` and `original_start_at`: when the rule placed the date, before any edit.
+- `is_exception`: `true` once the date has been edited.
+
+## List the dates
+
+There are two ways to list dates:
+
+- `GET /calendar/events?expand=true` lists every date of every event in a window. This is the agenda view. It includes recurring events' dates only up to about 90 days from now.
+- `GET /calendar/events/{series_id}/instances` lists the dates of one series in a window. It computes them from the rule, so it works for any window up to 366 days, including far in the future.
+
+<CodeBlocks>
+```python title="Python"
+from datetime import datetime, timezone
+
+dates = client.inboxes.calendar.list_event_instances(
+    "scheduler@agentmail.to",
+    "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47",
+    after=datetime(2026, 10, 5, tzinfo=timezone.utc),
+    before=datetime(2026, 10, 10, tzinfo=timezone.utc),
+)
+for date in dates.events:
+    print(date.event_id, date.start_at)
+```
+
+```typescript title="TypeScript"
+const dates = await client.inboxes.calendar.listEventInstances(
+  "scheduler@agentmail.to",
+  "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47",
+  { after: new Date("2026-10-05T00:00:00Z"), before: new Date("2026-10-10T00:00:00Z") },
+);
+for (const date of dates.events) {
+  console.log(date.eventId, date.startAt);
+}
+```
+</CodeBlocks>
+
+Both lists apply edits to each date and leave out cancelled dates. Get a date by its dated ID for its full details, including `description` and `attendees`.
+
+## Change one date
+
+`PATCH` a dated ID to change only that date. Its `If-Match` must be the date's own `ETag`, which looks like `"occ-0-0-0-none-none"`. Dated events have no `resource_revision` field, so read the `ETag` response header. See [Reading ETags with the SDKs](/calendar-reference#reading-etags-with-the-sdks).
+
+<CodeBlocks>
+```python title="Python"
+inbox_id = "scheduler@agentmail.to"
+date_id = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000"
+
+raw = client.inboxes.calendar.with_raw_response.get_event(inbox_id, date_id)
+moved = client.inboxes.calendar.update_event(
+    inbox_id,
+    date_id,
+    if_match=raw.headers["etag"],
+    start="2026-10-07T10:00:00",
+    end="2026-10-07T10:15:00",
+)
+print(moved.event.is_exception)  # True
+```
+
+```typescript title="TypeScript"
+const inboxId = "scheduler@agentmail.to";
+const dateId = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000";
+
+const { rawResponse } = await client.inboxes.calendar.getEvent(inboxId, dateId).withRawResponse();
+const moved = await client.inboxes.calendar.updateEvent(inboxId, dateId, {
+  ifMatch: rawResponse.headers.get("etag")!,
+  start: "2026-10-07T10:00:00",
+  end: "2026-10-07T10:15:00",
+});
+console.log(moved.event.isException); // true
+```
+</CodeBlocks>
+
+You can change `title`, `description`, `location`, `metadata`, `status`, `start`, `end`, `duration_mode` and `attendees` for a date. Unlike a series or one-off event, a date accepts `end` without `start`. `all_day`, `timezone` and `recurrence` belong to the series and are rejected for a date.
+
+An edited date keeps the fields you changed for it. Its other fields keep following the series, so renaming the series later also renames the moved date. The first edit to a date sends `calendar.event.created` for that date; later edits send `calendar.event.updated`.
+
+The same timing rules as one-off events apply to each date: once a date has started its start is fixed, and once it has ended only its descriptive fields can change. See [Events that have started or ended](/calendar-events#events-that-have-started-or-ended).
+
+## Change this date and every later date
+
+Add `mode=future` to apply a change from one date onward, for example to rename a meeting from next week or make it longer:
+
+<CodeBlocks>
+```python title="Python"
+date_id = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000"
+etag = client.inboxes.calendar.with_raw_response.get_event(inbox_id, date_id).headers["etag"]
+
+client.inboxes.calendar.update_event(
+    inbox_id,
+    date_id,
+    if_match=etag,
+    mode="future",
+    title="Team sync",
+    end="2026-10-12T09:30:00",
+)
+```
+
+```typescript title="TypeScript"
+const futureId = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000";
+const futureRead = await client.inboxes.calendar.getEvent(inboxId, futureId).withRawResponse();
+
+await client.inboxes.calendar.updateEvent(inboxId, futureId, {
+  ifMatch: futureRead.rawResponse.headers.get("etag")!,
+  mode: "future",
+  title: "Team sync",
+  end: "2026-10-12T09:30:00",
+});
+```
+</CodeBlocks>
+
+A `mode=future` change cannot include `start`; it returns `409` `future_edit_start_move_not_supported`. To move the time of every remaining date, update the series itself. A date first edited with one mode must keep using that mode; mixing them returns `409` `event_in_progress`.
+
+## Cancel dates
+
+`DELETE` a dated ID to cancel dates without deleting the series:
+
+- `mode=single` (default) cancels that one date by adding its original start to the series' `recurrence.exdates`. The response shows the date with `status: cancelled`; afterwards it no longer appears in lists and gets no start or end webhooks. A date that is already running still gets its `calendar.event.ending`.
+- `mode=future` cancels that date and every later one, ending the series. The series' `recurrence.truncate_before` records where it now stops.
+- `mode=future` from the first date deletes the whole series and returns a `deletion_id`, like deleting the series UUID.
+
+<CodeBlocks>
+```python title="Python"
+date_id = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000"
+etag = client.inboxes.calendar.with_raw_response.get_event(inbox_id, date_id).headers["etag"]
+
+client.inboxes.calendar.delete_event(inbox_id, date_id, if_match=etag, mode="single")
+```
+
+```typescript title="TypeScript"
+const cancelId = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000";
+const cancelRead = await client.inboxes.calendar.getEvent(inboxId, cancelId).withRawResponse();
+
+await client.inboxes.calendar.deleteEvent(inboxId, cancelId, {
+  ifMatch: cancelRead.rawResponse.headers.get("etag")!,
+  mode: "single",
+});
+```
+</CodeBlocks>
+
+Each sends `calendar.event.updated` with the cancelled date (deleting the whole series from its first date sends `calendar.event.deleted`). Add `send_invites=true` to email the cancellation to attendees.
+
+## Change the whole series
+
+`PATCH` the series UUID, with the series' `ETag` (`"rv-<resource_revision>"`), to change every date. A change to the schedule (`start`, `end`, `timezone`, `duration_mode`, `recurrence` or `status`) regenerates the series' dates, and start and end webhooks follow the new schedule. A date that is already in progress still gets its `calendar.event.ending`.
+
+While dates are regenerated, which takes a few seconds, the agenda view can briefly leave out some of the series' dates.
+
+To turn a series into a one-off event, set `recurrence` to `null`. This only works while none of its dates has been edited; otherwise it returns `409` `event_in_progress`, and you should create a new one-off event and delete the series instead.
+
+## Time zones and daylight saving
+
+Rules are evaluated in wall-clock time in the series' `timezone`, so each date keeps its local start time when clocks change. When a date's local start falls in a gap (for example 02:30 on the night clocks spring forward) or repeats (when clocks fall back), it resolves as RFC 5545 prescribes.
+
+`duration_mode` decides the end of a date that spans a change: `nominal` (the default for series) keeps the local end time, and `exact` keeps the elapsed length.

@@ -167,6 +167,19 @@ Threads are groupings of messages and have no permissions of their own. Every th
 | `pod_update` | Update pods |
 | `pod_delete` | Delete pods |
 
+### Calendar
+
+| Permission | Description |
+| --- | --- |
+| `calendar_read` | Read an inbox's calendar settings |
+| `calendar_update` | Update an inbox's calendar settings |
+| `calendar_event_read` | Read calendar events, and receive `calendar.event.*` webhook and WebSocket events |
+| `calendar_event_create` | Create calendar events |
+| `calendar_event_update` | Update calendar events and respond to invitations |
+| `calendar_event_delete` | Delete calendar events |
+
+Calendar is in private beta; see [Calendar](/calendar).
+
 ## Code Examples
 
 ### Read-only key
