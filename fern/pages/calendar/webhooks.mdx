@@ -88,7 +88,7 @@ const webhook = await client.webhooks.create({
 
 The API key that creates the webhook needs the `calendar_event_read` permission to subscribe to calendar events.
 
-Calendar events are also delivered over [WebSockets](/websockets). Include them in `event_types` when you subscribe. A subscription without `event_types` receives them too, as long as the API key had `calendar_event_read` when the connection opened.
+Calendar events are also delivered over [WebSockets](/websockets), but only to subscriptions that name them in `event_types`. A subscription without `event_types` doesn't receive them. Each subscribe replaces the event types of any earlier subscription to the same inboxes on that connection, so include any message events you also want. The API key needs `calendar_event_read` when the connection opens.
 
 ## Start and end events
 

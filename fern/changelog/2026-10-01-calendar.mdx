@@ -20,7 +20,7 @@ Every inbox now has a calendar (private beta). Agents can schedule one-off and r
 
 - **Recurring events** with RFC 5545 `RRULE`, `EXDATE` and `RDATE`, evaluated in the event's IANA time zone so each date keeps its local time across daylight-saving changes.
 - **Invitations (iMIP)**: `send_invites` emails invitations, updates and cancellations to attendees. Invitations emailed to the inbox are added to its calendar automatically, and attendee replies update their status.
-- **Webhook and WebSocket events**: `calendar.event.created`, `calendar.event.updated` (with `previous` values), `calendar.event.deleted`, `calendar.event.responded`, `calendar.event.starting` and `calendar.event.ending`.
+- **Webhook and WebSocket events**: `calendar.event.created`, `calendar.event.updated` (with `previous` values), `calendar.event.deleted`, `calendar.event.responded`, `calendar.event.starting` and `calendar.event.ending`. A WebSocket subscription receives them only when its `event_types` names them.
 - **Safe concurrency**: `ETag` and `If-Match` on every change, `client_id` for idempotent creates, and `Idempotency-Key` for deletes.
 - **Permissions**: `calendar_read`, `calendar_update`, `calendar_event_read`, `calendar_event_create`, `calendar_event_update` and `calendar_event_delete`.
 - **SDKs**: `client.inboxes.calendar` with `get`, `update`, `listEvents`, `createEvent`, `getEvent`, `updateEvent`, `deleteEvent`, `listEventInstances` and `respondToEvent` (snake_case in Python).
