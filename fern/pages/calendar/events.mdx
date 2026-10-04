@@ -133,8 +133,9 @@ Networks fail. If you retry a create without a `client_id`, you can end up with 
 Derive the `client_id` from something stable in your system, such as the meeting request it fulfills.
 
 <Tip>
-  Creating several events in parallel on a calendar that has never had an event can return `409`
-  `race_condition` for some of them. Retry those requests with the same `client_id`.
+  A create that returns `409` `race_condition` either conflicted with a concurrent change or hit
+  the calendar's event limit. Retry it with the same `client_id`; if it keeps failing, check
+  `event_count` with Get Calendar, because retries cannot succeed once the calendar is full.
 </Tip>
 
 ## Get an event
@@ -205,7 +206,7 @@ Both views return up to `limit` items (1 to 100, default 50). When there are mor
 
 Updates use optimistic concurrency so that two writers cannot silently overwrite each other. Every read and write response has an `ETag` header; send it back in `If-Match`:
 
-1. Read the event (or use the response of your last write) and keep its `ETag`. For one-off and series events the `ETag` is `"rv-<resource_revision>"`, so you can also build it from the `resource_revision` field.
+1. Read the event (or use the response of your last write) and keep its `ETag`. For one-off and series events the `ETag` is `"rv-<resource_revision>"`, so you can also build it from the `resource_revision` field. Agenda items and start and end webhooks leave that field out, so get the event by its UUID first.
 2. Send `PATCH` with `If-Match` and only the fields you want to change.
 3. If someone changed the event in between, you get `412` `precondition_failed`. Read it again, reapply your change and retry.
 
@@ -272,7 +273,7 @@ A schedule change that is no longer allowed returns `409` `event_already_started
 
 ## Delete an event
 
-Deleting a one-off or recurring event needs two headers: `If-Match` with the current `ETag`, and an `Idempotency-Key` you choose (1 to 128 visible ASCII characters).
+Deleting a one-off or recurring event needs two headers: `If-Match` with the current `ETag`, and an `Idempotency-Key` you choose (1 to 128 visible ASCII characters). Keys are unique across your organization, so reusing one to delete a different event returns `409` `idempotency_conflict`.
 
 <CodeBlocks>
 ```python title="Python"
@@ -315,7 +316,7 @@ New events without a `timezone` use the calendar's `timezone`, which starts as `
 inbox_id = "scheduler@agentmail.to"
 
 # the calendar's ETag is only in the response header
-etag = client.inboxes.calendar.with_raw_response.get(inbox_id).headers["etag"]
+etag = client.inboxes.calendar.with_raw_response.get(inbox_id, consistency="primary").headers["etag"]
 calendar = client.inboxes.calendar.update(inbox_id, if_match=etag, timezone="America/New_York")
 ```
 
@@ -323,7 +324,9 @@ calendar = client.inboxes.calendar.update(inbox_id, if_match=etag, timezone="Ame
 const inboxId = "scheduler@agentmail.to";
 
 // the calendar's ETag is only in the response header
-const { rawResponse } = await client.inboxes.calendar.get(inboxId).withRawResponse();
+const { rawResponse } = await client.inboxes.calendar
+  .get(inboxId, { consistency: "primary" })
+  .withRawResponse();
 const calendar = await client.inboxes.calendar.update(inboxId, {
   ifMatch: rawResponse.headers.get("etag")!,
   timezone: "America/New_York",

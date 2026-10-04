@@ -58,7 +58,7 @@ const created = await client.inboxes.calendar.createEvent("scheduler@agentmail.t
 ```
 </CodeBlocks>
 
-Each attendee receives a separate email from the inbox with the subject `Invitation: <title>`, a short text body with the time, and the event as an `invite.ics` attachment (`METHOD:REQUEST`). The emails are sent like any other message from the inbox and appear among its sent messages.
+Each attendee receives a separate email from the inbox with the subject `Invitation: <title>`, a short text body describing the event, and the event as an `invite.ics` attachment (`METHOD:REQUEST`). The emails are sent like any other message from the inbox and appear among its sent messages.
 
 Invitations are sent in the background after the event is stored. They are not sent unless you ask: `send_invites` defaults to `false`, so you can add attendees for your own records without emailing anyone.
 
@@ -68,7 +68,7 @@ Pass `send_invites` again whenever attendees should hear about a change:
 
 | Action | Request | Attendees receive |
 | --- | --- | --- |
-| Update the event | `PATCH` with `"send_invites": true` in the body | An updated invitation (`REQUEST`) |
+| Update the event | `PATCH` with `"send_invites": true` in the body | An updated invitation (`REQUEST`). Invited attendees removed by the update get a cancellation (`CANCEL`). |
 | Cancel one date | `DELETE` a dated ID with `?send_invites=true` | A cancellation for that date (`CANCEL`) |
 | Delete the event | `DELETE` the event UUID with `?send_invites=true` | A cancellation (`CANCEL`) |
 

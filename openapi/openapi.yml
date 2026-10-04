@@ -3549,6 +3549,12 @@ paths:
             or series UUID.
 
             Retrying a delete with the same key returns the original result.
+            Keys are unique
+
+            across your organization: reusing one to delete a different event
+            returns `409`
+
+            `idempotency_conflict`.
           required: false
           schema:
             type: string
@@ -3576,7 +3582,7 @@ paths:
                       series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
                       original_start: '2026-10-07T09:00:00'
                       original_start_at: '2026-10-07T13:00:00Z'
-                      is_exception: true
+                      is_exception: false
                       title: Team standup
                       location: https://meet.example.com/standup
                       status: cancelled
@@ -3593,8 +3599,9 @@ paths:
                       sequence: 0
                       source: api
                       organizer_email: scheduler@agentmail.to
-                      created_at: '2026-10-02T09:30:00Z'
+                      created_at: '2026-10-01T16:25:00Z'
                       updated_at: '2026-10-02T09:30:00Z'
+                      attendees: []
                     operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
         '400':
           description: ''
@@ -3827,6 +3834,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
           description: ''
           content:
             application/json:
@@ -11533,7 +11546,11 @@ components:
         `calendar.event.starting` or `calendar.event.ending` webhooks
         (cancelling a date that is
 
-        already running still sends its `calendar.event.ending`).
+        already running still sends its `calendar.event.ending`). A date
+        cancelled by deleting its
+
+        dated ID is removed from the series instead, so reading it can return
+        `404` or `410`.
     CalendarEventSource:
       title: CalendarEventSource
       type: string
@@ -11638,19 +11655,23 @@ components:
       type: string
       format: date-time
       description: >-
-        Start of the window (UTC). Defaults to now. The window between `after`
-        and `before` can be at
+        Start of the window, as a UTC timestamp ending in `Z` (an offset such as
+        `-04:00` is
 
-        most 366 days.
+        rejected). Defaults to now. The window between `after` and `before` can
+        be at most 366 days.
     WindowBefore:
       title: WindowBefore
       type: string
       format: date-time
       description: >-
-        End of the window (UTC). Defaults to 90 days after `after`. The window
-        between `after` and
+        End of the window, as a UTC timestamp ending in `Z` (an offset such as
+        `-04:00` is rejected).
 
-        `before` can be at most 366 days.
+        Defaults to 90 days after `after`. The window between `after` and
+        `before` can be at most 366
+
+        days.
     IncludeOverlapping:
       title: IncludeOverlapping
       type: boolean
@@ -11764,7 +11785,11 @@ components:
         comment:
           type: string
           nullable: true
-          description: Comment the attendee sent with their response. At most 4,096 bytes.
+          description: >-
+            Comment the attendee sent with their response. At most 4,096 UTF-8
+            bytes; on create or
+
+            update, a longer comment is dropped rather than rejected.
         responded_at:
           type: string
           format: date-time
@@ -12012,8 +12037,13 @@ components:
           $ref: '#/components/schemas/ResourceRevision'
           nullable: true
           description: >-
-            Present on `single` and `series` events. Dated events use an opaque
-            `ETag` instead.
+            Present on `single` and `series` events, except agenda items
+            (`expand=true`) and
+
+            `calendar.event.starting` and `calendar.event.ending` payloads,
+            which omit it. Dated events
+
+            use an opaque `ETag` instead.
         created_at:
           type: string
           format: date-time
@@ -12133,9 +12163,10 @@ components:
         metadata:
           nullable: true
           description: >-
-            Your own JSON value (usually an object), returned on every read and
-            in webhooks. Never sent to attendees. At most 16,384 bytes
-            serialized.
+            Your own JSON value (usually an object), returned on reads and in
+            webhooks (except agenda and instance list items, and the webhook for
+            a date cancelled with `DELETE`). Never sent to attendees. At most
+            16,384 bytes serialized.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
           nullable: true
@@ -12292,13 +12323,13 @@ components:
           type: string
           nullable: true
           description: >-
-            Comment to include with the response. At most 4,096 characters. It
-            is stored as the inbox's
+            Comment to include with the response. At most 4,096 UTF-8 bytes,
+            with no control characters
 
-            attendee `comment`, which updates limit to 4,096 UTF-8 bytes, so
-            keep it within 4,096 bytes
+            other than tab, line feed and carriage return; a longer comment
+            returns `400`. It is stored
 
-            if you will send the attendee list back in an update.
+            as the inbox's attendee `comment`.
         send_reply:
           type: boolean
           nullable: true

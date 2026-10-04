@@ -785,7 +785,9 @@ service:
             type: optional<string>
             docs: |
               1 to 128 visible ASCII characters. Required when deleting a one-off or series UUID.
-              Retrying a delete with the same key returns the original result.
+              Retrying a delete with the same key returns the original result. Keys are unique
+              across your organization: reusing one to delete a different event returns `409`
+              `idempotency_conflict`.
         query-parameters:
           mode: optional<calendar.InstanceMutationMode>
           send_invites:
@@ -849,7 +851,7 @@ service:
                   "series_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47",
                   "original_start": "2026-10-07T09:00:00",
                   "original_start_at": "2026-10-07T13:00:00Z",
-                  "is_exception": true,
+                  "is_exception": false,
                   "title": "Team standup",
                   "location": "https://meet.example.com/standup",
                   "status": "cancelled",
@@ -866,8 +868,9 @@ service:
                   "sequence": 0,
                   "source": "api",
                   "organizer_email": "scheduler@agentmail.to",
-                  "created_at": "2026-10-02T09:30:00Z",
-                  "updated_at": "2026-10-02T09:30:00Z"
+                  "created_at": "2026-10-01T16:25:00Z",
+                  "updated_at": "2026-10-02T09:30:00Z",
+                  "attendees": []
                 },
                 "operation_id": "0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50"
               }
@@ -904,6 +907,7 @@ service:
         - global.ValidationError
         - calendar.ForbiddenError
         - global.NotFoundError
+        - global.ConflictError
       examples:
         - path-parameters:
             {

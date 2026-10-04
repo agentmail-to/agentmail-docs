@@ -97,7 +97,7 @@ The stored rule is normalized, so the `rule` you read back can differ textually 
 
 An `exdates` entry must match the date's original start exactly. For timed events, an `rdates` entry can also be a period, such as `{"start": "2026-11-28T09:00:00", "duration": "PT30M"}`.
 
-To skip a single date later, [cancel that date](#cancel-dates); it adds the date to `exdates` for you.
+To skip a single date later, [cancel that date](#cancel-dates); it adds the date to `exdates` for you. Cancelled dates count toward the 366 `exdates` limit, and cancelling a date beyond it fails with `500` `internal_error` that retrying cannot fix. To skip dates on a regular pattern, change the rule instead.
 
 ### Limits
 
@@ -107,7 +107,7 @@ To skip a single date later, [cancel that date](#cancel-dates); it adds the date
 | Length of each date | 31 days |
 | `INTERVAL` | 1 to 366 |
 | `COUNT` | 1 to 10,000 |
-| `exdates` / `rdates` | 366 / 100 |
+| `exdates` / `rdates` | 366 (including cancelled dates) / 100 |
 | Individually edited dates per series | 730 |
 | `mode=future` edits per series | 64 |
 
@@ -243,7 +243,7 @@ A `mode=future` change cannot include `start`; it returns `409` `future_edit_sta
 
 `DELETE` a dated ID to cancel dates without deleting the series:
 
-- `mode=single` (default) cancels that one date by adding its original start to the series' `recurrence.exdates`. The response shows the date with `status: cancelled`; afterwards it no longer appears in lists and gets no start or end webhooks. A date that is already running still gets its `calendar.event.ending`.
+- `mode=single` (default) cancels that one date by adding its original start to the series' `recurrence.exdates`. The response shows the date with `status: cancelled`; afterwards it no longer appears in lists and gets no start or end webhooks. A date that is already running still gets its `calendar.event.ending`. The date is now removed from the series, so reading its dated ID can return `404` or `410`. A date within about 90 days reads back as `cancelled` once the series is regenerated, for 30 days after the cancel. To confirm a cancel, check the series' `recurrence.exdates`.
 - `mode=future` cancels that date and every later one, ending the series. The series' `recurrence.truncate_before` records where it now stops.
 - `mode=future` from the first date deletes the whole series and returns a `deletion_id`, like deleting the series UUID.
 

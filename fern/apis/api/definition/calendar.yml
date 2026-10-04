@@ -39,7 +39,8 @@ types:
     docs: |
       Status of the event. A `cancelled` event or date stays readable but sends no
       `calendar.event.starting` or `calendar.event.ending` webhooks (cancelling a date that is
-      already running still sends its `calendar.event.ending`).
+      already running still sends its `calendar.event.ending`). A date cancelled by deleting its
+      dated ID is removed from the series instead, so reading it can return `404` or `410`.
 
   CalendarEventSource:
     enum:
@@ -110,14 +111,15 @@ types:
   WindowAfter:
     type: datetime
     docs: |
-      Start of the window (UTC). Defaults to now. The window between `after` and `before` can be at
-      most 366 days.
+      Start of the window, as a UTC timestamp ending in `Z` (an offset such as `-04:00` is
+      rejected). Defaults to now. The window between `after` and `before` can be at most 366 days.
 
   WindowBefore:
     type: datetime
     docs: |
-      End of the window (UTC). Defaults to 90 days after `after`. The window between `after` and
-      `before` can be at most 366 days.
+      End of the window, as a UTC timestamp ending in `Z` (an offset such as `-04:00` is rejected).
+      Defaults to 90 days after `after`. The window between `after` and `before` can be at most 366
+      days.
 
   IncludeOverlapping:
     type: boolean
@@ -199,7 +201,9 @@ types:
         docs: Defaults to `required`.
       comment:
         type: optional<string>
-        docs: Comment the attendee sent with their response. At most 4,096 bytes.
+        docs: |
+          Comment the attendee sent with their response. At most 4,096 UTF-8 bytes; on create or
+          update, a longer comment is dropped rather than rejected.
       responded_at:
         type: optional<datetime>
         docs: Time at which the attendee last responded.
@@ -342,7 +346,10 @@ types:
         docs: For `email` events, the ID of the message whose invitation last created or updated the event.
       resource_revision:
         type: optional<ResourceRevision>
-        docs: Present on `single` and `series` events. Dated events use an opaque `ETag` instead.
+        docs: |
+          Present on `single` and `series` events, except agenda items (`expand=true`) and
+          `calendar.event.starting` and `calendar.event.ending` payloads, which omit it. Dated events
+          use an opaque `ETag` instead.
       created_at:
         type: datetime
         docs: Time at which the event (or, for a date, the definition governing it) was created.
@@ -395,7 +402,7 @@ types:
         docs: Location of the event. At most 1,024 characters.
       metadata:
         type: optional<unknown>
-        docs: Your own JSON value (usually an object), returned on every read and in webhooks. Never sent to attendees. At most 16,384 bytes serialized.
+        docs: Your own JSON value (usually an object), returned on reads and in webhooks (except agenda and instance list items, and the webhook for a date cancelled with `DELETE`). Never sent to attendees. At most 16,384 bytes serialized.
       status:
         type: optional<CalendarEventStatus>
         docs: Defaults to `confirmed`.
@@ -488,9 +495,9 @@ types:
       comment:
         type: optional<string>
         docs: |
-          Comment to include with the response. At most 4,096 characters. It is stored as the inbox's
-          attendee `comment`, which updates limit to 4,096 UTF-8 bytes, so keep it within 4,096 bytes
-          if you will send the attendee list back in an update.
+          Comment to include with the response. At most 4,096 UTF-8 bytes, with no control characters
+          other than tab, line feed and carriage return; a longer comment returns `400`. It is stored
+          as the inbox's attendee `comment`.
       send_reply:
         type: optional<boolean>
         docs: When `true` (default), emails the response (iCalendar `REPLY`) to the organizer.

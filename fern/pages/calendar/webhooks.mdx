@@ -309,6 +309,6 @@ app.listen(3000);
 
 <Tip>
   Store your own context in the event's `metadata` when you create it, such as a deal ID or the
-  conversation the meeting came from. It arrives in every webhook, so your handler does not need a
-  lookup to know what the event is about.
+  conversation the meeting came from. It arrives in every webhook except the one for a date
+  cancelled with `DELETE`, so your handler rarely needs a lookup to know what the event is about.
 </Tip>

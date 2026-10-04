@@ -76,7 +76,7 @@ Responses add the matching UTC instants, `start_at` and `end_at`. These are the 
 
 ### Status
 
-`status` is `confirmed`, `tentative` or `cancelled`. A cancelled event or date stays readable, but no `calendar.event.starting` or `calendar.event.ending` webhook is sent for it. The exception is a date cancelled while it is running: it still gets its `calendar.event.ending`.
+`status` is `confirmed`, `tentative` or `cancelled`. A cancelled event or date stays readable, but no `calendar.event.starting` or `calendar.event.ending` webhook is sent for it. The exception is a date cancelled while it is running: it still gets its `calendar.event.ending`. A date cancelled by deleting its dated ID is removed from the series instead, so reading it can return `404` or `410`; see [Cancel dates](/calendar-recurring-events#cancel-dates).
 
 ## Two ways to list events
 
