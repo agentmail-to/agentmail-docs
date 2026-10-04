@@ -1,0 +1,70 @@
+---
+title: "Can I set a profile picture for my inbox?"
+subtitle: How Google account photos and BIMI logos work with AgentMail addresses.
+slug: knowledge-base/inbox-profile-pictures
+description: Learn how to associate a Google profile picture with an AgentMail address, how BIMI logos differ, and when Gmail requires a VMC or CMC certificate.
+---
+
+AgentMail does not currently have an API field for setting the picture shown beside your emails in a recipient's inbox. The recipient's email provider controls that image. Setting an inbox's `display_name` changes the sender's name, and storing an image URL in `metadata` does not set a recipient's avatar.
+
+Two separate systems can supply a sender image:
+
+| Option                         | Image source                                                                            | Certificate needed?         |
+| ------------------------------ | --------------------------------------------------------------------------------------- | --------------------------- |
+| Google account profile picture | A photo or illustration uploaded to a Google account associated with your email address | No                          |
+| BIMI brand logo                | A domain's published branding assets, retrieved by a supporting email provider          | Gmail requires a VMC or CMC |
+
+## Associate a Google profile picture with your address
+
+You can create a Google account using an existing email address, including an `@agentmail.to` address or an inbox on your custom domain:
+
+1. Open [Google's account creation instructions](https://support.google.com/accounts/answer/27441?hl=en) and choose **Use your existing email** during signup.
+2. Enter your AgentMail inbox address and verify it using the code delivered to that inbox.
+3. Open your Google account's [Personal info](https://myaccount.google.com/personal-info), select **Profile picture**, and upload your image.
+4. Review your photo's [visibility settings](https://support.google.com/accounts/answer/6304920?hl=en).
+
+This creates a Google account associated with your address. Your email remains hosted by AgentMail; you do not need to move it to Gmail or change your MX records. Google hosts the profile image, and no BIMI certificate is required.
+
+<Note>
+  This configures a Google profile photo, not a universal email avatar. It does
+  not guarantee that Gmail will display the photo on messages sent through
+  AgentMail, or that other email providers will use it. Google notes that
+  profile photo changes can take time to appear across its products.
+</Note>
+
+See [Google's profile picture guide](https://support.google.com/mail/answer/35529?hl=en) for the current steps and display behavior.
+
+## How BIMI differs
+
+Brand Indicators for Message Identification (BIMI) lets a domain publish a brand logo for supporting email providers to display. A default BIMI record applies to the sending domain rather than an individual inbox.
+
+For Gmail, the setup includes enforced DMARC, a qualifying SVG logo, HTTPS hosting, and a certificate issued for the logo and domain. The certificate is evidence supporting use of the logo; it is separate from the profile picture you upload to a Google account.
+
+| Certificate                     | Purpose                                                             | Gmail verification checkmark |
+| ------------------------------- | ------------------------------------------------------------------- | ---------------------------- |
+| Verified Mark Certificate (VMC) | Certifies an eligible trademarked logo                              | Yes                          |
+| Common Mark Certificate (CMC)   | Provides a certification route for qualifying non-trademarked logos | No                           |
+
+A CMC still requires certification. Uploading an arbitrary image does not automatically make it eligible. Follow [Google's BIMI setup guide](https://knowledge.workspace.google.com/admin/security/set-up-bimi) for current certificate and image requirements.
+
+### Where does the BIMI logo live?
+
+You host the public SVG and certificate on an HTTPS server, such as your website or a CDN. A DNS TXT record points to those assets:
+
+| Record field | Example                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| Name         | `default._bimi.example.com`                                                              |
+| Type         | `TXT`                                                                                    |
+| Value        | `v=BIMI1; l=https://assets.example.com/logo.svg; a=https://assets.example.com/mark.pem;` |
+
+The receiving provider retrieves and evaluates the assets. Gmail can also use the logo embedded in the certificate. Use the domain in the visible sender address for the BIMI record, not the bounce-address domain. For domain setup, see [Custom domains](/custom-domains).
+
+You need control of the domain's DNS to publish these records. Customers using shared `@agentmail.to` addresses cannot publish their own BIMI records on that domain.
+
+### Can each inbox have a different BIMI logo?
+
+BIMI supports selectors for different logos on one domain, but each logo needs its own DNS configuration and, where required, certificate. A selector header alone does not make a picture appear. AgentMail does not currently offer managed per-inbox BIMI avatar setup; recipient display and selector handling must be verified with the receiving provider. See the [BIMI Group's selector guide](https://bimigroup.org/how-and-why-to-implement-bimi-selectors/).
+
+## Check whether the image appears
+
+After configuring a Google profile, send a test message to a Gmail account and inspect the sender image there. Check that you configured the exact sending address, review photo visibility, and allow time for Google's changes to propagate. A recipient's saved contact photo can make the result ambiguous.
