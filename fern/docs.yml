@@ -501,6 +501,9 @@ navigation:
           - page: What can I do with an inbox?
             icon: fa-solid fa-inbox
             path: pages/knowledge-base/inbox-capabilities.mdx
+          - page: Inbox profile pictures
+            icon: fa-regular fa-image
+            path: pages/knowledge-base/inbox-profile-pictures.mdx
           - page: Creating your first inbox
             icon: fa-solid fa-plus
             path: pages/knowledge-base/creating-first-inbox.mdx
