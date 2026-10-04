@@ -84,7 +84,7 @@ Read with `consistency="primary"` before retrying, so you do not get a slightly 
 
 | Operation | How to make retries safe |
 | --- | --- |
-| Create Event | Send a `client_id`. A retry with the same `client_id` and body returns the original event with `200`. |
+| Create Event | Send a `client_id`. A retry with the same `client_id` and body within seven days returns the original event with `200`. After seven days an identical retry returns `409` `race_condition`, meaning the event already exists; keep the `event_id` from the first response. With `send_invites: true`, every attempt is charged against your send limits. |
 | Delete a one-off or series event | Send an `Idempotency-Key` (required). A retry with the same key returns the same `deletion_id` while removal runs, and `404` after it has finished. |
 | Update Event, Respond | Protected by `If-Match`. If your first attempt succeeded, the retry gets `412` because the version moved; read the event to confirm your change is there. |
 | Cancel a date | Protected by `If-Match`. If your first attempt succeeded, the retry gets `412`, `404` or `410`, because the date has left the series. Get the series and check that `recurrence.exdates` (or, for `mode=future`, `recurrence.truncate_before`) covers the date. |
@@ -109,6 +109,10 @@ Read with `consistency="primary"` before retrying, so you do not get a slightly 
 | List window (`after` to `before`) | 366 days, default 90 days from now |
 
 For recurrence limits, see [Recurring Events](/calendar-recurring-events#limits). Calendar requests count toward your API rate limits like any other request.
+
+### Send limits for invitations
+
+Invitation, update, cancellation and reply emails also count toward your organization, pod and inbox send limits, one send per recipient. The charge is taken when you make the request, before anything is saved, so an over-limit request returns `429` `rate_limit_exceeded` and changes nothing. See [Send limits](/calendar-invitations#send-limits).
 
 ### Retention
 
@@ -139,3 +143,4 @@ Calendar errors use the standard [error format](/errors), with a stable `code` t
 | `412` | `precondition_failed` | The resource changed since your `If-Match` was read. The body includes `current_revision`. |
 | `413` | `payload_too_large` | The request body exceeds 128 KB (events) or 8 KB (calendar settings). |
 | `428` | `precondition_required` | `If-Match` is missing. |
+| `429` | `rate_limit_exceeded` | Too many requests, or the invitation emails this request would send exceed a send limit. Nothing was changed. Wait for `Retry-After` when present, or retry without `send_invites`. |

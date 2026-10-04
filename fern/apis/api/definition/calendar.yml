@@ -389,8 +389,9 @@ types:
         type: optional<string>
         docs: |
           Your idempotency key for this create. Retrying with the same `client_id` and the same body
-          returns the original event with `200` instead of creating a second one. Reusing it with a
-          different body is a `409` `idempotency_conflict`.
+          within seven days returns the original event with `200` instead of creating a second one.
+          After seven days an identical retry returns `409` `race_condition`, meaning the event
+          already exists. Reusing it with a different body is a `409` `idempotency_conflict`.
       title:
         type: string
         docs: Title of the event. 1 to 1,000 characters.
@@ -539,6 +540,13 @@ errors:
     status-code: 413
     type: global.ErrorResponse
     docs: The request body is too large (8 KB for calendar settings, 128 KB for events).
+
+  RateLimitError:
+    status-code: 429
+    type: global.ErrorResponse
+    docs: |
+      Too many requests, or the invitation emails this request would send exceed an organization,
+      pod or inbox send limit. Nothing was changed. Honor the `Retry-After` header when present.
 
   PreconditionRequiredError:
     status-code: 428

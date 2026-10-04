@@ -342,7 +342,13 @@ service:
         inbox also emails an invitation to every attendee.
 
         Pass `client_id` to make retries safe: repeating the request with the same `client_id` and
-        body returns the original event with status `200` instead of `201`.
+        body within seven days returns the original event with status `200` instead of `201`. After
+        seven days an identical retry returns `409` `race_condition`, meaning the event already
+        exists, so keep the `event_id` from the first response.
+
+        With `send_invites: true`, each attendee counts as one send against the organization, pod
+        and inbox send limits, charged before the event is stored. An over-limit request returns
+        `429` `rate_limit_exceeded` and creates nothing.
 
         The `ETag` response header (`"rv-<n>"`) is the value to send in `If-Match` when updating or
         deleting the event. Requires the `calendar_event_create` permission.
@@ -358,6 +364,7 @@ service:
         - global.NotFoundError
         - global.ConflictError
         - calendar.PayloadTooLargeError
+        - calendar.RateLimitError
       examples:
         - name:
             "One-off event with an invitation"
@@ -612,6 +619,10 @@ service:
         Sends `calendar.event.updated`. With `send_invites: true` the organizer inbox also emails the
         updated invitation to every attendee. Requires the `calendar_event_update` permission.
 
+        Emailing attendees counts one send per attendee against the organization, pod and inbox
+        send limits, charged before the change is saved; an over-limit request returns `429`
+        `rate_limit_exceeded` and changes nothing.
+
         Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id: calendar.CalendarEventId
@@ -636,6 +647,7 @@ service:
         - calendar.PreconditionFailedError
         - calendar.PayloadTooLargeError
         - calendar.PreconditionRequiredError
+        - calendar.RateLimitError
       examples:
         - name:
             "Reschedule a one-off event"
@@ -772,6 +784,10 @@ service:
         inbox also emails a cancellation to every attendee. Requires the `calendar_event_delete` permission and the
         current `ETag` in `If-Match`.
 
+        Emailing cancellations counts one send per attendee against the organization, pod and inbox
+        send limits, charged before the delete; an over-limit request returns `429`
+        `rate_limit_exceeded` and deletes nothing.
+
         Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id: calendar.CalendarEventId
@@ -804,6 +820,7 @@ service:
         - calendar.EventExpiredError
         - calendar.PreconditionFailedError
         - calendar.PreconditionRequiredError
+        - calendar.RateLimitError
       examples:
         - name:
             "Delete an event"
@@ -1022,6 +1039,10 @@ service:
 
         Requires the `calendar_event_update` permission and the current `ETag` in `If-Match`.
 
+        A reply email counts as one send against the organization, pod and inbox send limits,
+        charged before the response is saved; an over-limit request returns `429`
+        `rate_limit_exceeded` and changes nothing.
+
         Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
         event_id: calendar.CalendarEventId
@@ -1044,6 +1065,7 @@ service:
         - calendar.PreconditionFailedError
         - calendar.PayloadTooLargeError
         - calendar.PreconditionRequiredError
+        - calendar.RateLimitError
       examples:
         - path-parameters:
             {

@@ -2894,7 +2894,22 @@ paths:
         Pass `client_id` to make retries safe: repeating the request with the
         same `client_id` and
 
-        body returns the original event with status `200` instead of `201`.
+        body within seven days returns the original event with status `200`
+        instead of `201`. After
+
+        seven days an identical retry returns `409` `race_condition`, meaning
+        the event already
+
+        exists, so keep the `event_id` from the first response.
+
+
+        With `send_invites: true`, each attendee counts as one send against the
+        organization, pod
+
+        and inbox send limits, charged before the event is stored. An over-limit
+        request returns
+
+        `429` `rate_limit_exceeded` and creates nothing.
 
 
         The `ETag` response header (`"rv-<n>"`) is the value to send in
@@ -3014,6 +3029,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '413':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
           description: ''
           content:
             application/json:
@@ -3252,6 +3273,15 @@ paths:
         `calendar_event_update` permission.
 
 
+        Emailing attendees counts one send per attendee against the
+        organization, pod and inbox
+
+        send limits, charged before the change is saved; an over-limit request
+        returns `429`
+
+        `rate_limit_exceeded` and changes nothing.
+
+
         Calendar is in private beta: organizations without access receive a
         `403`.
       operationId: inboxes_calendar_updateEvent
@@ -3422,6 +3452,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Update Event
       servers:
         - url: https://api.agentmail.to
@@ -3477,6 +3513,15 @@ paths:
         `calendar_event_delete` permission and the
 
         current `ETag` in `If-Match`.
+
+
+        Emailing cancellations counts one send per attendee against the
+        organization, pod and inbox
+
+        send limits, charged before the delete; an over-limit request returns
+        `429`
+
+        `rate_limit_exceeded` and deletes nothing.
 
 
         Calendar is in private beta: organizations without access receive a
@@ -3640,6 +3685,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/PreconditionFailedErrorResponse'
         '428':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
           description: ''
           content:
             application/json:
@@ -3879,6 +3930,15 @@ paths:
         in `If-Match`.
 
 
+        A reply email counts as one send against the organization, pod and inbox
+        send limits,
+
+        charged before the response is saved; an over-limit request returns
+        `429`
+
+        `rate_limit_exceeded` and changes nothing.
+
+
         Calendar is in private beta: organizations without access receive a
         `403`.
       operationId: inboxes_calendar_respondToEvent
@@ -4000,6 +4060,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '428':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
           description: ''
           content:
             application/json:
@@ -12144,10 +12210,14 @@ components:
             Your idempotency key for this create. Retrying with the same
             `client_id` and the same body
 
-            returns the original event with `200` instead of creating a second
-            one. Reusing it with a
+            within seven days returns the original event with `200` instead of
+            creating a second one.
 
-            different body is a `409` `idempotency_conflict`.
+            After seven days an identical retry returns `409` `race_condition`,
+            meaning the event
+
+            already exists. Reusing it with a different body is a `409`
+            `idempotency_conflict`.
         title:
           type: string
           description: Title of the event. 1 to 1,000 characters.

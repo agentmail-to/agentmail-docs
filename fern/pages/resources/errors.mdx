@@ -195,7 +195,7 @@ A calendar request body is larger than its limit: 128 KB for events, 8 KB for ca
 
 ### rate_limit_exceeded
 
-You are sending requests too quickly or have hit a usage limit. Honor the `Retry-After` header when present, and retry with exponential backoff.
+You are sending requests too quickly or have hit a usage limit, including the send limits that calendar invitation emails count toward. Honor the `Retry-After` header when present, and retry with exponential backoff. A calendar request rejected for its invitation emails changed nothing; retry it later, or without `send_invites`.
 
 ### service_unavailable
 

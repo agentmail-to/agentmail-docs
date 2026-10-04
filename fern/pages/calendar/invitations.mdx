@@ -76,6 +76,22 @@ A change that is not sent stays on your calendar only; attendees keep their prev
 
 Only events the inbox organizes can send. Using `send_invites` on an event that came from someone else's invitation returns `409` `calendar_response_invalid`.
 
+### Send limits
+
+Invitation emails count toward the same organization, pod and inbox send limits as any other email from the inbox. These are separate from the API's request rate limits. A request that asks for emails is charged one send per recipient before anything is saved:
+
+| Request | Charged |
+| --- | --- |
+| Create or update with `send_invites: true` | One per attendee on the event after the change |
+| Delete an event or cancel a date with `send_invites=true` | One per attendee of the event |
+| Respond with `send_reply` (the default) | One, for the reply to the organizer |
+
+If the charge would exceed a limit, the request returns `429` `rate_limit_exceeded` and the event is not created or changed. Wait for the `Retry-After` header when present, or retry without `send_invites` to save the change without emailing anyone.
+
+A request is charged even if it then fails, and a create retried with the same `client_id` is charged again. While the inbox is paused or suspended, nothing is charged and no invitations are sent.
+
+Invitations also pass the same outbound checks as other mail, such as spam checks and the recipient limits for new senders. An invitation those checks refuse is not sent or retried; the event itself is still saved.
+
 ### Attendee replies
 
 When an attendee accepts, declines or tentatively accepts, their calendar app emails a reply to the inbox. AgentMail matches it to the event, updates that attendee's `status`, `comment` and `responded_at`, and sends a `calendar.event.responded` webhook. A reply about a single date of a recurring event updates only that date.

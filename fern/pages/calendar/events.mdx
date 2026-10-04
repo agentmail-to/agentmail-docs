@@ -130,7 +130,9 @@ This event covers three days, November 2 through November 4. Its `start_at` is m
 
 Networks fail. If you retry a create without a `client_id`, you can end up with two events. With a `client_id`, a retry that has the same `client_id` and the same body returns the original event with status `200` instead of creating another. Sending the same `client_id` with a different body returns `409` `idempotency_conflict`.
 
-Derive the `client_id` from something stable in your system, such as the meeting request it fulfills.
+Retries are recognized for seven days after the original create. After that, an identical retry returns `409` `race_condition` every time, which means the event already exists. Keep the `event_id` from the first successful response so you never need to retry that late; if you lose it, find the event in the [stored-events list](#stored-events-what-you-have-created), for example by a key you put in its `metadata`.
+
+Derive the `client_id` from something stable in your system, such as the meeting request it fulfills. A create with `send_invites: true` is charged against your send limits on every attempt, including retries; see [Send limits](/calendar-invitations#send-limits).
 
 <Tip>
   A create that returns `409` `race_condition` either conflicted with a concurrent change or hit
