@@ -68,12 +68,3 @@ BIMI supports selectors for different logos on one domain, but each logo needs i
 ## Check whether the image appears
 
 After configuring a Google profile, send a test message to a Gmail account and inspect the sender image there. Check that you configured the exact sending address, review photo visibility, and allow time for Google's changes to propagate. A recipient's saved contact photo can make the result ambiguous.
-
-For BIMI, verify DNS, certificate validity, and passing email authentication before checking the recipient's inbox. Meeting the technical requirements does not guarantee logo display: providers can apply additional reputation and display criteria. See [AWS's BIMI guidance](https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-bimi.html).
-
-## Common issues
-
-- **The sender name changed, but the picture did not:** `display_name` controls the name only.
-- **The picture appears in Google but not another provider:** Google profile photos are not a cross-provider avatar setting.
-- **A BIMI SVG is hosted, but Gmail shows no logo:** Gmail also requires qualifying certification and the rest of its BIMI requirements.
-- **Every inbox shows the same BIMI logo:** a default BIMI record advertises branding for the domain, not a unique image per inbox.
