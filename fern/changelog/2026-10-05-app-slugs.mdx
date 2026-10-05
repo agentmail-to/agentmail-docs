@@ -8,11 +8,11 @@ Apps in the catalog now have a `slug`, a short name you can use in place of `app
 
 ### What's new?
 
-- `slug` on every app in the catalog, from `GET /v0/apps`, `GET /v0/apps/search` and `GET /v0/apps/{app_id}`, and on the app embedded in `GET /v0/apps/{app_id}/accounts`. Omitted for apps the catalog does not list.
+- `slug` on apps in the catalog, from `GET /v0/apps`, `GET /v0/apps/search` and `GET /v0/apps/{app_id}`, and on the app embedded in `GET /v0/apps/{app_id}/accounts`. Omitted for apps the catalog does not list.
 - `GET /v0/apps/{app_id}`, `GET /v0/apps/{app_id}/accounts` and `POST /v0/apps/{app_id}/connect` (`client.apps.get`, `client.apps.list_accounts`, `client.apps.connect`, `agentmail apps connect --app-id`) take a slug wherever they take an `app_id`. Case, spaces and punctuation are ignored, so `Firecrawl` and `fire-crawl` both find `firecrawl`.
 - A slug finds apps in the catalog only. A registered app the catalog does not list is still reached by its `app_id`.
 - An unknown slug returns `404`, or `app: null` with an empty list from `GET /v0/apps/{app_id}/accounts`, the same as an unknown ID. A value that is neither an ID nor a slug, such as `!!!`, returns `400`.
-- A slug can change when the app is renamed. Store `app_id`, not the slug.
+- A slug stays the same when the app is renamed. Store `app_id` all the same: it is the app's permanent ID.
 
 <CodeBlocks>
 ```python title="Python"

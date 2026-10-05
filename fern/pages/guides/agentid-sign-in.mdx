@@ -28,7 +28,7 @@ Install the [CLI](https://docs.agentmail.to/integrations/cli) with `npm install 
 
 ## Connect to an app
 
-Find an app with [List Apps](https://docs.agentmail.to/api-reference/apps/list) or [Search Apps](https://docs.agentmail.to/api-reference/apps/search) (`agentmail apps list`, `agentmail apps search --q "app name"`), then pass its `app_id` to [Connect App](https://docs.agentmail.to/api-reference/apps/connect), `POST /v0/apps/{app_id}/connect`. To narrow the list to one kind of app, pass `category` (`agentmail apps list --category search`). An app in the catalog can also be named by its `slug` in place of `app_id` (`agentmail apps connect --app-id firecrawl`, `POST /v0/apps/firecrawl/connect`); store the `app_id`, because a slug can change when the app is renamed. List and search show the curated catalog only; a registered app that is not listed still connects when you have its `app_id`:
+Find an app with [List Apps](https://docs.agentmail.to/api-reference/apps/list) or [Search Apps](https://docs.agentmail.to/api-reference/apps/search) (`agentmail apps list`, `agentmail apps search --q "app name"`), then pass its `app_id` to [Connect App](https://docs.agentmail.to/api-reference/apps/connect), `POST /v0/apps/{app_id}/connect`. To narrow the list to one kind of app, pass `category` (`agentmail apps list --category search`). An app in the catalog can also be named by its `slug` in place of `app_id` (`agentmail apps connect --app-id firecrawl`, `POST /v0/apps/firecrawl/connect`); store the `app_id`, the app's permanent ID. List and search show the curated catalog only; a registered app that is not listed still connects when you have its `app_id`:
 
 ```bash title="CLI"
 agentmail apps connect \

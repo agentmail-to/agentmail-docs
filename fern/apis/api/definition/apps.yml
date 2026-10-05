@@ -40,8 +40,8 @@ types:
         type: optional<string>
         docs: >-
           Short name accepted in place of `app_id` by Get App, List App Accounts and Connect App.
-          Omitted for apps the catalog does not list. It can change when the app is renamed, so
-          store `app_id`.
+          Set by AgentMail on apps in the catalog; renaming the app does not change it. Store
+          `app_id`, the app's permanent ID.
       name: optional<string>
       updated_at:
         type: optional<datetime>
