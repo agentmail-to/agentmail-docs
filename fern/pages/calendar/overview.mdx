@@ -162,18 +162,7 @@ Webhooks are sent after a change is stored, usually within seconds.
 
 ## Permissions
 
-Calendar endpoints use their own API key permissions:
-
-| Permission | Allows |
-| --- | --- |
-| `calendar_read` | Get Calendar |
-| `calendar_update` | Update Calendar |
-| `calendar_event_read` | Get Event, List Events, Get Agenda, List Event Instances, and receiving `calendar.event.*` webhook and WebSocket events |
-| `calendar_event_create` | Create Event |
-| `calendar_event_update` | Update Event, Respond to Event |
-| `calendar_event_delete` | Delete Event |
-
-Keys created without a `permissions` object have all of them. See [Permissions](/permissions).
+Calendar endpoints use their own API key permissions, from `calendar_read` to `calendar_event_delete`. See [Calendar permissions](/permissions#calendar) for what each one allows. Keys created without a `permissions` object have all of them.
 
 ## Next steps
 

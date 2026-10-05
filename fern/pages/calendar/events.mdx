@@ -102,7 +102,7 @@ The response is `201` with the stored `event` and an `operation_id`:
 | `duration_mode` | `exact` (default for one-off events) or `nominal`. See [Time and time zones](/calendar#time-and-time-zones). |
 | `description` | Up to 65,536 bytes. |
 | `location` | Up to 1,024 characters. Any text, such as an address or a meeting link. |
-| `metadata` | Any JSON value, usually an object, up to 16,384 bytes serialized. Returned on every read and in webhooks, never sent to attendees. Use it to link the event to your own records. |
+| `metadata` | Any JSON value, usually an object, up to 16,384 bytes serialized. Returned on reads and in webhooks, except agenda and instance list items and the webhook for a date cancelled with `DELETE`. Never sent to attendees. Use it to link the event to your own records. |
 | `status` | `confirmed` (default), `tentative` or `cancelled`. |
 | `attendees` | Up to 100. Each has an `email` and optional `name`, `role` (`required` or `optional`) and `status`. |
 | `send_invites` | `true` emails an invitation to every attendee. See [Invitations](/calendar-invitations). |
@@ -292,7 +292,7 @@ console.log(result.deletionId);
 
 The event disappears from reads right away, and the response is `202` with a `deletion_id`. Cleanup finishes in the background, usually within seconds. A retry returns the same `deletion_id` while cleanup runs. Once cleanup has finished the event no longer exists, so a retry returns `404`; treat that as success.
 
-Two headers are optional. `If-Match` with the event's `etag` makes the delete conditional (`412` if the event changed). `Idempotency-Key` (1 to 128 visible ASCII characters) names the delete; without one, retries of the same delete share a key derived from the event. Keys are unique across your organization, so reusing one to delete a different event returns `409` `idempotency_conflict`.
+Two headers are optional. `If-Match` with the event's `etag` makes the delete conditional (`412` if the event changed). `Idempotency-Key` (1 to 128 visible ASCII characters) names the delete; without one, retries of the same delete share a key derived from the event and `send_invites`, so keep `send_invites` the same when you retry. A keyless retry that changes it is a different delete: while removal runs it returns `404` and sends no cancellations. Keys are unique across your organization, so reusing one to delete a different event returns `409` `idempotency_conflict`.
 
 Once a delete is accepted, no further `calendar.event.starting` or `calendar.event.ending` webhook is sent for the event. A `calendar.event.deleted` webhook is sent.
 

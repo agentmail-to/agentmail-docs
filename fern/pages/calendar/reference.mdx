@@ -9,11 +9,11 @@ description: Reference for the AgentMail calendar API. How If-Match and ETags wo
 
 ## ETags and `If-Match`
 
-Every calendar, event and date has an `etag` that changes whenever it does. Get, create, update, delete and respond responses return it in the body as `etag` and in the `ETag` header.
+Every calendar, event and date has an `etag` that changes whenever it does. Get, create, update and respond responses, and deletes that cancel dates, return it in the body as `etag` and in the `ETag` header. Deleting a one-off or series event returns only a `deletion_id`.
 
 `If-Match` is optional on Update Calendar, Update Event, Delete Event and Respond to Event:
 
-- **Without it**, the change applies to the resource as it is when the request arrives, so the last write wins. If another change lands while your request is running, you get `409` `race_condition`; retry.
+- **Without it**, the change applies to the resource as it is when the request arrives. If another change lands while your request is running, you get `409` `race_condition`; retry.
 - **With it**, the change applies only if the resource still has that `etag`. Otherwise you get `412` `precondition_failed` and nothing changes.
 
 Send `If-Match` when your change depends on what you read, for example when you replace `attendees` with a list built from the current one, so you don't overwrite a response that arrived in the meantime.
@@ -53,9 +53,9 @@ Read with `consistency="primary"` before retrying, so you do not get a slightly 
 | Operation | How to make retries safe |
 | --- | --- |
 | Create Event | Send a `client_id`. A retry with the same `client_id` and body returns the original event with `200`, for as long as the event exists, and is not charged against your send limits again. |
-| Delete a one-off or series event | A retry returns the same `deletion_id` while removal runs, and `404` after it has finished. Send the same `Idempotency-Key` each time, or none. |
-| Update Event, Respond | Without `If-Match`, a retry applies the same values again; that is safe for values like `start` or `title`, but sends another `calendar.event.updated` (and, with `send_invites`, another email). With `If-Match`, a retry after a successful first attempt gets `412` because the version moved; read the event to confirm your change is there. |
-| Cancel a date | If your first attempt succeeded, the retry gets `404` or `410` (or `412` with `If-Match`), because the date has left the series. Get the series and check that `recurrence.exdates` (or, for `mode=future`, `recurrence.truncate_before`) covers the date. |
+| Delete a one-off or series event | A retry returns the same `deletion_id` while removal runs, and `404` after it has finished. Send the same `Idempotency-Key` each time, or none and the same `send_invites`; a keyless retry that changes `send_invites` is a different delete and gets `404` while removal runs, without sending anything. |
+| Update Event, Respond | Without `If-Match`, a retry applies the same values again; that is safe for values like `start` or `title`, but sends another `calendar.event.updated` (`calendar.event.responded` for Respond). With `send_invites` (`send_reply` for Respond), it also emails again and is charged against your send limits again. With `If-Match`, a retry after a successful first attempt gets `412` because the version moved; read the event to confirm your change is there. |
+| Cancel a date | If your first attempt succeeded, the retry gets `404` or `410` (or `412` with `If-Match`), because the date has left the series. Get the series and check that `recurrence.exdates` (or, for `mode=future`, `recurrence.truncate_before`) covers the date. A `mode=future` delete from the first date deletes the whole series, so there the series also returns `404`, which means the delete succeeded. |
 | Update Calendar | As for Update Event. |
 
 ## Limits

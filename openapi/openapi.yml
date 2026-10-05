@@ -3581,9 +3581,9 @@ paths:
         The event disappears
           from reads immediately and is removed in the background; the response is `202` with a
           `deletion_id`. A retry returns the same `deletion_id` while removal runs (send the same
-          `Idempotency-Key`, or none both times); once it has finished, the event no longer exists
-          and a retry returns `404`. No `calendar.event.starting` or `calendar.event.ending` webhook
-          is sent for the event after the delete is accepted.
+          `Idempotency-Key`, or none and the same `send_invites`); once it has finished, the event
+          no longer exists and a retry returns `404`. No `calendar.event.starting` or
+          `calendar.event.ending` webhook is sent for the event after the delete is accepted.
         - **Dated ID (`<uuid>_<slot>`):** cancels that date (`mode=single`, the
         default) or that date
           and every later date (`mode=future`). Returns `202` with the cancelled date. A `mode=future`
@@ -3687,10 +3687,16 @@ paths:
             returns the original result; without a key, retries of the same
             delete share one
 
-            derived from the event. Keys are unique across your organization:
-            reusing one to
+            derived from the event and `send_invites`, so a keyless retry that
+            changes
 
-            delete a different event returns `409` `idempotency_conflict`.
+            `send_invites` is a different delete and returns `404` while removal
+            runs. Keys are
+
+            unique across your organization: reusing one to delete a different
+            event returns
+
+            `409` `idempotency_conflict`.
           required: false
           schema:
             type: string
@@ -11784,8 +11790,13 @@ components:
       title: DeletionId
       type: string
       description: >-
-        ID of an accepted deletion. Retrying the same delete with the same
-        `Idempotency-Key` returns it again.
+        ID of an accepted deletion. While the event is being removed, retrying
+        the same delete (with the
+
+        same `Idempotency-Key`, or none and the same `send_invites`) returns it
+        again. Once removal has
+
+        finished, a retry returns `404`.
     CalendarConsistency:
       title: CalendarConsistency
       type: string

@@ -93,7 +93,10 @@ types:
 
   DeletionId:
     type: string
-    docs: ID of an accepted deletion. Retrying the same delete with the same `Idempotency-Key` returns it again.
+    docs: |
+      ID of an accepted deletion. While the event is being removed, retrying the same delete (with the
+      same `Idempotency-Key`, or none and the same `send_invites`) returns it again. Once removal has
+      finished, a retry returns `404`.
 
   CalendarConsistency:
     enum:

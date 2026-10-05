@@ -304,7 +304,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   - scoped variants: pods.webhooks.* (pod_id) and inboxes.webhooks.* (inbox_id) — same CRUD, scope from the path
 
   Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
-  Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
+  Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain; calendar.event.* carry inbox_id and calendar_event. Verify with Svix (webhook.secret).
   Custom delivery header values are write-only. get_headers returns names only; update_headers rotates or removes them.
   Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
   On update, non-empty event_types replaces the subscribed list in full (omit or [] to leave types unchanged).

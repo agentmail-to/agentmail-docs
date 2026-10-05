@@ -208,6 +208,8 @@ key = client.api_keys.create(
         "label_blocked_read": True,
         "label_unauthenticated_read": True,
         "label_trash_read": True,
+        "calendar_read": True,
+        "calendar_event_read": True,
     }
 )
 
@@ -235,6 +237,8 @@ const key = await client.apiKeys.create({
     labelBlockedRead: true,
     labelUnauthenticatedRead: true,
     labelTrashRead: true,
+    calendarRead: true,
+    calendarEventRead: true,
   },
 });
 
@@ -258,7 +262,9 @@ agentmail api-keys create \
     "label_spam_read": true,
     "label_blocked_read": true,
     "label_unauthenticated_read": true,
-    "label_trash_read": true
+    "label_trash_read": true,
+    "calendar_read": true,
+    "calendar_event_read": true
   }'
 ```
 </CodeBlocks>
@@ -309,6 +315,12 @@ key = client.api_keys.create(
         "pod_create": True,
         "pod_update": True,
         "pod_delete": True,
+        "calendar_read": True,
+        "calendar_update": True,
+        "calendar_event_read": True,
+        "calendar_event_create": True,
+        "calendar_event_update": True,
+        "calendar_event_delete": True,
     }
 )
 ```
@@ -354,6 +366,12 @@ const key = await client.apiKeys.create({
     podCreate: true,
     podUpdate: true,
     podDelete: true,
+    calendarRead: true,
+    calendarUpdate: true,
+    calendarEventRead: true,
+    calendarEventCreate: true,
+    calendarEventUpdate: true,
+    calendarEventDelete: true,
   },
 });
 ```
@@ -399,7 +417,13 @@ agentmail api-keys create \
     "pod_read": true,
     "pod_create": true,
     "pod_update": true,
-    "pod_delete": true
+    "pod_delete": true,
+    "calendar_read": true,
+    "calendar_update": true,
+    "calendar_event_read": true,
+    "calendar_event_create": true,
+    "calendar_event_update": true,
+    "calendar_event_delete": true
   }'
 ```
 </CodeBlocks>
@@ -429,6 +453,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     API Keys: api_key_read, api_key_create, api_key_update, api_key_delete
     Apps: app_connect, app_share_owner, account_update
     Pods: pod_read, pod_create, pod_update, pod_delete
+    Calendar: calendar_read, calendar_update, calendar_event_read, calendar_event_create, calendar_event_update, calendar_event_delete
 
   Threads have no permissions of their own: thread reads use message_read,
   thread label updates use message_update, and thread deletes use message_delete.
@@ -467,6 +492,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *   API Keys: apiKeyRead, apiKeyCreate, apiKeyUpdate, apiKeyDelete
    *   Apps: appConnect, appShareOwner, accountUpdate
    *   Pods: podRead, podCreate, podUpdate, podDelete
+   *   Calendar: calendarRead, calendarUpdate, calendarEventRead, calendarEventCreate, calendarEventUpdate, calendarEventDelete
    *
    * Threads have no permissions of their own: thread reads use messageRead,
    * thread label updates use messageUpdate, and thread deletes use messageDelete.
