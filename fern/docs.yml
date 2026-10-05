@@ -510,6 +510,9 @@ navigation:
           - page: Getting your API key
             icon: fa-solid fa-key
             path: pages/knowledge-base/getting-api-key.mdx
+          - page: Claiming your agent's inbox
+            icon: fa-solid fa-hand-holding
+            path: pages/knowledge-base/claiming-agent-inbox.mdx
       - section: Agent Patterns
         contents:
           - page: Handling inbound emails
