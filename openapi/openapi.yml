@@ -1389,6 +1389,17 @@ paths:
           schema:
             $ref: '#/components/schemas/PageToken'
             nullable: true
+        - name: category
+          in: query
+          description: >-
+            Only apps in this category. A filtered page can hold fewer than
+            `limit` apps while more remain, so page until `next_page_token` is
+            absent. A `page_token` works only with the `category` it was
+            returned for.
+          required: false
+          schema:
+            $ref: '#/components/schemas/AppCategory'
+            nullable: true
       responses:
         '200':
           description: ''
@@ -9546,6 +9557,27 @@ components:
       type: string
       format: uuid
       description: ID of app.
+    AppCategory:
+      title: AppCategory
+      type: string
+      enum:
+        - ai
+        - search
+        - scraping
+        - browser
+        - data
+        - developer-tools
+        - communication
+        - productivity
+        - payments
+        - finance
+        - commerce
+        - marketing
+        - analytics
+        - security
+        - infrastructure
+        - other
+      description: Kind of app.
     App:
       title: App
       type: object
@@ -9573,6 +9605,12 @@ components:
         privacy_url:
           type: string
           nullable: true
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppCategory'
+          nullable: true
+          description: Kinds of app, up to 3. Omitted when the app sets none.
         owner_signup_limit:
           type: integer
           nullable: true

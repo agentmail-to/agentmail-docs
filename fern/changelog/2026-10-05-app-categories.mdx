@@ -1,0 +1,46 @@
+---
+tags: ["apps-api", "enhancement", "sdk"]
+---
+
+## Summary
+
+Apps now say what kind of app they are. Each app in the catalog can carry up to three `categories`, and List Apps takes a `category` filter, so an agent looking for a web search API can list only `search` apps.
+
+### What's new?
+
+- `categories` on every app from `GET /v0/apps`, `GET /v0/apps/search` and `GET /v0/apps/{app_id}`, and on the app embedded in `GET /v0/apps/{app_id}/accounts`. Omitted when the app sets none.
+- `category` on `GET /v0/apps` (`client.apps.list`, `agentmail apps list --category`). An unknown value returns `400`.
+- Values: `ai`, `search`, `scraping`, `browser`, `data`, `developer-tools`, `communication`, `productivity`, `payments`, `finance`, `commerce`, `marketing`, `analytics`, `security`, `infrastructure`, `other`.
+- A filtered page can hold fewer than `limit` apps while more remain. Page until `next_page_token` is absent. A `page_token` works only with the `category` it was returned for; reusing it with another `category`, or with none, returns `400`.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+page = client.apps.list(category="search")
+for app in page.apps:
+    print(app.app_id, app.name, app.categories)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+const page = await client.apps.list({ category: "search" });
+for (const app of page.apps) console.log(app.appId, app.name, app.categories);
+```
+</CodeBlocks>
+
+### Use cases
+
+Build agents that:
+
+- Find an app for a job, such as web search or payments, without paging the whole catalog
+- Show the catalog grouped by kind of app
+
+<Note>
+  See [List Apps](https://docs.agentmail.to/api-reference/apps/list) for the request and response shapes.
+</Note>
