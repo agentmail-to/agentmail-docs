@@ -10,7 +10,7 @@ Apps now say what kind of app they are. Each app in the catalog can carry up to 
 
 - `categories` on every app from `GET /v0/apps`, `GET /v0/apps/search` and `GET /v0/apps/{app_id}`, and on the app embedded in `GET /v0/apps/{app_id}/accounts`. Omitted when the app sets none.
 - `category` on `GET /v0/apps` (`client.apps.list`, `agentmail apps list --category`). An unknown value returns `400`.
-- Values: `ai`, `search`, `scraping`, `browser`, `data`, `developer-tools`, `communication`, `productivity`, `payments`, `finance`, `commerce`, `marketing`, `analytics`, `security`, `infrastructure`, `other`.
+- Values: `search`, `scraping`, `browser`, `data`, `developer-tools`, `communication`, `productivity`, `payments`, `finance`, `commerce`, `marketing`, `analytics`, `security`, `infrastructure`, `other`.
 - A filtered page can hold fewer than `limit` apps while more remain. Page until `next_page_token` is absent. A `page_token` works only with the `category` it was returned for; reusing it with another `category`, or with none, returns `400`.
 
 <CodeBlocks>
