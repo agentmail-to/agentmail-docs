@@ -882,8 +882,9 @@ paths:
       - name: app_id
         in: path
         required: true
+        description: ID of app, or the `slug` of an app in the catalog. A slug ignores case, spaces and punctuation.
         schema:
-          $ref: '#/components/schemas/AppId'
+          type: string
       - name: Idempotency-Key
         in: header
         required: false
