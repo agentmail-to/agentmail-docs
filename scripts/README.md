@@ -21,4 +21,10 @@ This refreshes the vendored manifest from the canonical repo and regenerates the
 
 Docs deliberately track the vendored (released) manifest, not `agentmail-mcp` `main`, so they describe what is deployed. The manifest digest stamped in the snippet's header comment tells you which contract version the published docs reflect.
 
+The scheduled `Check MCP contract drift` workflow fetches the canonical manifest
+and fails when a coordinated documentation update is still required. It reports
+drift; it never commits generated files or publishes docs automatically. If MCP
+`main` is intentionally ahead of production, complete the docs update after the
+new production contract is verified rather than documenting preview behavior.
+
 If CI fails with "MCP tool catalog is out of date", someone edited the snippet or manifest by hand — rerun the script without flags to regenerate from the vendored manifest.

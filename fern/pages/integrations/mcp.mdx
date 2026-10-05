@@ -11,8 +11,8 @@ The Model Context Protocol (MCP) is an open standard that lets AI clients call e
 
 The server supports two authentication paths:
 
-- **OAuth** (default, recommended for Claude Desktop, Claude.ai, and ChatGPT). The client signs in through `console.agentmail.to` and the server uses your console identity for every call.
-- **API key** (for Cursor, Windsurf, and other clients that do not implement the MCP OAuth flow). Pass the key as an `x-api-key` header; query-string keys end up in logs and history.
+- **OAuth** (default and recommended for clients that implement the MCP OAuth flow, including the AgentMail plugins for Claude Code, Codex, and Cursor). The client signs in through `console.agentmail.to` and the server uses your console identity for every call.
+- **API key** (for standalone SDK and CLI use, manually configured connections, and MCP clients that do not implement OAuth). Pass the key as an `x-api-key` header; query-string keys end up in logs and history.
 
 If you belong to more than one AgentMail organization, the OAuth consent screen will ask you to pick which one to use before completing the connection.
 
@@ -42,17 +42,32 @@ OAuth is the recommended path for Claude products. You do not need an API key; t
 
 ChatGPT asks you to confirm write actions, such as sending mail or connecting an app, before it runs them.
 
-### Cursor (API key)
+### Cursor plugin (OAuth)
+
+1. Open Cursor's plugin marketplace and install **AgentMail**, or run `/add-plugin agentmail`.
+2. Start a new chat after installation.
+3. When the AgentMail MCP server first connects, complete the browser sign-in at `console.agentmail.to`.
+4. Ask `List my AgentMail inboxes` to confirm the connection.
+
+The plugin bundles the hosted server and AgentMail skills. It does not require an
+AgentMail API key.
+
+### Manual Cursor connection (API key fallback)
+
+Use an API key only when deliberately configuring the MCP server by hand instead
+of installing the AgentMail plugin:
 
 1. Generate an API key at [console.agentmail.to](https://console.agentmail.to) under **Settings**, then **API Keys**.
 2. Open Cursor settings, go to **MCP**, and add a server with this config:
 
 ```json
 {
-  "agentmail": {
-    "url": "https://mcp.agentmail.to/mcp",
-    "headers": {
-      "x-api-key": "${AGENTMAIL_API_KEY}"
+  "mcpServers": {
+    "agentmail": {
+      "url": "https://mcp.agentmail.to/mcp",
+      "headers": {
+        "x-api-key": "${env:AGENTMAIL_API_KEY}"
+      }
     }
   }
 }
@@ -72,7 +87,7 @@ claude mcp add --transport http agentmail https://mcp.agentmail.to/mcp
 
 Claude Code will run the same OAuth flow on first use. Connectors installed on Claude.ai do not automatically sync to Claude Code, so install it separately.
 
-For Claude Code, Cursor, and Codex, the [AgentMail plugin](/integrations/skills#plugins-for-claude-code-cursor-and-codex) installs this server together with the AgentMail skills.
+For Claude Code, Cursor, and Codex, the [AgentMail plugin](/integrations/skills#plugins-for-claude-code-cursor-and-codex) installs this server together with the AgentMail skills and uses OAuth.
 
 ## Create accounts for your agent with AgentID
 
