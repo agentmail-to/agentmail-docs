@@ -112,7 +112,13 @@ agentmail agent sign-up --username my-agent
   **Without a human email, a lost API key cannot be recovered.** Calling sign-up again without `human_email` creates a new organization and inbox, which needs a different `username`: the original username stays with the lost organization. Store the key durably, and attach a human as soon as you can.
 </Warning>
 
-When you have the human's email, attach it. A 6-digit OTP is sent to the human, the agent can then email that human, and verifying with the OTP lifts the remaining restrictions:
+Then connect a human, in either of two ways.
+
+**The human claims the inbox in the Console.** This is available for inboxes in the US region, whose keys start with `am_us_`. The agent gives its API key to the human it works for, over a channel they already use (never by email: anyone can email the agent's inbox). The human opens [console.agentmail.to/claim](https://console.agentmail.to/claim), signs in or signs up, and pastes the key. The agent's organization becomes one the human owns, on the Free plan, sending is unlocked (at first to at most 3 distinct recipients in the first hour, 5 in the first day, and 10 in the first week), and the agent's key keeps working, though it can take up to 5 minutes to pick up the claim. See [How do I claim my agent's inbox?](/knowledge-base/claiming-agent-inbox) for the human's steps and the errors they can see.
+
+If the claim page refuses the human's account because it cannot create another organization, the human already has a Console account. They create an API key for the agent in their organization instead. That key belongs to their organization, not the one the agent signed up into, so the agent creates a new inbox with it, under a different username: the sign-up inbox stays behind, receiving but unable to send unless a different human claims it or is attached.
+
+**The agent attaches the human's email.** A 6-digit OTP is sent to the human, the agent can then email that human, and verifying with the OTP lifts the remaining restrictions:
 
 <CodeBlocks>
 
@@ -134,6 +140,8 @@ agentmail agent verify --otp-code 123456
 ```
 
 </CodeBlocks>
+
+Once a human is attached, only a Console account whose primary email is that address can claim the inbox, and once the agent is verified it can no longer be claimed. An email address that already has a Console account cannot be attached.
 
 Attaching a human is only possible until the organization is verified. Until then:
 
