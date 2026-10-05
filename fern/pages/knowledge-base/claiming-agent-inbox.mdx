@@ -1,0 +1,57 @@
+---
+title: "How do I claim my agent's inbox?"
+subtitle: Take ownership of an inbox your agent created without your email.
+slug: knowledge-base/claiming-agent-inbox
+---
+
+An agent can sign up for AgentMail on its own, without a human's email address. Its inbox can receive email right away, but it cannot send until a human is connected. Claiming is one way to connect: you paste the agent's API key into the AgentMail Console, and the agent's inbox becomes an organization in your account.
+
+## What claiming does
+
+| Before the claim | After the claim |
+| --- | --- |
+| The inbox belongs to an organization only the agent can reach | The organization is in your Console account, and you own it |
+| The inbox can receive but cannot send | Sending is unlocked. If sends are still refused more than 5 minutes later, contact AgentMail support from the Console |
+| Sign-up limits for unverified agents | Free plan |
+| The agent's API key is the only way in | The agent's API key keeps working, and you can manage the inbox in the Console |
+
+The agent does not need a new key. Its existing key can take up to 5 minutes to pick up the claim, so a send refused in that window is expected.
+
+## Steps
+
+1. Get your agent's API key. It is the key the agent received when it signed up, and it starts with `am_us_` or `am_eu_`.
+2. Open [console.agentmail.to/claim](https://console.agentmail.to/claim).
+3. Sign in, or sign up if you don't have an account yet. You come back to the claim page afterwards. If you are already signed in, you can also open **Claim an inbox** from the organization switcher.
+4. Paste the key and click **Continue**. Nothing changes yet: the Console checks the key and shows which inbox it belongs to.
+5. Check the inbox address and click **Claim inbox**. The Console switches to the new organization.
+
+If you paste a key you already claimed, the Console says the inbox is already in your account and offers to open it.
+
+<Warning>
+The agent's API key gives full access to its inbox. Have the agent give it to you over a channel you already trust, never by email: anyone can send email to the agent's inbox and pretend to be you.
+</Warning>
+
+## Common issues
+
+| Message | What it means | What to do |
+| --- | --- | --- |
+| That doesn't look like an AgentMail API key | The text pasted is not a whole key | Paste the full key, which starts with `am_us_` or `am_eu_` |
+| That API key isn't valid | The key does not exist, was revoked, expired, or was replaced | Ask your agent for the key it uses now |
+| This API key cannot claim an inbox | The key is scoped to one inbox or pod, or has restricted permissions | Use the key the agent received when it signed up |
+| A human is already attached to this inbox, and only they can claim it | The agent attached someone's email address before you claimed | Sign in to the Console with that email address, then try again |
+| This agent's organization is already verified by the human attached to it | The attached human already verified the agent with their code | That human signs up at the Console with the attached email to take it over |
+| This inbox already belongs to an AgentMail console account | Someone else already owns this inbox | Ask the owner to invite you to their organization |
+| You already have an AgentMail account | Your account cannot create another organization | Create an API key in your organization, give it to your agent, and have it create a new inbox with that key |
+| This account has already claimed as many inboxes as it is allowed | Your account reached its claim limit | Contact AgentMail support |
+| This account cannot claim an inbox | The email address on your Console account is not verified | Verify your email address, then try again |
+| This inbox no longer exists | The agent's organization was deleted | Your agent can sign up again |
+
+## Claiming or attaching an email
+
+A human can also be connected the other way around: the agent attaches your email address with `POST /v0/agent/human`, AgentMail emails you a verification code, and you give the code to the agent. Both unlock sending. Claiming also puts the inbox in your Console account.
+
+Once a human is attached, only a Console account whose primary email is that address can claim the inbox. Once the agent is verified with the code, it can no longer be claimed: that human signs up at the Console with the attached email instead.
+
+If you already have a Console account, the agent cannot attach your email: AgentMail refuses an address that already has an account. Create an API key in your organization and give it to the agent instead.
+
+For the agent's side of these steps, see [Agent Onboarding](/agent-onboarding#sign-up-without-a-human-email).
