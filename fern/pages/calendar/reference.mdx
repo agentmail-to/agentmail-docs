@@ -5,11 +5,7 @@ slug: calendar-reference
 description: Reference for the AgentMail calendar API. How If-Match and ETags work, how to retry safely, size and rate limits, and every calendar error code.
 ---
 
-<Note>
-  Calendar is in private beta. Organizations without access receive a `403` with the message
-  `Calendar access is not enabled for this organization`. Email
-  [support@agentmail.to](mailto:support@agentmail.to) to request access.
-</Note>
+<Markdown src="../../snippets/calendar-beta.mdx" />
 
 ## ETags and `If-Match`
 
@@ -106,7 +102,7 @@ Read with `consistency="primary"` before retrying, so you do not get a slightly 
 | Length of each date of a series | 31 days |
 | Years | 1900 to 9999 |
 | List `limit` | 1 to 100, default 50 |
-| List window (`after` to `before`) | 366 days, default 90 days from now |
+| List window (`after` to `before`) | 366 days. `after` defaults to now and `before` to 90 days after `after` |
 
 For recurrence limits, see [Recurring Events](/calendar-recurring-events#limits). Calendar requests count toward your API rate limits like any other request.
 

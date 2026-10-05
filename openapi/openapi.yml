@@ -3259,11 +3259,13 @@ paths:
           and every later date (`mode=future`). `all_day`, `timezone` and `recurrence` cannot be sent
           for a dated ID.
 
-        Once a date has started, its start can no longer change, but its end and
-        status can (409
+        Once a date has started, its start can no longer change (409
+        `event_already_started`), but
 
-        `event_already_started`). Once it has ended, only `title`,
-        `description`, `location`,
+        its end and status can; for a one-off or series UUID, send the unchanged
+        `start` with the new
+
+        `end`. Once it has ended, only `title`, `description`, `location`,
 
         `metadata` and `attendees` can change. During the few seconds a date is
         starting, schedule
@@ -12091,10 +12093,14 @@ components:
         sequence:
           type: integer
           description: >-
-            iCalendar SEQUENCE number. It increases when a change affects what
-            attendees see (time,
+            iCalendar SEQUENCE number. It increases when a change to a one-off
+            or series event affects
 
-            status, title, description, location, recurrence or attendees).
+            what attendees see (time, status, title, description, location,
+            recurrence or attendees).
+
+            A change to a dated event increases it only when the change is sent
+            with `send_invites`.
           example: 0
         source:
           $ref: '#/components/schemas/CalendarEventSource'

@@ -617,8 +617,9 @@ service:
           and every later date (`mode=future`). `all_day`, `timezone` and `recurrence` cannot be sent
           for a dated ID.
 
-        Once a date has started, its start can no longer change, but its end and status can (409
-        `event_already_started`). Once it has ended, only `title`, `description`, `location`,
+        Once a date has started, its start can no longer change (409 `event_already_started`), but
+        its end and status can; for a one-off or series UUID, send the unchanged `start` with the new
+        `end`. Once it has ended, only `title`, `description`, `location`,
         `metadata` and `attendees` can change. During the few seconds a date is starting, schedule
         changes return 409 `event_starting`; retry shortly.
 

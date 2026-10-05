@@ -5,11 +5,7 @@ slug: calendar-recurring-events
 description: How to create recurring events on an AgentMail calendar with RRULE, EXDATE and RDATE, list their dates, and edit or cancel one date or every later date.
 ---
 
-<Note>
-  Calendar is in private beta. Organizations without access receive a `403` with the message
-  `Calendar access is not enabled for this organization`. Email
-  [support@agentmail.to](mailto:support@agentmail.to) to request access.
-</Note>
+<Markdown src="../../snippets/calendar-beta.mdx" />
 
 A recurring event is one `series` plus the dates it generates. You create and change the series by its UUID, and address each date by a dated ID.
 
@@ -278,6 +274,6 @@ To turn a series into a one-off event, set `recurrence` to `null`. This only wor
 
 ## Time zones and daylight saving
 
-Rules are evaluated in wall-clock time in the series' `timezone`, so each date keeps its local start time when clocks change. When a date's local start falls in a gap (for example 02:30 on the night clocks spring forward) or repeats (when clocks fall back), it resolves as RFC 5545 prescribes.
+Rules are evaluated in wall-clock time in the series' `timezone`, so each date keeps its local start time when clocks change. When a date's local start falls in a gap (for example 02:30 on the night clocks spring forward), the date still occurs, moved later by the length of the gap: 02:30 becomes 03:30. Its dated ID and `original_start` keep 02:30. When the local start repeats (when clocks fall back), the earlier of the two times is used.
 
 `duration_mode` decides the end of a date that spans a change: `nominal` (the default for series) keeps the local end time, and `exact` keeps the elapsed length.

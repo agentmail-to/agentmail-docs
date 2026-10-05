@@ -23,7 +23,7 @@ Every inbox now has a calendar (private beta). Agents can schedule one-off and r
 - **Webhook and WebSocket events**: `calendar.event.created`, `calendar.event.updated` (with `previous` values), `calendar.event.deleted`, `calendar.event.responded`, `calendar.event.starting` and `calendar.event.ending`. A WebSocket subscription receives them only when its `event_types` names them.
 - **Safe concurrency**: `ETag` and `If-Match` on every change, `client_id` for idempotent creates, and `Idempotency-Key` for deletes.
 - **Permissions**: `calendar_read`, `calendar_update`, `calendar_event_read`, `calendar_event_create`, `calendar_event_update` and `calendar_event_delete`.
-- **SDKs**: `client.inboxes.calendar` with `get`, `update`, `listEvents`, `createEvent`, `getEvent`, `updateEvent`, `deleteEvent`, `listEventInstances` and `respondToEvent` (snake_case in Python).
+- **SDKs**: `client.inboxes.calendar` with `get`, `update`, `listEvents`, `createEvent`, `getEvent`, `updateEvent`, `deleteEvent`, `listEventInstances` and `respondToEvent` (snake_case in Python). These ship in the next Python and TypeScript SDK releases; the current releases don't include them yet, so call the API directly until they do.
 
 ### Use cases
 

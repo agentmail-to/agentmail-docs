@@ -335,8 +335,9 @@ types:
       sequence:
         type: integer
         docs: |
-          iCalendar SEQUENCE number. It increases when a change affects what attendees see (time,
-          status, title, description, location, recurrence or attendees).
+          iCalendar SEQUENCE number. It increases when a change to a one-off or series event affects
+          what attendees see (time, status, title, description, location, recurrence or attendees).
+          A change to a dated event increases it only when the change is sent with `send_invites`.
       source: CalendarEventSource
       organizer_email:
         type: optional<string>

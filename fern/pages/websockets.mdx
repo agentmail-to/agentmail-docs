@@ -424,7 +424,7 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
   Sync: with client.websockets.connect() as socket: socket.send_subscribe(Subscribe(inbox_ids=[...])); for event in socket: ...
   Async: async with client.websockets.connect() as socket: await socket.send_subscribe(...); async for event in socket: ...
   Subscribe(inbox_ids=[...], pod_ids=[...], event_types=[...])
-  Event types: Subscribed, MessageReceivedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, DomainVerifiedEvent
+  Event types: Subscribed, MessageReceivedEvent, MessageSentEvent, MessageDeliveredEvent, MessageBouncedEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, DomainVerifiedEvent, CalendarEventCreatedEvent, CalendarEventUpdatedEvent, CalendarEventDeletedEvent, CalendarEventRespondedEvent, CalendarEventStartingEvent, CalendarEventEndingEvent
   Omitting event_types receives every event type except calendar.event.*, which must be named. Spam, blocked, and unauthenticated events also need the matching label_spam_read / label_blocked_read / label_unauthenticated_read permission.
   """
   from agentmail import AgentMail, Subscribe, Subscribed, MessageReceivedEvent

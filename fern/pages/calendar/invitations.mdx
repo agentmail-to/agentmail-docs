@@ -5,11 +5,7 @@ slug: calendar-invitations
 description: How AgentMail calendars exchange standard iCalendar (iMIP) invitations. Send invitations from an inbox, turn emailed invitations into events automatically, and accept or decline them.
 ---
 
-<Note>
-  Calendar is in private beta. Organizations without access receive a `403` with the message
-  `Calendar access is not enabled for this organization`. Email
-  [support@agentmail.to](mailto:support@agentmail.to) to request access.
-</Note>
+<Markdown src="../../snippets/calendar-beta.mdx" />
 
 AgentMail calendars speak iMIP, the standard behind calendar invitations in email. Invitations your agent sends open as normal meeting invitations in Google Calendar, Outlook and Apple Calendar, and invitations those apps send to the inbox appear on its calendar.
 
@@ -72,7 +68,7 @@ Pass `send_invites` again whenever attendees should hear about a change:
 | Cancel one date | `DELETE` a dated ID with `?send_invites=true` | A cancellation for that date (`CANCEL`) |
 | Delete the event | `DELETE` the event UUID with `?send_invites=true` | A cancellation (`CANCEL`) |
 
-A change that is not sent stays on your calendar only; attendees keep their previous version. `sequence` increases whenever a change affects what attendees see, so their calendar apps apply the newest update.
+A change that is not sent stays on your calendar only; attendees keep their previous version. `sequence` increases whenever a change to the event affects what attendees see, so their calendar apps apply the newest update. A change to one date of a recurring event increases it only when the change is sent with `send_invites`.
 
 Only events the inbox organizes can send. Using `send_invites` on an event that came from someone else's invitation returns `409` `calendar_response_invalid`.
 
@@ -82,13 +78,13 @@ Invitation emails count toward the same organization, pod and inbox send limits 
 
 | Request | Charged |
 | --- | --- |
-| Create or update with `send_invites: true` | One per attendee on the event after the change |
+| Create or update with `send_invites: true` | One per attendee on the event after the change. Cancellations to attendees the update removed are not charged. |
 | Delete an event or cancel a date with `send_invites=true` | One per attendee of the event |
 | Respond with `send_reply` (the default) | One, for the reply to the organizer |
 
 If the charge would exceed a limit, the request returns `429` `rate_limit_exceeded` and the event is not created or changed. Wait for the `Retry-After` header when present, or retry without `send_invites` to save the change without emailing anyone.
 
-A request is charged even if it then fails, and a create retried with the same `client_id` is charged again. While the inbox is paused or suspended, nothing is charged and no invitations are sent.
+The charge is taken after the request passes validation and its `If-Match` check, so a `400`, `412` or `428` is not charged, but a request that fails after that (for example with `409`) is. A create retried with the same `client_id` is charged again. While the inbox is paused or suspended, nothing is charged and no invitations are sent.
 
 Invitations also pass the same outbound checks as other mail, such as spam checks and the recipient limits for new senders. An invitation those checks refuse is not sent or retried; the event itself is still saved.
 
@@ -159,7 +155,7 @@ const response = await client.inboxes.calendar.respondToEvent(inboxId, eventId, 
 
 - `status` is `accepted`, `declined` or `tentative`.
 - `send_reply` defaults to `true`. Set it to `false` to record your answer without emailing the organizer.
-- Pass a dated ID instead of the event UUID to answer for one date of a recurring invitation.
+- Pass a dated ID instead of the event UUID to answer for one date of a recurring invitation. Dated events have no `resource_revision`, so send the date's own `ETag` from the response header instead of building `"rv-..."`; see [Reading ETags with the SDKs](/calendar-reference#reading-etags-with-the-sdks).
 - Responding only works on `email` events where the inbox is an attendee. Anything else returns `409` `calendar_response_invalid`.
 - A `calendar.event.responded` webhook is sent.
 
