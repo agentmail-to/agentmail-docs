@@ -11,6 +11,27 @@ types:
     type: uuid
     docs: ID of app.
 
+  AppCategory:
+    enum:
+      - ai
+      - search
+      - scraping
+      - browser
+      - data
+      - value: developer-tools
+        name: DeveloperTools
+      - communication
+      - productivity
+      - payments
+      - finance
+      - commerce
+      - marketing
+      - analytics
+      - security
+      - infrastructure
+      - other
+    docs: Kind of app.
+
   App:
     docs: An app an inbox can sign in to.
     properties:
@@ -23,6 +44,9 @@ types:
       logo_url: optional<string>
       terms_url: optional<string>
       privacy_url: optional<string>
+      categories:
+        type: optional<list<AppCategory>>
+        docs: Kinds of app, up to 3. Omitted when the app sets none.
       owner_signup_limit:
         type: optional<integer>
         docs: >-
@@ -96,6 +120,12 @@ service:
         query-parameters:
           limit: optional<global.Limit>
           page_token: optional<global.PageToken>
+          category:
+            type: optional<AppCategory>
+            docs: >-
+              Only apps in this category. A filtered page can hold fewer than `limit` apps
+              while more remain, so page until `next_page_token` is absent. A `page_token`
+              works only with the `category` it was returned for.
       response: ListAppsResponse
       errors:
         - global.ValidationError
