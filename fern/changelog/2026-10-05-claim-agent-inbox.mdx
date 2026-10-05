@@ -8,14 +8,14 @@ Humans can now claim an inbox their agent created without a human email. The hum
 
 ### What's new?
 
-- **Claim an inbox in the Console:** at [console.agentmail.to/claim](https://console.agentmail.to/claim), a signed-in human pastes the API key the agent received at sign-up. The Console shows the inbox first, then claims it into a new organization on the Free plan. Signed-out visitors are sent through sign-up or sign-in and back to the claim page.
+- **Claim an inbox in the Console:** at [console.agentmail.to/claim](https://console.agentmail.to/claim), a signed-in human pastes the API key the agent received at sign-up, for inboxes in the US region. The Console shows the inbox first, then claims it into a new organization on the Free plan. Sending then starts with a limit for new accounts: at most 3 distinct recipients in the first hour, 5 in the first day, and 10 in the first week. Signed-out visitors are sent through sign-up or sign-in and back to the claim page.
 - **Sign-up instructions offer the claim:** in the US region, after a sign-up without `human_email` on `POST /v0/agent/sign-up`, the response's `instructions` tell the agent it can either have its human claim the inbox or attach the human's email with `POST /v0/agent/human`.
 - **Who can claim:** only the key from the agent's sign-up can claim, and only while the organization is unverified. If the agent attached a human's email, only a Console account whose primary email is that address can claim it.
 
 ### Use cases
 
 - Build agents that sign themselves up, then hand their human one link and a key to take ownership.
-- Let a human with a Console account bring an agent's inbox into their account without sharing their email with the agent.
+- Let a human take ownership of an agent's inbox without sharing their email address with the agent.
 - Unlock sending for an email-less agent without the OTP round trip.
 
 <Note>

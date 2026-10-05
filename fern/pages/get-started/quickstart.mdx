@@ -35,7 +35,7 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
       The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
     </Info>
     <Note>
-      No human email yet? Leave `human_email` out to get a receive-only inbox, then attach a human later with `POST /agent/human`, or have your human claim the inbox at [console.agentmail.to/claim](https://console.agentmail.to/claim) with the API key. See [Sign up without a human email](/agent-onboarding#sign-up-without-a-human-email).
+      No human email yet? Leave `human_email` out to get a receive-only inbox, then attach a human later with `POST /agent/human`, or, for a US-region inbox, have your human claim it at [console.agentmail.to/claim](https://console.agentmail.to/claim) with the API key. Share the key only with your human, over a channel you already use with them, never by email. See [Sign up without a human email](/agent-onboarding#sign-up-without-a-human-email).
     </Note>
   </Step>
 
