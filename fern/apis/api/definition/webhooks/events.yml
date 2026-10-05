@@ -90,6 +90,7 @@ webhooks:
     payload: events.DomainVerifiedEvent
 
   calendarEventCreated:
+    availability: beta
     display-name: Calendar Event Created
     method: POST
     headers:
@@ -99,6 +100,7 @@ webhooks:
     payload: events.CalendarEventCreatedEvent
 
   calendarEventUpdated:
+    availability: beta
     display-name: Calendar Event Updated
     method: POST
     headers:
@@ -108,6 +110,7 @@ webhooks:
     payload: events.CalendarEventUpdatedEvent
 
   calendarEventDeleted:
+    availability: beta
     display-name: Calendar Event Deleted
     method: POST
     headers:
@@ -117,6 +120,7 @@ webhooks:
     payload: events.CalendarEventDeletedEvent
 
   calendarEventResponded:
+    availability: beta
     display-name: Calendar Event Responded
     method: POST
     headers:
@@ -126,6 +130,7 @@ webhooks:
     payload: events.CalendarEventRespondedEvent
 
   calendarEventStarting:
+    availability: beta
     display-name: Calendar Event Starting
     method: POST
     headers:
@@ -135,6 +140,7 @@ webhooks:
     payload: events.CalendarEventStartingEvent
 
   calendarEventEnding:
+    availability: beta
     display-name: Calendar Event Ending
     method: POST
     headers:

@@ -2471,6 +2471,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Get Calendar
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -2576,6 +2577,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Update Calendar
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -2864,6 +2866,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List Events
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -3041,6 +3044,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Create Event
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -3231,6 +3235,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Get Event
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -3459,6 +3464,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Update Event
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -3697,6 +3703,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Delete Event
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -3897,6 +3904,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List Event Instances
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -4072,6 +4080,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Respond to Event
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to

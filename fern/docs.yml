@@ -276,26 +276,33 @@ navigation:
           - page: Permissions
             icon: fa-solid fa-lock
             path: pages/core-concepts/permissions.mdx
-      - section: Calendar
+      - section: Calendar (Beta)
+        availability: beta
         contents:
           - page: Overview
             icon: fa-regular fa-calendar
             path: pages/calendar/overview.mdx
+            availability: beta
           - page: Managing Events
             icon: fa-solid fa-calendar-plus
             path: pages/calendar/events.mdx
+            availability: beta
           - page: Recurring Events
             icon: fa-solid fa-repeat
             path: pages/calendar/recurring-events.mdx
+            availability: beta
           - page: Invitations
             icon: fa-solid fa-envelope-open-text
             path: pages/calendar/invitations.mdx
+            availability: beta
           - page: Calendar Webhooks
             icon: fa-solid fa-bell
             path: pages/calendar/webhooks.mdx
+            availability: beta
           - page: Concurrency, Limits & Errors
             icon: fa-solid fa-triangle-exclamation
             path: pages/calendar/reference.mdx
+            availability: beta
       - section: Integrations
         contents:
           - page: Agent Onboarding

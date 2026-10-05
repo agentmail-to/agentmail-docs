@@ -14,6 +14,7 @@ service:
 
   endpoints:
     get:
+      availability: beta
       method: GET
       path: ""
       display-name: Get Calendar
@@ -50,6 +51,7 @@ service:
             }
 
     update:
+      availability: beta
       method: PATCH
       path: ""
       display-name: Update Calendar
@@ -104,6 +106,7 @@ service:
             }
 
     listEvents:
+      availability: beta
       method: GET
       path: /events
       display-name: List Events
@@ -329,6 +332,7 @@ service:
             }
 
     createEvent:
+      availability: beta
       method: POST
       path: /events
       display-name: Create Event
@@ -485,6 +489,7 @@ service:
             }
 
     getEvent:
+      availability: beta
       method: GET
       path: /events/{event_id}
       display-name: Get Event
@@ -598,6 +603,7 @@ service:
             }
 
     updateEvent:
+      availability: beta
       method: PATCH
       path: /events/{event_id}
       display-name: Update Event
@@ -762,6 +768,7 @@ service:
             }
 
     deleteEvent:
+      availability: beta
       method: DELETE
       path: /events/{event_id}
       display-name: Delete Event
@@ -894,6 +901,7 @@ service:
             }
 
     listEventInstances:
+      availability: beta
       method: GET
       path: /events/{event_id}/instances
       display-name: List Event Instances
@@ -1025,6 +1033,7 @@ service:
             }
 
     respondToEvent:
+      availability: beta
       method: POST
       path: /events/{event_id}/respond
       display-name: Respond to Event
