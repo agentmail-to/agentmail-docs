@@ -84,7 +84,7 @@ Invitation emails count toward the same organization, pod and inbox send limits 
 
 If the charge would exceed a limit, the request returns `429` `rate_limit_exceeded` and the event is not created or changed. Wait for the `Retry-After` header when present, or retry without `send_invites` to save the change without emailing anyone.
 
-The charge is taken after the request passes validation and its `If-Match` check, so a `400`, `412` or `428` is not charged, but a request that fails after that (for example with `409`) is. A create retried with the same `client_id` is charged again. While the inbox is paused or suspended, nothing is charged and no invitations are sent.
+The charge is taken after the request passes validation and any `If-Match` check, so a `400` or `412` is not charged, but a request that fails after that (for example with `409`) is. A create retried with the same `client_id` that returns the original event is not charged again. While the inbox is paused or suspended, nothing is charged and no invitations are sent.
 
 Invitations also pass the same outbound checks as other mail, such as spam checks and the recipient limits for new senders. An invitation those checks refuse is not sent or retried; the event itself is still saved.
 
@@ -127,35 +127,27 @@ Use Respond to Event to accept, decline or tentatively accept an invitation the 
 
 <CodeBlocks>
 ```python title="Python"
-inbox_id = "scheduler@agentmail.to"
-event_id = "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20"
-
-event = client.inboxes.calendar.get_event(inbox_id, event_id, consistency="primary")
 response = client.inboxes.calendar.respond_to_event(
-    inbox_id,
-    event_id,
-    if_match=f'"rv-{event.resource_revision}"',
+    "scheduler@agentmail.to",
+    "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20",
     status="accepted",
     comment="See you there.",
 )
 ```
 
 ```typescript title="TypeScript"
-const inboxId = "scheduler@agentmail.to";
-const eventId = "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20";
-
-const event = await client.inboxes.calendar.getEvent(inboxId, eventId, { consistency: "primary" });
-const response = await client.inboxes.calendar.respondToEvent(inboxId, eventId, {
-  ifMatch: `"rv-${event.resourceRevision}"`,
-  status: "accepted",
-  comment: "See you there.",
-});
+const response = await client.inboxes.calendar.respondToEvent(
+  "scheduler@agentmail.to",
+  "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20",
+  { status: "accepted", comment: "See you there." },
+);
 ```
 </CodeBlocks>
 
 - `status` is `accepted`, `declined` or `tentative`.
 - `send_reply` defaults to `true`. Set it to `false` to record your answer without emailing the organizer.
-- Pass a dated ID instead of the event UUID to answer for one date of a recurring invitation. Dated events have no `resource_revision`, so send the date's own `ETag` from the response header instead of building `"rv-..."`; see [Reading ETags with the SDKs](/calendar-reference#reading-etags-with-the-sdks).
+- Pass a dated ID instead of the event UUID to answer for one date of a recurring invitation.
+- To make the response conditional, send the event's or date's `etag` in `If-Match`.
 - Responding only works on `email` events where the inbox is an attendee. Anything else returns `409` `calendar_response_invalid`.
 - A `calendar.event.responded` webhook is sent.
 

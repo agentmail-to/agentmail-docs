@@ -96,7 +96,7 @@ The request conflicts with another request under the same `Idempotency-Key`. Eit
 
 ### race_condition
 
-A concurrent modification conflicted with your request. Re-fetch the resource to get its latest state, then retry. A calendar event create also returns this when the calendar is at its event limit, where retrying cannot help: check `event_count` with Get Calendar.
+A concurrent modification conflicted with your request. Re-fetch the resource to get its latest state, then retry. A calendar change sent without `If-Match` returns this when the resource changed while the request ran. A calendar event create also returns this when the calendar is at its event limit, where retrying cannot help: check `event_count` with Get Calendar.
 
 ### resource_deleting
 
@@ -112,11 +112,11 @@ These codes come from the [calendar API](/calendar). See [Concurrency, Limits & 
 
 ### precondition_required
 
-The request changes a calendar or event but has no `If-Match` header (`428`). Read the resource, copy its `ETag` response header into `If-Match`, and retry.
+The request needs an `If-Match` header and has none (`428`). Read the resource, copy its `etag` into `If-Match`, and retry. Public calendar endpoints accept requests without `If-Match`.
 
 ### precondition_failed
 
-The resource changed since the version in your `If-Match` was read (`412`). The body includes `current_revision`. Read the resource again, reapply your change and retry with its new `ETag`.
+The resource changed since the version in your `If-Match` was read (`412`). The body includes `current_revision`. Read the resource again, reapply your change and retry with its new `etag`.
 
 ### idempotency_conflict
 

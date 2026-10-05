@@ -968,6 +968,12 @@ paths:
       - inboxes
       - calendar
       x-fern-sdk-method-name: update
+  /v0/inboxes/{inbox_id}/calendar/agenda:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: get-agenda
   /v0/inboxes/{inbox_id}/calendar/events:
     get:
       x-fern-sdk-group-name:

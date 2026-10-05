@@ -81,8 +81,8 @@ types:
   ResourceRevision:
     type: integer
     docs: |
-      Revision of the resource. It increases on every change. The `ETag` response header carries it
-      as `"rv-<resource_revision>"`; send that value back in `If-Match` to update or delete.
+      Revision of the resource. It increases on every change. The resource's `etag` is
+      `"rv-<resource_revision>"`.
 
   OperationId:
     type: string
@@ -160,6 +160,11 @@ types:
       updated_at:
         type: datetime
         docs: Time at which the calendar was last updated.
+      etag:
+        type: string
+        docs: |
+          The calendar's current version, also sent as the `ETag` response header. Send it in
+          `If-Match` to make an update conditional.
 
   UpdateCalendarRequest:
     properties:
@@ -292,13 +297,13 @@ types:
         docs: Title of the event.
       description:
         type: optional<string>
-        docs: Description of the event. Omitted from expanded list items.
+        docs: Description of the event. Omitted from agenda and instance list items.
       location:
         type: optional<string>
         docs: Location of the event.
       metadata:
         type: optional<unknown>
-        docs: Your own JSON value for the event, usually an object. Never sent to attendees. Omitted from expanded list items.
+        docs: Your own JSON value for the event, usually an object. Never sent to attendees. Omitted from agenda and instance list items.
       status: CalendarEventStatus
       all_day:
         type: boolean
@@ -325,7 +330,7 @@ types:
         docs: For `series` events, the recurrence.
       attendees:
         type: optional<list<Attendee>>
-        docs: Attendees of the event. Omitted from expanded list items; `attendee_count` is always present.
+        docs: Attendees of the event. Omitted from agenda and instance list items; `attendee_count` is always present.
       attendee_count:
         type: integer
         docs: Number of attendees.
@@ -348,15 +353,21 @@ types:
       resource_revision:
         type: optional<ResourceRevision>
         docs: |
-          Present on `single` and `series` events, except agenda items (`expand=true`) and
-          `calendar.event.starting` and `calendar.event.ending` payloads, which omit it. Dated events
-          use an opaque `ETag` instead.
+          Present on `single` and `series` events, except agenda items and
+          `calendar.event.starting` and `calendar.event.ending` payloads, which omit it.
       created_at:
         type: datetime
         docs: Time at which the event (or, for a date, the definition governing it) was created.
       updated_at:
         type: datetime
         docs: Time at which the event (or, for a date, the definition governing it) was last updated.
+      etag:
+        type: optional<string>
+        docs: |
+          The event's or date's current version, also sent as the `ETag` response header. Send it in
+          `If-Match` to make an update, delete or response conditional. Present on Get, Create,
+          Update, Delete and Respond responses; list items and webhooks omit it. Treat it as opaque:
+          a dated event's `etag` (`"occ-..."`) is not derived from `resource_revision`.
 
   CalendarEventMutationResponse:
     properties:
@@ -381,8 +392,8 @@ types:
       events:
         type: list<CalendarEvent>
         docs: |
-          Without `expand`, ordered by `updated_at` descending. With `expand=true` and on the
-          instances endpoint, ordered by `start_at` ascending.
+          On List Events, ordered by `updated_at` descending. On Get Agenda and List Event Instances,
+          ordered by `start_at` ascending.
 
   CreateCalendarEventRequest:
     properties:
@@ -390,9 +401,9 @@ types:
         type: optional<string>
         docs: |
           Your idempotency key for this create. Retrying with the same `client_id` and the same body
-          within seven days returns the original event with `200` instead of creating a second one.
-          After seven days an identical retry returns `409` `race_condition`, meaning the event
-          already exists. Reusing it with a different body is a `409` `idempotency_conflict`.
+          returns the original event with `200` instead of creating a second one, for as long as the
+          event exists (`404` once it has been deleted). Reusing it with a different body is a `409`
+          `idempotency_conflict`.
       title:
         type: string
         docs: Title of the event. 1 to 1,000 characters.
@@ -535,7 +546,7 @@ errors:
   PreconditionFailedError:
     status-code: 412
     type: PreconditionFailedErrorResponse
-    docs: The resource changed since the `If-Match` value was read. Fetch it again, reapply the change, and retry with the new `ETag`.
+    docs: The resource changed since the `If-Match` value was read. Fetch it again, reapply the change, and retry with the new `etag`.
 
   PayloadTooLargeError:
     status-code: 413
@@ -548,8 +559,3 @@ errors:
     docs: |
       Too many requests, or the invitation emails this request would send exceed an organization,
       pod or inbox send limit. Nothing was changed. Honor the `Retry-After` header when present.
-
-  PreconditionRequiredError:
-    status-code: 428
-    type: global.ErrorResponse
-    docs: The request needs an `If-Match` header. Copy the `ETag` from the latest read of the resource.

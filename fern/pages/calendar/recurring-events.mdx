@@ -130,7 +130,7 @@ A dated event has `kind: instance` and three extra fields:
 
 There are two ways to list dates:
 
-- `GET /calendar/events?expand=true` lists every date of every event in a window. This is the agenda view. It includes recurring events' dates only up to about 90 days from now.
+- `GET /calendar/agenda` lists every date of every event in a window. It includes recurring events' dates only up to about 90 days from now.
 - `GET /calendar/events/{series_id}/instances` lists the dates of one series in a window. It computes them from the rule, so it works for any window up to 366 days, including far in the future.
 
 <CodeBlocks>
@@ -163,18 +163,16 @@ Both lists apply edits to each date and leave out cancelled dates. Get a date by
 
 ## Change one date
 
-`PATCH` a dated ID to change only that date. Its `If-Match` must be the date's own `ETag`, which looks like `"occ-0-0-0-none-none"`. Dated events have no `resource_revision` field, so read the `ETag` response header. See [Reading ETags with the SDKs](/calendar-reference#reading-etags-with-the-sdks).
+`PATCH` a dated ID to change only that date. To make the change conditional, send the date's own `etag` (from Get Event, which looks like `"occ-0-0-0-none-none"`) in `If-Match`; dated events have no `resource_revision`.
 
 <CodeBlocks>
 ```python title="Python"
 inbox_id = "scheduler@agentmail.to"
 date_id = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000"
 
-raw = client.inboxes.calendar.with_raw_response.get_event(inbox_id, date_id)
 moved = client.inboxes.calendar.update_event(
     inbox_id,
     date_id,
-    if_match=raw.headers["etag"],
     start="2026-10-07T10:00:00",
     end="2026-10-07T10:15:00",
 )
@@ -185,9 +183,7 @@ print(moved.event.is_exception)  # True
 const inboxId = "scheduler@agentmail.to";
 const dateId = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000";
 
-const { rawResponse } = await client.inboxes.calendar.getEvent(inboxId, dateId).withRawResponse();
 const moved = await client.inboxes.calendar.updateEvent(inboxId, dateId, {
-  ifMatch: rawResponse.headers.get("etag")!,
   start: "2026-10-07T10:00:00",
   end: "2026-10-07T10:15:00",
 });
@@ -208,12 +204,10 @@ Add `mode=future` to apply a change from one date onward, for example to rename 
 <CodeBlocks>
 ```python title="Python"
 date_id = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000"
-etag = client.inboxes.calendar.with_raw_response.get_event(inbox_id, date_id).headers["etag"]
 
 client.inboxes.calendar.update_event(
     inbox_id,
     date_id,
-    if_match=etag,
     mode="future",
     title="Team sync",
     end="2026-10-12T09:30:00",
@@ -222,10 +216,8 @@ client.inboxes.calendar.update_event(
 
 ```typescript title="TypeScript"
 const futureId = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000";
-const futureRead = await client.inboxes.calendar.getEvent(inboxId, futureId).withRawResponse();
 
 await client.inboxes.calendar.updateEvent(inboxId, futureId, {
-  ifMatch: futureRead.rawResponse.headers.get("etag")!,
   mode: "future",
   title: "Team sync",
   end: "2026-10-12T09:30:00",
@@ -246,19 +238,14 @@ A `mode=future` change cannot include `start`; it returns `409` `future_edit_sta
 <CodeBlocks>
 ```python title="Python"
 date_id = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000"
-etag = client.inboxes.calendar.with_raw_response.get_event(inbox_id, date_id).headers["etag"]
 
-client.inboxes.calendar.delete_event(inbox_id, date_id, if_match=etag, mode="single")
+client.inboxes.calendar.delete_event(inbox_id, date_id, mode="single")
 ```
 
 ```typescript title="TypeScript"
 const cancelId = "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000";
-const cancelRead = await client.inboxes.calendar.getEvent(inboxId, cancelId).withRawResponse();
 
-await client.inboxes.calendar.deleteEvent(inboxId, cancelId, {
-  ifMatch: cancelRead.rawResponse.headers.get("etag")!,
-  mode: "single",
-});
+await client.inboxes.calendar.deleteEvent(inboxId, cancelId, { mode: "single" });
 ```
 </CodeBlocks>
 
@@ -266,7 +253,7 @@ Each sends `calendar.event.updated` with the cancelled date (deleting the whole 
 
 ## Change the whole series
 
-`PATCH` the series UUID, with the series' `ETag` (`"rv-<resource_revision>"`), to change every date. A change to the schedule (`start`, `end`, `timezone`, `duration_mode`, `recurrence` or `status`) regenerates the series' dates, and start and end webhooks follow the new schedule. A date that is already in progress still gets its `calendar.event.ending`.
+`PATCH` the series UUID to change every date. A change to the schedule (`start`, `end`, `timezone`, `duration_mode`, `recurrence` or `status`) regenerates the series' dates, and start and end webhooks follow the new schedule. A date that is already in progress still gets its `calendar.event.ending`.
 
 While dates are regenerated, which takes a few seconds, the agenda view can briefly leave out some of the series' dates.
 

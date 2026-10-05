@@ -2408,10 +2408,10 @@ paths:
         Gets the inbox's calendar. Every inbox has one calendar, so this works
         before any event is
 
-        created. The `ETag` response header (`"rv-<n>"`) is the value to send in
-        `If-Match` when
+        created. Its `etag` (also the `ETag` response header) is the value to
+        send in `If-Match` to
 
-        updating it.
+        make an update conditional.
 
 
         Requires the `calendar_read` permission. Calendar is in private beta:
@@ -2452,6 +2452,7 @@ paths:
                     event_count: 2
                     created_at: '2026-10-01T16:20:00Z'
                     updated_at: '2026-10-01T16:25:00Z'
+                    etag: '"rv-1"'
         '400':
           description: ''
           content:
@@ -2487,11 +2488,13 @@ paths:
         events created later without a `timezone` use the new default.
 
 
-        Requires the `calendar_update` permission and an `If-Match` header with
-        the calendar's
+        Requires the `calendar_update` permission. To make the update
+        conditional, send the
 
-        current `ETag`. A stale `If-Match` returns `412`; a missing one returns
-        `428`.
+        calendar's current `etag` in `If-Match`: a stale value returns `412`.
+        Without `If-Match` the
+
+        update applies to the calendar as it is.
 
 
         Calendar is in private beta: organizations without access receive a
@@ -2511,10 +2514,13 @@ paths:
               value: scheduler@agentmail.to
         - name: If-Match
           in: header
-          description: The calendar's current `ETag`, for example `"rv-0"`.
-          required: true
+          description: >-
+            The calendar's current `etag`, for example `"rv-0"`. Optional; makes
+            the update conditional.
+          required: false
           schema:
             type: string
+            nullable: true
           example: '"rv-0"'
           examples:
             Example1:
@@ -2534,6 +2540,7 @@ paths:
                     event_count: 2
                     created_at: '2026-10-01T16:20:00Z'
                     updated_at: '2026-10-01T16:25:00Z'
+                    etag: '"rv-1"'
         '400':
           description: ''
           content:
@@ -2570,12 +2577,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '428':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
       summary: Update Calendar
       x-fern-availability: pre-release
       servers:
@@ -2601,29 +2602,19 @@ paths:
   /v0/inboxes/{inbox_id}/calendar/events:
     get:
       description: >-
-        Lists the calendar's events in one of two views.
+        Lists the events stored on the calendar: one item per one-off or
+        recurring event, plus one
 
+        item for each edited date of a recurring event (as that dated event,
+        with
 
-        - **Stored events** (default): one item per one-off or recurring event,
-        plus one item for
-          each edited date of a recurring event (as that dated event, with `is_exception: true`).
-          Ordered by most recently updated. Use this view to sync or manage what you created.
-        - **Agenda** (`expand=true`): every date in a time window, with
-        recurring events expanded
-          into their individual dates and cancelled dates left out. Ordered by start time. Use this
-          view to answer "what is on the calendar". Agenda items omit `description`, `metadata` and
-          `attendees`; get an event by ID for the full object. The window defaults to now through
-          90 days from now and can be at most 366 days. Dates of recurring events appear only up to
-          about 90 days from now; use List Event Instances for a recurring event's later dates.
+        `is_exception: true`). Ordered by most recently updated, and cancelled
+        events are included.
 
-        `after`, `before` and `include_overlapping` require `expand=true`.
+        Use it to sync or manage what you created. To see what is on the
+        calendar in a time window,
 
-
-        While a recurring event's dates are being regenerated after a schedule
-        change, which takes a
-
-        few seconds, the agenda can briefly leave out some of that event's
-        dates.
+        use Get Agenda.
 
 
         Requires the `calendar_event_read` permission.
@@ -2642,60 +2633,17 @@ paths:
             $ref: '#/components/schemas/inboxesInboxId'
           example: scheduler@agentmail.to
           examples:
-            Agenda:
+            Example1:
               value: scheduler@agentmail.to
-            Stored events:
-              value: scheduler@agentmail.to
-        - name: expand
-          in: query
-          description: >-
-            When `true`, returns the agenda view described above. Defaults to
-            `false`.
-          required: false
-          schema:
-            type: boolean
-            nullable: true
-          example: true
-          examples:
-            Agenda:
-              value: true
-        - name: after
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/WindowAfter'
-            nullable: true
-          example: '2026-10-07T00:00:00Z'
-          examples:
-            Agenda:
-              value: '2026-10-07T00:00:00Z'
-        - name: before
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/WindowBefore'
-            nullable: true
-          example: '2026-10-16T00:00:00Z'
-          examples:
-            Agenda:
-              value: '2026-10-16T00:00:00Z'
-        - name: include_overlapping
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/IncludeOverlapping'
-            nullable: true
         - name: limit
           in: query
           required: false
           schema:
             $ref: '#/components/schemas/CalendarLimit'
             nullable: true
-          example: 3
+          example: 50
           examples:
-            Agenda:
-              value: 3
-            Stored events:
+            Example1:
               value: 50
         - name: page_token
           in: query
@@ -2711,85 +2659,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListCalendarEventsResponse'
               examples:
-                Agenda:
-                  value:
-                    count: 3
-                    limit: 3
-                    events:
-                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
-                        kind: instance
-                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
-                        original_start: '2026-10-07T09:00:00'
-                        original_start_at: '2026-10-07T13:00:00Z'
-                        is_exception: false
-                        title: Team standup
-                        location: https://meet.example.com/standup
-                        status: confirmed
-                        all_day: false
-                        start: '2026-10-07T09:00:00'
-                        end: '2026-10-07T09:15:00'
-                        timezone: America/New_York
-                        duration_mode: nominal
-                        duration_value: 900000
-                        start_at: '2026-10-07T13:00:00Z'
-                        end_at: '2026-10-07T13:15:00Z'
-                        attendee_count: 0
-                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
-                        sequence: 0
-                        source: api
-                        organizer_email: scheduler@agentmail.to
-                        created_at: '2026-10-01T16:25:00Z'
-                        updated_at: '2026-10-01T16:25:00Z'
-                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000
-                        kind: instance
-                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
-                        original_start: '2026-10-09T09:00:00'
-                        original_start_at: '2026-10-09T13:00:00Z'
-                        is_exception: false
-                        title: Team standup
-                        location: https://meet.example.com/standup
-                        status: confirmed
-                        all_day: false
-                        start: '2026-10-09T09:00:00'
-                        end: '2026-10-09T09:15:00'
-                        timezone: America/New_York
-                        duration_mode: nominal
-                        duration_value: 900000
-                        start_at: '2026-10-09T13:00:00Z'
-                        end_at: '2026-10-09T13:15:00Z'
-                        attendee_count: 0
-                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
-                        sequence: 0
-                        source: api
-                        organizer_email: scheduler@agentmail.to
-                        created_at: '2026-10-01T16:25:00Z'
-                        updated_at: '2026-10-01T16:25:00Z'
-                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000
-                        kind: instance
-                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
-                        original_start: '2026-10-12T09:00:00'
-                        original_start_at: '2026-10-12T13:00:00Z'
-                        is_exception: false
-                        title: Team standup
-                        location: https://meet.example.com/standup
-                        status: confirmed
-                        all_day: false
-                        start: '2026-10-12T09:00:00'
-                        end: '2026-10-12T09:15:00'
-                        timezone: America/New_York
-                        duration_mode: nominal
-                        duration_value: 900000
-                        start_at: '2026-10-12T13:00:00Z'
-                        end_at: '2026-10-12T13:15:00Z'
-                        attendee_count: 0
-                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
-                        sequence: 0
-                        source: api
-                        organizer_email: scheduler@agentmail.to
-                        created_at: '2026-10-01T16:25:00Z'
-                        updated_at: '2026-10-01T16:25:00Z'
-                    next_page_token: eyJzIjoiMjAyNi0xMC0xMlQxMzowMDowMFoifQ
-                Stored events:
+                Example1:
                   value:
                     count: 2
                     limit: 50
@@ -2897,13 +2767,10 @@ paths:
         Pass `client_id` to make retries safe: repeating the request with the
         same `client_id` and
 
-        body within seven days returns the original event with status `200`
-        instead of `201`. After
+        body returns the original event with status `200` instead of `201`, for
+        as long as the event
 
-        seven days an identical retry returns `409` `race_condition`, meaning
-        the event already
-
-        exists, so keep the `event_id` from the first response.
+        exists.
 
 
         With `send_invites: true`, each attendee counts as one send against the
@@ -2912,13 +2779,16 @@ paths:
         and inbox send limits, charged before the event is stored. An over-limit
         request returns
 
-        `429` `rate_limit_exceeded` and creates nothing.
+        `429` `rate_limit_exceeded` and creates nothing. A replay of an earlier
+        create is not
+
+        charged again.
 
 
-        The `ETag` response header (`"rv-<n>"`) is the value to send in
-        `If-Match` when updating or
+        The event's `etag` is the value to send in `If-Match` to make a later
+        update or delete
 
-        deleting the event. Requires the `calendar_event_create` permission.
+        conditional. Requires the `calendar_event_create` permission.
 
 
         Calendar is in private beta: organizations without access receive a
@@ -2978,6 +2848,7 @@ paths:
                       resource_revision: 0
                       created_at: '2026-10-01T16:30:00Z'
                       updated_at: '2026-10-01T16:30:00Z'
+                      etag: '"rv-0"'
                     operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
                 Recurring event:
                   value:
@@ -3006,6 +2877,7 @@ paths:
                       resource_revision: 0
                       created_at: '2026-10-01T16:25:00Z'
                       updated_at: '2026-10-01T16:25:00Z'
+                      etag: '"rv-0"'
                     operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
         '400':
           description: ''
@@ -3083,6 +2955,207 @@ paths:
                   timezone: America/New_York
                   recurrence:
                     rule: FREQ=WEEKLY;BYDAY=MO,WE,FR
+  /v0/inboxes/{inbox_id}/calendar/agenda:
+    get:
+      description: >-
+        Lists every date on the calendar in a time window, ordered by start
+        time: one-off events,
+
+        and recurring events expanded into their individual dates, with
+        cancelled dates left out.
+
+        Use it to answer "what is on the calendar".
+
+
+        The window defaults to now through 90 days from now and can be at most
+        366 days. Items omit
+
+        `description`, `metadata` and `attendees`; get an event by ID for the
+        full object. Dates of
+
+        recurring events appear only up to about 90 days from now; use List
+        Event Instances for a
+
+        recurring event's later dates. While a recurring event's dates are being
+        regenerated after a
+
+        schedule change, which takes a few seconds, the agenda can briefly leave
+        out some of them.
+
+
+        Requires the `calendar_event_read` permission.
+
+
+        Calendar is in private beta: organizations without access receive a
+        `403`.
+      operationId: inboxes_calendar_getAgenda
+      tags:
+        - InboxesCalendar
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: scheduler@agentmail.to
+          examples:
+            Example1:
+              value: scheduler@agentmail.to
+        - name: after
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WindowAfter'
+            nullable: true
+          example: '2026-10-07T00:00:00Z'
+          examples:
+            Example1:
+              value: '2026-10-07T00:00:00Z'
+        - name: before
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WindowBefore'
+            nullable: true
+          example: '2026-10-16T00:00:00Z'
+          examples:
+            Example1:
+              value: '2026-10-16T00:00:00Z'
+        - name: include_overlapping
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/IncludeOverlapping'
+            nullable: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CalendarLimit'
+            nullable: true
+          example: 3
+          examples:
+            Example1:
+              value: 3
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCalendarEventsResponse'
+              examples:
+                Example1:
+                  value:
+                    count: 3
+                    limit: 3
+                    events:
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-07T09:00:00'
+                        original_start_at: '2026-10-07T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-07T09:00:00'
+                        end: '2026-10-07T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-07T13:00:00Z'
+                        end_at: '2026-10-07T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261009T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-09T09:00:00'
+                        original_start_at: '2026-10-09T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-09T09:00:00'
+                        end: '2026-10-09T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-09T13:00:00Z'
+                        end_at: '2026-10-09T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                      - event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261012T090000
+                        kind: instance
+                        series_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47
+                        original_start: '2026-10-12T09:00:00'
+                        original_start_at: '2026-10-12T13:00:00Z'
+                        is_exception: false
+                        title: Team standup
+                        location: https://meet.example.com/standup
+                        status: confirmed
+                        all_day: false
+                        start: '2026-10-12T09:00:00'
+                        end: '2026-10-12T09:15:00'
+                        timezone: America/New_York
+                        duration_mode: nominal
+                        duration_value: 900000
+                        start_at: '2026-10-12T13:00:00Z'
+                        end_at: '2026-10-12T13:15:00Z'
+                        attendee_count: 0
+                        uid: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47@agentmail.to
+                        sequence: 0
+                        source: api
+                        organizer_email: scheduler@agentmail.to
+                        created_at: '2026-10-01T16:25:00Z'
+                        updated_at: '2026-10-01T16:25:00Z'
+                    next_page_token: eyJzIjoiMjAyNi0xMC0xMlQxMzowMDowMFoifQ
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Agenda
+      x-fern-availability: pre-release
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/inboxes/{inbox_id}/calendar/events/{event_id}:
     get:
       description: >-
@@ -3095,13 +3168,11 @@ paths:
         to it, with `kind: instance`.
 
 
-        The `ETag` response header is the value to send in `If-Match` when
-        updating, deleting or
+        The response's `etag` (also the `ETag` header) is the value to send in
+        `If-Match` to make an
 
-        responding to this event or date. For a dated ID the `ETag` is opaque
-        (`"occ-..."`); always
-
-        copy it from this header.
+        update, delete or response to this event or date conditional. Treat it
+        as opaque.
 
 
         `consistency` applies to UUIDs only; dated IDs are always read from the
@@ -3183,6 +3254,7 @@ paths:
                     resource_revision: 0
                     created_at: '2026-10-01T16:30:00Z'
                     updated_at: '2026-10-01T16:30:00Z'
+                    etag: '"rv-0"'
                 One date of a series:
                   value:
                     event_id: 7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000
@@ -3210,6 +3282,7 @@ paths:
                     created_at: '2026-10-01T16:25:00Z'
                     updated_at: '2026-10-01T16:25:00Z'
                     attendees: []
+                    etag: '"occ-0-0-0-none-none"'
         '400':
           description: ''
           content:
@@ -3245,10 +3318,17 @@ paths:
         - BearerAuth: []
     patch:
       description: >-
-        Updates an event. Send only the fields to change, with the event's
-        current `ETag` in
+        Updates an event. Send only the fields to change. To make the update
+        conditional, send the
 
-        `If-Match`.
+        event's current `etag` in `If-Match`: a stale value returns `412`.
+        Without `If-Match` the
+
+        update applies to the event as it is, so the last write wins. Send
+        `If-Match` when replacing
+
+        `attendees`, so you don't overwrite a response that arrived in the
+        meantime.
 
 
         - **One-off or series UUID:** changes the event itself. For a series,
@@ -3330,11 +3410,12 @@ paths:
         - name: If-Match
           in: header
           description: >-
-            The event's or date's current `ETag`, from the latest read or write
-            response.
-          required: true
+            The event's or date's current `etag`, from the latest read or write
+            response. Optional; makes the update conditional.
+          required: false
           schema:
             type: string
+            nullable: true
           example: '"rv-0"'
           examples:
             Reschedule a one-off event:
@@ -3381,6 +3462,7 @@ paths:
                       resource_revision: 1
                       created_at: '2026-10-01T16:30:00Z'
                       updated_at: '2026-10-02T09:12:00Z'
+                      etag: '"rv-1"'
                     operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
                 Move one date of a series:
                   value:
@@ -3410,6 +3492,7 @@ paths:
                       created_at: '2026-10-02T09:20:00Z'
                       updated_at: '2026-10-02T09:20:00Z'
                       attendees: []
+                      etag: '"occ-0-0-1-none-0"'
                     operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
         '400':
           description: ''
@@ -3448,12 +3531,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/PreconditionFailedErrorResponse'
         '413':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '428':
           description: ''
           content:
             application/json:
@@ -3499,12 +3576,12 @@ paths:
 
 
         - **One-off or series UUID:** deletes the event and every date of it.
-        Requires an
-          `Idempotency-Key` header. The event disappears from reads immediately and is removed in the
-          background; the response is `202` with a `deletion_id`. Retrying with the same
-          `Idempotency-Key` returns the same `deletion_id` while removal runs; once it has finished,
-          the event no longer exists and a retry returns `404`. No `calendar.event.starting` or
-          `calendar.event.ending` webhook is sent for the event after the delete is accepted.
+        The event disappears
+          from reads immediately and is removed in the background; the response is `202` with a
+          `deletion_id`. A retry returns the same `deletion_id` while removal runs (send the same
+          `Idempotency-Key`, or none both times); once it has finished, the event no longer exists
+          and a retry returns `404`. No `calendar.event.starting` or `calendar.event.ending` webhook
+          is sent for the event after the delete is accepted.
         - **Dated ID (`<uuid>_<slot>`):** cancels that date (`mode=single`, the
         default) or that date
           and every later date (`mode=future`). Returns `202` with the cancelled date. A `mode=future`
@@ -3518,9 +3595,10 @@ paths:
         `send_invites=true` the organizer
 
         inbox also emails a cancellation to every attendee. Requires the
-        `calendar_event_delete` permission and the
+        `calendar_event_delete`
 
-        current `ETag` in `If-Match`.
+        permission. To make the delete conditional, send the current `etag` in
+        `If-Match`.
 
 
         Emailing cancellations counts one send per attendee against the
@@ -3585,10 +3663,13 @@ paths:
               value: true
         - name: If-Match
           in: header
-          description: The event's or date's current `ETag`.
-          required: true
+          description: >-
+            The event's or date's current `etag`. Optional; makes the delete
+            conditional.
+          required: false
           schema:
             type: string
+            nullable: true
           example: '"rv-1"'
           examples:
             Delete an event:
@@ -3598,16 +3679,16 @@ paths:
         - name: Idempotency-Key
           in: header
           description: >-
-            1 to 128 visible ASCII characters. Required when deleting a one-off
-            or series UUID.
+            1 to 128 visible ASCII characters. Optional. Retrying a delete with
+            the same key
 
-            Retrying a delete with the same key returns the original result.
-            Keys are unique
+            returns the original result; without a key, retries of the same
+            delete share one
 
-            across your organization: reusing one to delete a different event
-            returns `409`
+            derived from the event. Keys are unique across your organization:
+            reusing one to
 
-            `idempotency_conflict`.
+            delete a different event returns `409` `idempotency_conflict`.
           required: false
           schema:
             type: string
@@ -3655,6 +3736,7 @@ paths:
                       created_at: '2026-10-01T16:25:00Z'
                       updated_at: '2026-10-02T09:30:00Z'
                       attendees: []
+                      etag: '"occ-1-0-0-none-none"'
                     operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
         '400':
           description: ''
@@ -3692,12 +3774,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PreconditionFailedErrorResponse'
-        '428':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '429':
           description: ''
           content:
@@ -3936,8 +4012,10 @@ paths:
         to the organizer.
 
 
-        Requires the `calendar_event_update` permission and the current `ETag`
-        in `If-Match`.
+        Requires the `calendar_event_update` permission. To make the response
+        conditional, send the
+
+        current `etag` in `If-Match`.
 
 
         A reply email counts as one send against the organization, pod and inbox
@@ -3975,10 +4053,13 @@ paths:
               value: a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20
         - name: If-Match
           in: header
-          description: The event's or date's current `ETag`.
-          required: true
+          description: >-
+            The event's or date's current `etag`. Optional; makes the response
+            conditional.
+          required: false
           schema:
             type: string
+            nullable: true
           example: '"rv-0"'
           examples:
             Example1:
@@ -4026,6 +4107,7 @@ paths:
                       resource_revision: 1
                       created_at: '2026-10-02T07:58:00Z'
                       updated_at: '2026-10-02T08:05:00Z'
+                      etag: '"rv-1"'
                     operation_id: 0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50
         '400':
           description: ''
@@ -4064,12 +4146,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/PreconditionFailedErrorResponse'
         '413':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '428':
           description: ''
           content:
             application/json:
@@ -11687,11 +11763,10 @@ components:
       title: ResourceRevision
       type: integer
       description: >-
-        Revision of the resource. It increases on every change. The `ETag`
-        response header carries it
+        Revision of the resource. It increases on every change. The resource's
+        `etag` is
 
-        as `"rv-<resource_revision>"`; send that value back in `If-Match` to
-        update or delete.
+        `"rv-<resource_revision>"`.
     OperationId:
       title: OperationId
       type: string
@@ -11807,12 +11882,21 @@ components:
           format: date-time
           description: Time at which the calendar was last updated.
           example: '2026-10-01T16:25:00Z'
+        etag:
+          type: string
+          description: >-
+            The calendar's current version, also sent as the `ETag` response
+            header. Send it in
+
+            `If-Match` to make an update conditional.
+          example: '"rv-1"'
       required:
         - inbox_id
         - timezone
         - event_count
         - created_at
         - updated_at
+        - etag
     UpdateCalendarRequest:
       title: UpdateCalendarRequest
       type: object
@@ -12022,7 +12106,9 @@ components:
         description:
           type: string
           nullable: true
-          description: Description of the event. Omitted from expanded list items.
+          description: >-
+            Description of the event. Omitted from agenda and instance list
+            items.
         location:
           type: string
           nullable: true
@@ -12031,7 +12117,7 @@ components:
           nullable: true
           description: >-
             Your own JSON value for the event, usually an object. Never sent to
-            attendees. Omitted from expanded list items.
+            attendees. Omitted from agenda and instance list items.
         status:
           $ref: '#/components/schemas/CalendarEventStatus'
         all_day:
@@ -12078,7 +12164,7 @@ components:
             $ref: '#/components/schemas/Attendee'
           nullable: true
           description: >-
-            Attendees of the event. Omitted from expanded list items;
+            Attendees of the event. Omitted from agenda and instance list items;
             `attendee_count` is always present.
         attendee_count:
           type: integer
@@ -12118,13 +12204,10 @@ components:
           $ref: '#/components/schemas/ResourceRevision'
           nullable: true
           description: >-
-            Present on `single` and `series` events, except agenda items
-            (`expand=true`) and
+            Present on `single` and `series` events, except agenda items and
 
             `calendar.event.starting` and `calendar.event.ending` payloads,
-            which omit it. Dated events
-
-            use an opaque `ETag` instead.
+            which omit it.
         created_at:
           type: string
           format: date-time
@@ -12139,6 +12222,21 @@ components:
             Time at which the event (or, for a date, the definition governing
             it) was last updated.
           example: '2026-10-01T16:30:00Z'
+        etag:
+          type: string
+          nullable: true
+          description: >-
+            The event's or date's current version, also sent as the `ETag`
+            response header. Send it in
+
+            `If-Match` to make an update, delete or response conditional.
+            Present on Get, Create,
+
+            Update, Delete and Respond responses; list items and webhooks omit
+            it. Treat it as opaque:
+
+            a dated event's `etag` (`"occ-..."`) is not derived from
+            `resource_revision`.
       required:
         - event_id
         - kind
@@ -12206,10 +12304,10 @@ components:
           items:
             $ref: '#/components/schemas/CalendarEvent'
           description: >-
-            Without `expand`, ordered by `updated_at` descending. With
-            `expand=true` and on the
+            On List Events, ordered by `updated_at` descending. On Get Agenda
+            and List Event Instances,
 
-            instances endpoint, ordered by `start_at` ascending.
+            ordered by `start_at` ascending.
       required:
         - count
         - limit
@@ -12225,13 +12323,12 @@ components:
             Your idempotency key for this create. Retrying with the same
             `client_id` and the same body
 
-            within seven days returns the original event with `200` instead of
-            creating a second one.
+            returns the original event with `200` instead of creating a second
+            one, for as long as the
 
-            After seven days an identical retry returns `409` `race_condition`,
-            meaning the event
+            event exists (`404` once it has been deleted). Reusing it with a
+            different body is a `409`
 
-            already exists. Reusing it with a different body is a `409`
             `idempotency_conflict`.
         title:
           type: string
@@ -13563,8 +13660,8 @@ components:
         An event was created, through the API or from an invitation the inbox
         received. Also sent when
 
-        one date of a recurring event is edited for the first time; `event` is
-        then that date.
+        one date of a recurring event is edited for the first time;
+        `calendar_event` is then that date.
       properties:
         type:
           type: string
@@ -13579,25 +13676,25 @@ components:
             change.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
-        event:
+        calendar_event:
           $ref: '#/components/schemas/CalendarEvent'
       required:
         - type
         - event_type
         - event_id
         - inbox_id
-        - event
+        - calendar_event
     CalendarEventUpdatedEvent:
       title: CalendarEventUpdatedEvent
       type: object
       description: >-
-        An event, or one or more dates of a recurring event, changed. `event` is
-        the event (or the
+        An event, or one or more dates of a recurring event, changed.
+        `calendar_event` is the event
 
-        date) after the change. Cancelling dates with a delete on a dated ID
-        also sends this event,
+        (or the date) after the change. Cancelling dates with a delete on a
+        dated ID also sends this
 
-        with the cancelled date as `event`.
+        event, with the cancelled date as `calendar_event`.
       properties:
         type:
           type: string
@@ -13612,7 +13709,7 @@ components:
             change.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
-        event:
+        calendar_event:
           $ref: '#/components/schemas/CalendarEvent'
         previous:
           $ref: '#/components/schemas/CalendarEventPrevious'
@@ -13625,15 +13722,15 @@ components:
         - event_type
         - event_id
         - inbox_id
-        - event
+        - calendar_event
     CalendarEventDeletedEvent:
       title: CalendarEventDeletedEvent
       type: object
       description: >-
-        A one-off or recurring event was deleted. `event` is the event as it
-        was. Cancelling dates of a
+        A one-off or recurring event was deleted. `calendar_event` is the event
+        as it was. Cancelling
 
-        recurring event sends `calendar.event.updated` instead.
+        dates of a recurring event sends `calendar.event.updated` instead.
       properties:
         type:
           type: string
@@ -13648,14 +13745,14 @@ components:
             change.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
-        event:
+        calendar_event:
           $ref: '#/components/schemas/CalendarEvent'
       required:
         - type
         - event_type
         - event_id
         - inbox_id
-        - event
+        - calendar_event
     CalendarEventRespondedEvent:
       title: CalendarEventRespondedEvent
       type: object
@@ -13663,8 +13760,10 @@ components:
         An attendee's response changed: the inbox responded with the respond
         endpoint, or an attendee
 
-        replied by email to an invitation the inbox sent. `event.attendees`
-        holds the new statuses.
+        replied by email to an invitation the inbox sent.
+        `calendar_event.attendees` holds the new
+
+        statuses.
       properties:
         type:
           type: string
@@ -13676,14 +13775,14 @@ components:
           $ref: '#/components/schemas/EventId'
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
-        event:
+        calendar_event:
           $ref: '#/components/schemas/CalendarEvent'
       required:
         - type
         - event_type
         - event_id
         - inbox_id
-        - event
+        - calendar_event
     CalendarEventStartingEvent:
       title: CalendarEventStartingEvent
       type: object
@@ -13713,7 +13812,7 @@ components:
           description: Stable for this date and boundary. Use it to deduplicate deliveries.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
-        event:
+        calendar_event:
           $ref: '#/components/schemas/CalendarEvent'
           description: The event or date as it stood when the boundary was first processed.
         scheduled_at:
@@ -13725,7 +13824,7 @@ components:
         - event_type
         - event_id
         - inbox_id
-        - event
+        - calendar_event
         - scheduled_at
     CalendarEventEndingEvent:
       title: CalendarEventEndingEvent
@@ -13747,7 +13846,7 @@ components:
           description: Stable for this date and boundary. Use it to deduplicate deliveries.
         inbox_id:
           $ref: '#/components/schemas/inboxesInboxId'
-        event:
+        calendar_event:
           $ref: '#/components/schemas/CalendarEvent'
           description: The event or date as it stood when the boundary was first processed.
         scheduled_at:
@@ -13759,7 +13858,7 @@ components:
         - event_type
         - event_id
         - inbox_id
-        - event
+        - calendar_event
         - scheduled_at
     InboxEventId:
       title: InboxEventId

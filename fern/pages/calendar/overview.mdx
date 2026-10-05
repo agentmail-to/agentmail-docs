@@ -76,12 +76,12 @@ Responses add the matching UTC instants, `start_at` and `end_at`. These are the 
 
 ## Two ways to list events
 
-`GET /calendar/events` answers two different questions:
+Two endpoints answer two different questions:
 
 | Question | Request | Returns |
 | --- | --- | --- |
 | "What have I created?" | `GET /calendar/events` | One item per one-off and recurring event, plus each individually edited date. Most recently updated first. |
-| "What is on the calendar?" | `GET /calendar/events?expand=true` | Every date in a time window (default: the next 90 days), with recurring events expanded and cancelled dates left out. In start order. Recurring events' dates are included only up to about 90 days from now. |
+| "What is on the calendar?" | `GET /calendar/agenda` | Every date in a time window (default: the next 90 days), with recurring events expanded and cancelled dates left out. In start order. Recurring events' dates are included only up to about 90 days from now. |
 
 ## Quick start
 
@@ -106,7 +106,7 @@ created = client.inboxes.calendar.create_event(
 print(created.event.event_id, created.event.start_at)
 
 # what is on the calendar in the next 90 days?
-agenda = client.inboxes.calendar.list_events(inbox_id, expand=True)
+agenda = client.inboxes.calendar.get_agenda(inbox_id)
 for event in agenda.events:
     print(event.start_at, event.title)
 ```
@@ -130,7 +130,7 @@ const created = await client.inboxes.calendar.createEvent(inboxId, {
 console.log(created.event.eventId, created.event.startAt);
 
 // what is on the calendar in the next 90 days?
-const agenda = await client.inboxes.calendar.listEvents(inboxId, { expand: true });
+const agenda = await client.inboxes.calendar.getAgenda(inboxId);
 for (const event of agenda.events) {
   console.log(event.startAt, event.title);
 }
@@ -168,7 +168,7 @@ Calendar endpoints use their own API key permissions:
 | --- | --- |
 | `calendar_read` | Get Calendar |
 | `calendar_update` | Update Calendar |
-| `calendar_event_read` | Get Event, List Events, List Event Instances, and receiving `calendar.event.*` webhook and WebSocket events |
+| `calendar_event_read` | Get Event, List Events, Get Agenda, List Event Instances, and receiving `calendar.event.*` webhook and WebSocket events |
 | `calendar_event_create` | Create Event |
 | `calendar_event_update` | Update Event, Respond to Event |
 | `calendar_event_delete` | Delete Event |

@@ -11,7 +11,7 @@ Calendar webhooks let your agent act at the right moment without polling or runn
 
 ## Event types
 
-| Event | Sent when | `event` is |
+| Event | Sent when | `calendar_event` is |
 | --- | --- | --- |
 | `calendar.event.created` | An event is created through the API or from a received invitation, or a date of a recurring event is edited for the first time. | The new event, or the edited date |
 | `calendar.event.updated` | An event changes, or one or more dates of a recurring event change or are cancelled. | The event or date after the change |
@@ -20,7 +20,7 @@ Calendar webhooks let your agent act at the right moment without polling or runn
 | `calendar.event.starting` | An event or date starts (`start_at`). | The event or date |
 | `calendar.event.ending` | An event or date ends (`end_at`). | The event or date |
 
-Every payload has the same envelope. `event` uses the same shape as the API's [CalendarEvent](/api-reference/inboxes/calendar/get-event), and `inbox_id` says which inbox's calendar it belongs to:
+Every payload has the same envelope. `calendar_event` uses the same shape as the API's [CalendarEvent](/api-reference/inboxes/calendar/get-event), and `inbox_id` says which inbox's calendar it belongs to:
 
 ```json
 {
@@ -28,7 +28,7 @@ Every payload has the same envelope. `event` uses the same shape as the API's [C
   "event_type": "calendar.event.starting",
   "event_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000.start",
   "inbox_id": "scheduler@agentmail.to",
-  "event": { "event_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000", "kind": "instance", "...": "..." },
+  "calendar_event": { "event_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000", "kind": "instance", "...": "..." },
   "scheduled_at": "2026-10-07T13:00:00Z"
 }
 ```
@@ -115,14 +115,14 @@ The rule behind "created entirely in the past": if a date is first picked up aft
 
 ### The payload is fixed when first sent
 
-The `event` in a start or end webhook is the event as it stood when that boundary was first processed. If delivery is retried, the retry carries the identical body, even if the event was edited in between. Use the API to read the current state.
+The `calendar_event` in a start or end webhook is the event as it stood when that boundary was first processed. If delivery is retried, the retry carries the identical body, even if the event was edited in between. Use the API to read the current state.
 
 ## Delivery guarantees
 
 - **At least once.** A webhook can be delivered more than once. Use `event_id` to deduplicate.
 - **Stable IDs.** For start and end events, `event_id` is the same for every delivery of a given date and boundary. For the other events, `event_id` identifies the change.
 - **Matching your requests.** For `created`, `updated`, `deleted` and `responded`, `event_id` equals the `operation_id` (or, for a delete, the `deletion_id`) returned by the request that made the change. Changes that arrive by email have IDs your requests never returned.
-- **No ordering guarantee.** Webhooks of different types can arrive out of order. For example, an event created a moment before it starts can deliver `calendar.event.starting` before `calendar.event.created`. Use `event.updated_at` or read the event to resolve conflicts.
+- **No ordering guarantee.** Webhooks of different types can arrive out of order. For example, an event created a moment before it starts can deliver `calendar.event.starting` before `calendar.event.created`. Use `calendar_event.updated_at` or read the event to resolve conflicts.
 - **Retries.** Failed deliveries are retried with backoff, as for every AgentMail webhook. Return a `2xx` quickly and do slow work in the background.
 
 ## Payloads
@@ -135,7 +135,7 @@ The `event` in a start or end webhook is the event as it stood when that boundar
   "event_type": "calendar.event.created",
   "event_id": "0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50",
   "inbox_id": "scheduler@agentmail.to",
-  "event": {
+  "calendar_event": {
     "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
     "kind": "single",
     "title": "Intro call with Acme",
@@ -175,7 +175,7 @@ Changes to a one-off or series event include `previous`, the old values of the f
   "event_type": "calendar.event.updated",
   "event_id": "9a7b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d",
   "inbox_id": "scheduler@agentmail.to",
-  "event": {
+  "calendar_event": {
     "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
     "kind": "single",
     "start": "2026-10-15T15:00:00",
@@ -193,15 +193,15 @@ Changes to a one-off or series event include `previous`, the old values of the f
 }
 ```
 
-Changes to dates of a recurring event (a dated ID with `mode=single` or `mode=future`) carry the changed date as `event` and no `previous`. This includes dates cancelled with `DELETE` on a dated ID: `event` is that date with `status: cancelled`, without `description`, `metadata` or `attendees`.
+Changes to dates of a recurring event (a dated ID with `mode=single` or `mode=future`) carry the changed date as `calendar_event` and no `previous`. This includes dates cancelled with `DELETE` on a dated ID: `calendar_event` is that date with `status: cancelled`, without `description`, `metadata` or `attendees`.
 
 ### `calendar.event.deleted`
 
-Sent when a one-off or recurring event is deleted. `event` is the event as it was when deleted. Cancelling dates of a recurring event sends `calendar.event.updated` instead.
+Sent when a one-off or recurring event is deleted. `calendar_event` is the event as it was when deleted. Cancelling dates of a recurring event sends `calendar.event.updated` instead.
 
 ### `calendar.event.responded`
 
-`event.attendees` holds every attendee's current `status`, `comment` and `responded_at`. Compare it with your copy to see who changed their answer.
+`calendar_event.attendees` holds every attendee's current `status`, `comment` and `responded_at`. Compare it with your copy to see who changed their answer.
 
 ### `calendar.event.starting` and `calendar.event.ending`
 
@@ -211,7 +211,7 @@ Sent when a one-off or recurring event is deleted. `event` is the event as it wa
   "event_type": "calendar.event.ending",
   "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36_single.end",
   "inbox_id": "scheduler@agentmail.to",
-  "event": {
+  "calendar_event": {
     "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
     "kind": "single",
     "title": "Intro call with Acme",
@@ -224,7 +224,7 @@ Sent when a one-off or recurring event is deleted. `event` is the event as it wa
 }
 ```
 
-For a date of a recurring event, `event` has `kind: instance` and its dated `event_id`, plus `series_id` and `original_start`.
+For a date of a recurring event, `calendar_event` has `kind: instance` and its dated `event_id`, plus `series_id` and `original_start`.
 
 ## Example handler
 
@@ -252,7 +252,7 @@ def calendar_webhook():
         return Response(status=200)
     seen.add(payload["event_id"])
 
-    event = payload["event"]
+    event = payload["calendar_event"]
     if payload["event_type"] == "calendar.event.starting":
         print(f"starting now: {event['title']} ({event['event_id']})")
     elif payload["event_type"] == "calendar.event.ending":
@@ -283,7 +283,7 @@ app.post("/webhooks/calendar", express.raw({ type: "application/json" }), (req, 
   if (seen.has(payload.event_id)) return res.sendStatus(200);
   seen.add(payload.event_id);
 
-  const event = payload.event;
+  const event = payload.calendar_event;
   switch (payload.event_type) {
     case "calendar.event.starting":
       console.log(`starting now: ${event.title} (${event.event_id})`);
