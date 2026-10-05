@@ -3324,11 +3324,13 @@ paths:
         event's current `etag` in `If-Match`: a stale value returns `412`.
         Without `If-Match` the
 
-        update applies to the event as it is, so the last write wins. Send
-        `If-Match` when replacing
+        update applies to the event as it is; a change that lands while it runs
+        returns `409`
 
-        `attendees`, so you don't overwrite a response that arrived in the
-        meantime.
+        `race_condition`, so retry. Send `If-Match` when replacing `attendees`,
+        so you don't
+
+        overwrite a response that arrived in the meantime.
 
 
         - **One-off or series UUID:** changes the event itself. For a series,

@@ -231,7 +231,7 @@ curl -X PATCH https://api.agentmail.to/v0/inboxes/scheduler@agentmail.to/calenda
 ```
 </CodeBlocks>
 
-The update applies to the event as it is when the request arrives, so if two writers change it at once, the last write wins. To make an update conditional, send the event's `etag` from your last read or write in `If-Match`. If someone changed the event in between, you get `412` `precondition_failed` instead; read it again, reapply your change and retry. Use `If-Match` when you replace `attendees`, so you don't overwrite a response that arrived by email in the meantime:
+The update applies to the event as it is when the request arrives. If another change lands while your request is running, you get `409` `race_condition`; retry it. To make an update conditional, send the event's `etag` from your last read or write in `If-Match`. If someone changed the event in between, you get `412` `precondition_failed` instead; read it again, reapply your change and retry. Use `If-Match` when you replace `attendees`, so you don't overwrite a response that arrived by email in the meantime:
 
 ```python
 inbox_id = "scheduler@agentmail.to"
