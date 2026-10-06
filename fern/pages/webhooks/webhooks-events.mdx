@@ -127,6 +127,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   MessageSentEvent (send), MessageBouncedEvent (bounce), MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint),
   MessageRejectedEvent (reject), MessageOpenedEvent (open), DomainVerifiedEvent (domain).
   Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
+  calendar.event.* (created, updated, deleted, responded, starting, ending) carry inbox_id and calendar_event; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
   Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
   message.received.unauthenticated must be explicitly included in event_types.
   """
@@ -155,6 +156,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
    * Parse with serialization.events.<EventType>.parse(payload).
    * message.received, message.received.spam, message.received.blocked, message.received.unauthenticated → MessageReceivedEvent.
    * Only message.received* has message+thread; others have send/delivery/bounce/complaint/reject/domain.
+   * calendar.event.* (created, updated, deleted, responded, starting, ending) carry inboxId and calendarEvent; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
    * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
    * message.received.unauthenticated must be explicitly included in eventTypes.
    */
@@ -618,6 +620,37 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 }
 ```
 </CodeGroup>
+
+## Calendar Events
+
+Calendar events report changes to an inbox's [calendar](/calendar) and fire when its events start and end. They require the `calendar_event_read` permission. See [Calendar Webhooks](/calendar-webhooks) for full payloads, timing and delivery guarantees.
+
+| Event | Triggered when |
+| --- | --- |
+| `calendar.event.created` | A calendar event is created through the API or from a received invitation, or a date of a recurring event is edited for the first time. |
+| `calendar.event.updated` | A calendar event, or one or more dates of a recurring event, changes. Also sent when dates of a recurring event are cancelled. |
+| `calendar.event.deleted` | A one-off or recurring calendar event is deleted. |
+| `calendar.event.responded` | The inbox responds to an invitation, or an attendee replies to an invitation the inbox sent. |
+| `calendar.event.starting` | A calendar event, or one date of a recurring event, starts. |
+| `calendar.event.ending` | A calendar event, or one date of a recurring event, ends. |
+
+```json
+{
+  "type": "event",
+  "event_type": "calendar.event.starting",
+  "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36_single.start",
+  "inbox_id": "scheduler@agentmail.to",
+  "calendar_event": {
+    "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    "kind": "single",
+    "title": "Intro call with Acme",
+    "start_at": "2026-10-15T18:00:00Z",
+    "end_at": "2026-10-15T18:30:00Z"
+    // ... the full calendar event
+  },
+  "scheduled_at": "2026-10-15T18:00:00Z"
+}
+```
 
 ## Event Filtering
 

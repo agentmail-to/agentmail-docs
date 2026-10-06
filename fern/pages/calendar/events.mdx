@@ -1,0 +1,318 @@
+---
+title: Managing Events
+subtitle: Create, read, update and delete calendar events.
+slug: calendar-events
+description: How to create one-off and all-day events on an AgentMail inbox calendar, list them, update them safely with ETags, and delete them.
+---
+
+<Markdown src="../../snippets/calendar-beta.mdx" />
+
+This page covers events that happen once. Recurring events use the same endpoints with a few additions; see [Recurring Events](/calendar-recurring-events).
+
+## Create an event
+
+`POST /v0/inboxes/{inbox_id}/calendar/events` creates an event. Only `title`, `start` and `end` are required.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+created = client.inboxes.calendar.create_event(
+    "scheduler@agentmail.to",
+    title="Intro call with Acme",
+    description="Walk Jane through the onboarding plan.",
+    location="https://meet.example.com/acme-intro",
+    start="2026-10-15T14:00:00",
+    end="2026-10-15T14:30:00",
+    timezone="America/New_York",
+    metadata={"crm_deal_id": "D-1042"},
+    client_id="intro-acme-2026-10-15",
+)
+event = created.event
+print(event.event_id, event.start_at, event.end_at)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+
+const created = await client.inboxes.calendar.createEvent("scheduler@agentmail.to", {
+  title: "Intro call with Acme",
+  description: "Walk Jane through the onboarding plan.",
+  location: "https://meet.example.com/acme-intro",
+  start: "2026-10-15T14:00:00",
+  end: "2026-10-15T14:30:00",
+  timezone: "America/New_York",
+  metadata: { crm_deal_id: "D-1042" },
+  clientId: "intro-acme-2026-10-15",
+});
+const event = created.event;
+console.log(event.eventId, event.startAt, event.endAt);
+```
+</CodeBlocks>
+
+The response is `201` with the stored `event` and an `operation_id`:
+
+```json
+{
+  "event": {
+    "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    "kind": "single",
+    "title": "Intro call with Acme",
+    "description": "Walk Jane through the onboarding plan.",
+    "location": "https://meet.example.com/acme-intro",
+    "metadata": { "crm_deal_id": "D-1042" },
+    "status": "confirmed",
+    "all_day": false,
+    "start": "2026-10-15T14:00:00",
+    "end": "2026-10-15T14:30:00",
+    "timezone": "America/New_York",
+    "duration_mode": "exact",
+    "duration_value": 1800000,
+    "start_at": "2026-10-15T18:00:00Z",
+    "end_at": "2026-10-15T18:30:00Z",
+    "attendees": [],
+    "attendee_count": 0,
+    "uid": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36@agentmail.to",
+    "sequence": 0,
+    "source": "api",
+    "organizer_email": "scheduler@agentmail.to",
+    "resource_revision": 0,
+    "created_at": "2026-10-01T16:30:00Z",
+    "updated_at": "2026-10-01T16:30:00Z",
+    "etag": "\"rv-0\""
+  },
+  "operation_id": "0d6f1e2a-9c3b-4d5e-8f7a-6b1c2d3e4f50"
+}
+```
+
+`operation_id` identifies this change. The `calendar.event.created` webhook it triggers carries the same value as its `event_id`, so you can tell your own changes apart from changes made elsewhere.
+
+### Fields
+
+| Field | Notes |
+| --- | --- |
+| `title` | Required. 1 to 1,000 characters. |
+| `start`, `end` | Required. Wall-clock times in `timezone`. One-off events can last up to 366 days. |
+| `timezone` | IANA name such as `Europe/Berlin`. Defaults to the calendar's `timezone`. |
+| `all_day` | `true` for an all-day event. `start` and `end` are then dates, and `end` is inclusive. |
+| `duration_mode` | `exact` (default for one-off events) or `nominal`. See [Time and time zones](/calendar#time-and-time-zones). |
+| `description` | Up to 65,536 bytes. |
+| `location` | Up to 1,024 characters. Any text, such as an address or a meeting link. |
+| `metadata` | Any JSON value, usually an object, up to 16,384 bytes serialized. Returned on reads and in webhooks, except agenda and instance list items and the webhook for a date cancelled with `DELETE`. Never sent to attendees. Use it to link the event to your own records. |
+| `status` | `confirmed` (default), `tentative` or `cancelled`. |
+| `attendees` | Up to 100. Each has an `email` and optional `name`, `role` (`required` or `optional`) and `status`. |
+| `send_invites` | `true` emails an invitation to every attendee. See [Invitations](/calendar-invitations). |
+| `client_id` | Your idempotency key. See below. |
+| `recurrence` | Makes the event repeat. See [Recurring Events](/calendar-recurring-events). |
+
+### All-day events
+
+```json
+{
+  "title": "Company offsite",
+  "all_day": true,
+  "start": "2026-11-02",
+  "end": "2026-11-04",
+  "timezone": "Europe/London"
+}
+```
+
+This event covers three days, November 2 through November 4. Its `start_at` is midnight at the start of November 2 in London and its `end_at` is midnight at the end of November 4.
+
+### Safe retries with `client_id`
+
+Networks fail. If you retry a create without a `client_id`, you can end up with two events. With a `client_id`, a retry that has the same `client_id` and the same body returns the original event with status `200` instead of creating another. Sending the same `client_id` with a different body returns `409` `idempotency_conflict`.
+
+Retries are recognized for as long as the event exists. Once it has been deleted, a retry returns `404`.
+
+Derive the `client_id` from something stable in your system, such as the meeting request it fulfills. A create with `send_invites: true` is charged against your send limits, but a retry that returns the original event is not charged again; see [Send limits](/calendar-invitations#send-limits).
+
+<Tip>
+  A create that returns `409` `race_condition` either conflicted with a concurrent change or hit
+  the calendar's event limit. Retry it with the same `client_id`; if it keeps failing, check
+  `event_count` with Get Calendar, because retries cannot succeed once the calendar is full.
+</Tip>
+
+## Get an event
+
+<CodeBlocks>
+```python title="Python"
+event = client.inboxes.calendar.get_event(
+    "scheduler@agentmail.to", "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36"
+)
+```
+
+```typescript title="TypeScript"
+const event = await client.inboxes.calendar.getEvent(
+  "scheduler@agentmail.to",
+  "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+);
+```
+</CodeBlocks>
+
+Reads can trail a write made moments earlier by a few seconds. Pass `consistency="primary"` to always see the latest state.
+
+## List events
+
+### The agenda: what is on the calendar
+
+`GET /calendar/agenda` returns every date in a window, in start order. Recurring events are expanded into their dates, and cancelled dates are left out.
+
+<CodeBlocks>
+```python title="Python"
+from datetime import datetime, timezone
+
+page = client.inboxes.calendar.get_agenda(
+    "scheduler@agentmail.to",
+    after=datetime(2026, 10, 12, tzinfo=timezone.utc),
+    before=datetime(2026, 10, 19, tzinfo=timezone.utc),
+)
+for event in page.events:
+    print(event.start_at, event.kind, event.title)
+```
+
+```typescript title="TypeScript"
+const page = await client.inboxes.calendar.getAgenda("scheduler@agentmail.to", {
+  after: new Date("2026-10-12T00:00:00Z"),
+  before: new Date("2026-10-19T00:00:00Z"),
+});
+for (const event of page.events) {
+  console.log(event.startAt, event.kind, event.title);
+}
+```
+</CodeBlocks>
+
+- The window defaults to now through 90 days from now, and can be at most 366 days wide. A wider window returns `400` `query_range_too_wide`; page through long periods in pieces.
+- Dates of recurring events appear only up to about 90 days from now. To list a recurring event's later dates, use [List Event Instances](/calendar-recurring-events#list-the-dates).
+- By default an event that started before `after` but is still running is included. Pass `include_overlapping=false` to get only events that start inside the window.
+- Agenda items leave out `description`, `metadata` and `attendees` to stay small (`attendee_count` is still there). Get an event by its `event_id` for the full object.
+- Like other reads, the agenda can trail a change made moments earlier by a few seconds. Pass `consistency=primary` to see an event you just created or changed.
+
+### Stored events: what you have created
+
+`GET /calendar/events` returns one item per one-off or recurring event, plus one item per individually edited date of a recurring event. Items are full event objects ordered by most recent update, and cancelled events are included. Use it to sync the calendar into your own database. It is always read in the region that serves you, so it can trail a change by a few seconds and does not take `consistency`.
+
+### Pagination
+
+Both lists return up to `limit` items (1 to 100, default 50). When there are more, the response has a `next_page_token`; pass it as `page_token` with the same other parameters to get the next page.
+
+## Update an event
+
+`PATCH` an event with only the fields you want to change:
+
+<CodeBlocks>
+```python title="Python"
+updated = client.inboxes.calendar.update_event(
+    "scheduler@agentmail.to",
+    "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    start="2026-10-15T15:00:00",
+    end="2026-10-15T15:30:00",
+)
+print(updated.event.start_at)  # 2026-10-15T19:00:00Z
+```
+
+```typescript title="TypeScript"
+const updated = await client.inboxes.calendar.updateEvent(
+  "scheduler@agentmail.to",
+  "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+  { start: "2026-10-15T15:00:00", end: "2026-10-15T15:30:00" },
+);
+console.log(updated.event.startAt); // 2026-10-15T19:00:00Z
+```
+
+```bash title="cURL"
+curl -X PATCH https://api.agentmail.to/v0/inboxes/scheduler@agentmail.to/calendar/events/3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36 \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "start": "2026-10-15T15:00:00", "end": "2026-10-15T15:30:00" }'
+```
+</CodeBlocks>
+
+The update applies to the event as it is when the request arrives. If another change lands while your request is running, you get `409` `race_condition`; retry it. To make an update conditional, send the event's `etag` from your last read or write in `If-Match`. If someone changed the event in between, you get `412` `precondition_failed` instead; read it again, reapply your change and retry. Use `If-Match` when you replace `attendees`, so you don't overwrite a response that arrived by email in the meantime:
+
+```python
+inbox_id = "scheduler@agentmail.to"
+event_id = "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36"
+
+event = client.inboxes.calendar.get_event(inbox_id, event_id, consistency="primary")
+client.inboxes.calendar.update_event(
+    inbox_id,
+    event_id,
+    if_match=event.etag,  # 412 if the event changed after this read
+    attendees=[{"email": "jane@acme.com"}, {"email": "sam@acme.com"}],
+)
+```
+
+Rules for updates:
+
+- Send `start` and `end` together, even to change only one of them: send the other unchanged. (A single date of a recurring event also accepts `end` alone; see [Recurring Events](/calendar-recurring-events#change-one-date).)
+- Set a field to `null` to clear it (`description`, `location`, `metadata`). `attendees` replaces the whole list.
+- To switch between timed and all-day, send `all_day`, `start`, `end` and `timezone` together.
+- Add `send_invites: true` to email the change to attendees. Only events your inbox organizes can send.
+
+The `calendar.event.updated` webhook includes a `previous` object with the old values of the fields that changed.
+
+### Events that have started or ended
+
+An event's start becomes fixed once it begins:
+
+| When | What can change |
+| --- | --- |
+| Before the start | Everything. |
+| In the few seconds while it is starting | Schedule changes return `409` `event_starting`. Retry shortly. |
+| While it is running | Everything except `start`, and it cannot become a recurring event. You can still change `end` (send the unchanged `start` with it) or cancel it. If you cancel it, `calendar.event.ending` is still sent at its end. |
+| After it has ended | Only `title`, `description`, `location`, `metadata` and `attendees`. |
+
+A schedule change that is no longer allowed returns `409` `event_already_started`.
+
+## Delete an event
+
+<CodeBlocks>
+```python title="Python"
+result = client.inboxes.calendar.delete_event(
+    "scheduler@agentmail.to",
+    "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+    send_invites=True,  # email a cancellation to attendees
+)
+print(result.deletion_id)
+```
+
+```typescript title="TypeScript"
+const result = await client.inboxes.calendar.deleteEvent(
+  "scheduler@agentmail.to",
+  "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36",
+  { sendInvites: true }, // email a cancellation to attendees
+);
+console.log(result.deletionId);
+```
+</CodeBlocks>
+
+The event disappears from reads right away, and the response is `202` with a `deletion_id`. Cleanup finishes in the background, usually within seconds. A retry returns the same `deletion_id` while cleanup runs. Once cleanup has finished the event no longer exists, so a retry returns `404`; treat that as success.
+
+Two headers are optional. `If-Match` with the event's `etag` makes the delete conditional (`412` if the event changed). `Idempotency-Key` (1 to 128 visible ASCII characters) names the delete; without one, retries of the same delete share a key derived from the event and `send_invites`, so keep `send_invites` the same when you retry. A keyless retry that changes it is a different delete: while removal runs it returns `404` and sends no cancellations. Keys are unique across your organization, so reusing one to delete a different event returns `409` `idempotency_conflict`.
+
+Once a delete is accepted, no further `calendar.event.starting` or `calendar.event.ending` webhook is sent for the event. A `calendar.event.deleted` webhook is sent.
+
+To keep an event on the calendar but stop its start and end webhooks, set `status` to `cancelled` instead of deleting it.
+
+## Change the calendar's default time zone
+
+New events without a `timezone` use the calendar's `timezone`, which starts as `UTC`. Changing it does not move existing events.
+
+<CodeBlocks>
+```python title="Python"
+calendar = client.inboxes.calendar.update("scheduler@agentmail.to", timezone="America/New_York")
+```
+
+```typescript title="TypeScript"
+const calendar = await client.inboxes.calendar.update("scheduler@agentmail.to", {
+  timezone: "America/New_York",
+});
+```
+</CodeBlocks>
+
+As with events, send the calendar's `etag` in `If-Match` to make the change conditional.

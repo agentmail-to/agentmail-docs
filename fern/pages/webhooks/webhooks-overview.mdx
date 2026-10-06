@@ -20,7 +20,7 @@ If you don't want to expose a public URL or set up ngrok, [WebSockets](/websocke
 
 ## Available Events
 
-AgentMail supports ten webhook event types. When creating a webhook, you can subscribe to specific events or receive all standard events. See [Webhook Events](/events) for full payload details.
+AgentMail supports sixteen webhook event types. When creating a webhook, you can subscribe to specific events or receive all standard events. See [Webhook Events](/events) for full payload details.
 
 **Message events:**
 - **`message.received`** — New email received and processed in one of your inboxes
@@ -35,6 +35,14 @@ AgentMail supports ten webhook event types. When creating a webhook, you can sub
 
 **Domain events:**
 - **`domain.verified`** — Custom domain successfully verified
+
+**Calendar events** (require `calendar_event_read`; see [Calendar Webhooks](/calendar-webhooks)):
+- **`calendar.event.created`** — A calendar event was created, or a date of a recurring event was edited for the first time
+- **`calendar.event.updated`** — A calendar event, or one or more dates of a recurring event, changed or were cancelled
+- **`calendar.event.deleted`** — A one-off or recurring calendar event was deleted
+- **`calendar.event.responded`** — An attendee's response to an invitation changed
+- **`calendar.event.starting`** — A calendar event, or one date of a recurring event, started
+- **`calendar.event.ending`** — A calendar event, or one date of a recurring event, ended
 
 <Callout intent="info">
   Spam, blocked, and unauthenticated events are excluded by default. To receive them, explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in the `event_types` list when creating a webhook. These messages are no longer sent as `message.received`.
@@ -295,8 +303,8 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   - webhooks.delete(webhook_id)
   - scoped variants: pods.webhooks.* (pod_id) and inboxes.webhooks.* (inbox_id) — same CRUD, scope from the path
 
-  Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
-  Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain. Verify with Svix (webhook.secret).
+  Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
+  Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain; calendar.event.* carry inbox_id and calendar_event. Verify with Svix (webhook.secret).
   Custom delivery header values are write-only. get_headers returns names only; update_headers rotates or removes them.
   Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
   On update, non-empty event_types replaces the subscribed list in full (omit or [] to leave types unchanged).
@@ -328,7 +336,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * - webhooks.delete(webhookId)
    * - scoped variants: pods.webhooks.* (podId) and inboxes.webhooks.* (inboxId) — same CRUD, scope from the path
    *
-   * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified
+   * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
    * Custom delivery header values are write-only. getHeaders returns names only; updateHeaders rotates or removes them.
    * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
    * On update, non-empty eventTypes replaces the subscribed list in full (omit or [] to leave types unchanged).

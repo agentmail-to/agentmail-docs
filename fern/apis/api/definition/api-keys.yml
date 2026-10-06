@@ -266,6 +266,24 @@ types:
       pod_delete:
         type: optional<boolean>
         docs: Delete pods.
+      calendar_read:
+        type: optional<boolean>
+        docs: Read inbox calendar settings.
+      calendar_update:
+        type: optional<boolean>
+        docs: Update inbox calendar settings.
+      calendar_event_read:
+        type: optional<boolean>
+        docs: Read calendar events, and receive `calendar.event.*` webhook and WebSocket events.
+      calendar_event_create:
+        type: optional<boolean>
+        docs: Create calendar events.
+      calendar_event_update:
+        type: optional<boolean>
+        docs: Update calendar events and respond to invitations.
+      calendar_event_delete:
+        type: optional<boolean>
+        docs: Delete calendar events.
 
   BearerApiKey:
     docs: An API key presented as a bearer token in the `Authorization` header.

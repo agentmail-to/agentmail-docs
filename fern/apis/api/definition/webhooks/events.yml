@@ -88,3 +88,63 @@ webhooks:
       svix-signature: SvixSignature
       svix-timestamp: SvixTimestamp
     payload: events.DomainVerifiedEvent
+
+  calendarEventCreated:
+    availability: beta
+    display-name: Calendar Event Created
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.CalendarEventCreatedEvent
+
+  calendarEventUpdated:
+    availability: beta
+    display-name: Calendar Event Updated
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.CalendarEventUpdatedEvent
+
+  calendarEventDeleted:
+    availability: beta
+    display-name: Calendar Event Deleted
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.CalendarEventDeletedEvent
+
+  calendarEventResponded:
+    availability: beta
+    display-name: Calendar Event Responded
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.CalendarEventRespondedEvent
+
+  calendarEventStarting:
+    availability: beta
+    display-name: Calendar Event Starting
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.CalendarEventStartingEvent
+
+  calendarEventEnding:
+    availability: beta
+    display-name: Calendar Event Ending
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.CalendarEventEndingEvent

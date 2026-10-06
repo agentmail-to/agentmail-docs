@@ -1,0 +1,113 @@
+---
+title: Concurrency, Limits & Errors
+subtitle: ETags, idempotency, limits and error codes for the calendar API.
+slug: calendar-reference
+description: Reference for the AgentMail calendar API. How If-Match and ETags work, how to retry safely, size and rate limits, and every calendar error code.
+---
+
+<Markdown src="../../snippets/calendar-beta.mdx" />
+
+## ETags and `If-Match`
+
+Every calendar, event and date has an `etag` that changes whenever it does. Get, create, update and respond responses, and deletes that cancel dates, return it in the body as `etag` and in the `ETag` header. Deleting a one-off or series event returns only a `deletion_id`.
+
+`If-Match` is optional on Update Calendar, Update Event, Delete Event and Respond to Event:
+
+- **Without it**, the change applies to the resource as it is when the request arrives. If another change lands while your request is running, you get `409` `race_condition`; retry.
+- **With it**, the change applies only if the resource still has that `etag`. Otherwise you get `412` `precondition_failed` and nothing changes.
+
+Send `If-Match` when your change depends on what you read, for example when you replace `attendees` with a list built from the current one, so you don't overwrite a response that arrived in the meantime. Take the `etag` from a read with `consistency=primary` (or from your last write), since a regional read can be a few seconds old.
+
+| Resource | `etag` looks like |
+| --- | --- |
+| Calendar | `"rv-3"` |
+| One-off or series event (UUID) | `"rv-5"`, which is `"rv-" + resource_revision` |
+| Date of a series (dated ID) | `"occ-5-2-1-none-none"`; treat it as opaque |
+
+Changing one date changes the `etag` of every date of that series, and so does changing the series. Use the `etag` of the exact thing you are changing, from your latest read or write. Weak validators (`W/"rv-5"`), which some proxies produce, are accepted. `If-Match: *` matches any current version, the same as sending no `If-Match`.
+
+### Handling `412`
+
+A `412` `precondition_failed` body includes `current_revision`. Read the resource again, decide whether your change still makes sense, and retry with the new `etag`:
+
+```python
+from agentmail.core.api_error import ApiError
+
+def reschedule(client, inbox_id, event_id, start, end, attempts=3):
+    for _ in range(attempts):
+        event = client.inboxes.calendar.get_event(inbox_id, event_id, consistency="primary")
+        try:
+            return client.inboxes.calendar.update_event(
+                inbox_id, event_id, if_match=event.etag, start=start, end=end
+            )
+        except ApiError as error:
+            if error.status_code != 412:
+                raise
+    raise RuntimeError("event kept changing; giving up")
+```
+
+Read with `consistency="primary"` before retrying, so you do not get a slightly stale copy and fail again.
+
+## Retrying safely
+
+| Operation | How to make retries safe |
+| --- | --- |
+| Create Event | Send a `client_id`. A retry with the same `client_id` and body returns the original event with `200`, for as long as the event exists, and is not charged against your send limits again. |
+| Delete a one-off or series event | A retry returns the same `deletion_id` while removal runs, and `404` after it has finished. Send the same `Idempotency-Key` each time, or none and the same `send_invites`; a keyless retry that changes `send_invites` is a different delete and gets `404` while removal runs, without sending anything. |
+| Update Event, Respond | Without `If-Match`, a retry applies the same values again; that is safe for values like `start` or `title`, but sends another `calendar.event.updated` (`calendar.event.responded` for Respond). With `send_invites` (`send_reply` for Respond), it also emails again and is charged against your send limits again. With `If-Match`, a retry after a successful first attempt gets `412` because the version moved; read the event to confirm your change is there. |
+| Cancel a date | If your first attempt succeeded, the retry gets `404` or `410` (or `412` with `If-Match`), because the date has left the series. Get the series and check that `recurrence.exdates` (or, for `mode=future`, `recurrence.truncate_before`) covers the date. A `mode=future` delete from the first date deletes the whole series, so there the series also returns `404`, which means the delete succeeded. |
+| Update Calendar | As for Update Event. |
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Events per calendar | 10,000 one-off and recurring events by default |
+| Request body | 128 KB for events, 8 KB for calendar settings |
+| `title` | 1 to 1,000 characters |
+| `description` | 65,536 bytes |
+| `location` | 1,024 characters |
+| `metadata` | 16,384 bytes, serialized as JSON |
+| `attendees` | 100 per event |
+| Attendee `name` / `comment` | 256 characters / 4,096 bytes |
+| One-off event length | 366 days |
+| Length of each date of a series | 31 days |
+| Years | 1900 to 9999 |
+| List `limit` | 1 to 100, default 50 |
+| List window (`after` to `before`) | 366 days. `after` defaults to now and `before` to 90 days after `after` |
+
+For recurrence limits, see [Recurring Events](/calendar-recurring-events#limits). Calendar requests count toward your API rate limits like any other request.
+
+### Send limits for invitations
+
+Invitation, update, cancellation and reply emails also count toward your organization, pod and inbox send limits, one send per recipient. The charge is taken when you make the request, before anything is saved, so an over-limit request returns `429` `rate_limit_exceeded` and changes nothing. See [Send limits](/calendar-invitations#send-limits).
+
+### Retention
+
+The record of each date, including its start and end webhook outcome, is kept for 30 days after the date ends (for a date cancelled with `DELETE`, 30 days after the cancel). Reading or changing an older date returns `410` `event_expired`. One-off and series events themselves are kept until you delete them.
+
+## Errors
+
+Calendar errors use the standard [error format](/errors), with a stable `code` to branch on and a `fix` that says what to do next.
+
+| Status | `code` | Meaning |
+| --- | --- | --- |
+| `400` | `validation_error` | A field is missing or invalid. `errors` lists each problem with its path. |
+| `400` | `query_range_too_wide` | The `after` to `before` window is wider than 366 days, or contains too many dates of a series. Request a smaller window. |
+| `403` | `forbidden` | The organization does not have calendar access (private beta). |
+| `403` | `missing_permission` | The API key lacks the calendar permission the endpoint needs. See [Permissions](/calendar#permissions). |
+| `404` | `not_found` | The inbox, event or date does not exist or is not visible to this API key. Also returned for a deleted event or a date cancelled with `DELETE`. |
+| `409` | `idempotency_conflict` | `client_id` was already used for a different create request, or the `Idempotency-Key` was already used to delete a different event. Delete keys are unique across your organization. |
+| `409` | `race_condition` | A concurrent change conflicted with this one (for a change sent without `If-Match`, the resource changed while the request ran). Retry; for creates, retry with the same `client_id`. Also returned when the calendar is at its event limit (10,000 events by default), where retrying cannot help: if retries keep failing, check `event_count` with Get Calendar. |
+| `409` | `event_starting` | The event or date is starting right now, so its schedule cannot change for a few seconds. Retry shortly. |
+| `409` | `event_already_started` | The event or date has started (its start is fixed) or ended (only descriptive fields can change). |
+| `409` | `event_in_progress` | A series with edited dates cannot become a one-off event, or a date was first edited with the other `mode`. |
+| `409` | `future_edit_start_move_not_supported` | A `mode=future` change cannot move `start`. Use `mode=single`, or update the series. |
+| `409` | `recurrence_density_limit` | The rule produces more than 730 dates in some 90-day window. |
+| `409` | `materialization_failed` | The rule's first date could not be found within the evaluation bound. Add `COUNT` or `UNTIL`, or simplify the rule. |
+| `409` | `page_token_stale` | The series changed while you were paging through its dates. Restart the list without `page_token`. |
+| `409` | `calendar_response_invalid` | Sending invitations for an event the inbox does not organize, or responding to an event that did not come from an invitation to this inbox. |
+| `410` | `event_expired` | The date ended more than 30 days ago, or was removed from its series. |
+| `412` | `precondition_failed` | You sent `If-Match`, and the resource changed since that `etag` was read. The body includes `current_revision`. |
+| `413` | `payload_too_large` | The request body exceeds 128 KB (events) or 8 KB (calendar settings). |
+| `429` | `rate_limit_exceeded` | Too many requests, or the invitation emails this request would send exceed a send limit. Nothing was changed. Wait for `Retry-After` when present, or retry without `send_invites`. |

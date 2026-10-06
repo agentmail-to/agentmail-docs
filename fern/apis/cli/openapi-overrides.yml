@@ -958,3 +958,59 @@ paths:
       x-fern-sdk-group-name:
       - agent
       x-fern-sdk-method-name: attach-human
+  /v0/inboxes/{inbox_id}/calendar:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: update
+  /v0/inboxes/{inbox_id}/calendar/agenda:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: get-agenda
+  /v0/inboxes/{inbox_id}/calendar/events:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: list-events
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: create-event
+  /v0/inboxes/{inbox_id}/calendar/events/{event_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: get-event
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: update-event
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: delete-event
+  /v0/inboxes/{inbox_id}/calendar/events/{event_id}/instances:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: list-event-instances
+  /v0/inboxes/{inbox_id}/calendar/events/{event_id}/respond:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - calendar
+      x-fern-sdk-method-name: respond-to-event

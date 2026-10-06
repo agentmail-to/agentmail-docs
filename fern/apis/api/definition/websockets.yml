@@ -65,6 +65,30 @@ channel:
     domain_verified:
       origin: server
       body: events.DomainVerifiedEvent
+    calendar_event_created:
+      availability: beta
+      origin: server
+      body: events.CalendarEventCreatedEvent
+    calendar_event_updated:
+      availability: beta
+      origin: server
+      body: events.CalendarEventUpdatedEvent
+    calendar_event_deleted:
+      availability: beta
+      origin: server
+      body: events.CalendarEventDeletedEvent
+    calendar_event_responded:
+      availability: beta
+      origin: server
+      body: events.CalendarEventRespondedEvent
+    calendar_event_starting:
+      availability: beta
+      origin: server
+      body: events.CalendarEventStartingEvent
+    calendar_event_ending:
+      availability: beta
+      origin: server
+      body: events.CalendarEventEndingEvent
     error:
       origin: server
       body: Error

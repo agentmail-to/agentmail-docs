@@ -1,0 +1,74 @@
+---
+tags: ["calendar-api", "webhooks", "new-feature", "sdk"]
+---
+
+## Summary
+
+Every inbox now has a calendar (private beta). Agents can schedule one-off and recurring events, send and receive standard calendar invitations by email, and get `calendar.event.starting` and `calendar.event.ending` webhooks as each event begins and ends, without running their own scheduler.
+
+### What's new?
+
+**New endpoints** (all under `/v0/inboxes/{inbox_id}/calendar`):
+
+- `GET` and `PATCH /calendar`: Read the calendar and change its default time zone.
+- `GET` and `POST /calendar/events`: List the stored events and create events.
+- `GET /calendar/agenda`: Every date in a window, with recurring events expanded, in start order.
+- `GET`, `PATCH` and `DELETE /calendar/events/{event_id}`: Read, update and delete an event by UUID, or one date of a recurring event by its dated ID (`<uuid>_<slot>`). `mode=future` applies a change or cancellation to a date and every later date.
+- `GET /calendar/events/{event_id}/instances`: List the dates of a recurring event in any window up to 366 days.
+- `POST /calendar/events/{event_id}/respond`: Accept, decline or tentatively accept an invitation the inbox received.
+
+**New features:**
+
+- **Recurring events** with RFC 5545 `RRULE`, `EXDATE` and `RDATE`, evaluated in the event's IANA time zone so each date keeps its local time across daylight-saving changes.
+- **Invitations (iMIP)**: `send_invites` emails invitations, updates and cancellations to attendees. Invitations emailed to the inbox are added to its calendar automatically, and attendee replies update their status.
+- **Webhook and WebSocket events**: `calendar.event.created`, `calendar.event.updated` (with `previous` values), `calendar.event.deleted`, `calendar.event.responded`, `calendar.event.starting` and `calendar.event.ending`. A WebSocket subscription receives them only when its `event_types` names them.
+- **Safe concurrency**: optional `If-Match` with each resource's `etag` for conditional changes, `client_id` for idempotent creates, and an optional `Idempotency-Key` for deletes.
+- **Permissions**: `calendar_read`, `calendar_update`, `calendar_event_read`, `calendar_event_create`, `calendar_event_update` and `calendar_event_delete`.
+- **SDKs**: `client.inboxes.calendar` with `get`, `update`, `listEvents`, `getAgenda`, `createEvent`, `getEvent`, `updateEvent`, `deleteEvent`, `listEventInstances` and `respondToEvent` (snake_case in Python). Upgrade to the latest Python or TypeScript SDK to use them.
+
+### Use cases
+
+- Build agents that book meetings from an email conversation and send the invitation themselves.
+- Build agents that join a call, start a recording or post a reminder the moment `calendar.event.starting` arrives.
+- Build agents that accept or decline invitations sent to their inbox based on their own availability.
+- Build agents that follow up with every attendee when `calendar.event.ending` fires.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# create a weekly meeting on the inbox's calendar
+created = client.inboxes.calendar.create_event(
+    "scheduler@agentmail.to",
+    title="Weekly sync",
+    start="2026-10-05T09:00:00",
+    end="2026-10-05T09:30:00",
+    timezone="America/New_York",
+    recurrence={"rule": "FREQ=WEEKLY;BYDAY=MO"},
+)
+print(created.event.event_id)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// create a weekly meeting on the inbox's calendar
+const created = await client.inboxes.calendar.createEvent("scheduler@agentmail.to", {
+  title: "Weekly sync",
+  start: "2026-10-05T09:00:00",
+  end: "2026-10-05T09:30:00",
+  timezone: "America/New_York",
+  recurrence: { rule: "FREQ=WEEKLY;BYDAY=MO" },
+});
+console.log(created.event.eventId);
+```
+</CodeBlocks>
+
+<Note>
+  Calendar is in private beta; email support@agentmail.to to request access. Read the
+  [calendar guide](https://docs.agentmail.to/calendar) to get started.
+</Note>
