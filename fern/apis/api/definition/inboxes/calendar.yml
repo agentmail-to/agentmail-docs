@@ -224,7 +224,9 @@ service:
         Use it to answer "what is on the calendar".
 
         The window defaults to now through 90 days from now and can be at most 366 days. Items omit
-        `description`, `metadata` and `attendees`; get an event by ID for the full object. Dates of
+        `description`, `metadata` and `attendees`; get an event by ID for the full object. An item
+        the inbox is invited to still carries `response_status`, so `needs_action` marks an
+        invitation waiting for a reply. Dates of
         recurring events appear only up to about 90 days from now; use List Event Instances for a
         recurring event's later dates. While a recurring event's dates are being regenerated after a
         schedule change, which takes a few seconds, the agenda can briefly leave out some of them;
@@ -1145,6 +1147,7 @@ service:
                     }
                   ],
                   "attendee_count": 2,
+                  "response_status": "accepted",
                   "uid": "4q2m9x8k1v7c@google.com",
                   "sequence": 0,
                   "source": "email",

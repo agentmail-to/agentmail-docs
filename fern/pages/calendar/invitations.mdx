@@ -153,6 +153,24 @@ const response = await client.inboxes.calendar.respondToEvent(
 
 The reply email has the subject `Responded: <title>` and is threaded with the original invitation.
 
+### Finding invitations to answer
+
+Every event the inbox can respond to carries `response_status`: the `status` of the inbox's own entry in `attendees`. These are the events Respond accepts, `email` events with an `organizer_email` and an `origin_message_id` that list the inbox as an attendee. It is there on agenda and instance list items too, even though they leave out `attendees`, so you can find the invitations waiting for a reply without getting each event:
+
+<CodeBlocks>
+```python title="Python"
+agenda = client.inboxes.calendar.get_agenda("scheduler@agentmail.to")
+waiting = [event for event in agenda.events if event.response_status == "needs_action"]
+```
+
+```typescript title="TypeScript"
+const agenda = await client.inboxes.calendar.getAgenda("scheduler@agentmail.to");
+const waiting = agenda.events.filter((event) => event.responseStatus === "needs_action");
+```
+</CodeBlocks>
+
+A date of a recurring invitation answered on its own reports that date's response. Events the inbox organizes have no `response_status`, and neither do `api` events, even ones that list the inbox as an attendee.
+
 ## Editing an invitation you received
 
 You can `PATCH` an `email` event to change your copy, for example to add `metadata` that links it to your own records. Those edits are not sent to the organizer. A later update from the organizer replaces the fields its invitation carries, such as the time, title and attendees; invitations never change `metadata`.
