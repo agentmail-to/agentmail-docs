@@ -66,6 +66,14 @@ types:
     type: boolean
     docs: Bounce and complaint notifications are sent to your inboxes.
 
+  InboundEnabled:
+    type: boolean
+    docs: |
+      Receive email for this domain. Defaults to `true`. Set `false` for a send-only
+      domain: the apex MX record is not required and is omitted from `records`, so the
+      domain's existing email provider keeps receiving its mail. Inboxes on a send-only
+      domain can still send.
+
   SubdomainsEnabled:
     type: boolean
     docs: |
@@ -103,13 +111,17 @@ types:
           configured on the identity — re-verify to push it), and
           `ses_not_verified_for_sending`. Absent when VERIFIED.
       feedback_enabled: FeedbackEnabled
+      inbound_enabled:
+        type: optional<InboundEnabled>
+        docs: Absent on domains created before this field existed; those receive email.
       subdomains_enabled: SubdomainsEnabled
       tracking_enabled: TrackingEnabled
       records:
         type: list<VerificationRecord>
         docs: |
-          A list of DNS records required to verify the domain. Includes a
-          wildcard MX record (`*.<domain>`) when `subdomains_enabled` is true.
+          A list of DNS records required to verify the domain. Includes the apex
+          MX record unless `inbound_enabled` is false, and a wildcard MX record
+          (`*.<domain>`) when `subdomains_enabled` is true.
       client_id: optional<ClientId>
       updated_at:
         type: datetime
@@ -124,6 +136,9 @@ types:
       domain_id: DomainId
       domain: DomainName
       feedback_enabled: FeedbackEnabled
+      inbound_enabled:
+        type: optional<InboundEnabled>
+        docs: Absent on domains created before this field existed; those receive email.
       subdomains_enabled: SubdomainsEnabled
       tracking_enabled: TrackingEnabled
       client_id: optional<ClientId>
@@ -187,19 +202,23 @@ types:
           provider is detected.
           This flag does not configure DNS or inbound routing. For shared Google
           Workspace domains, follow the [Google Workspace guide](/google-workspace).
+          Only checked when `inbound_enabled` is true; a send-only domain skips the check.
       feedback_enabled: optional<FeedbackEnabled>
+      inbound_enabled: optional<InboundEnabled>
       subdomains_enabled: optional<SubdomainsEnabled>
       tracking_enabled: optional<TrackingEnabled>
 
   UpdateDomainRequest:
     docs: |
-      Provide at least one of `feedback_enabled`, `subdomains_enabled`, or
-      `tracking_enabled`. Omitted
-      fields are left unchanged; an empty body is rejected. Enabling
+      Provide at least one of `feedback_enabled`, `inbound_enabled`,
+      `subdomains_enabled`, or `tracking_enabled`. Omitted fields are left
+      unchanged; an empty body is rejected. Enabling `inbound_enabled` or
       `subdomains_enabled` on a verified domain returns it to `PENDING` until the
-      newly-required wildcard MX record (`*.<domain>`) is published and verified.
+      newly required MX record (the apex MX, or the wildcard `*.<domain>`) is
+      published and verified.
     properties:
       feedback_enabled: optional<FeedbackEnabled>
+      inbound_enabled: optional<InboundEnabled>
       subdomains_enabled: optional<SubdomainsEnabled>
       tracking_enabled: optional<TrackingEnabled>
 
