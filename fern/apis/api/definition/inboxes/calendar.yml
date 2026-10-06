@@ -87,10 +87,6 @@ service:
             {
               "inbox_id": "scheduler@agentmail.to"
             }
-          headers:
-            {
-              "If-Match": "\"rv-0\""
-            }
           request:
             {
               "timezone": "America/New_York"
@@ -689,10 +685,6 @@ service:
               "inbox_id": "scheduler@agentmail.to",
               "event_id": "3f8a2c1e-6b4d-4e9f-a7c2-5d1b8e0f9a36"
             }
-          headers:
-            {
-              "If-Match": "\"rv-0\""
-            }
           request:
             {
               "start": "2026-10-15T15:00:00",
@@ -747,10 +739,6 @@ service:
             {
               "inbox_id": "scheduler@agentmail.to",
               "event_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000"
-            }
-          headers:
-            {
-              "If-Match": "\"occ-0-0-0-none-none\""
             }
           query-parameters:
             {
@@ -868,7 +856,6 @@ service:
             }
           headers:
             {
-              "If-Match": "\"rv-1\"",
               "Idempotency-Key": "delete-intro-acme"
             }
           query-parameters:
@@ -887,10 +874,6 @@ service:
             {
               "inbox_id": "scheduler@agentmail.to",
               "event_id": "7c4e9b2a-1f3d-4a8e-b6c5-2e9d0f1a8b47_t20261007T090000"
-            }
-          headers:
-            {
-              "If-Match": "\"occ-0-0-0-none-none\""
             }
           query-parameters:
             {
@@ -1113,10 +1096,6 @@ service:
             {
               "inbox_id": "scheduler@agentmail.to",
               "event_id": "a1d5c7e9-2b4f-4c6a-9e8d-3f7b1c5a9d20"
-            }
-          headers:
-            {
-              "If-Match": "\"rv-0\""
             }
           request:
             {
