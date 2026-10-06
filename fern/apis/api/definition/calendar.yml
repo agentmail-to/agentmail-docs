@@ -337,6 +337,12 @@ types:
       attendee_count:
         type: integer
         docs: Number of attendees.
+      response_status:
+        type: optional<AttendeeStatus>
+        docs: |
+          The inbox's own response: the `status` of its entry in `attendees`. Present only when the
+          inbox is an attendee, usually on `email` events, and included on agenda and instance list
+          items, which omit `attendees`. `needs_action` means the invitation is waiting for a reply.
       uid:
         type: string
         docs: iCalendar UID of the event. Invitations about this event carry the same UID.
