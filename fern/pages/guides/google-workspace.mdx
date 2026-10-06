@@ -11,6 +11,10 @@ Custom domains help establish trust with your recipients. We recommend configuri
 
 It is possible to use the same domain with both Google Workspace and AgentMail. This guide walks you through that configuration.
 
+<Note>
+If your agents only need to send from the domain, register it with `"inbound_enabled": false` instead. A send-only domain needs no MX change and no routing rule: Google Workspace keeps receiving all of the domain's mail.
+</Note>
+
 ## Register the shared domain
 
 Register your domain with [`POST /v0/domains`](/api-reference/domains/create), setting `allow_conflicting_provider` to `true`:
