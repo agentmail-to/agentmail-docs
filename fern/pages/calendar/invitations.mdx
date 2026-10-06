@@ -155,7 +155,7 @@ The reply email has the subject `Responded: <title>` and is threaded with the or
 
 ### Finding invitations to answer
 
-Every event object carries `response_status` when the inbox is one of its attendees: the `status` of the inbox's own entry in `attendees`. It is there on agenda and instance list items too, even though they leave out `attendees`, so you can find the invitations waiting for a reply without getting each event:
+Every event the inbox can respond to carries `response_status`: the `status` of the inbox's own entry in `attendees`. These are the events Respond accepts, `email` events with an `organizer_email` and an `origin_message_id` that list the inbox as an attendee. It is there on agenda and instance list items too, even though they leave out `attendees`, so you can find the invitations waiting for a reply without getting each event:
 
 <CodeBlocks>
 ```python title="Python"
@@ -169,7 +169,7 @@ const waiting = agenda.events.filter((event) => event.responseStatus === "needs_
 ```
 </CodeBlocks>
 
-A date of a recurring invitation answered on its own reports that date's response. Events the inbox organizes usually have no `response_status`, because the inbox is not one of their attendees.
+A date of a recurring invitation answered on its own reports that date's response. Events the inbox organizes have no `response_status`, and neither do `api` events, even ones that list the inbox as an attendee.
 
 ## Editing an invitation you received
 
