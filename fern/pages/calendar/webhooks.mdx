@@ -122,7 +122,7 @@ The `calendar_event` in a start or end webhook is the event as it stood when tha
 - **At least once.** A webhook can be delivered more than once. Use `event_id` to deduplicate.
 - **Stable IDs.** For start and end events, `event_id` is the same for every delivery of a given date and boundary. For the other events, `event_id` identifies the change.
 - **Matching your requests.** For `created`, `updated`, `deleted` and `responded`, `event_id` equals the `operation_id` (or, for a delete, the `deletion_id`) returned by the request that made the change. Changes that arrive by email have IDs your requests never returned.
-- **No ordering guarantee.** Webhooks of different types can arrive out of order. For example, an event created a moment before it starts can deliver `calendar.event.starting` before `calendar.event.created`. Use `calendar_event.updated_at` or read the event to resolve conflicts.
+- **No ordering guarantee.** Webhooks of different types can arrive out of order. For example, an event created a moment before it starts can deliver `calendar.event.starting` before `calendar.event.created`. Use `calendar_event.updated_at` or read the event to resolve conflicts. A read right after a webhook can trail the change by a few seconds, so pass `consistency=primary` when you need the state the webhook describes.
 - **Retries.** Failed deliveries are retried with backoff, as for every AgentMail webhook. Return a `2xx` quickly and do slow work in the background.
 
 ## Payloads

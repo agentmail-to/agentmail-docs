@@ -70,7 +70,7 @@ service:
         headers:
           If-Match:
             type: optional<string>
-            docs: The calendar's current `etag`, for example `"rv-0"`. Optional; makes the update conditional.
+            docs: The calendar's current `etag`, for example `"rv-0"`. Optional; makes the update conditional; `*` matches any current version.
         body:
           extends: calendar.UpdateCalendarRequest
           properties: {}
@@ -119,7 +119,8 @@ service:
         Use it to sync or manage what you created. To see what is on the calendar in a time window,
         use Get Agenda.
 
-        Requires the `calendar_event_read` permission.
+        The list is always read in the region that serves the request, so it can trail a change made
+        moments earlier by a few seconds. Requires the `calendar_event_read` permission.
 
         Calendar is in private beta: organizations without access receive a `403`.
       request:
@@ -227,14 +228,18 @@ service:
         `description`, `metadata` and `attendees`; get an event by ID for the full object. Dates of
         recurring events appear only up to about 90 days from now; use List Event Instances for a
         recurring event's later dates. While a recurring event's dates are being regenerated after a
-        schedule change, which takes a few seconds, the agenda can briefly leave out some of them.
+        schedule change, which takes a few seconds, the agenda can briefly leave out some of them;
+        dates that have already started or ended stay as they ran.
 
-        Requires the `calendar_event_read` permission.
+        The agenda is read in the region that serves the request, so it can trail a change made
+        moments earlier by a few seconds. Pass `consistency=primary` to read your own change right
+        away. Requires the `calendar_event_read` permission.
 
         Calendar is in private beta: organizations without access receive a `403`.
       request:
         name: GetCalendarAgendaRequest
         query-parameters:
+          consistency: optional<calendar.CalendarConsistency>
           after: optional<calendar.WindowAfter>
           before: optional<calendar.WindowBefore>
           include_overlapping: optional<calendar.IncludeOverlapping>
@@ -517,8 +522,10 @@ service:
         The response's `etag` (also the `ETag` header) is the value to send in `If-Match` to make an
         update, delete or response to this event or date conditional. Treat it as opaque.
 
-        `consistency` applies to UUIDs only; dated IDs are always read from the primary region.
-        Requires the `calendar_event_read` permission.
+        Reads can trail a change made moments earlier by a few seconds; pass `consistency=primary`
+        to read the latest state of an event or a date. A date that has already started or ended
+        reads back as it ran, even if a later change to the series no longer produces it. Requires
+        the `calendar_event_read` permission.
 
         Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
@@ -658,7 +665,7 @@ service:
         headers:
           If-Match:
             type: optional<string>
-            docs: The event's or date's current `etag`, from the latest read or write response. Optional; makes the update conditional.
+            docs: The event's or date's current `etag`, from the latest read or write response. Optional; makes the update conditional; `*` matches any current version.
         query-parameters:
           mode: optional<calendar.InstanceMutationMode>
         body:
@@ -825,7 +832,7 @@ service:
         headers:
           If-Match:
             type: optional<string>
-            docs: The event's or date's current `etag`. Optional; makes the delete conditional.
+            docs: The event's or date's current `etag`. Optional; makes the delete conditional; `*` matches any current version.
           Idempotency-Key:
             type: optional<string>
             docs: |
@@ -935,8 +942,9 @@ service:
         days, including dates far in the future. Cancelled dates are left out.
 
         The window defaults to now through 90 days from now. Items omit `description`, `metadata`
-        and `attendees`; get a date by its ID for the full object. Requires the
-        `calendar_event_read` permission.
+        and `attendees`; get a date by its ID for the full object. Like other reads, the list can
+        trail a change made moments earlier by a few seconds; pass `consistency=primary` to read
+        your own change right away. Requires the `calendar_event_read` permission.
 
         Calendar is in private beta: organizations without access receive a `403`.
       path-parameters:
@@ -946,6 +954,7 @@ service:
       request:
         name: ListCalendarEventInstancesRequest
         query-parameters:
+          consistency: optional<calendar.CalendarConsistency>
           after: optional<calendar.WindowAfter>
           before: optional<calendar.WindowBefore>
           include_overlapping: optional<calendar.IncludeOverlapping>
@@ -1085,7 +1094,7 @@ service:
         headers:
           If-Match:
             type: optional<string>
-            docs: The event's or date's current `etag`. Optional; makes the response conditional.
+            docs: The event's or date's current `etag`. Optional; makes the response conditional; `*` matches any current version.
         body:
           extends: calendar.RespondCalendarEventRequest
           properties: {}

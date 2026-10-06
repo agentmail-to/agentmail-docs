@@ -16,7 +16,7 @@ Every calendar, event and date has an `etag` that changes whenever it does. Get,
 - **Without it**, the change applies to the resource as it is when the request arrives. If another change lands while your request is running, you get `409` `race_condition`; retry.
 - **With it**, the change applies only if the resource still has that `etag`. Otherwise you get `412` `precondition_failed` and nothing changes.
 
-Send `If-Match` when your change depends on what you read, for example when you replace `attendees` with a list built from the current one, so you don't overwrite a response that arrived in the meantime.
+Send `If-Match` when your change depends on what you read, for example when you replace `attendees` with a list built from the current one, so you don't overwrite a response that arrived in the meantime. Take the `etag` from a read with `consistency=primary` (or from your last write), since a regional read can be a few seconds old.
 
 | Resource | `etag` looks like |
 | --- | --- |
@@ -24,7 +24,7 @@ Send `If-Match` when your change depends on what you read, for example when you 
 | One-off or series event (UUID) | `"rv-5"`, which is `"rv-" + resource_revision` |
 | Date of a series (dated ID) | `"occ-5-2-1-none-none"`; treat it as opaque |
 
-Changing one date changes the `etag` of every date of that series, and so does changing the series. Use the `etag` of the exact thing you are changing, from your latest read or write. Weak validators (`W/"rv-5"`), which some proxies produce, are accepted.
+Changing one date changes the `etag` of every date of that series, and so does changing the series. Use the `etag` of the exact thing you are changing, from your latest read or write. Weak validators (`W/"rv-5"`), which some proxies produce, are accepted. `If-Match: *` matches any current version, the same as sending no `If-Match`.
 
 ### Handling `412`
 

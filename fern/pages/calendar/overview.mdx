@@ -156,7 +156,7 @@ Then subscribe a webhook to `calendar.event.starting` to act when the call begin
 
 ## Reads, writes and consistency
 
-Calendar writes are processed in one primary region. Reads are served from the region closest to you and can trail a write made moments earlier by a few seconds. To read your own write immediately, pass `consistency=primary` to Get Calendar or Get Event. Write responses always return the stored result, so you rarely need to read back.
+Calendar writes are processed in one primary region. Reads are served from the region closest to you and can trail a write made moments earlier by a few seconds. To read your own write immediately, pass `consistency=primary` to Get Calendar, Get Event, Get Agenda or List Event Instances. List Events is always read in the region that serves you. Write responses always return the stored result, so you rarely need to read back.
 
 Webhooks are sent after a change is stored, usually within seconds.
 

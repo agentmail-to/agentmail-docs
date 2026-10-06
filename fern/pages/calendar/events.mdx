@@ -190,10 +190,11 @@ for (const event of page.events) {
 - Dates of recurring events appear only up to about 90 days from now. To list a recurring event's later dates, use [List Event Instances](/calendar-recurring-events#list-the-dates).
 - By default an event that started before `after` but is still running is included. Pass `include_overlapping=false` to get only events that start inside the window.
 - Agenda items leave out `description`, `metadata` and `attendees` to stay small (`attendee_count` is still there). Get an event by its `event_id` for the full object.
+- Like other reads, the agenda can trail a change made moments earlier by a few seconds. Pass `consistency=primary` to see an event you just created or changed.
 
 ### Stored events: what you have created
 
-`GET /calendar/events` returns one item per one-off or recurring event, plus one item per individually edited date of a recurring event. Items are full event objects ordered by most recent update, and cancelled events are included. Use it to sync the calendar into your own database.
+`GET /calendar/events` returns one item per one-off or recurring event, plus one item per individually edited date of a recurring event. Items are full event objects ordered by most recent update, and cancelled events are included. Use it to sync the calendar into your own database. It is always read in the region that serves you, so it can trail a change by a few seconds and does not take `consistency`.
 
 ### Pagination
 

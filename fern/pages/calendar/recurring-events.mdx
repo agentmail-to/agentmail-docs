@@ -255,7 +255,7 @@ Each sends `calendar.event.updated` with the cancelled date (deleting the whole 
 
 `PATCH` the series UUID to change every date. A change to the schedule (`start`, `end`, `timezone`, `duration_mode`, `recurrence` or `status`) regenerates the series' dates, and start and end webhooks follow the new schedule. A date that is already in progress still gets its `calendar.event.ending`.
 
-While dates are regenerated, which takes a few seconds, the agenda view can briefly leave out some of the series' dates.
+While dates are regenerated, which takes a few seconds, the agenda view can briefly leave out some of the series' dates. Dates that have already started or ended keep reading back as they ran, in the agenda and by their dated ID, even if the new schedule no longer produces them. Changing such a date returns `410` `event_expired`.
 
 To turn a series into a one-off event, set `recurrence` to `null`. This only works while none of its dates has been edited; otherwise it returns `409` `event_in_progress`, and you should create a new one-off event and delete the series instead.
 
