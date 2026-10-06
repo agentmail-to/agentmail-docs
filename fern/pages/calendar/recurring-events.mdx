@@ -69,7 +69,7 @@ Each date happens at 09:00 New York time, before and after the November daylight
 | Weekly until the end of 2026 | `FREQ=WEEKLY;UNTIL=20261231T235959Z` |
 | Every year | `FREQ=YEARLY` |
 
-Supported parts are `FREQ`, `INTERVAL`, `COUNT`, `UNTIL`, `WKST`, `BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`, `BYHOUR`, `BYMINUTE`, `BYSECOND` and `BYSETPOS`. `COUNT` and `UNTIL` cannot be combined. `UNTIL` is a date (`20261231`) or a UTC date-time (`20261231T235959Z`).
+Supported parts are `FREQ`, `INTERVAL`, `COUNT`, `UNTIL`, `WKST`, `BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`, `BYHOUR`, `BYMINUTE`, `BYSECOND` and `BYSETPOS`. `COUNT` and `UNTIL` cannot be combined. Timed events require a UTC date-time for `UNTIL` (`20261231T235959Z`); all-day events require a date (`20261231`). The cutoff is inclusive.
 
 The stored rule is normalized, so the `rule` you read back can differ textually from the one you sent while meaning the same thing.
 
@@ -93,7 +93,7 @@ The stored rule is normalized, so the `rule` you read back can differ textually 
 
 An `exdates` entry must match the date's original start exactly. For timed events, an `rdates` entry can also be a period, such as `{"start": "2026-11-28T09:00:00", "duration": "PT30M"}`.
 
-To skip a single date later, [cancel that date](#cancel-dates); it adds the date to `exdates` for you. Cancelled dates count toward the 366 `exdates` limit, and cancelling a date beyond it fails with `500` `internal_error` that retrying cannot fix. To skip dates on a regular pattern, change the rule instead.
+To skip a single date later, [cancel that date](#cancel-dates); it adds the date to `exdates` for you. Cancelled dates count toward the 366 `exdates` limit, and cancelling a date beyond it returns `400` `validation_error` without changing the event or charging invitation emails. To skip dates on a regular pattern, change the rule instead.
 
 ### Limits
 
@@ -225,7 +225,7 @@ await client.inboxes.calendar.updateEvent(inboxId, futureId, {
 ```
 </CodeBlocks>
 
-A `mode=future` change cannot include `start`; it returns `409` `future_edit_start_move_not_supported`. To move the time of every remaining date, update the series itself. A date first edited with one mode must keep using that mode; mixing them returns `409` `event_in_progress`.
+A `mode=future` change cannot include `start`; it returns `409` `future_edit_start_move_not_supported`. To move the time of every remaining date, update the series itself. Single-date and future edits can coexist at the same date. Fields explicitly changed with `mode=single` keep their single-date values; other fields follow the applicable future edit.
 
 ## Cancel dates
 

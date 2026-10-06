@@ -98,10 +98,10 @@ Calendar errors use the standard [error format](/errors), with a stable `code` t
 | `403` | `missing_permission` | The API key lacks the calendar permission the endpoint needs. See [Permissions](/calendar#permissions). |
 | `404` | `not_found` | The inbox, event or date does not exist or is not visible to this API key. Also returned for a deleted event or a date cancelled with `DELETE`. |
 | `409` | `idempotency_conflict` | `client_id` was already used for a different create request, or the `Idempotency-Key` was already used to delete a different event. Delete keys are unique across your organization. |
-| `409` | `race_condition` | A concurrent change conflicted with this one (for a change sent without `If-Match`, the resource changed while the request ran). Retry; for creates, retry with the same `client_id`. Also returned when the calendar is at its event limit (10,000 events by default), where retrying cannot help: if retries keep failing, check `event_count` with Get Calendar. |
+| `409` | `race_condition` | A concurrent change conflicted with this one (for a change sent without `If-Match`, the resource changed while the request ran). Retry; for creates, retry with the same `client_id`. Also returned at the calendar's event limit (10,000 by default) or a series' edited-date limits (730 individual dates or 64 future edits), where retrying cannot help. Check `event_count` with Get Calendar and the series' existing edits. |
 | `409` | `event_starting` | The event or date is starting right now, so its schedule cannot change for a few seconds. Retry shortly. |
 | `409` | `event_already_started` | The event or date has started (its start is fixed) or ended (only descriptive fields can change). |
-| `409` | `event_in_progress` | A series with edited dates cannot become a one-off event, or a date was first edited with the other `mode`. |
+| `409` | `event_in_progress` | A series with edited dates cannot become a one-off event. |
 | `409` | `future_edit_start_move_not_supported` | A `mode=future` change cannot move `start`. Use `mode=single`, or update the series. |
 | `409` | `recurrence_density_limit` | The rule produces more than 730 dates in some 90-day window. |
 | `409` | `materialization_failed` | The rule's first date could not be found within the evaluation bound. Add `COUNT` or `UNTIL`, or simplify the rule. |
