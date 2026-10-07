@@ -83,6 +83,15 @@ types:
     type: datetime
     docs: Time at which message was created.
 
+  MessageCalendarEventId:
+    type: string
+    docs: |
+      The calendar event this email's invitation was applied to: set when the email's calendar
+      invitation, update, cancellation or attendee reply changed the inbox's calendar, a few seconds
+      after the email arrives. For an email about one date of a recurring event, it is that date's
+      event ID. Absent on other emails, and on invitations that were not imported. Calendar is in
+      private beta.
+
   MessageItem:
     properties:
       inbox_id: inboxes.InboxId
@@ -98,6 +107,7 @@ types:
       preview: optional<MessagePreview>
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
+      calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
       size: MessageSize
@@ -130,6 +140,7 @@ types:
         docs: Extracted new HTML content.
       attachments: optional<MessageAttachments>
       in_reply_to: optional<MessageInReplyTo>
+      calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
       size: MessageSize
