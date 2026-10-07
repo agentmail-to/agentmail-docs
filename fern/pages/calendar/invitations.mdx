@@ -96,13 +96,29 @@ A reply is only applied to the attendee whose address sent it, so one attendee c
 
 ## Receiving invitations
 
-When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the sender, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself.
+When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the sender, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email (later, at the email whose invitation last updated it). A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself.
 
 Later emails from the organizer keep the event in sync:
 
 - An updated invitation (`REQUEST`) updates the event, or one date of it.
 - A cancellation (`CANCEL`) sets the event, or one date of it, to `cancelled`.
 - Updates are ordered by iCalendar `SEQUENCE`, so an older update that arrives late does not overwrite a newer one. A change to one date is compared only with earlier changes to that same date.
+
+### Finding the event for an email
+
+To go from an email to its event, for example when a `message.received` webhook arrives, list the events with the email's `message_id`. Every email about an event carries the event's iCalendar UID, so the first invitation, later updates, a cancellation and attendees' replies all find it, as does an invitation the inbox sent:
+
+<CodeBlocks>
+```python title="Python"
+events = client.inboxes.calendar.list_events("scheduler@agentmail.to", message_id=message.message_id)
+```
+
+```typescript title="TypeScript"
+const { events } = await client.inboxes.calendar.listEvents("scheduler@agentmail.to", { messageId: message.messageId });
+```
+</CodeBlocks>
+
+The list is empty when the email has no calendar attachment, its invitation wasn't imported (see below), or the event was deleted. Events are created a few seconds after the email arrives, so an email that has only just been received may not find its event yet. An email about one date of a recurring event returns the recurring event. This needs the `message_read` permission as well as `calendar_event_read`.
 
 ### Which invitations are accepted
 

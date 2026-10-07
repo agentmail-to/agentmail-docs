@@ -4,6 +4,7 @@ imports:
   global: ../__package__.yml
   inboxes: __package__.yml
   calendar: ../calendar.yml
+  messages: ../messages.yml
 
 service:
   url: Http
@@ -120,6 +121,17 @@ service:
         The list is always read in the region that serves the request, so it can trail a change made
         moments earlier by a few seconds. Requires the `calendar_event_read` permission.
 
+        Pass `message_id` to find the events one of the inbox's emails is about instead: an
+        invitation, a later update or cancellation, an attendee's reply, or an invitation the inbox
+        sent. The events are matched by the iCalendar UID in the email's calendar attachment, which
+        every email about an event carries, so each email in a thread finds the event (while
+        `origin_message_id` names only the last invitation applied). An email about one date of a
+        recurring event returns the recurring event. The result is not paginated, and is empty
+        when the email has no calendar attachment or names no event on this calendar. Emails
+        labeled `spam`, `blocked` or `unauthenticated` are never matched. Reading the email
+        requires the `message_read` permission too, and the email's label permissions apply as
+        in Get Message.
+
         Calendar is in private beta in US production (`api.agentmail.to`). It is unavailable in EU
         production (`api.agentmail.eu`). Organizations without access receive a `403`.
       request:
@@ -127,6 +139,12 @@ service:
         query-parameters:
           limit: optional<calendar.CalendarLimit>
           page_token: optional<global.PageToken>
+          message_id:
+            type: optional<messages.MessageId>
+            docs: >-
+              List the events this email of the inbox is about, matched by the iCalendar UID in
+              its calendar attachment. Cannot be combined with `page_token`. Requires
+              `message_read` as well.
       response: calendar.ListCalendarEventsResponse
       errors:
         - global.ValidationError
