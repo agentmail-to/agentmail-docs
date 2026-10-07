@@ -98,6 +98,8 @@ A reply is only applied to the attendee whose address sent it, so one attendee c
 
 When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the sender, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself.
 
+Once an email's invitation is applied, the email records its event in `calendar_event_id`, so you can go from an email (say, a `message.received` webhook) to its event with Get Event. Updates, cancellations and attendees' replies record it too; for an email about one date of a recurring event it is that date's event ID. The event is created a few seconds after the email arrives, so get the message again if the field is not there yet.
+
 Later emails from the organizer keep the event in sync:
 
 - An updated invitation (`REQUEST`) updates the event, or one date of it.
