@@ -1,0 +1,59 @@
+---
+tags: ["calendar-api", "enhancement", "sdk"]
+---
+
+## Summary
+
+Invitations are easier to keep up with. Every event the inbox can respond to now says how the inbox has answered, so an agent can find the invitations still waiting for a reply from the agenda alone. And an invitation email now records the calendar event it was applied to, so an agent can go from a `message.received` email straight to its event.
+
+### What's new?
+
+- **`response_status` on calendar events**: the `status` of the inbox's own entry in `attendees`, on the events [Respond to Event](https://docs.agentmail.to/api-reference/inboxes/calendar/respond-to-event) accepts (`email` events from an organizer that list the inbox). It is on agenda and instance list items too, which leave out `attendees`, and in calendar webhook and WebSocket events. A date of a recurring invitation answered on its own reports that date's response. Events the inbox organizes have no `response_status`.
+- **`calendar_event_id` on messages**: set on an email once its calendar invitation, update, cancellation or attendee reply has been applied to the inbox's calendar, a few seconds after the email arrives. For an email about one date of a recurring event, it is that date's event ID. Pass it to Get Event. It is returned wherever a message is: Get Message, List Messages and Get Thread. Emails whose invitation was not imported have none.
+- **SDKs**: Python 2.0.14 and TypeScript 0.5.42 include both fields (`response_status` and `calendar_event_id` in Python, `responseStatus` and `calendarEventId` in TypeScript).
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+inbox_id = "scheduler@agentmail.to"
+
+# Invitations still waiting for the inbox's reply
+agenda = client.inboxes.calendar.get_agenda(inbox_id)
+waiting = [event for event in agenda.events if event.response_status == "needs_action"]
+
+# The event an invitation email is about
+message = client.inboxes.messages.get(inbox_id, message_id)
+if message.calendar_event_id:
+    event = client.inboxes.calendar.get_event(inbox_id, message.calendar_event_id)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+const inboxId = "scheduler@agentmail.to";
+
+// Invitations still waiting for the inbox's reply
+const agenda = await client.inboxes.calendar.getAgenda(inboxId);
+const waiting = agenda.events.filter((event) => event.responseStatus === "needs_action");
+
+// The event an invitation email is about
+const message = await client.inboxes.messages.get(inboxId, messageId);
+if (message.calendarEventId) {
+    const event = await client.inboxes.calendar.getEvent(inboxId, message.calendarEventId);
+}
+```
+</CodeBlocks>
+
+### Use cases
+
+Build agents that:
+
+- Answer every invitation still waiting for a reply, without getting each event
+- Handle an invitation email by looking at its event: check for conflicts, accept or decline, add notes in `metadata`
+
+<Note>
+  Calendar is in private beta in US production. See [Invitations](https://docs.agentmail.to/calendar-invitations) for how invitations are received and answered.
+</Note>
