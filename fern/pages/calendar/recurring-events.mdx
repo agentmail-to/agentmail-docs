@@ -91,7 +91,7 @@ The stored rule is normalized, so the `rule` you read back can differ textually 
 }
 ```
 
-An `exdates` entry must match the date's original start exactly. For timed events, an `rdates` entry can also be a period, such as `{"start": "2026-11-28T09:00:00", "duration": "PT30M"}`.
+An `exdates` entry must match the date's original start exactly. When an update moves the series' `start` without sending `recurrence`, the stored `exdates` move with it, so skipped dates stay skipped (and turn into dates when the series becomes all-day). For timed events, an `rdates` entry can also be a period, such as `{"start": "2026-11-28T09:00:00", "duration": "PT30M"}`.
 
 To skip a single date later, [cancel that date](#cancel-dates); it adds the date to `exdates` for you. Cancelled dates count toward the 366 `exdates` limit, and cancelling a date beyond it returns `400` `validation_error` without changing the event or charging invitation emails. To skip dates on a regular pattern, change the rule instead.
 
@@ -232,7 +232,7 @@ A `mode=future` change cannot include `start`; it returns `409` `future_edit_sta
 `DELETE` a dated ID to cancel dates without deleting the series:
 
 - `mode=single` (default) cancels that one date by adding its original start to the series' `recurrence.exdates`. The response shows the date with `status: cancelled`; afterwards it no longer appears in lists and gets no start or end webhooks. A date that is already running still gets its `calendar.event.ending`. The date is now removed from the series, so reading its dated ID can return `404` or `410`. A date within about 90 days reads back as `cancelled` once the series is regenerated, for 30 days after the cancel. To confirm a cancel, check the series' `recurrence.exdates`.
-- `mode=future` cancels that date and every later one, ending the series. The series' `recurrence.truncate_before` records where it now stops.
+- `mode=future` cancels that date and every later one, ending the series. The series' `recurrence.truncate_before` records where it now stops; it is kept when you later replace the rule, and moves with the series' `start`.
 - `mode=future` from the first date deletes the whole series and returns a `deletion_id`, like deleting the series UUID.
 
 <CodeBlocks>
