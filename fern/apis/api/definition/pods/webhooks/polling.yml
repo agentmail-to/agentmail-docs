@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../../__package__.yml
+  pods: ../__package__.yml
+  webhooks: ../../webhooks/__package__.yml
+  polling: ../../webhooks/polling.yml
+
+service:
+  url: Http
+  base-path: /pods/{pod_id}/webhooks/polling
+  path-parameters:
+    pod_id: pods.PodId
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Polling Webhooks
+      docs: |
+        Lists the polling webhooks created through this pod route.
+
+        **CLI:**
+        ```bash
+        agentmail pods webhooks polling list --pod-id <pod_id>
+        ```
+      request:
+        name: PodListPollingWebhooksRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: polling.ListPollingWebhooksResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{webhook_id}
+      display-name: Get Polling Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods webhooks polling get --pod-id <pod_id> --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      response: polling.PollingWebhook
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Polling Webhook
+      docs: |
+        Create a polling webhook scoped to this pod and return the `token` that reads it.
+
+        **CLI:**
+        ```bash
+        agentmail pods webhooks polling create --pod-id <pod_id> --client-id my-agent --event-types message.received
+        ```
+      request: polling.CreatePodPollingWebhookRequest
+      response: polling.CreatePollingWebhookResponse
+      errors:
+        - global.ValidationError
+        - global.ConflictError
+
+    delete:
+      method: DELETE
+      path: /{webhook_id}
+      display-name: Delete Polling Webhook
+      docs: |
+        **CLI:**
+        ```bash
+        agentmail pods webhooks polling delete --pod-id <pod_id> --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      errors:
+        - global.NotFoundError
