@@ -17,6 +17,15 @@ types:
     docs: Signature of webhook message.
 
 webhooks:
+  messageReceivedEnvelope:
+    display-name: Message Received Envelope (Pilot)
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.MessageReceivedEnvelopeEvent
+
   messageReceived:
     display-name: Message Received
     method: POST
