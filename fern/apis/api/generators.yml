@@ -21,6 +21,9 @@ groups:
           path: ../../generated/python
         config:
           client_class_name: AgentMail
+          pyproject_python_version: "^3.10"
+          extra_dependencies:
+            anyio: ">=4.14.2"
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
@@ -110,6 +113,9 @@ groups:
           license: MIT
         config:
           client_class_name: AgentMail
+          pyproject_python_version: "^3.10"
+          extra_dependencies:
+            anyio: ">=4.14.2"
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
