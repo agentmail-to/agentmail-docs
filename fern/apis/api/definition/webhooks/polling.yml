@@ -1,0 +1,178 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  events: ../events.yml
+  webhooks: __package__.yml
+
+types:
+  PollingToken:
+    type: string
+    docs: |
+      Credential for reading this subscription's events. Hand it to the Svix AutoConfig consumer
+      (`AutoConfigConsumer` in the `svix` package for TypeScript and Python): `receive` returns the events
+      queued since your last commit, `commit` marks them as processed. Returned by create only and never
+      readable afterward. Create again with the same `client_id` to get a new token; the previous one stops
+      working immediately.
+
+  PollingClientId:
+    type: webhooks.ClientId
+    docs: |
+      Required. Idempotency key of the subscription: creating again with the same `client_id` through the
+      same route returns the existing subscription with a fresh token instead of a second subscription, so a
+      restarted agent resumes where it left off. Also accepted in place of `webhook_id` on get and delete.
+
+  PollingWebhook:
+    docs: |
+      A subscription the agent polls for events instead of receiving them at a URL. Same event types,
+      channels (pods and inboxes) and permissions as a webhook; no public endpoint is needed.
+    properties:
+      webhook_id: webhooks.WebhookId
+      client_id: PollingClientId
+      event_types: events.EventTypes
+      pod_ids: optional<events.PodIds>
+      inbox_ids: optional<events.InboxIds>
+      pod_id:
+        type: optional<string>
+        docs: |
+          ID of the pod the subscription belongs to: the pod it was created in, or the pod of the inbox it
+          belongs to. Absent for an organization subscription. This is not the list of pods it receives
+          events for; see `pod_ids`.
+      inbox_id:
+        type: optional<string>
+        docs: |
+          ID of the inbox the subscription belongs to, if it was created for an inbox. This is not the
+          list of inboxes it receives events for; see `inbox_ids`.
+      updated_at:
+        type: datetime
+        docs: Time at which the subscription was last updated.
+      created_at:
+        type: datetime
+        docs: Time at which the subscription was created.
+
+  CreatePollingWebhookResponse:
+    docs: The subscription plus the one-time `token` that reads it.
+    extends: PollingWebhook
+    properties:
+      token: PollingToken
+
+  ListPollingWebhooksResponse:
+    properties:
+      count: global.Count
+      limit: optional<global.Limit>
+      next_page_token: optional<global.PageToken>
+      polling_webhooks:
+        type: list<PollingWebhook>
+        docs: |
+          Ordered by `created_at` descending. Lists the subscriptions created through this route
+          (organization, pod, or inbox); subscriptions created through a pod or inbox route are listed
+          through that route.
+
+  # Create requests mirror the webhook ones: the inbox-scoped body is the smallest shape, each wider
+  # scope adds the channel fields it additionally accepts.
+  CreateInboxPollingWebhookRequest:
+    docs: |
+      Create a polling webhook scoped to an inbox. The inbox comes from the path, so `inbox_ids` and
+      `pod_ids` are not accepted.
+    properties:
+      client_id: PollingClientId
+      event_types: webhooks.CreateWebhookEventTypes
+
+  CreatePodPollingWebhookRequest:
+    docs: |
+      Create a polling webhook scoped to a pod. The pod comes from the path, so `pod_ids` is not accepted.
+      Optionally pass `inbox_ids` to narrow the subscription to specific inboxes within the pod; omit to
+      receive events for the whole pod.
+    extends: CreateInboxPollingWebhookRequest
+    properties:
+      inbox_ids: optional<events.InboxIds>
+
+  CreatePollingWebhookRequest:
+    extends: CreatePodPollingWebhookRequest
+    properties:
+      pod_ids:
+        type: optional<events.PodIds>
+        docs: |
+          Pods for which to receive events. Maximum 10 channels (pods plus inboxes) per subscription. The
+          subscription receives an event that matches any listed pod or inbox, so a listed pod already
+          covers every inbox in it.
+
+service:
+  url: Http
+  base-path: /webhooks/polling
+  auth: true
+
+  endpoints:
+    list:
+      method: GET
+      path: ""
+      display-name: List Polling Webhooks
+      docs: |
+        Lists the polling webhooks created through this route. `page_token` must come from this
+        endpoint; a token from another list endpoint is rejected.
+
+        **CLI:**
+        ```bash
+        agentmail webhooks polling list
+        ```
+      request:
+        name: ListPollingWebhooksRequest
+        query-parameters:
+          limit: optional<global.Limit>
+          page_token: optional<global.PageToken>
+          ascending: optional<global.Ascending>
+      response: ListPollingWebhooksResponse
+      errors:
+        - global.ValidationError
+
+    get:
+      method: GET
+      path: /{webhook_id}
+      display-name: Get Polling Webhook
+      docs: |
+        The `token` is never returned here: create again with the same `client_id` to get a new one.
+
+        **CLI:**
+        ```bash
+        agentmail webhooks polling get --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      response: PollingWebhook
+      errors:
+        - global.NotFoundError
+
+    create:
+      method: POST
+      path: ""
+      display-name: Create Polling Webhook
+      docs: |
+        Creates a subscription the agent polls for events, and returns the `token` that reads it. Each
+        organization, pod, and inbox holds at most 10 polling webhooks; a repeat create with the same
+        `client_id` re-issues the token of the existing one instead of counting against that limit.
+
+        **CLI:**
+        ```bash
+        agentmail webhooks polling create --client-id my-agent --event-types message.received
+        ```
+      request: CreatePollingWebhookRequest
+      response: CreatePollingWebhookResponse
+      errors:
+        - global.ValidationError
+        - global.ConflictError
+
+    delete:
+      method: DELETE
+      path: /{webhook_id}
+      display-name: Delete Polling Webhook
+      docs: |
+        Stops delivery and invalidates the subscription's token.
+
+        **CLI:**
+        ```bash
+        agentmail webhooks polling delete --webhook-id <webhook_id>
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      errors:
+        - global.NotFoundError

@@ -1014,3 +1014,77 @@ paths:
       - inboxes
       - calendar
       x-fern-sdk-method-name: respond-to-event
+  /v0/inboxes/{inbox_id}/webhooks/polling:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: create
+  /v0/inboxes/{inbox_id}/webhooks/polling/{webhook_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: get
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: delete
+  /v0/pods/{pod_id}/webhooks/polling:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: create
+  /v0/pods/{pod_id}/webhooks/polling/{webhook_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: get
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: delete
+  /v0/webhooks/polling:
+    get:
+      x-fern-sdk-group-name:
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: create
+  /v0/webhooks/polling/{webhook_id}:
+    get:
+      x-fern-sdk-group-name:
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: get
+    delete:
+      x-fern-sdk-group-name:
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: delete
