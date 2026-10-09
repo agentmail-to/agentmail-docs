@@ -547,8 +547,8 @@ errors:
     status-code: 403
     type: global.ErrorResponse
     docs: |
-      The organization does not have calendar access (calendar is in private beta), or the API key
-      lacks the required calendar permission.
+      The organization does not have calendar access (it has not joined AgentMail Labs), or the API
+      key lacks the required calendar permission.
 
   EventExpiredError:
     status-code: 410

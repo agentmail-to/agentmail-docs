@@ -56,7 +56,7 @@ Creating an unrestricted child key (`permissions: null`), clearing a key's permi
 
 ### forbidden
 
-The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar endpoints also return `forbidden` when the organization does not have calendar access (private beta); no key can fix that, so email support@agentmail.to to request access.
+The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar endpoints also return `forbidden` when the organization does not have calendar access; no key can fix that. Calendar is in AgentMail Labs: an organization admin joins Labs in the console under Settings, then Labs (US production only).
 
 ## Request errors (400 / 404 / 422)
 
