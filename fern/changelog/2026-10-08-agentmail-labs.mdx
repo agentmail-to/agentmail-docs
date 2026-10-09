@@ -1,0 +1,24 @@
+---
+tags: ["calendar-api", "enhancement", "docs"]
+---
+
+## Summary
+
+Calendar is now in AgentMail Labs, so your organization can turn it on itself instead of asking us for beta access. An organization admin joins Labs once in the console, and every inbox's calendar becomes available to your agents right away.
+
+### What's new?
+
+- **AgentMail Labs:** a new **Labs** tab in the console's organization settings. An organization owner or admin joins (or leaves) Labs for the whole organization. Other members see the setting read-only.
+- **Calendar in Labs:** joining Labs turns on the calendar API for every inbox. API keys see the change within five minutes; the console shows it immediately.
+- **Leaving Labs:** calendar events are kept, but the calendar API returns `403`, new invitations are not added, and event start and end webhooks stop until you rejoin.
+- **Availability:** Labs is available in US production (`api.agentmail.to`), not yet in EU production (`api.agentmail.eu`).
+- Organizations that were in the calendar beta were moved into Labs, so nothing changes for them.
+
+### Use cases
+
+- Give your agents a calendar the moment you need one, without waiting on a support request.
+- Try new AgentMail features early, for the whole organization, from one setting.
+
+<Note>
+  Read the [Calendar overview](https://docs.agentmail.to/calendar) to get started.
+</Note>

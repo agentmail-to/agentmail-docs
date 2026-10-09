@@ -5,7 +5,7 @@ slug: calendar-webhooks
 description: The calendar.event.* webhook and WebSocket events. Payloads, when start and end events are sent, delivery guarantees, and how to handle duplicates.
 ---
 
-<Markdown src="../../snippets/calendar-beta.mdx" />
+<Markdown src="../../snippets/calendar-labs.mdx" />
 
 Calendar webhooks let your agent act at the right moment without polling or running its own scheduler. They use the same webhook endpoints, signatures and retries as message webhooks.
 
@@ -81,7 +81,7 @@ const webhook = await client.webhooks.create({
 ```
 </CodeBlocks>
 
-The API key that creates the webhook needs the `calendar_event_read` permission to subscribe to calendar events. Subscribing works before your organization has calendar access, but nothing fires until it does.
+The API key that creates the webhook needs the `calendar_event_read` permission to subscribe to calendar events. Subscribing works before your organization has calendar access (joins AgentMail Labs), but nothing fires until it does.
 
 Calendar events are also delivered over [WebSockets](/websockets), but only to subscriptions that name them in `event_types`. A subscription without `event_types` doesn't receive them. Each subscribe replaces the event types of any earlier subscription to the same inboxes or pods on that connection, so include any message events you also want. The API key needs `calendar_event_read` when the connection opens.
 

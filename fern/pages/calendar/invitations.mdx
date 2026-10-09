@@ -5,7 +5,7 @@ slug: calendar-invitations
 description: How AgentMail calendars exchange standard iCalendar (iMIP) invitations. Send invitations from an inbox, turn emailed invitations into events automatically, and accept or decline them.
 ---
 
-<Markdown src="../../snippets/calendar-beta.mdx" />
+<Markdown src="../../snippets/calendar-labs.mdx" />
 
 AgentMail calendars speak iMIP, the standard behind calendar invitations in email. Invitations your agent sends open as normal meeting invitations in Google Calendar, Outlook and Apple Calendar, and invitations those apps send to the inbox appear on its calendar.
 
@@ -113,7 +113,7 @@ To keep strangers from writing to your agent's calendar, an invitation is applie
 - The email passed sender authentication and is not labeled `spam`, `blocked` or `unauthenticated`. Messages held for a security review are processed if they are released.
 - The authenticated sender is the event's organizer. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
 - The invitation is a `text/calendar` or `application/ics` attachment of at most 1 MB, containing exactly one event.
-- The organization has calendar access.
+- The organization has calendar access (it has joined AgentMail Labs).
 
 Invitations that fail these checks leave the calendar unchanged. The email is still delivered to the inbox like any other message.
 
