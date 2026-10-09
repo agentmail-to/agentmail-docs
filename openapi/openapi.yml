@@ -11426,7 +11426,6 @@ components:
       title: AppCategory
       type: string
       enum:
-        - ai
         - search
         - scraping
         - browser
