@@ -69,7 +69,36 @@ types:
 
   MessageHeaders:
     type: map<string, string>
-    docs: Headers in message.
+    docs: |
+      Headers in message. The `Authentication-Results` header is not included: it is unsigned and a
+      sender can forge it. Read `authentication_results` for the verdicts instead.
+
+  MessageAuthenticationVerdict:
+    enum:
+      - pass
+      - fail
+      - none
+      - neutral
+      - softfail
+      - temperror
+      - permerror
+    docs: |
+      Result of one email authentication mechanism, in the vocabulary of the
+      `Authentication-Results` header (RFC 8601). `none` means SES found nothing to evaluate: no
+      SPF or DMARC record for the sending domain, or no DKIM signature aligned with the From domain.
+
+  MessageAuthenticationResults:
+    docs: |
+      The SPF, DKIM, and DMARC verdicts Amazon SES computed when the message reached AgentMail,
+      for the hop that reached us. A mechanism is absent when SES could not evaluate it. On
+      forwarded mail that AgentMail accepted through a valid ARC chain, this reflects the
+      forwarder hop, not the original sender. The `Authentication-Results` header is no longer
+      present in `headers` (it was unsigned and could be forged); this field is the verdict source.
+      Set on received messages only.
+    properties:
+      spf: optional<MessageAuthenticationVerdict>
+      dkim: optional<MessageAuthenticationVerdict>
+      dmarc: optional<MessageAuthenticationVerdict>
 
   MessageSize:
     type: integer
@@ -110,6 +139,7 @@ types:
       calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
+      authentication_results: optional<MessageAuthenticationResults>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
@@ -143,6 +173,7 @@ types:
       calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
+      authentication_results: optional<MessageAuthenticationResults>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt

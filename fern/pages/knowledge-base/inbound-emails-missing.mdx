@@ -31,6 +31,8 @@ If authentication headers are present and any check fails, the email is dropped.
 | Either explicitly fails | FAIL | any | Dropped |
 | Either explicitly fails | any | FAIL | Dropped |
 
+Every delivered message carries these verdicts in its `authentication_results` field, with `spf`, `dkim`, and `dmarc` each set to `pass`, `fail`, `none`, or another standard result. Read that field rather than an `Authentication-Results` header: AgentMail does not include that header in `headers` because it is unsigned and a sender can forge it. On forwarded mail accepted through a valid ARC chain, the verdicts describe the forwarder, not the original sender.
+
 <Warning>
 Emails dropped due to failed authentication are rejected without a bounce-back to the sender. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. To monitor emails with missing authentication headers, subscribe to the `message.received.unauthenticated` webhook or WebSocket event.
 </Warning>
