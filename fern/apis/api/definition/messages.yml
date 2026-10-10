@@ -69,7 +69,50 @@ types:
 
   MessageHeaders:
     type: map<string, string>
-    docs: Headers in message.
+    docs: |
+      Headers in message. `Authentication-Results` is never included, on received or sent
+      messages: the header is unsigned, so a sender can plant a forged copy. Read
+      `authentication_results` for the verdicts instead. Get Raw Message still returns every copy
+      of the header.
+
+  MessageAuthenticationVerdict:
+    enum:
+      - pass
+      - fail
+      - none
+      - neutral
+      - softfail
+      - temperror
+      - permerror
+    docs: |
+      Result of one email authentication mechanism, in the vocabulary of the
+      `Authentication-Results` header (RFC 8601). `none` means SES found nothing to evaluate (SES
+      calls this GRAY): no SPF record for the envelope MAIL FROM domain, no DKIM signature aligned
+      with the From domain, or no DMARC record for the From domain.
+
+  MessageAuthenticationResults:
+    docs: |
+      Per-mechanism SPF, DKIM, and DMARC verdicts that Amazon SES computed when the message reached
+      AgentMail, kept only where they speak for the sender's From identity. SPF authenticates the
+      envelope MAIL FROM (Return-Path) domain, so `spf` is present only when that domain exactly
+      matches the sender's domain (the From mailbox, or the Sender header when From spans
+      domains); an unaligned SPF result is withheld whatever its value. `dkim` and `dmarc` are
+      withheld when the From list spans more than one domain or could not be fully parsed. A
+      verdict SES could not compute is absent, so the field can be `{}`. The field is absent on
+      sent messages and on messages received before 2026-09-09.
+
+      The `unauthenticated` label, not this field, is AgentMail's acceptance decision, and it uses
+      a looser rule, so the two can disagree. Forwarded mail accepted through a valid ARC chain is
+      delivered without the label while `dkim` and `dmarc` usually read `fail`, because they are
+      evaluated against the original sender's domain and forwarding broke the signature, and `spf`
+      is withheld because the forwarder's envelope is unaligned. A single-From message whose only
+      pass is an unaligned envelope SPF is delivered without the label while this field shows no
+      pass. Use the label to tell whether AgentMail accepted the message as legitimate, use this
+      field for per-mechanism detail, and do not reject mail on `dmarc: fail` alone.
+    properties:
+      spf: optional<MessageAuthenticationVerdict>
+      dkim: optional<MessageAuthenticationVerdict>
+      dmarc: optional<MessageAuthenticationVerdict>
 
   MessageSize:
     type: integer
@@ -110,6 +153,7 @@ types:
       calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
+      authentication_results: optional<MessageAuthenticationResults>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
@@ -143,6 +187,7 @@ types:
       calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
+      authentication_results: optional<MessageAuthenticationResults>
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
