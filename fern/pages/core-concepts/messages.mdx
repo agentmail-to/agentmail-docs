@@ -507,7 +507,7 @@ When processing incoming messages, always treat `html` as the primary content so
 ## Receiving `Messages`
 
 <Warning>
-**Inbound emails are checked for SPF, DKIM, and DMARC authentication.** AgentMail drops emails when authentication headers are present and explicitly fail. When authentication headers are missing, AgentMail still processes the email and labels it `unauthenticated`. Subscribe to the `message.received.unauthenticated` event to monitor these messages. Each received `Message` carries the SPF, DKIM, and DMARC verdicts in its `authentication_results` field; the unsigned `Authentication-Results` header is not included in `headers`. See [Why are my emails not showing up?](/knowledge-base/inbound-emails-missing) for details.
+**Inbound emails are checked for SPF, DKIM, and DMARC authentication.** AgentMail drops an email only when it fails DMARC under an enforcing policy (`quarantine` or `reject`). An email with no passing mechanism, or a DMARC failure under a `none` policy, is delivered and labelled `unauthenticated`; subscribe to the `message.received.unauthenticated` event to monitor these messages. The per-mechanism verdicts are in the `authentication_results` field of a received `Message`, and [Get Message](/api-reference/inboxes/messages/get) describes each key and when it is absent. See [Why are my emails not showing up?](/knowledge-base/inbound-emails-missing) for details.
 </Warning>
 
 While you can periodically list `Messages` to check for new emails, the most efficient way to handle incoming `Messages` for your agents is with `Webhooks`. By configuring a `Webhook` endpoint, AgentMail can notify your application/agent in real-time as soon as a new `Message` arrives, so you can take action on them.

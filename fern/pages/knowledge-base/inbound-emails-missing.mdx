@@ -5,41 +5,42 @@ slug: knowledge-base/inbound-emails-missing
 ---
 
 <Warning>
-**Inbound emails are checked for SPF, DKIM, and DMARC authentication.** AgentMail drops emails when authentication headers are present and explicitly fail. If authentication headers are missing, AgentMail still processes the email and labels it `unauthenticated`.
+**Inbound emails are checked for SPF, DKIM, and DMARC authentication.** AgentMail drops an email only when it fails DMARC under an enforcing policy (`quarantine` or `reject`). An email with no passing mechanism, or a DMARC failure under a `none` policy, is still delivered and labelled `unauthenticated`.
 </Warning>
 
-AgentMail verifies inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails with authentication headers that explicitly fail are dropped to prevent spoofing, phishing, and spam from reaching your agents.
+AgentMail verifies inbound email using SPF, DKIM, and DMARC authentication before delivering it to your inbox. Emails that fail DMARC under an enforcing policy are dropped to prevent spoofing, phishing, and spam from reaching your agents.
 
 This is the same standard enforced by Gmail, Outlook, Yahoo, and other major email providers.
 
 ## How inbound authentication works
 
-When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts provided by the receiving mail server. To be delivered as authenticated, an email must meet **all** of the following conditions:
+When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts computed by Amazon SES, the receiving mail server, and applies these rules in order:
 
-- Neither SPF nor DKIM returns a `FAIL` verdict
-- DMARC does not return `FAIL` (unless the sender's DMARC policy is `none`)
-- The message passes virus scanning
+- The email is dropped when it fails virus scanning, or when DMARC fails and the sender's published DMARC policy is `quarantine` or `reject`.
+- The email is delivered with the `unauthenticated` label when DMARC fails under a `none` policy, or when none of SPF, DKIM, or DMARC passes (for example because the sender publishes no records). A From header that lists more than one mailbox is also labelled unless its chosen sender mailbox authenticated.
+- Otherwise the email is delivered as authenticated: at least one of SPF, DKIM, or DMARC passed.
 
-If authentication headers are present and any check fails, the email is dropped. If authentication headers are missing, the email is delivered with the `unauthenticated` label because some legitimate senders do not include those headers.
+The verdicts below are SES's, written the way `authentication_results` reports them. SES's GRAY verdict (nothing to evaluate) surfaces as `none`.
 
-| Scenario | SPF | DKIM | Result |
-| --- | --- | --- | --- |
-| Both pass | PASS | PASS | Delivered |
-| One passes, other unconfigured | PASS | GRAY | Delivered |
-| One passes, other unconfigured | GRAY | PASS | Delivered |
-| Authentication headers missing | GRAY | GRAY | Delivered as `unauthenticated` |
-| Either explicitly fails | FAIL | any | Dropped |
-| Either explicitly fails | any | FAIL | Dropped |
+| Scenario | SPF | DKIM | DMARC | Result |
+| --- | --- | --- | --- | --- |
+| Everything passes | pass | pass | pass | Delivered |
+| One mechanism passes, the rest not evaluated | pass | none | none | Delivered |
+| SPF fails but DKIM and DMARC pass | fail | pass | pass | Delivered |
+| Nothing to evaluate (no SPF, DKIM, or DMARC records) | none | none | none | Delivered as `unauthenticated` |
+| Only failures, no DMARC record | fail | fail | none | Delivered as `unauthenticated` |
+| DMARC fails under policy `none` | any | any | fail | Delivered as `unauthenticated` |
+| DMARC fails under policy `quarantine` or `reject` | any | any | fail | Dropped |
 
-Every delivered message carries these verdicts in its `authentication_results` field, with `spf`, `dkim`, and `dmarc` each set to `pass`, `fail`, `none`, or another standard result. Read that field rather than an `Authentication-Results` header: AgentMail does not include that header in `headers` because it is unsigned and a sender can forge it. On forwarded mail accepted through a valid ARC chain, the verdicts describe the forwarder, not the original sender.
+Messages received since 2026-09-09 carry the verdicts in the `authentication_results` field, with `spf`, `dkim`, and `dmarc` each `pass`, `fail`, `none`, or another RFC 8601 result. A key is absent when SES could not compute it, or when the verdict does not speak for the sender: SPF authenticates the envelope (Return-Path) domain, so `spf` is kept only when that domain matches the sender's domain, and `dkim` and `dmarc` are kept only when every From mailbox is on the sender's domain. The `unauthenticated` label is the acceptance decision and follows the looser rules above, so the two can disagree: a forwarded message accepted through a valid ARC chain is delivered without the label even though `dkim` and `dmarc` usually read `fail` for the original sender's domain. Use the label to decide whether AgentMail accepted the message, and the field for per-mechanism detail. The `Authentication-Results` header itself is not included in `headers`; read this field instead.
 
 <Warning>
-Emails dropped due to failed authentication are rejected without a bounce-back to the sender. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. To monitor emails with missing authentication headers, subscribe to the `message.received.unauthenticated` webhook or WebSocket event.
+Emails dropped due to failed authentication are rejected without a bounce-back to the sender. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. To monitor emails delivered as `unauthenticated`, subscribe to the `message.received.unauthenticated` webhook or WebSocket event.
 </Warning>
 
 ## Why this matters
 
-Without these checks, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address, while DMARC ties those results to the domain's published policy. Dropping emails that explicitly fail authentication protects your agents from:
+Without these checks, anyone could send emails claiming to be from any domain. SPF and DKIM authentication proves that the sending server is authorized to send on behalf of the domain in the `From` address, while DMARC ties those results to the domain's published policy. Dropping emails that fail DMARC under an enforcing policy protects your agents from:
 
 - **Spoofing:** forged sender addresses impersonating trusted contacts
 - **Phishing:** malicious emails designed to trick your agent into taking harmful actions
@@ -59,7 +60,7 @@ For DKIM, use [MXToolbox DKIM Lookup](https://mxtoolbox.com/dkim.aspx) or a simi
 
 You can also use [MXToolbox SPF Lookup](https://mxtoolbox.com/spf.aspx) to verify SPF records online.
 
-If the sender's authentication headers are missing, AgentMail will still process the email and mark it `unauthenticated`. If those headers are present but fail, the email is dropped by AgentMail and may be rejected by other providers as well.
+If the sender's domain publishes no SPF, DKIM, or DMARC records, AgentMail still processes the email and marks it `unauthenticated`. If DMARC fails under an enforcing policy, AgentMail drops the email, and other providers are likely to reject it as well.
 
 ## What to tell the sender
 
