@@ -1,0 +1,147 @@
+---
+title: MCP Events
+subtitle: Let ChatGPT start a task the moment an email arrives
+slug: integrations/mcp-events
+description: Subscribe ChatGPT and other MCP Events clients to new mail in an AgentMail inbox, with signed push delivery instead of polling.
+---
+
+## Overview
+
+MCP Events let an MCP client subscribe to something happening in AgentMail and get notified when it does. The hosted MCP server at `https://mcp.agentmail.to/mcp` publishes one event, `message.received`, so an assistant can wake up as soon as an email reaches one of your inboxes instead of checking the inbox on a schedule.
+
+ChatGPT uses MCP Events for event-triggered tasks such as "when this inbox gets a new email, summarize it for me". Everything runs through the same [AgentMail MCP server](/integrations/mcp) and the same sign-in: there is nothing extra to install.
+
+| | MCP Events | Scheduled check | [Webhooks](/webhooks-overview) |
+|---|---|---|---|
+| Who receives the event | The MCP client (for example ChatGPT) | The MCP client, on its own timer | Your server |
+| Delay | Seconds | Up to the check interval | Seconds |
+| Setup | Ask the assistant | Ask the assistant | Create a webhook with the API |
+| Fits | Assistants reacting to mail | Clients without MCP Events | Agents and backends you run yourself |
+
+## Use it in ChatGPT
+
+MCP Events work in ChatGPT [dots](https://learn.chatgpt.com/docs/dots), in Work chats on ChatGPT web, and in Work chats in the desktop app with **Cloud** selected. In other chats ChatGPT may set up a scheduled check instead (for example "every 5 minutes"), which polls the inbox rather than reacting to new mail.
+
+<Steps>
+<Step title="Install the AgentMail plugin">
+Open [ChatGPT Plugins](https://chatgpt.com/plugins), search for **AgentMail**, and select **Install plugin**. Sign in at `console.agentmail.to` when asked. If you belong to more than one AgentMail organization, pick the one that owns the inbox. See [MCP](/integrations/mcp) for details.
+</Step>
+<Step title="Give the assistant an inbox">
+Use an existing inbox or ask for a new one:
+
+```text
+Create an AgentMail inbox called support-dot
+```
+</Step>
+<Step title="Ask to be notified">
+In your dot or Work chat, describe what should happen when mail arrives:
+
+```text
+Whenever support-dot@agentmail.to gets a new email, tell me who sent it, the subject, and a one-line summary.
+```
+
+The assistant subscribes to `message.received` for that inbox and confirms when the subscription is active.
+</Step>
+<Step title="Test it">
+Send an email to the inbox from another address. The task runs within seconds. ChatGPT may batch several emails that arrive close together into one run.
+</Step>
+<Step title="Stop it">
+Ask the assistant to stop watching the inbox. It unsubscribes, and no further events are delivered.
+</Step>
+</Steps>
+
+<Note>
+On workspace plans, your admin controls which plugins and event-triggered tasks are available.
+</Note>
+
+## The `message.received` event
+
+`message.received` fires when an email arrives in the inbox you subscribed to. Mail classified as spam, blocked, or unauthenticated does not trigger it.
+
+**Subscription arguments**
+
+| Argument | Type | Description |
+|---|---|---|
+| `inboxId` | string | The inbox to watch, by its email address. |
+
+**Event data**
+
+| Field | Type | Description |
+|---|---|---|
+| `inboxId` | string | The inbox that received the message. |
+| `threadId` | string | The thread the message belongs to. |
+| `messageId` | string | The message ID. Read the message with the `get_message` tool. |
+| `timestamp` | string | When the message was received (ISO 8601). |
+| `from` | string | Sender address, when present. |
+| `to` | string[] | Recipient addresses, when present. |
+| `cc` | string[] | CC addresses, when present. |
+| `replyTo` | string[] | Reply-To addresses, when present. |
+| `labels` | string[] | Labels on the message. |
+
+The event carries metadata only: never the subject, body, attachments, or headers. Incoming mail is written by outside senders and an event can start an autonomous task, so the assistant reads the message with `get_message` and treats its content as data, not as instructions.
+
+## Access and limits
+
+- **Who can subscribe.** Subscribing needs the same access as creating a `message.received` webhook on that inbox: the `webhook_create` [permission](/permissions) and an inbox your credential can see. Unsubscribing needs `webhook_delete`. Signing in with OAuth uses your console identity.
+- **Lifetime.** A subscription lasts 72 hours by default and at most 30 days. Clients renew it before it expires; ChatGPT does this automatically.
+- **Limit.** Each user or API key can hold up to 20 active subscriptions per organization.
+- **Revocation.** Delivery stops when you unsubscribe, the subscription expires, the inbox is deleted, the API key is deleted or expires, or the user leaves the organization. Access is checked again on every delivery.
+
+## For MCP client developers
+
+The hosted server implements the webhook delivery mode of the MCP Events extension, as [ChatGPT uses it](https://developers.openai.com/plugins/build/mcp-events).
+
+**Discovery.** `server/discover` advertises the `events` capability to 2026-07-28 clients. `events/list`, `events/subscribe`, and `events/unsubscribe` are served on the same endpoint as the tools, and also answer on 2025-11-25 sessions.
+
+**Subscribing.** `events/subscribe` takes `name`, `arguments`, `delivery` (`mode: "webhook"`, `url`, `secret`), `cursor`, and an optional `ttlMs`. The subscription ID is derived from your identity, the callback URL, the event name, and the arguments (compared as canonical JSON), so subscribing again with the same values refreshes the existing subscription and returns a new `refreshBefore`. `ttlMs: null` is granted the maximum lifetime.
+
+- The callback URL must be public HTTPS, with no credentials, port, or IP address. Destinations are checked again when each request connects, and redirects are not followed.
+- The secret must start with `whsec_` and decode to 24 to 64 bytes. If a refresh supplies a new secret, deliveries are signed with both the old and the new secret for 24 hours.
+- `cursor` is always `null`: events are not replayed, and `truncated` is always `false`.
+
+**Callback verification.** Before the first delivery, the server sends a signed `POST` with the body `{"type": "verification", "challenge": "..."}`. Answer with any 2xx status and the JSON body `{"challenge": "..."}` echoing the same value. A successful verification is reused for 7 days when the same subscription is refreshed. If verification fails, `events/subscribe` returns error `-32015` (`CallbackEndpointError`) with `data.reason` set to `challenge_failed`, `timeout`, `unreachable`, or `blocked_address`.
+
+**Delivery.** Each event is one `POST` with a JSON body:
+
+```json
+{
+  "eventId": "56fa4af391d79f7c39afa77fc867229c",
+  "name": "message.received",
+  "timestamp": "2026-10-10T01:07:29.986Z",
+  "data": {
+    "inboxId": "support-dot@agentmail.to",
+    "threadId": "1392295f-897c-4775-bc5b-9730bb895e1c",
+    "messageId": "<0100019a2359cc69@email.amazonses.com>",
+    "timestamp": "2026-10-10T01:07:29.986Z",
+    "from": "Jordan Smith <jordan@example.com>",
+    "to": ["support-dot@agentmail.to"],
+    "labels": ["received", "unread"]
+  },
+  "cursor": null
+}
+```
+
+Requests are signed with the [Standard Webhooks](https://www.standardwebhooks.com) scheme using your subscription secret, with these headers:
+
+| Header | Value |
+|---|---|
+| `webhook-id` | The `eventId`, unchanged across retries. |
+| `webhook-timestamp` | Signing time in Unix seconds, fresh on every attempt. |
+| `webhook-signature` | `v1,` HMAC-SHA256 signature. Two space-separated signatures during a secret rotation. |
+| `X-MCP-Subscription-Id` | The `id` returned by `events/subscribe`. |
+
+Any 2xx response acknowledges the event. `408`, `429`, `5xx`, and network errors are retried with exponential backoff. Other statuses, including `410` and `413`, are not retried and do not end the subscription. Request bodies stay under 256 KiB. Events can arrive out of order or more than once, so deduplicate by `eventId`.
+
+## Troubleshooting
+
+**ChatGPT sets up a check "every 5 minutes" instead of a notification.** You asked outside a dot or Work chat, so ChatGPT created a scheduled task that polls the inbox. Delete that task and ask again in your dot, or in a Work chat on web or desktop with **Cloud** selected.
+
+**ChatGPT says it could not set up the notification.** Confirm the AgentMail plugin is installed and signed in to the organization that owns the inbox, and that your account can create webhooks for it.
+
+**An email did not trigger the task.** Mail classified as spam, blocked, or unauthenticated does not fire `message.received`. Check the message's labels in the inbox. Subscriptions also end after their lifetime if the client stops renewing them; ask the assistant to set the notification up again.
+
+## Resources
+
+- [MCP](/integrations/mcp) for setup in Claude, ChatGPT, Cursor, and other clients.
+- [Webhooks overview](/webhooks-overview) to receive the same events on your own server.
+- [OpenAI: MCP Events](https://developers.openai.com/plugins/build/mcp-events) for how ChatGPT discovers, verifies, and receives events.
