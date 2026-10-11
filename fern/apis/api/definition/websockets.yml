@@ -44,6 +44,10 @@ channel:
     message_received:
       origin: server
       body: events.MessageReceivedEvent
+    message_security_completed:
+      availability: beta
+      origin: server
+      body: events.MessageSecurityCompletedEvent
     message_sent:
       origin: server
       body: events.MessageSentEvent

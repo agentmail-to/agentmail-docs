@@ -303,6 +303,13 @@ navigation:
             icon: fa-solid fa-triangle-exclamation
             path: pages/calendar/reference.mdx
             availability: beta
+      - section: Agent Armor (Labs)
+        availability: beta
+        contents:
+          - page: Agent Armor
+            icon: fa-solid fa-shield-halved
+            path: pages/agent-armor/overview.mdx
+            availability: beta
       - section: Integrations
         contents:
           - page: Agent Onboarding

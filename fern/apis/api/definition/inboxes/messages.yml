@@ -5,6 +5,7 @@ imports:
   inboxes: __package__.yml
   messages: ../messages.yml
   attachments: ../attachments.yml
+  agentArmor: ../agent-armor.yml
 
 service:
   url: Http
@@ -91,6 +92,23 @@ service:
       response: messages.Message
       errors:
         - global.NotFoundError
+
+    createAgentArmorFeedback:
+      method: POST
+      path: /{message_id}/agent-armor/feedback
+      display-name: Create Agent Armor Feedback
+      availability: beta
+      docs: |
+        Tell us whether Agent Armor's verdict on a message was right. The message needs a completed result. A message
+        accepts up to 20 pieces of feedback. Requires permission to read the message.
+      path-parameters:
+        message_id: messages.MessageId
+      request: agentArmor.CreateAgentArmorFeedbackRequest
+      response: agentArmor.AgentArmorFeedback
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - global.ConflictError
 
     batchGet:
       method: POST
