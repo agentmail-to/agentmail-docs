@@ -15,7 +15,7 @@ This event-driven approach is more efficient and allows you to build fast, respo
 - **Efficiency:** Eliminates the need for constant polling, which saves you computational resources and simplifies your application logic.
 
 <Callout intent="info" title="Prefer a simpler setup?">
-If you don't want to expose a public URL or set up ngrok, [WebSockets](/websockets) let you receive the same events over a persistent connection with no external tooling required.
+If you don't want to expose a public URL or set up ngrok, [WebSockets](/websockets) let you receive the same events over a persistent connection with no external tooling required. If your agent cannot stay connected either, a [polling webhook](/webhook-polling) queues the events for you to fetch whenever it runs.
 </Callout>
 
 ## Available Events
@@ -371,6 +371,9 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   </Card>
   <Card title="WebSockets" href="/websockets">
     Receive events over a persistent connection with no public URL required.
+  </Card>
+  <Card title="Polling Webhooks" href="/webhook-polling">
+    Fetch queued events from an agent that cannot accept inbound HTTP or stay connected.
   </Card>
   <Card title="Example: Event-Driven Agent" href="/github-star-agent">
     Build a fully deployable, event-driven agent that can respond to emails in

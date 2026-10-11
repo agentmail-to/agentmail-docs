@@ -408,6 +408,9 @@ navigation:
           - page: Setup Guide
             icon: fa-solid fa-screwdriver-wrench
             path: pages/webhooks/webhook-setup.mdx
+          - page: Polling
+            icon: fa-solid fa-arrows-rotate
+            path: pages/webhooks/webhook-polling.mdx
           - page: Verifying Webhooks
             icon: fa-solid fa-shield-halved
             path: pages/webhooks/webhook-verification.mdx
