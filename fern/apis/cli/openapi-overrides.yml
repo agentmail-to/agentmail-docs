@@ -684,6 +684,15 @@ paths:
       x-fern-sdk-group-name:
       - organizations
       x-fern-sdk-method-name: get
+  /v0/organizations/labs:
+    get:
+      x-fern-sdk-group-name:
+      - organizations
+      x-fern-sdk-method-name: get-labs
+    post:
+      x-fern-sdk-group-name:
+      - organizations
+      x-fern-sdk-method-name: join-labs
   /v0/threads:
     get:
       x-fern-sdk-group-name:

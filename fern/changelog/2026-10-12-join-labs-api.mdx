@@ -4,7 +4,7 @@ tags: ["organizations-api", "new-feature", "sdk"]
 
 ## Summary
 
-Agents can now join AgentMail Labs themselves. An organization API key with no permissions restriction can check whether the organization is in Labs and join it, without asking a human to open the console.
+Agents can now check and join AgentMail Labs through the API. Any organization API key can check whether the organization is in Labs, and one with no permissions restriction can join it once the organization has decided to, without opening the console.
 
 ### What's new?
 
@@ -15,8 +15,14 @@ Agents can now join AgentMail Labs themselves. An organization API key with no p
 **Details:**
 - Joining needs an organization-scoped API key with no permissions restriction, and a verified organization.
 - There is no leave on the API. An organization admin can leave in the console under Settings, then Labs.
+- Get Labs reads the same for an organization that never joined and one whose admin left, so don't join automatically just because `enabled` is `false`.
 - API keys see the change within five minutes.
 - Labs is available in US production (`api.agentmail.to`), not yet in EU production (`api.agentmail.eu`).
+
+### Use cases
+
+- Build agents that check whether their organization is in Labs before calling calendar endpoints.
+- Join Labs from a setup script once your organization has decided to use Labs features.
 
 <CodeBlocks>
 ```python title="Python"
@@ -24,10 +30,12 @@ from agentmail import AgentMail
 
 client = AgentMail(api_key="YOUR_API_KEY")
 
-# join labs if this deployment offers it
+# check labs status
 labs = client.organizations.get_labs()
-if labs.available and not labs.enabled:
-    labs = client.organizations.join_labs()
+print(labs.enabled, labs.enabled_at, labs.available)
+
+# join only once your organization has decided to
+labs = client.organizations.join_labs()
 ```
 
 ```typescript title="TypeScript"
@@ -35,11 +43,12 @@ import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
 
-// join labs if this deployment offers it
+// check labs status
 let labs = await client.organizations.getLabs();
-if (labs.available && !labs.enabled) {
-    labs = await client.organizations.joinLabs();
-}
+console.log(labs.enabled, labs.enabledAt, labs.available);
+
+// join only once your organization has decided to
+labs = await client.organizations.joinLabs();
 ```
 </CodeBlocks>
 

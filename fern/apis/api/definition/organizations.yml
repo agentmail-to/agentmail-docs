@@ -96,7 +96,9 @@ service:
       docs: |
         Joins AgentMail Labs for the whole organization, which turns on every feature in Labs for every inbox. Joining again has no effect. There is no leave on the API; an organization admin can leave in the console under [Settings, then Labs](https://console.agentmail.to/dashboard/settings/labs).
 
-        Requires an organization-scoped API key with no permissions restriction, and a verified organization. API keys see the change within five minutes. Labs is available in US production (`api.agentmail.to`), not yet in EU production (`api.agentmail.eu`).
+        Join only when your organization has decided to. Get Labs reads the same for an organization that never joined and one whose admin left Labs on purpose, so don't join just because `enabled` is `false`.
+
+        Requires an organization-scoped API key with no permissions restriction, and a verified organization. API keys see the change within five minutes. Where Labs isn't offered (`available` is `false` on Get Labs), joining returns `403`.
 
         **CLI:**
         ```bash
@@ -105,14 +107,18 @@ service:
       response: OrganizationLabs
       errors:
         - OrganizationForbiddenError
+        - global.ValidationError
+        - global.ConflictError
 
 errors:
   OrganizationForbiddenError:
     status-code: 403
     type: global.ErrorResponse
     docs: |
-      The credential can't do this. For Join Labs, `code` is `unrestricted_key_required` when the
-      API key is restricted or isn't organization-scoped. Other refusals (an unverified or
-      suspended organization, a deployment without Labs, or an organization whose content access
-      policy keeps API keys from joining) have `code` `forbidden` or `account_suspended`, and
-      `fix` says what to do.
+      The credential can't do this. For Get Labs, `code` is `missing_permission` when the API key
+      is inbox- or pod-scoped. For Join Labs, `code` is `unrestricted_key_required` when the
+      credential isn't an organization-scoped API key with no permissions restriction. Other Join
+      Labs refusals (an unverified or suspended organization, a deployment without Labs, or an
+      organization whose content access policy keeps API keys from joining) have `code`
+      `forbidden` or `account_suspended`. Every refusal except a deployment without Labs has a
+      `fix` that says what to do.
