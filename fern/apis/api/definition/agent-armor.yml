@@ -23,7 +23,7 @@ types:
       - value: scorer_failed
         docs: The scan failed.
       - value: contract_error
-        docs: The stored result could not be read.
+        docs: The scan request or its stored result failed validation.
       - value: deadline_exceeded
         docs: The scan did not finish within 15 minutes of the message arriving.
 
@@ -31,7 +31,7 @@ types:
     properties:
       started_at:
         type: datetime
-        docs: When the scan started.
+        docs: When the message was received. The deadline counts from here.
       deadline_at:
         type: datetime
         docs: When the scan gives up. A result still pending then reads as `unavailable` with `deadline_exceeded`.
@@ -53,11 +53,18 @@ types:
     properties:
       unavailable_reason: AgentArmorUnavailableReason
 
+  AgentArmorCompletedEventResult:
+    docs: The result in a `message.security.completed` event, which is always `complete`.
+    extends: AgentArmorCompleteResult
+    properties:
+      status: literal<"complete">
+
   AgentArmorResult:
     docs: |
-      Agent Armor's scan of this message. Present only on messages Agent Armor scanned for your organization.
-      A scan starts `pending` and usually completes within seconds; subscribe to `message.security.completed`
-      rather than polling.
+      Agent Armor's result for this message. Present only on messages received while Agent Armor was on for your
+      organization. A scan starts `pending` and usually completes within seconds. `message.security.completed` is
+      sent only for `complete` results, so a message still `pending` at `deadline_at` reads `unavailable` with no
+      event.
     discriminant: status
     union:
       pending: AgentArmorPendingResult
@@ -85,18 +92,21 @@ types:
         type: optional<string>
         docs: Anything else about the verdict, up to 2,048 characters.
 
-  AgentArmorFeedbackActorKind:
-    enum:
-      - api_key
-      - console
+  AgentArmorFeedbackApiKeyActor:
+    properties:
+      api_key_id:
+        type: string
+        docs: The API key that sent it.
+
+  AgentArmorFeedbackConsoleActor:
+    properties: {}
 
   AgentArmorFeedbackActor:
     docs: Who sent the feedback.
-    properties:
-      kind: AgentArmorFeedbackActorKind
-      api_key_id:
-        type: optional<string>
-        docs: The API key that sent it, when `kind` is `api_key`.
+    discriminant: kind
+    union:
+      api_key: AgentArmorFeedbackApiKeyActor
+      console: AgentArmorFeedbackConsoleActor
 
   AgentArmorFeedback:
     properties:

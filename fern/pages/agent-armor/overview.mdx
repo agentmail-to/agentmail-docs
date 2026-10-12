@@ -21,14 +21,14 @@ Anyone can email your agent, so an email is an easy way to slip instructions int
 - **`clear`**: Agent Armor found no attempt to manipulate an agent. This is advisory, not a guarantee that the message is safe.
 - **`review`**: the message may try to manipulate an agent. Have a person, or a more cautious path in your agent, look at it before your agent acts on it.
 
-Agent Armor never holds, delays or changes mail. Messages arrive and `message.received` fires as usual. The verdict follows, usually within seconds, on the message itself and as a `message.security.completed` event.
+Turned on from Labs, Agent Armor never holds, delays or changes mail. Messages arrive and `message.received` fires as usual. The verdict follows, usually within seconds, on the message itself and as a `message.security.completed` event.
 
 ## Turn it on
 
 1. In the console, open **Settings**, then **Labs**, and join AgentMail Labs. Only organization owners and admins can.
 2. Under **Features in Labs**, turn on **Agent Armor**.
 
-Agent Armor then scans mail received by every inbox in the organization, starting within a minute. It does not scan mail received before you turned it on. Turning it off stops new scans; results already on messages stay. Leaving Labs does not turn Agent Armor off.
+Agent Armor then scans mail received by every inbox in the organization, starting within a minute. It does not scan mail received before you turned it on. Turning it off stops new scans; results already on messages stay. Leaving Labs does not turn Agent Armor off. If AgentMail set up Agent Armor for your organization, the console shows it as managed by AgentMail and you can't change it there; this page describes the Labs setting.
 
 ## Read the result
 
@@ -73,11 +73,13 @@ A message Agent Armor scanned carries an `agent_armor` object wherever the API r
 | `deadline_exceeded` | The scan did not finish within 15 minutes. |
 | `enqueue_failed`, `scorer_failed`, `contract_error` | The scan failed. |
 
-Treat `unavailable` the way you would treat a message Agent Armor never saw.
+Treat `unavailable` like `review`: a sender can cause it, for example with a message too large to scan.
 
 ## Get notified
 
-Subscribe to `message.security.completed` to hear when a verdict is ready instead of polling. Webhooks receive it only when you list it in `event_types`. WebSocket subscriptions receive it unless they name other event types. Either way, the API key needs permission to read messages.
+Subscribe to `message.security.completed` to hear when a verdict is ready instead of polling. It is sent only for `complete` results: an `unavailable` result sends no event. To receive it on a webhook, list it in `event_types`. WebSocket subscriptions receive it unless they name other event types. Either way, the API key needs permission to read messages.
+
+Add it to the webhook that already receives `message.received`. `event_types` replaces the webhook's whole list, so include every type it should keep:
 
 <CodeBlocks>
 ```python title="Python"
@@ -85,8 +87,8 @@ from agentmail import AgentMail
 
 client = AgentMail()
 
-webhook = client.webhooks.create(
-    url="https://example.com/webhooks/agentmail",
+webhook = client.webhooks.update(
+    webhook_id="ep_2abc123",
     event_types=["message.received", "message.security.completed"],
 )
 ```
@@ -95,8 +97,7 @@ import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient();
 
-const webhook = await client.webhooks.create({
-  url: "https://example.com/webhooks/agentmail",
+const webhook = await client.webhooks.update("ep_2abc123", {
   eventTypes: ["message.received", "message.security.completed"],
 });
 ```
@@ -130,11 +131,10 @@ It is sent once per message and inbox, and `event_id` is stable: use it to dedup
 
 A simple pattern is to let your agent act on a received message only once its verdict is in:
 
-1. On `message.received`, store the message and wait.
+1. On `message.received`, read the message's `agent_armor`. If it is already `unavailable`, go to step 4. If it is `pending`, store the message and wait until its `deadline_at`.
 2. On `message.security.completed`, fetch the message with the event's `inbox_id` and `message_id`.
 3. If the verdict is `clear`, hand the message to your agent. If it is `review`, route it to a person, or let your agent read it without tools that send mail, move money or change data.
-
-Decide up front what to do when the result is `unavailable`, for example after the 15-minute deadline: most agents treat it like `review`.
+4. If no event has arrived by `deadline_at`, fetch the message: its result now reads `unavailable`. Handle `unavailable` like `review`.
 
 ## Send feedback
 
@@ -146,6 +146,8 @@ curl -X POST "https://api.agentmail.to/v0/inboxes/{inbox_id}/messages/{message_i
   -H "Content-Type: application/json" \
   -d '{"feedback": "incorrect_review", "notes": "A customer quoting our own support macro."}'
 ```
+
+URL-encode `message_id` in the path: `<abc123@mail.example.com>` becomes `%3Cabc123%40mail.example.com%3E`. The SDKs encode it for you.
 
 | `feedback` | Use when |
 |------------|----------|

@@ -58,6 +58,9 @@ async function handleWebhook(payload: Record<string, unknown>) {
   } else if (eventType === "message.opened") {
     const event = await serialization.events.MessageOpenedEvent.parse(payload);
     console.log(event.open.messageId, event.open.timestamp);
+  } else if (eventType === "message.security.completed") {
+    const event = await serialization.events.MessageSecurityCompletedEvent.parse(payload);
+    console.log(event.message.messageId, event.message.agentArmor.verdict);
   } else if (eventType === "domain.verified") {
     const event = await serialization.events.DomainVerifiedEvent.parse(payload);
     console.log(event.domain.status);
@@ -73,6 +76,7 @@ from agentmail import (
     MessageComplainedEvent,
     MessageRejectedEvent,
     MessageOpenedEvent,
+    MessageSecurityCompletedEvent,
     DomainVerifiedEvent,
 )
 
@@ -108,6 +112,9 @@ def handle_webhook(payload: dict):
     elif event_type == "message.rejected":
         event = MessageRejectedEvent(**payload)
         print(event.reject.reason)
+    elif event_type == "message.security.completed":
+        event = MessageSecurityCompletedEvent(**payload)
+        print(event.message.message_id, event.message.agent_armor.verdict)
     elif event_type == "domain.verified":
         event = DomainVerifiedEvent(**payload)
         print(event.domain.status)
@@ -125,8 +132,9 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 
   Parse typed events: MessageReceivedEvent (message.received, message.received.spam, message.received.blocked, message.received.unauthenticated),
   MessageSentEvent (send), MessageBouncedEvent (bounce), MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint),
-  MessageRejectedEvent (reject), MessageOpenedEvent (open), DomainVerifiedEvent (domain).
+  MessageRejectedEvent (reject), MessageOpenedEvent (open), MessageSecurityCompletedEvent (message), DomainVerifiedEvent (domain).
   Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
+  message.security.completed carries message ids + agent_armor (no content) and needs message_read.
   calendar.event.* (created, updated, deleted, responded, starting, ending) carry inbox_id and calendar_event; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
   Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
   message.received.unauthenticated must be explicitly included in event_types.
@@ -134,7 +142,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   from agentmail import (
     MessageReceivedEvent,
     MessageSentEvent, MessageBouncedEvent,
-    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, DomainVerifiedEvent,
+    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, MessageSecurityCompletedEvent, DomainVerifiedEvent,
   )
 
   def handle(payload: dict):
@@ -146,6 +154,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     elif t == "message.complained": e = MessageComplainedEvent(**payload)
     elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
     elif t == "message.opened": e = MessageOpenedEvent(**payload); print(e.open.message_id, e.open.timestamp)
+    elif t == "message.security.completed": e = MessageSecurityCompletedEvent(**payload); print(e.message.message_id, e.message.agent_armor.verdict)
     elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
   ```
 
@@ -156,6 +165,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
    * Parse with serialization.events.<EventType>.parse(payload).
    * message.received, message.received.spam, message.received.blocked, message.received.unauthenticated → MessageReceivedEvent.
    * Only message.received* has message+thread; others have send/delivery/bounce/complaint/reject/domain.
+   * message.security.completed → MessageSecurityCompletedEvent: message carries ids + agentArmor (no content); needs message_read.
    * calendar.event.* (created, updated, deleted, responded, starting, ending) carry inboxId and calendarEvent; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
    * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
    * message.received.unauthenticated must be explicitly included in eventTypes.
@@ -188,6 +198,9 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     } else if (t === "message.opened") {
       const e = await serialization.events.MessageOpenedEvent.parse(payload);
       console.log(e.open.messageId, e.open.timestamp);
+    } else if (t === "message.security.completed") {
+      const e = await serialization.events.MessageSecurityCompletedEvent.parse(payload);
+      console.log(e.message.messageId, e.message.agentArmor.verdict);
     } else if (t === "message.rejected") {
       const e = await serialization.events.MessageRejectedEvent.parse(payload);
       console.log(e.reject);
@@ -596,7 +609,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 
 ### `message.security.completed`
 
-- **Description:** Triggered when [Agent Armor](/agent-armor) finishes scanning a received message. Sent only to organizations that turned Agent Armor on, and only to webhooks that list it in `event_types`.
+- **Description:** Triggered when [Agent Armor](/agent-armor) reaches a verdict on a received message. Sent only for `complete` results, only to organizations that turned Agent Armor on, and to webhooks that list it in `event_types`.
 - **Use Case:** Hold a message back from your agent until its verdict is in, and route `review` verdicts to a person.
 
 <CodeGroup>

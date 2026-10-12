@@ -173,13 +173,13 @@ types:
       organization_id: global.OrganizationId
       inbox_id: inboxes.InboxId
       message_id: messages.MessageId
-      agent_armor: agentArmor.AgentArmorResult
+      agent_armor: agentArmor.AgentArmorCompletedEventResult
 
   MessageSecurityCompletedEvent:
     docs: |
-      Agent Armor finished scanning a received message. Sent once per message and inbox; `event_id` is stable, so
-      use it to deduplicate. Not sent for messages labeled `spam`, `blocked`, `unauthenticated`, or `trash`: read
-      those through the API.
+      Agent Armor reached a verdict on a received message. Sent only for `complete` results: an `unavailable` result
+      sends no event. Sent once per message and inbox; `event_id` is stable, so use it to deduplicate. Not sent for
+      messages labeled `spam`, `blocked`, `unauthenticated`, or `trash`: read those through the API.
     availability: beta
     properties:
       type: literal<"event">

@@ -204,6 +204,12 @@ paths:
       - inboxes
       - messages
       x-fern-sdk-method-name: batch-get
+  /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/feedback:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: create-agent-armor-feedback
   /v0/inboxes/{inbox_id}/messages/{message_id}/attachments/{attachment_id}:
     get:
       x-fern-sdk-group-name:

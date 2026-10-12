@@ -10,7 +10,7 @@ Agent Armor is now in AgentMail Labs. An organization admin can turn it on from 
 
 - **Agent Armor in Labs:** after joining AgentMail Labs, an organization owner or admin turns on Agent Armor under **Settings, then Labs**. It is free while it is in Labs.
 - **Verdicts on messages:** a scanned message carries an `agent_armor` result. A `complete` result has a verdict of `clear` or `review`, with a short reason.
-- **`message.security.completed`:** a webhook and WebSocket event sent when a scan finishes.
+- **`message.security.completed`:** a webhook and WebSocket event sent when a scan reaches a verdict.
 - **Feedback:** `POST /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/feedback` records whether a verdict was right.
 - **Never in the way:** Agent Armor never holds, delays or changes mail.
 - **Availability:** US production (`api.agentmail.to`), not yet EU production (`api.agentmail.eu`).
