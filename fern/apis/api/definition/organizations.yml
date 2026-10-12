@@ -42,6 +42,19 @@ types:
         type: datetime
         docs: Time at which organization was created.
 
+  OrganizationLabs:
+    docs: Whether the organization is in AgentMail Labs, and whether Labs is offered in this deployment.
+    properties:
+      enabled:
+        type: boolean
+        docs: Whether the organization is in AgentMail Labs.
+      enabled_at:
+        type: nullable<datetime>
+        docs: Time at which the organization joined Labs. `null` when it is not in Labs.
+      available:
+        type: boolean
+        docs: Whether Labs is offered in this deployment. Labs is available in US production (`api.agentmail.to`), not yet in EU production (`api.agentmail.eu`).
+
 service:
   url: Http
   base-path: /organizations
@@ -60,3 +73,52 @@ service:
         agentmail organizations get
         ```
       response: Organization
+
+    getLabs:
+      method: GET
+      path: /labs
+      display-name: Get Labs
+      docs: |
+        Returns whether the organization is in [AgentMail Labs](https://docs.agentmail.to/calendar), which turns on features that are still in preview, such as calendar. Requires an organization-scoped API key.
+
+        **CLI:**
+        ```bash
+        agentmail organizations get-labs
+        ```
+      response: OrganizationLabs
+      errors:
+        - OrganizationForbiddenError
+
+    joinLabs:
+      method: POST
+      path: /labs
+      display-name: Join Labs
+      docs: |
+        Joins AgentMail Labs for the whole organization, which turns on every feature in Labs for every inbox. Joining again has no effect. There is no leave on the API; an organization admin can leave in the console under [Settings, then Labs](https://console.agentmail.to/dashboard/settings/labs).
+
+        Join only when your organization has decided to. Get Labs reads the same for an organization that never joined and one whose admin left Labs on purpose, so don't join just because `enabled` is `false`.
+
+        Requires an organization-scoped API key with no permissions restriction, and a verified organization. API keys see the change within five minutes. Where Labs isn't offered (`available` is `false` on Get Labs), joining returns `403`.
+
+        **CLI:**
+        ```bash
+        agentmail organizations join-labs
+        ```
+      response: OrganizationLabs
+      errors:
+        - OrganizationForbiddenError
+        - global.ValidationError
+        - global.ConflictError
+
+errors:
+  OrganizationForbiddenError:
+    status-code: 403
+    type: global.ErrorResponse
+    docs: |
+      The credential can't do this. For Get Labs, `code` is `missing_permission` when the API key
+      is inbox- or pod-scoped. For Join Labs, `code` is `unrestricted_key_required` when the
+      credential isn't an organization-scoped API key with no permissions restriction. Other Join
+      Labs refusals (an unverified or suspended organization, a deployment without Labs, or an
+      organization whose content access policy keeps API keys from joining) have `code`
+      `forbidden` or `account_suspended`. Every refusal except a deployment without Labs has a
+      `fix` that says what to do.
