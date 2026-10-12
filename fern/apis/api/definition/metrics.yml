@@ -6,7 +6,8 @@ imports:
 
 types:
   # Mirrors EventType in events.yml (the API validates both against the same
-  # EventTypeSchema) — keep the two lists in sync.
+  # EventTypeSchema) — keep the two lists in sync, except message.security.*,
+  # which the API excludes from metrics (MetricsEventTypeSchema).
   MetricEventType:
     enum:
       - name: MESSAGE_RECEIVED

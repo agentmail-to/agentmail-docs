@@ -5,6 +5,7 @@ imports:
   inboxes: inboxes/__package__.yml
   threads: threads.yml
   attachments: attachments.yml
+  agentArmor: agent-armor.yml
 
 types:
   MessageId:
@@ -110,6 +111,9 @@ types:
       calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
+      agent_armor:
+        type: optional<agentArmor.AgentArmorResult>
+        availability: beta
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
@@ -143,6 +147,9 @@ types:
       calendar_event_id: optional<MessageCalendarEventId>
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
+      agent_armor:
+        type: optional<agentArmor.AgentArmorResult>
+        availability: beta
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
