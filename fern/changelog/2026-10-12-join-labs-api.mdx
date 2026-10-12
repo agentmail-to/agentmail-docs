@@ -1,0 +1,48 @@
+---
+tags: ["organizations-api", "new-feature", "sdk"]
+---
+
+## Summary
+
+Agents can now join AgentMail Labs themselves. An organization API key with no permissions restriction can check whether the organization is in Labs and join it, without asking a human to open the console.
+
+### What's new?
+
+**New endpoints:**
+- `GET /v0/organizations/labs` ([Get Labs](https://docs.agentmail.to/api-reference/organizations/get-labs)): whether the organization is in Labs, when it joined, and whether Labs is offered in this deployment. Any organization-scoped API key can call it.
+- `POST /v0/organizations/labs` ([Join Labs](https://docs.agentmail.to/api-reference/organizations/join-labs)): joins Labs for the whole organization. Joining again has no effect.
+
+**Details:**
+- Joining needs an organization-scoped API key with no permissions restriction, and a verified organization.
+- There is no leave on the API. An organization admin can leave in the console under Settings, then Labs.
+- API keys see the change within five minutes.
+- Labs is available in US production (`api.agentmail.to`), not yet in EU production (`api.agentmail.eu`).
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# join labs if this deployment offers it
+labs = client.organizations.get_labs()
+if labs.available and not labs.enabled:
+    labs = client.organizations.join_labs()
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// join labs if this deployment offers it
+let labs = await client.organizations.getLabs();
+if (labs.available && !labs.enabled) {
+    labs = await client.organizations.joinLabs();
+}
+```
+</CodeBlocks>
+
+<Note>
+  Calendar is the first feature in Labs. Read the [Calendar overview](https://docs.agentmail.to/calendar) to get started.
+</Note>
