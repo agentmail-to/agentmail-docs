@@ -48,6 +48,14 @@ channel:
       availability: beta
       origin: server
       body: events.MessageSecurityCompletedEvent
+    message_security_review:
+      availability: beta
+      origin: server
+      body: events.MessageSecurityReviewEvent
+    message_security_override:
+      availability: beta
+      origin: server
+      body: events.MessageSecurityOverrideEvent
     message_sent:
       origin: server
       body: events.MessageSentEvent

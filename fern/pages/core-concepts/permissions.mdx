@@ -17,7 +17,7 @@ This gives you fine-grained control over which resources and operations each key
 
 When you create an API key with a `permissions` object, it switches from "full access" mode to "whitelist" mode:
 
-- **No `permissions` field**: The key has full access within its scope. This is the default and is backward compatible with existing keys.
+- **No `permissions` field**: The key has full access within its scope, except for opt-in permissions such as [`agent_armor_release`](#agent-armor). This is the default and is backward compatible with existing keys.
 - **`permissions` present**: Only permissions set to `true` are allowed. Any permission that is omitted or set to `false` is denied.
 
 <Callout intent="info" title="Backward compatibility">
@@ -63,6 +63,16 @@ A denied request returns a `403` with `code: "missing_permission"`, and its `fix
 | `message_send` | Send messages |
 | `message_update` | Update message labels |
 | `message_delete` | Delete messages |
+
+### Agent Armor
+
+| Permission | Description |
+| --- | --- |
+| `agent_armor_release` | Release mail [Agent Armor](/agent-armor#hold-mode) holds for review |
+
+<Warning>
+  `agent_armor_release` is opt-in. No key has it unless it was granted explicitly, including keys created without a `permissions` object, so an agent's own key can't release mail held from it. An organization admin grants it in the console; a key that holds it can grant it to keys it creates.
+</Warning>
 
 ### Threads
 
@@ -444,6 +454,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
   Permission fields (all optional<bool>, resource_action format):
     Inboxes: inbox_read, inbox_create, inbox_update, inbox_delete
     Messages: message_read, message_reply, message_send, message_update, message_delete
+    Agent Armor: agent_armor_release (opt-in: no key has it unless granted, even without a permissions field)
     Label visibility: label_spam_read, label_blocked_read, label_unauthenticated_read, label_trash_read
     Drafts: draft_read, draft_create, draft_update, draft_delete, draft_send
     Webhooks: webhook_read, webhook_create, webhook_update, webhook_delete

@@ -164,6 +164,12 @@ types:
       message_delete:
         type: optional<boolean>
         docs: Delete messages. Also required to delete threads.
+      agent_armor_release:
+        type: optional<boolean>
+        docs: |
+          Release mail Agent Armor holds for review. Opt-in: no key has it unless it was granted explicitly, a key
+          without a `permissions` object included. An organization admin grants it in the console; a key that holds it
+          can grant it to keys it creates.
       label_spam_read:
         type: optional<boolean>
         docs: Access messages labeled spam.

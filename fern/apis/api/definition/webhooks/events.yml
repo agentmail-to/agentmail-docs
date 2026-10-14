@@ -36,6 +36,26 @@ webhooks:
       svix-timestamp: SvixTimestamp
     payload: events.MessageSecurityCompletedEvent
 
+  messageSecurityReview:
+    display-name: Message Security Review
+    availability: beta
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.MessageSecurityReviewEvent
+
+  messageSecurityOverride:
+    display-name: Message Security Override
+    availability: beta
+    method: POST
+    headers:
+      svix-id: SvixId
+      svix-signature: SvixSignature
+      svix-timestamp: SvixTimestamp
+    payload: events.MessageSecurityOverrideEvent
+
   messageSent:
     display-name: Message Sent
     method: POST

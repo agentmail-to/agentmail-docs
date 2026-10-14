@@ -1,0 +1,25 @@
+---
+tags: ["messages-api", "webhooks", "new-feature"]
+---
+
+## Summary
+
+Agent Armor can now hold mail. In Hold mode, your agents hear about a message only once its scan finishes, and a message marked `review` stays held from them until someone releases it.
+
+### What's new?
+
+- **Hold mode:** an organization admin switches Agent Armor between Monitor, the default, and Hold in the console under **Settings, then Labs**.
+- **`agent-armor-held` label:** a held message and its thread carry it until the message is released. List them by it, with `include_spam`, `include_blocked` and `include_unauthenticated`, to see everything held.
+- **`message.security.review`:** a webhook and WebSocket event sent when a message is held.
+- **Release:** `POST /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/release` releases a held message with a reason. Its `message.received` then goes to your agents, followed by `message.security.override`. Admins can also release from the console.
+- **`agent_armor_release` permission:** opt-in. No API key has it unless it was granted explicitly, so an agent's own key can't release mail held from it.
+- **`manual_override`:** a released message's `agent_armor` result records how, when and why it was released.
+
+### Use cases
+
+- Keep mail that may manipulate an agent away from it until a person has checked it.
+- Give a review tool, not your agents, the key that releases held mail.
+
+<Note>
+  Read [Hold mode](https://docs.agentmail.to/agent-armor#hold-mode) to get started.
+</Note>

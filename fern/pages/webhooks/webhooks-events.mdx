@@ -61,6 +61,12 @@ async function handleWebhook(payload: Record<string, unknown>) {
   } else if (eventType === "message.security.completed") {
     const event = await serialization.events.MessageSecurityCompletedEvent.parse(payload);
     console.log(event.message.messageId, event.message.agentArmor.verdict);
+  } else if (eventType === "message.security.review") {
+    const event = await serialization.events.MessageSecurityReviewEvent.parse(payload);
+    console.log("held for review:", event.message.messageId);
+  } else if (eventType === "message.security.override") {
+    const event = await serialization.events.MessageSecurityOverrideEvent.parse(payload);
+    console.log("released:", event.message.messageId, event.message.manualOverride.reason);
   } else if (eventType === "domain.verified") {
     const event = await serialization.events.DomainVerifiedEvent.parse(payload);
     console.log(event.domain.status);
@@ -77,6 +83,8 @@ from agentmail import (
     MessageRejectedEvent,
     MessageOpenedEvent,
     MessageSecurityCompletedEvent,
+    MessageSecurityReviewEvent,
+    MessageSecurityOverrideEvent,
     DomainVerifiedEvent,
 )
 
@@ -115,6 +123,12 @@ def handle_webhook(payload: dict):
     elif event_type == "message.security.completed":
         event = MessageSecurityCompletedEvent(**payload)
         print(event.message.message_id, event.message.agent_armor.verdict)
+    elif event_type == "message.security.review":
+        event = MessageSecurityReviewEvent(**payload)
+        print("held for review:", event.message.message_id)
+    elif event_type == "message.security.override":
+        event = MessageSecurityOverrideEvent(**payload)
+        print("released:", event.message.message_id, event.message.manual_override.reason)
     elif event_type == "domain.verified":
         event = DomainVerifiedEvent(**payload)
         print(event.domain.status)
@@ -135,6 +149,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   MessageRejectedEvent (reject), MessageOpenedEvent (open), MessageSecurityCompletedEvent (message), DomainVerifiedEvent (domain).
   Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
   message.security.completed carries message ids + agent_armor (no content) and needs message_read.
+  message.security.review (Agent Armor hold mode held the message) carries the same; message.security.override (someone released it) carries ids + manual_override. Both need message_read.
   calendar.event.* (created, updated, deleted, responded, starting, ending) carry inbox_id and calendar_event; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
   Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
   message.received.unauthenticated must be explicitly included in event_types.
@@ -142,7 +157,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   from agentmail import (
     MessageReceivedEvent,
     MessageSentEvent, MessageBouncedEvent,
-    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, MessageSecurityCompletedEvent, DomainVerifiedEvent,
+    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, MessageSecurityCompletedEvent,
+    MessageSecurityReviewEvent, MessageSecurityOverrideEvent, DomainVerifiedEvent,
   )
 
   def handle(payload: dict):
@@ -155,6 +171,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
     elif t == "message.opened": e = MessageOpenedEvent(**payload); print(e.open.message_id, e.open.timestamp)
     elif t == "message.security.completed": e = MessageSecurityCompletedEvent(**payload); print(e.message.message_id, e.message.agent_armor.verdict)
+    elif t == "message.security.review": e = MessageSecurityReviewEvent(**payload); print("held:", e.message.message_id)
+    elif t == "message.security.override": e = MessageSecurityOverrideEvent(**payload); print("released:", e.message.message_id, e.message.manual_override.reason)
     elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
   ```
 
@@ -166,6 +184,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
    * message.received, message.received.spam, message.received.blocked, message.received.unauthenticated → MessageReceivedEvent.
    * Only message.received* has message+thread; others have send/delivery/bounce/complaint/reject/domain.
    * message.security.completed → MessageSecurityCompletedEvent: message carries ids + agentArmor (no content); needs message_read.
+   * message.security.review → MessageSecurityReviewEvent (Agent Armor hold mode held it; same shape); message.security.override → MessageSecurityOverrideEvent (ids + manualOverride). Both need message_read.
    * calendar.event.* (created, updated, deleted, responded, starting, ending) carry inboxId and calendarEvent; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
    * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
    * message.received.unauthenticated must be explicitly included in eventTypes.
@@ -201,6 +220,12 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     } else if (t === "message.security.completed") {
       const e = await serialization.events.MessageSecurityCompletedEvent.parse(payload);
       console.log(e.message.messageId, e.message.agentArmor.verdict);
+    } else if (t === "message.security.review") {
+      const e = await serialization.events.MessageSecurityReviewEvent.parse(payload);
+      console.log("held:", e.message.messageId);
+    } else if (t === "message.security.override") {
+      const e = await serialization.events.MessageSecurityOverrideEvent.parse(payload);
+      console.log("released:", e.message.messageId, e.message.manualOverride.reason);
     } else if (t === "message.rejected") {
       const e = await serialization.events.MessageRejectedEvent.parse(payload);
       console.log(e.reject);
