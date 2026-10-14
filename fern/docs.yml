@@ -310,6 +310,13 @@ navigation:
             icon: fa-solid fa-shield-halved
             path: pages/agent-armor/overview.mdx
             availability: beta
+      - section: Agent Drive (Labs)
+        availability: beta
+        contents:
+          - page: Agent Drive
+            icon: fa-solid fa-folder-open
+            path: pages/drive/overview.mdx
+            availability: beta
       - section: Integrations
         contents:
           - page: Agent Onboarding

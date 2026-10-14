@@ -40,6 +40,7 @@ An organization created through [agent sign-up](/agent-onboarding) is unverified
 - `list_entry_create` and `list_entry_delete`
 - `pod_create`, `pod_update`, and `pod_delete`
 - `app_connect`
+- `file_create`
 
 A denied request returns a `403` with `code: "missing_permission"`, and its `fix` says the organization must verify first. Creating another key won't help. An organization that signed up without a human email must attach one with `POST /v0/agent/human` before it can verify. After verifying, a key's cached permissions can take up to 5 minutes to update.
 
@@ -190,6 +191,17 @@ Threads are groupings of messages and have no permissions of their own. Every th
 
 Calendar is in AgentMail Labs; see [Calendar](/calendar).
 
+### Agent Drive
+
+| Permission | Description |
+| --- | --- |
+| `file_read` | List and get files, with their download URLs |
+| `file_create` | Upload files (Create File and Complete File) |
+| `file_update` | Update files. Reserved; no endpoint uses it yet |
+| `file_delete` | Delete files |
+
+Agent Drive is in AgentMail Labs; see [Agent Drive](/drive).
+
 ## Code Examples
 
 ### Read-only key
@@ -220,6 +232,7 @@ key = client.api_keys.create(
         "label_trash_read": True,
         "calendar_read": True,
         "calendar_event_read": True,
+        "file_read": True,
     }
 )
 
@@ -249,6 +262,7 @@ const key = await client.apiKeys.create({
     labelTrashRead: true,
     calendarRead: true,
     calendarEventRead: true,
+    fileRead: true,
   },
 });
 
@@ -274,7 +288,8 @@ agentmail api-keys create \
     "label_unauthenticated_read": true,
     "label_trash_read": true,
     "calendar_read": true,
-    "calendar_event_read": true
+    "calendar_event_read": true,
+    "file_read": true
   }'
 ```
 </CodeBlocks>
@@ -465,6 +480,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     Apps: app_connect, app_share_owner, account_update
     Pods: pod_read, pod_create, pod_update, pod_delete
     Calendar: calendar_read, calendar_update, calendar_event_read, calendar_event_create, calendar_event_update, calendar_event_delete
+    Agent Drive: file_read, file_create, file_update, file_delete
 
   Threads have no permissions of their own: thread reads use message_read,
   thread label updates use message_update, and thread deletes use message_delete.

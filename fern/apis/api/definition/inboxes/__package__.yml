@@ -11,6 +11,7 @@ navigation:
   - api-keys.yml
   - accounts.yml
   - calendar.yml
+  - files.yml
 
 imports:
   global: ../__package__.yml

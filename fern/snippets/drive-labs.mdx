@@ -1,0 +1,15 @@
+<Note>
+  Agent Drive is in AgentMail Labs. An organization admin turns it on for the
+  whole organization by joining Labs in the console under [Settings, then
+  Labs](https://console.agentmail.to/dashboard/settings/labs). A verified
+  organization can also join with [Join
+  Labs](https://docs.agentmail.to/api-reference/organizations/join-labs) and an
+  organization API key with no permissions restriction, unless its content
+  access policy keeps API keys from joining. Join only when the organization
+  has decided to: an admin may have left Labs on purpose. API keys see the
+  change within five minutes. Labs is available in US production
+  (`api.agentmail.to`), not yet in EU production (`api.agentmail.eu`).
+  Organizations without access receive a `403` with the message `Agent Drive
+  is not enabled for this organization`. Upgrade to the latest Python or
+  TypeScript SDK to use the file methods.
+</Note>
