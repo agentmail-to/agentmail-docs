@@ -15,12 +15,12 @@ This event-driven approach is more efficient and allows you to build fast, respo
 - **Efficiency:** Eliminates the need for constant polling, which saves you computational resources and simplifies your application logic.
 
 <Callout intent="info" title="Prefer a simpler setup?">
-If you don't want to expose a public URL or set up ngrok, [WebSockets](/websockets) let you receive the same events over a persistent connection with no external tooling required.
+If you don't want to expose a public URL or set up ngrok, [WebSockets](/websockets) let you receive the same events over a persistent connection with no external tooling required. If your agent cannot stay connected either, a [polling webhook](/webhook-polling) queues the events for you to fetch whenever it runs.
 </Callout>
 
 ## Available Events
 
-AgentMail supports sixteen webhook event types. When creating a webhook, you can subscribe to specific events or receive all standard events. See [Webhook Events](/events) for full payload details.
+AgentMail supports seventeen webhook event types. When creating a webhook, you can subscribe to specific events or receive all standard events. See [Webhook Events](/events) for full payload details.
 
 **Message events:**
 - **`message.received`** — New email received and processed in one of your inboxes
@@ -32,6 +32,7 @@ AgentMail supports sixteen webhook event types. When creating a webhook, you can
 - **`message.bounced`** — Message failed to deliver and bounced back
 - **`message.complained`** — Recipient marked your message as spam
 - **`message.rejected`** — Message rejected before send (validation or policy)
+- **`message.security.completed`** — [Agent Armor](/agent-armor) reached a verdict on a received message (requires `message_read`)
 
 **Domain events:**
 - **`domain.verified`** — Custom domain successfully verified
@@ -303,7 +304,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   - webhooks.delete(webhook_id)
   - scoped variants: pods.webhooks.* (pod_id) and inboxes.webhooks.* (inbox_id) — same CRUD, scope from the path
 
-  Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
+  Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, message.security.completed, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain; calendar.event.* carry inbox_id and calendar_event. Verify with Svix (webhook.secret).
   Custom delivery header values are write-only. get_headers returns names only; update_headers rotates or removes them.
   Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
@@ -336,7 +337,7 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * - webhooks.delete(webhookId)
    * - scoped variants: pods.webhooks.* (podId) and inboxes.webhooks.* (inboxId) — same CRUD, scope from the path
    *
-   * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
+   * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, message.security.completed, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
    * Custom delivery header values are write-only. getHeaders returns names only; updateHeaders rotates or removes them.
    * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
    * On update, non-empty eventTypes replaces the subscribed list in full (omit or [] to leave types unchanged).
@@ -371,6 +372,9 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   </Card>
   <Card title="WebSockets" href="/websockets">
     Receive events over a persistent connection with no public URL required.
+  </Card>
+  <Card title="Polling Webhooks" href="/webhook-polling">
+    Fetch queued events from an agent that cannot accept inbound HTTP or stay connected.
   </Card>
   <Card title="Example: Event-Driven Agent" href="/github-star-agent">
     Build a fully deployable, event-driven agent that can respond to emails in

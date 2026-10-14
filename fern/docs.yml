@@ -303,6 +303,13 @@ navigation:
             icon: fa-solid fa-triangle-exclamation
             path: pages/calendar/reference.mdx
             availability: beta
+      - section: Agent Armor (Labs)
+        availability: beta
+        contents:
+          - page: Agent Armor
+            icon: fa-solid fa-shield-halved
+            path: pages/agent-armor/overview.mdx
+            availability: beta
       - section: Integrations
         contents:
           - page: Agent Onboarding
@@ -317,6 +324,9 @@ navigation:
           - page: MCP
             icon: fa-solid fa-plug
             path: pages/integrations/mcp.mdx
+          - page: MCP Events
+            icon: fa-solid fa-bell
+            path: pages/integrations/mcp-events.mdx
           - page: CLI
             icon: fa-solid fa-terminal
             path: pages/integrations/cli.mdx
@@ -408,6 +418,9 @@ navigation:
           - page: Setup Guide
             icon: fa-solid fa-screwdriver-wrench
             path: pages/webhooks/webhook-setup.mdx
+          - page: Polling
+            icon: fa-solid fa-arrows-rotate
+            path: pages/webhooks/webhook-polling.mdx
           - page: Verifying Webhooks
             icon: fa-solid fa-shield-halved
             path: pages/webhooks/webhook-verification.mdx

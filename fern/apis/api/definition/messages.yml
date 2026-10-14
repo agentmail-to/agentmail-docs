@@ -154,6 +154,9 @@ types:
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
       authentication_results: optional<MessageAuthenticationResults>
+      agent_armor:
+        type: optional<agentArmor.AgentArmorResult>
+        availability: beta
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt
@@ -188,6 +191,9 @@ types:
       references: optional<MessageReferences>
       headers: optional<MessageHeaders>
       authentication_results: optional<MessageAuthenticationResults>
+      agent_armor:
+        type: optional<agentArmor.AgentArmorResult>
+        availability: beta
       size: MessageSize
       updated_at: MessageUpdatedAt
       created_at: MessageCreatedAt

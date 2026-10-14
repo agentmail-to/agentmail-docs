@@ -54,9 +54,11 @@ A create or update API key request asked for a permission the calling key does n
 
 Creating an unrestricted child key (`permissions: null`), clearing a key's permissions, or changing the permissions of a currently-unrestricted key requires an unrestricted credential: a dashboard session or an API key stored without a permissions attribute. Retry with one; the `fix` on the response says which gate fired.
 
+Joining AgentMail Labs (`POST /v0/organizations/labs`) is stricter: it needs an organization-scoped API key with no permissions restriction, and a dashboard session doesn't qualify. Retry with such a key, or have an organization admin join in the console under Settings, then Labs.
+
 ### forbidden
 
-The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar endpoints also return `forbidden` when the organization does not have calendar access; no key can fix that. Calendar is in AgentMail Labs: an organization admin joins Labs in the console under Settings, then Labs (US production only).
+The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar endpoints also return `forbidden` when the organization does not have calendar access; a different calendar key won't fix that. Calendar is in AgentMail Labs (US production only): an organization admin joins Labs in the console under Settings, then Labs, and a verified organization can also join with `POST /v0/organizations/labs` and an organization API key with no permissions restriction. Join only when the organization has decided to: an admin may have left Labs on purpose.
 
 ## Request errors (400 / 404 / 422)
 

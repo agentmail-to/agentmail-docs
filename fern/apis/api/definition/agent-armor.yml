@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+types:
+  AgentArmorVerdict:
+    docs: |
+      What the scan concluded. `clear` means Agent Armor found no threat. It is advisory, not a guarantee that the
+      message is safe. `review` means the message may try to manipulate an agent: inspect it before an agent acts on it.
+    enum:
+      - clear
+      - review
+
+  AgentArmorUnavailableReason:
+    docs: Why no verdict is available.
+    enum:
+      - value: unsupported_dsn
+        docs: The message is a delivery status notification (a bounce), which Agent Armor does not scan.
+      - value: payload_too_large
+        docs: The message is too large to scan.
+      - value: no_scannable_content
+        docs: The message has no text to scan.
+      - value: enqueue_failed
+        docs: The scan could not be started.
+      - value: scorer_failed
+        docs: The scan failed.
+      - value: contract_error
+        docs: The scan request or its stored result failed validation.
+      - value: deadline_exceeded
+        docs: The scan did not finish within 15 minutes of the message arriving.
+
+  AgentArmorPendingResult:
+    properties:
+      started_at:
+        type: datetime
+        docs: When the message was received. The deadline counts from here.
+      deadline_at:
+        type: datetime
+        docs: When the scan gives up. A result still pending then reads as `unavailable` with `deadline_exceeded`.
+
+  AgentArmorCompleteResult:
+    properties:
+      verdict: AgentArmorVerdict
+      reason:
+        type: string
+        docs: A short explanation of the verdict.
+      model:
+        type: string
+        docs: Identifies the Agent Armor release that produced the verdict. Opaque; it changes when Agent Armor is updated.
+      completed_at:
+        type: datetime
+        docs: When the scan finished.
+
+  AgentArmorUnavailableResult:
+    properties:
+      unavailable_reason: AgentArmorUnavailableReason
+
+  AgentArmorCompletedEventResult:
+    docs: The result in a `message.security.completed` event, which is always `complete`.
+    extends: AgentArmorCompleteResult
+    properties:
+      status: literal<"complete">
+
+  AgentArmorResult:
+    docs: |
+      Agent Armor's result for this message. Present only on messages received while Agent Armor was on for your
+      organization. A scan starts `pending` and usually completes within seconds. `message.security.completed` is
+      sent only for `complete` results, so a message still `pending` at `deadline_at` reads `unavailable` with no
+      event.
+    discriminant: status
+    union:
+      pending: AgentArmorPendingResult
+      complete: AgentArmorCompleteResult
+      unavailable: AgentArmorUnavailableResult
+
+  AgentArmorFeedbackValue:
+    docs: Your assessment of a completed verdict.
+    enum:
+      - value: correct_review
+        docs: The message was rightly marked `review`.
+      - value: incorrect_review
+        docs: The message was marked `review` but is legitimate.
+      - value: missed_threat
+        docs: The message was marked `clear` but tries to manipulate an agent.
+      - value: legitimate_agent_instruction
+        docs: The message instructs an agent, and is meant to.
+      - value: spam_or_phishing
+        docs: The message is spam or phishing rather than an attack on an agent.
+
+  CreateAgentArmorFeedbackRequest:
+    properties:
+      feedback: AgentArmorFeedbackValue
+      notes:
+        type: optional<string>
+        docs: Anything else about the verdict, up to 2,048 characters.
+
+  AgentArmorFeedbackApiKeyActor:
+    properties:
+      api_key_id:
+        type: string
+        docs: The API key that sent it.
+
+  AgentArmorFeedbackConsoleActor:
+    properties: {}
+
+  AgentArmorFeedbackActor:
+    docs: Who sent the feedback.
+    discriminant: kind
+    union:
+      api_key: AgentArmorFeedbackApiKeyActor
+      console: AgentArmorFeedbackConsoleActor
+
+  AgentArmorFeedback:
+    properties:
+      feedback_id:
+        type: string
+        docs: ID of the feedback.
+      feedback: AgentArmorFeedbackValue
+      notes: optional<string>
+      actor: AgentArmorFeedbackActor
+      original_verdict:
+        type: AgentArmorVerdict
+        docs: The verdict the feedback is about.
+      model:
+        type: string
+        docs: The Agent Armor release that produced that verdict.
+      created_at:
+        type: datetime
+        docs: When the feedback was recorded.

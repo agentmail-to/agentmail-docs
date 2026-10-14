@@ -7,7 +7,7 @@ description: Connect AgentMail to Claude, ChatGPT, Cursor, and other MCP clients
 
 ## Overview
 
-The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client, plus [AgentID](/agentid-in-assistants) tools that create accounts for your agent at services like Firecrawl.
+The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client, plus [AgentID](/agentid-in-assistants) tools that create accounts for your agent at services like Firecrawl. Clients that support [MCP Events](/integrations/mcp-events), such as ChatGPT, can also subscribe to new mail and act on it as it arrives.
 
 The server supports two authentication paths:
 
@@ -34,13 +34,13 @@ OAuth is the recommended path for Claude products. You do not need an API key; t
 
 ### ChatGPT (OAuth)
 
-1. Open **Settings**, then **Security and login**, and turn on **Developer mode**. On a workspace plan, an admin must allow developer mode first.
-2. Open **ChatGPT Plugins** and click **+** to add a server.
-3. Set the name to `AgentMail` and the URL to `https://mcp.agentmail.to/mcp`, and choose **OAuth**.
-4. Sign in at `console.agentmail.to` when the browser window opens. If you belong to multiple organizations, pick one on the consent screen.
-5. In a chat, open the **+** menu, choose **Developer mode**, and select AgentMail. Send `List my AgentMail inboxes` to confirm the connection.
+AgentMail is available as a plugin in ChatGPT.
 
-ChatGPT asks you to confirm write actions, such as sending mail or connecting an app, before it runs them.
+1. Open [ChatGPT Plugins](https://chatgpt.com/plugins), search for **AgentMail**, and select **Install plugin**. On a workspace plan, your admin controls which plugins are available.
+2. Sign in at `console.agentmail.to` when the browser window opens. If you belong to multiple organizations, pick one on the consent screen.
+3. In a chat, type `@` and select AgentMail, then send `List my AgentMail inboxes` to confirm the connection.
+
+ChatGPT asks you to confirm write actions, such as sending mail or connecting an app, before it runs them. To have ChatGPT act on new mail as it arrives, see [MCP Events](/integrations/mcp-events).
 
 ### Cursor (API key)
 
@@ -83,6 +83,10 @@ The connector includes the AgentID tools, so your assistant can create an accoun
 - "Which services is support-bot@agentmail.to signed up for?"
 
 The assistant gives you a single-use sign-in link that expires after five minutes. Open it in the browser that should hold the agent's session, then ask the assistant to confirm. See [AgentID in Claude, ChatGPT, and Cursor](/agentid-in-assistants) for the full walkthrough, including getting an API key.
+
+## Get notified when mail arrives
+
+The server publishes a `message.received` event through [MCP Events](/integrations/mcp-events). In a ChatGPT dot or Work chat, ask something like `Whenever support@agentmail.to gets a new email, summarize it for me`, and ChatGPT starts the task within seconds of each new email instead of checking the inbox on a schedule. The event carries metadata only; the assistant reads the message itself with `get_message`.
 
 ## Available tools
 

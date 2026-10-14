@@ -1,0 +1,208 @@
+---
+title: "Polling Webhooks"
+subtitle: "Receive webhook events without a public URL."
+slug: webhook-polling
+description: "Create a polling webhook and read its events from your agent with the Svix SDK: no public endpoint, tunnel, or persistent connection required."
+---
+
+A polling webhook is a webhook you read instead of one we deliver. You subscribe to the same [event types](/events) as a regular webhook and AgentMail queues the matching events for you. Your agent fetches them whenever it runs and commits the ones it has processed. Nothing in your setup needs to be reachable from the internet.
+
+## When to use it
+
+| | Webhook | WebSocket | Polling webhook |
+|---|---|---|---|
+| Public URL | Required | Not required | Not required |
+| Connection | We `POST` to your server | Persistent, kept open by you | You fetch when you want |
+| Delivery | As it happens | As it happens | On your next fetch |
+| While your code is not running | Retried, then disabled | Not delivered | Waits in the queue |
+| Fits | Servers | Long-running processes | Cron jobs, serverless functions, agents that start and stop, anything behind a firewall |
+
+Use a polling webhook when your agent cannot accept inbound HTTP or stay connected: it runs on a schedule, in a sandbox, on a laptop, or inside a serverless function. If it can stay connected, [WebSockets](/websockets) deliver the same events with lower latency.
+
+## How it works
+
+1. Create a polling webhook with a `client_id`, the `event_types` you want, and optionally the inboxes or pods to cover. The response carries a one-time `token`.
+2. Hand the token to the Svix SDK's `AutoConfigConsumer`. `receive` returns queued events; `commit` marks them processed so they are not returned again.
+3. On restart, create again with the same `client_id`. You get the same subscription with a new token, and the previous token stops working immediately.
+4. Delete the polling webhook when the agent retires. Its token stops working and its slot is freed.
+
+## Step 1: Create a polling webhook
+
+Install the AgentMail and Svix SDKs:
+
+```bash
+pip install agentmail svix
+# or
+npm install agentmail svix
+```
+
+Create the subscription. `client_id` is required: it identifies this consumer, so running the same code again returns the existing subscription instead of creating a second one.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail()
+
+# the same client_id on every start returns the same subscription with a fresh token
+subscription = client.webhooks.polling.create(
+    client_id="support-agent",
+    event_types=["message.received"],
+    inbox_ids=["support@yourdomain.com"],
+)
+
+token = subscription.token
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient();
+
+// the same clientId on every start returns the same subscription with a fresh token
+const subscription = await client.webhooks.polling.create({
+  clientId: "support-agent",
+  eventTypes: ["message.received"],
+  inboxIds: ["support@yourdomain.com"],
+});
+
+const token = subscription.token;
+```
+</CodeBlocks>
+
+<Callout intent="warning" title="The token is returned once">
+`token` comes back from create only. `get` and `list` never include it, and there is no endpoint to read it again. To get a new one, create again with the same `client_id`: the previous token is invalidated at once, so one `client_id` should back exactly one running worker. Store the token like an API key.
+</Callout>
+
+Omit `inbox_ids` and `pod_ids` to receive events for the whole organization. The event types you can subscribe to follow the same permission rules as webhooks: `message.received.spam`, `message.received.blocked` and `message.received.unauthenticated` require the matching label permission on the API key. See the [webhooks overview](/webhooks-overview#available-events).
+
+## Step 2: Read events
+
+The `AutoConfigConsumer` takes the token and a sink configuration. Pass an empty configuration: AgentMail already created the subscription, and calling `subscribe()` on the consumer would replace its event types and inboxes. Only call `receive` and `commit`.
+
+<CodeBlocks>
+```python title="Python"
+import time
+
+from svix import AutoConfigConsumer
+from svix.models import SinkInCommon
+
+consumer = AutoConfigConsumer(token, SinkInCommon())
+
+while True:
+    page = consumer.receive("worker-1")
+    for event in page.data:
+        # event.payload is the same object a webhook POST would carry
+        if event.event_type == "message.received":
+            message = event.payload["message"]
+            print(f"new message in {message['inbox_id']}: {message['subject']}")
+        consumer.commit("worker-1", event.offset)
+    if page.done:
+        time.sleep(5)
+```
+
+```typescript title="TypeScript"
+import { AutoConfigConsumer } from "svix";
+
+const consumer = new AutoConfigConsumer(token, {});
+
+while (true) {
+  const page = await consumer.receive("worker-1", { limit: 50 });
+  for (const event of page.data) {
+    // event.payload is the same object a webhook POST would carry
+    if (event.eventType === "message.received") {
+      const { message } = event.payload;
+      console.log(`new message in ${message.inbox_id}: ${message.subject}`);
+    }
+    await consumer.commit("worker-1", event.offset);
+  }
+  if (page.done) await new Promise((resolve) => setTimeout(resolve, 5000));
+}
+```
+</CodeBlocks>
+
+- `"worker-1"` is a consumer id. Each consumer id keeps its own position in the queue, so two consumer ids on one token each see every event. Most agents use one.
+- `commit` acknowledges that event and everything before it. Events you have not committed are returned again on the next `receive`, so a crash between `receive` and `commit` loses nothing.
+- `page.done` is true when the queue is drained. Sleep before polling again; a few seconds is plenty.
+- `payload` matches the webhook body for that event type, documented in [Events](/events). For `message.received` the message is under `payload["message"]`.
+
+## Scoping to a pod or inbox
+
+The same three routes as webhooks, with the same rules (see [Scoping a webhook to a pod or inbox](/webhooks-overview#scoping-a-webhook-to-a-pod-or-inbox)):
+
+<CodeBlocks>
+```python title="Python"
+# belongs to the pod; optionally narrowed with inbox_ids
+client.pods.webhooks.polling.create(
+    pod_id, client_id="pod-worker", event_types=["message.received"]
+)
+
+# belongs to the inbox
+client.inboxes.webhooks.polling.create(
+    inbox_id, client_id="inbox-worker", event_types=["message.received"]
+)
+```
+
+```typescript title="TypeScript"
+// belongs to the pod; optionally narrowed with inboxIds
+await client.pods.webhooks.polling.create(podId, {
+  clientId: "pod-worker",
+  eventTypes: ["message.received"],
+});
+
+// belongs to the inbox
+await client.inboxes.webhooks.polling.create(inboxId, {
+  clientId: "inbox-worker",
+  eventTypes: ["message.received"],
+});
+```
+</CodeBlocks>
+
+A pod- or inbox-scoped API key uses its own route. Listing is per route: `client.webhooks.polling.list()` returns what was created through the organization route, and the pod and inbox routes list their own.
+
+## Limits
+
+- Each organization, pod and inbox holds at most 10 polling webhooks. Creating an eleventh answers `403` with a message naming the narrower routes; a repeat create with an existing `client_id` does not count against the limit.
+- A token can only ever read the event types the API key could read when it was created. If the key later loses one of those permissions, a repeat create with that `client_id` is refused: delete the polling webhook and create it again with the current key.
+- Up to 10 pods and inboxes per polling webhook, as for webhooks. A pod already covers every inbox in it.
+
+## Managing polling webhooks
+
+<CodeBlocks>
+```python title="Python"
+# list the polling webhooks created through this route
+for webhook in client.webhooks.polling.list().polling_webhooks:
+    print(webhook.webhook_id, webhook.client_id, webhook.event_types)
+
+# get by webhook_id or client_id (never returns the token)
+webhook = client.webhooks.polling.get("support-agent")
+
+# delete: the token stops working and the slot is freed
+client.webhooks.polling.delete("support-agent")
+```
+
+```typescript title="TypeScript"
+// list the polling webhooks created through this route
+const { pollingWebhooks } = await client.webhooks.polling.list();
+
+// get by webhookId or clientId (never returns the token)
+const webhook = await client.webhooks.polling.get("support-agent");
+
+// delete: the token stops working and the slot is freed
+await client.webhooks.polling.delete("support-agent");
+```
+</CodeBlocks>
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Webhook Events" href="/events">
+    The event types you can subscribe to and the payload each one carries.
+  </Card>
+  <Card title="API Reference" href="/api-reference/webhooks/polling/create">
+    Request and response shapes for every polling webhook endpoint.
+  </Card>
+  <Card title="WebSockets" href="/websockets">
+    Lower latency when your agent can hold a connection open.
+  </Card>
+</CardGroup>

@@ -6,6 +6,8 @@ imports:
   messages: messages.yml
   domains: domains.yml
   calendar: calendar.yml
+  agentArmor: agent-armor.yml
+  global: __package__.yml
 
 types:
   EventType:
@@ -18,6 +20,8 @@ types:
         value: message.received.blocked
       - name: MESSAGE_RECEIVED_UNAUTHENTICATED
         value: message.received.unauthenticated
+      - name: MESSAGE_SECURITY_COMPLETED
+        value: message.security.completed
       - name: MESSAGE_SENT
         value: message.sent
       - name: MESSAGE_DELIVERED
@@ -162,6 +166,26 @@ types:
       event_id: EventId
       message: messages.Message
       thread: threads.ThreadItem
+
+  MessageSecurity:
+    docs: The message an Agent Armor result is for. Fetch the message for its content.
+    properties:
+      organization_id: global.OrganizationId
+      inbox_id: inboxes.InboxId
+      message_id: messages.MessageId
+      agent_armor: agentArmor.AgentArmorCompletedEventResult
+
+  MessageSecurityCompletedEvent:
+    docs: |
+      Agent Armor reached a verdict on a received message. Sent only for `complete` results: an `unavailable` result
+      sends no event. Sent once per message and inbox; `event_id` is stable, so use it to deduplicate. Not sent for
+      messages labeled `spam`, `blocked`, `unauthenticated`, or `trash`: read those through the API.
+    availability: beta
+    properties:
+      type: literal<"event">
+      event_type: literal<"message.security.completed">
+      event_id: EventId
+      message: MessageSecurity
 
   MessageSentEvent:
     properties:
