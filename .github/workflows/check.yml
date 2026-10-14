@@ -19,6 +19,9 @@ jobs:
       - name: Check generated MCP tool catalog
         run: python3 scripts/generate_mcp_tool_catalog.py --check
 
+      - name: Check API key permission lists
+        run: python3 scripts/check_permissions.py --check
+
       - name: Install Fern
         run: npm install -g fern-api
 

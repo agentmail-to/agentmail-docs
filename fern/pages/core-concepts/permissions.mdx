@@ -509,7 +509,8 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *
    * Permission fields (all optional boolean, resourceAction format):
    *   Inboxes: inboxRead, inboxCreate, inboxUpdate, inboxDelete
-   *   Messages: messageRead, messageSend, messageUpdate, messageDelete
+   *   Messages: messageRead, messageReply, messageSend, messageUpdate, messageDelete
+   *   Agent Armor: agentArmorRelease (opt-in: no key has it unless granted, even without a permissions field)
    *   Label visibility: labelSpamRead, labelBlockedRead, labelUnauthenticatedRead, labelTrashRead
    *   Drafts: draftRead, draftCreate, draftUpdate, draftDelete, draftSend
    *   Webhooks: webhookRead, webhookCreate, webhookUpdate, webhookDelete
@@ -520,6 +521,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *   Apps: appConnect, appShareOwner, accountUpdate
    *   Pods: podRead, podCreate, podUpdate, podDelete
    *   Calendar: calendarRead, calendarUpdate, calendarEventRead, calendarEventCreate, calendarEventUpdate, calendarEventDelete
+   *   Agent Drive: fileRead, fileCreate, fileUpdate, fileDelete
    *
    * Threads have no permissions of their own: thread reads use messageRead,
    * thread label updates use messageUpdate, and thread deletes use messageDelete.

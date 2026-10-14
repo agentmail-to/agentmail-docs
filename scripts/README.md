@@ -22,3 +22,18 @@ This refreshes the vendored manifest from the canonical repo and regenerates the
 Docs deliberately track the vendored (released) manifest, not `agentmail-mcp` `main`, so they describe what is deployed. The manifest digest stamped in the snippet's header comment tells you which contract version the published docs reflect.
 
 If CI fails with "MCP tool catalog is out of date", someone edited the snippet or manifest by hand — rerun the script without flags to regenerate from the vendored manifest.
+
+# API key permission lists
+
+The docs keep the API key permission set by hand in several places: `ApiKeyPermissions` in [`api-keys.yml`](../fern/apis/api/definition/api-keys.yml), and in [`permissions.mdx`](../fern/pages/core-concepts/permissions.mdx) the reference tables, both "Copy for Cursor / Claude" blocks, the read-only key example, and the agent verification list.
+
+- `api-permissions.json` is a vendored copy of `agentmail-api`'s permission keys (`permissionShape` in `src/core/schemas/api-key.ts`) and `VERIFICATION_GATED_PERMISSIONS` (`src/core/utils/permissions.ts`), stamped with the commit it was read from.
+- `check_permissions.py --check` fails when any of those lists disagrees with the manifest. The read-only example must hold every `*_read` permission. `owner_profile` and `owner_email` are deprecated and left out of the docs on purpose (`UNDOCUMENTED` in the script). CI runs the check on every PR, offline.
+
+When an `agentmail-api` change adds, removes, or re-gates a permission:
+
+```bash
+python3 scripts/check_permissions.py --fetch
+```
+
+This reads both files from `agentmail-api` `main` with `gh` (the repository is private), rewrites the manifest, and lists every docs list that is now out of date. Update those lists and commit them with the manifest.
