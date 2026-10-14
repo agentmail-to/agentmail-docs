@@ -308,6 +308,7 @@ key = client.api_keys.create(
         "inbox_update": True,
         "inbox_delete": True,
         "message_read": True,
+        "message_reply": True,
         "message_send": True,
         "message_update": True,
         "message_delete": True,
@@ -336,6 +337,9 @@ key = client.api_keys.create(
         "api_key_create": True,
         "api_key_update": True,
         "api_key_delete": True,
+        "app_connect": True,
+        "app_share_owner": True,
+        "account_update": True,
         "pod_read": True,
         "pod_create": True,
         "pod_update": True,
@@ -346,6 +350,10 @@ key = client.api_keys.create(
         "calendar_event_create": True,
         "calendar_event_update": True,
         "calendar_event_delete": True,
+        "file_read": True,
+        "file_create": True,
+        "file_update": True,
+        "file_delete": True,
     }
 )
 ```
@@ -359,6 +367,7 @@ const key = await client.apiKeys.create({
     inboxUpdate: true,
     inboxDelete: true,
     messageRead: true,
+    messageReply: true,
     messageSend: true,
     messageUpdate: true,
     messageDelete: true,
@@ -387,6 +396,9 @@ const key = await client.apiKeys.create({
     apiKeyCreate: true,
     apiKeyUpdate: true,
     apiKeyDelete: true,
+    appConnect: true,
+    appShareOwner: true,
+    accountUpdate: true,
     podRead: true,
     podCreate: true,
     podUpdate: true,
@@ -397,6 +409,10 @@ const key = await client.apiKeys.create({
     calendarEventCreate: true,
     calendarEventUpdate: true,
     calendarEventDelete: true,
+    fileRead: true,
+    fileCreate: true,
+    fileUpdate: true,
+    fileDelete: true,
   },
 });
 ```
@@ -411,6 +427,7 @@ agentmail api-keys create \
     "inbox_update": true,
     "inbox_delete": true,
     "message_read": true,
+    "message_reply": true,
     "message_send": true,
     "message_update": true,
     "message_delete": true,
@@ -439,6 +456,9 @@ agentmail api-keys create \
     "api_key_create": true,
     "api_key_update": true,
     "api_key_delete": true,
+    "app_connect": true,
+    "app_share_owner": true,
+    "account_update": true,
     "pod_read": true,
     "pod_create": true,
     "pod_update": true,
@@ -448,7 +468,11 @@ agentmail api-keys create \
     "calendar_event_read": true,
     "calendar_event_create": true,
     "calendar_event_update": true,
-    "calendar_event_delete": true
+    "calendar_event_delete": true,
+    "file_read": true,
+    "file_create": true,
+    "file_update": true,
+    "file_delete": true
   }'
 ```
 </CodeBlocks>
@@ -509,7 +533,8 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *
    * Permission fields (all optional boolean, resourceAction format):
    *   Inboxes: inboxRead, inboxCreate, inboxUpdate, inboxDelete
-   *   Messages: messageRead, messageSend, messageUpdate, messageDelete
+   *   Messages: messageRead, messageReply, messageSend, messageUpdate, messageDelete
+   *   Agent Armor: agentArmorRelease (opt-in: no key has it unless granted, even without a permissions field)
    *   Label visibility: labelSpamRead, labelBlockedRead, labelUnauthenticatedRead, labelTrashRead
    *   Drafts: draftRead, draftCreate, draftUpdate, draftDelete, draftSend
    *   Webhooks: webhookRead, webhookCreate, webhookUpdate, webhookDelete
@@ -520,6 +545,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
    *   Apps: appConnect, appShareOwner, accountUpdate
    *   Pods: podRead, podCreate, podUpdate, podDelete
    *   Calendar: calendarRead, calendarUpdate, calendarEventRead, calendarEventCreate, calendarEventUpdate, calendarEventDelete
+   *   Agent Drive: fileRead, fileCreate, fileUpdate, fileDelete
    *
    * Threads have no permissions of their own: thread reads use messageRead,
    * thread label updates use messageUpdate, and thread deletes use messageDelete.

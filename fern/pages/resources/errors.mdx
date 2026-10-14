@@ -58,7 +58,7 @@ Joining AgentMail Labs (`POST /v0/organizations/labs`) is stricter: it needs an 
 
 ### forbidden
 
-The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar and Agent Drive endpoints also return `forbidden` when the organization has not joined AgentMail Labs; a different key won't fix that. Both are in AgentMail Labs (US production only): an organization admin joins Labs in the console under Settings, then Labs, and a verified organization can also join with `POST /v0/organizations/labs` and an organization API key with no permissions restriction. Join only when the organization has decided to: an admin may have left Labs on purpose.
+The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar and Agent Drive endpoints also return `forbidden` when the organization has not joined AgentMail Labs; a different key won't fix that. [Calendar](/calendar) and [Agent Drive](/drive) explain how an organization joins Labs.
 
 ## Request errors (400 / 404 / 422)
 
