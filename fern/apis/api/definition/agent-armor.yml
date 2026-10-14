@@ -48,13 +48,16 @@ types:
       completed_at:
         type: datetime
         docs: When the scan finished.
+      manual_override:
+        type: optional<AgentArmorManualOverride>
+        docs: Present on a `review` held in hold mode that someone released.
 
   AgentArmorUnavailableResult:
     properties:
       unavailable_reason: AgentArmorUnavailableReason
 
   AgentArmorCompletedEventResult:
-    docs: The result in a `message.security.completed` event, which is always `complete`.
+    docs: The result in a `message.security.completed` or `message.security.review` event, which is always `complete`.
     extends: AgentArmorCompleteResult
     properties:
       status: literal<"complete">
@@ -70,6 +73,49 @@ types:
       pending: AgentArmorPendingResult
       complete: AgentArmorCompleteResult
       unavailable: AgentArmorUnavailableResult
+
+  AgentArmorReleaseApiKeyActor:
+    properties:
+      api_key_id:
+        type: string
+        docs: The API key that released it.
+
+  AgentArmorReleaseConsoleActor:
+    properties: {}
+
+  AgentArmorReleaseActor:
+    docs: Who released the message.
+    discriminant: kind
+    union:
+      api_key: AgentArmorReleaseApiKeyActor
+      console: AgentArmorReleaseConsoleActor
+
+  AgentArmorManualOverride:
+    docs: The record of a release of a message Agent Armor held for review.
+    properties:
+      override_id:
+        type: string
+        docs: ID of the release, and the `event_id` of its `message.security.override` event.
+      actor: AgentArmorReleaseActor
+      reason:
+        type: string
+        docs: Why it was released, as given by whoever released it.
+      original_verdict:
+        type: literal<"review">
+        docs: The verdict that held the message.
+      released_at:
+        type: datetime
+        docs: When it was released.
+
+  ReleaseAgentArmorMessageRequest:
+    properties:
+      reason:
+        type: string
+        docs: Why the message is safe to release, up to 2,048 characters and not blank. Recorded on the message.
+
+  ReleaseAgentArmorMessageResponse:
+    properties:
+      manual_override: AgentArmorManualOverride
 
   AgentArmorFeedbackValue:
     docs: Your assessment of a completed verdict.

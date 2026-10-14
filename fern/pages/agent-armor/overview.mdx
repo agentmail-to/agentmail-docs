@@ -21,12 +21,15 @@ Anyone can email your agent, so an email is an easy way to slip instructions int
 - **`clear`**: Agent Armor found no attempt to manipulate an agent. This is advisory, not a guarantee that the message is safe.
 - **`review`**: the message may try to manipulate an agent. Have a person, or a more cautious path in your agent, look at it before your agent acts on it.
 
-Turned on from Labs, Agent Armor never holds, delays or changes mail. Messages arrive and `message.received` fires as usual. The verdict follows, usually within seconds, on the message itself and as a `message.security.completed` event.
+Agent Armor has two modes:
+
+- **Monitor**, the default, never holds, delays or changes mail. Messages arrive and `message.received` fires as usual. The verdict follows, usually within seconds, on the message itself and as a `message.security.completed` event.
+- **Hold** tells your agents about a message only once its scan finishes, and keeps a message marked `review` from them until someone releases it. It sends no `message.security.completed`. See [Hold mode](#hold-mode).
 
 ## Turn it on
 
 1. In the console, open **Settings**, then **Labs**, and join AgentMail Labs. Only organization owners and admins can.
-2. Under **Features in Labs**, turn on **Agent Armor**.
+2. Under **Features in Labs**, turn on **Agent Armor**. It starts in Monitor; switch it to **Hold** there to hold mail.
 
 Agent Armor then scans mail received by every inbox in the organization, starting within a minute. It does not scan mail received before you turned it on. Turning it off stops new scans; results already on messages stay. Leaving Labs does not turn Agent Armor off. If AgentMail set up Agent Armor for your organization, the console shows it as managed by AgentMail and you can't change it there; this page describes the Labs setting.
 
@@ -77,7 +80,7 @@ Treat `unavailable` like `review`: a sender can cause it, for example with a mes
 
 ## Get notified
 
-Subscribe to `message.security.completed` to hear when a verdict is ready instead of polling. It is sent only for `complete` results: an `unavailable` result sends no event. To receive it on a webhook, list it in `event_types`. WebSocket subscriptions receive it unless they name other event types. Either way, the API key needs permission to read messages.
+Subscribe to `message.security.completed` to hear when a verdict is ready instead of polling. It is sent only in Monitor mode, and only for `complete` results: an `unavailable` result sends no event. [Hold mode](#hold-mode) sends other events. To receive it on a webhook, list it in `event_types`. WebSocket subscriptions receive it unless they name other event types. Either way, the API key needs permission to read messages.
 
 Add it to the webhook that already receives `message.received`. `event_types` replaces the webhook's whole list, so include every type it should keep:
 
@@ -135,6 +138,103 @@ A simple pattern is to let your agent act on a received message only once its ve
 2. On `message.security.completed`, fetch the message with the event's `inbox_id` and `message_id`.
 3. If the verdict is `clear`, hand the message to your agent. If it is `review`, route it to a person, or let your agent read it without tools that send mail, move money or change data.
 4. If no event has arrived by `deadline_at`, fetch the message: its result now reads `unavailable`. Handle `unavailable` like `review`.
+
+Hold mode does this for you: `message.received` is sent only once the result is in, and a message marked `review` is held.
+
+## Hold mode
+
+In Hold, Agent Armor delays the notifications your agents get, not the mail itself:
+
+- A message is stored as soon as it arrives, with a `pending` result, like in Monitor.
+- `message.received` is sent once the scan finishes, usually within seconds. A `clear` result sends it then, and so does an `unavailable` one, including a scan still running after 15 minutes.
+- A `review` result holds the message: `message.received` is not sent. Agent Armor sends `message.security.review` instead and labels the message, and its thread, `agent-armor-held`. The message stays held until someone releases it.
+- `message.security.completed` is not sent. The result arrives on `message.received`, or on `message.security.review` for a held message.
+
+Hold works through notifications: webhooks and WebSockets. An agent that reads mail another way sees held mail like any other, whether it lists or searches messages, reads the inbox events feed, or uses IMAP. Have an agent that lists messages skip those labeled `agent-armor-held`, or check `agent_armor` before acting.
+
+Switching back to Monitor, or turning Agent Armor off, does not release mail already held.
+
+### Find held mail
+
+Organization admins see held mail in the console under **Other**, then **Held**, across the organization or in one inbox. Through the API, list threads labeled `agent-armor-held`. Held mail is often also labeled `spam`, `blocked` or `unauthenticated`, which lists leave out unless asked, so include them:
+
+<CodeBlocks>
+```python title="Python"
+held = client.threads.list(
+    labels=["agent-armor-held"],
+    include_spam=True,
+    include_blocked=True,
+    include_unauthenticated=True,
+)
+```
+```typescript title="TypeScript"
+const held = await client.threads.list({
+  labels: ["agent-armor-held"],
+  includeSpam: true,
+  includeBlocked: true,
+  includeUnauthenticated: true,
+});
+```
+</CodeBlocks>
+
+The API key needs the matching `label_spam_read`, `label_blocked_read` and `label_unauthenticated_read` permissions. A held message someone moved to trash stays held; add `include_trash`, with `label_trash_read`, to list it too. The console's Held view leaves trashed mail out.
+
+A thread carries the label while any of its messages is held, so get the thread and release the messages whose own `labels` include `agent-armor-held`. To list one inbox's held messages directly, pass the same parameters to its message list.
+
+You can also subscribe to `message.security.review`, sent once per held message. Like `message.security.completed`, it carries the result and the message's identifiers, never its content, needs permission to read messages, and is not sent for messages labeled `spam`, `blocked`, `unauthenticated` or `trash`. Only the label lists every held message.
+
+The label is added when `message.security.review` is sent and comes off the message when it is released, so it can trail either by a few seconds. You can't add or remove it yourself.
+
+### Release a held message
+
+Release a message once someone has checked it. Its `message.received` is then sent to your agents, and `message.security.override` is sent too. The two are sent independently and can arrive in either order. The label comes off the message. The message's `agent_armor` keeps its `review` verdict and gains a `manual_override` recording how it was released (from the console, or with which API key), when and why.
+
+Organization admins release from the console: open the held message and choose **Release**. Through the API, release it with a reason of up to 2,048 characters that isn't blank:
+
+```bash
+curl -X POST "https://api.agentmail.to/v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/release" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Known vendor; the payment details were confirmed by phone."}'
+```
+
+```json
+{
+  "manual_override": {
+    "override_id": "c4f1a2b3-7d6e-5f40-9a8b-1c2d3e4f5a6b",
+    "actor": { "kind": "api_key", "api_key_id": "3c9d8e7f-6a5b-4c3d-9e2f-1a0b9c8d7e6f" },
+    "reason": "Known vendor; the payment details were confirmed by phone.",
+    "original_verdict": "review",
+    "released_at": "2026-10-14T19:05:00.000Z"
+  }
+}
+```
+
+Only a message marked `review` and still held can be released; anything else answers `409`. Repeating a release with the same reason, from the same API key or again from the console, returns the first release; a repeat with another reason or from another releaser answers `409`.
+
+Releasing needs the [`agent_armor_release`](/permissions#agent-armor) permission, which is opt-in, so an agent's own key can't release mail held from it. An organization admin grants it in the console when creating a key: choose custom permissions, then **Release held mail**. In an organization with a content-access policy, no key can hold it, and admins release from the console. The key also needs permission to read the message, including the label permission for a message labeled `spam`, `blocked`, `unauthenticated` or `trash`.
+
+`message.security.override` carries the release, and the message's identifiers. Its `event_id` is the release's `override_id`:
+
+```json
+{
+  "type": "event",
+  "event_type": "message.security.override",
+  "event_id": "c4f1a2b3-7d6e-5f40-9a8b-1c2d3e4f5a6b",
+  "message": {
+    "organization_id": "7f0c2a52-6a8e-4d0e-9a5e-2f3b1c4d5e6f",
+    "inbox_id": "support@agentmail.to",
+    "message_id": "<abc123@mail.example.com>",
+    "manual_override": {
+      "override_id": "c4f1a2b3-7d6e-5f40-9a8b-1c2d3e4f5a6b",
+      "actor": { "kind": "api_key", "api_key_id": "3c9d8e7f-6a5b-4c3d-9e2f-1a0b9c8d7e6f" },
+      "reason": "Known vendor; the payment details were confirmed by phone.",
+      "original_verdict": "review",
+      "released_at": "2026-10-14T19:05:00.000Z"
+    }
+  }
+}
+```
 
 ## Send feedback
 

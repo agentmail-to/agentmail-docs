@@ -36,33 +36,39 @@ async function handleWebhook(payload: Record<string, unknown>) {
   ];
 
   if (receivedEventTypes.includes(String(eventType))) {
-    const event = await serialization.events.MessageReceivedEvent.parse(payload);
+    const event = await serialization.events.MessageReceivedEvent.parseOrThrow(payload);
     // access typed fields
     console.log(event.message.subject);
     console.log(event.thread.messageCount);
   } else if (eventType === "message.sent") {
-    const event = await serialization.events.MessageSentEvent.parse(payload);
+    const event = await serialization.events.MessageSentEvent.parseOrThrow(payload);
     console.log(event.send.recipients);
   } else if (eventType === "message.bounced") {
-    const event = await serialization.events.MessageBouncedEvent.parse(payload);
+    const event = await serialization.events.MessageBouncedEvent.parseOrThrow(payload);
     console.log(event.bounce.type);
   } else if (eventType === "message.delivered") {
-    const event = await serialization.events.MessageDeliveredEvent.parse(payload);
+    const event = await serialization.events.MessageDeliveredEvent.parseOrThrow(payload);
     console.log(event.delivery.recipients);
   } else if (eventType === "message.complained") {
-    const event = await serialization.events.MessageComplainedEvent.parse(payload);
+    const event = await serialization.events.MessageComplainedEvent.parseOrThrow(payload);
     console.log(event.complaint.type);
   } else if (eventType === "message.rejected") {
-    const event = await serialization.events.MessageRejectedEvent.parse(payload);
+    const event = await serialization.events.MessageRejectedEvent.parseOrThrow(payload);
     console.log(event.reject.reason);
   } else if (eventType === "message.opened") {
-    const event = await serialization.events.MessageOpenedEvent.parse(payload);
+    const event = await serialization.events.MessageOpenedEvent.parseOrThrow(payload);
     console.log(event.open.messageId, event.open.timestamp);
   } else if (eventType === "message.security.completed") {
-    const event = await serialization.events.MessageSecurityCompletedEvent.parse(payload);
+    const event = await serialization.events.MessageSecurityCompletedEvent.parseOrThrow(payload);
     console.log(event.message.messageId, event.message.agentArmor.verdict);
+  } else if (eventType === "message.security.review") {
+    const event = await serialization.events.MessageSecurityReviewEvent.parseOrThrow(payload);
+    console.log("held for review:", event.message.messageId);
+  } else if (eventType === "message.security.override") {
+    const event = await serialization.events.MessageSecurityOverrideEvent.parseOrThrow(payload);
+    console.log("released:", event.message.messageId, event.message.manualOverride.reason);
   } else if (eventType === "domain.verified") {
-    const event = await serialization.events.DomainVerifiedEvent.parse(payload);
+    const event = await serialization.events.DomainVerifiedEvent.parseOrThrow(payload);
     console.log(event.domain.status);
   }
 }
@@ -77,6 +83,8 @@ from agentmail import (
     MessageRejectedEvent,
     MessageOpenedEvent,
     MessageSecurityCompletedEvent,
+    MessageSecurityReviewEvent,
+    MessageSecurityOverrideEvent,
     DomainVerifiedEvent,
 )
 
@@ -115,6 +123,12 @@ def handle_webhook(payload: dict):
     elif event_type == "message.security.completed":
         event = MessageSecurityCompletedEvent(**payload)
         print(event.message.message_id, event.message.agent_armor.verdict)
+    elif event_type == "message.security.review":
+        event = MessageSecurityReviewEvent(**payload)
+        print("held for review:", event.message.message_id)
+    elif event_type == "message.security.override":
+        event = MessageSecurityOverrideEvent(**payload)
+        print("released:", event.message.message_id, event.message.manual_override.reason)
     elif event_type == "domain.verified":
         event = DomainVerifiedEvent(**payload)
         print(event.domain.status)
@@ -134,7 +148,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   MessageSentEvent (send), MessageBouncedEvent (bounce), MessageDeliveredEvent (delivery), MessageComplainedEvent (complaint),
   MessageRejectedEvent (reject), MessageOpenedEvent (open), MessageSecurityCompletedEvent (message), DomainVerifiedEvent (domain).
   Only message.received* includes full message+thread; others have send/delivery/bounce/complaint/reject/domain.
-  message.security.completed carries message ids + agent_armor (no content) and needs message_read.
+  message.security.completed (Agent Armor Monitor mode only) carries message ids + agent_armor (no content) and needs message_read.
+  message.security.review (Agent Armor hold mode held the message) carries the same; message.security.override (someone released it; may arrive before its message.received) carries ids + manual_override. Both need message_read.
   calendar.event.* (created, updated, deleted, responded, starting, ending) carry inbox_id and calendar_event; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
   Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
   message.received.unauthenticated must be explicitly included in event_types.
@@ -142,7 +157,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   from agentmail import (
     MessageReceivedEvent,
     MessageSentEvent, MessageBouncedEvent,
-    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, MessageSecurityCompletedEvent, DomainVerifiedEvent,
+    MessageDeliveredEvent, MessageComplainedEvent, MessageRejectedEvent, MessageOpenedEvent, MessageSecurityCompletedEvent,
+    MessageSecurityReviewEvent, MessageSecurityOverrideEvent, DomainVerifiedEvent,
   )
 
   def handle(payload: dict):
@@ -155,6 +171,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
     elif t == "message.rejected": e = MessageRejectedEvent(**payload); print(e.reject.reason)
     elif t == "message.opened": e = MessageOpenedEvent(**payload); print(e.open.message_id, e.open.timestamp)
     elif t == "message.security.completed": e = MessageSecurityCompletedEvent(**payload); print(e.message.message_id, e.message.agent_armor.verdict)
+    elif t == "message.security.review": e = MessageSecurityReviewEvent(**payload); print("held:", e.message.message_id)
+    elif t == "message.security.override": e = MessageSecurityOverrideEvent(**payload); print("released:", e.message.message_id, e.message.manual_override.reason)
     elif t == "domain.verified": e = DomainVerifiedEvent(**payload); print(e.domain.status)
   ```
 
@@ -162,10 +180,11 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   /**
    * AgentMail Webhook Events — copy into Cursor/Claude.
    *
-   * Parse with serialization.events.<EventType>.parse(payload).
+   * Parse with serialization.events.<EventType>.parseOrThrow(payload).
    * message.received, message.received.spam, message.received.blocked, message.received.unauthenticated → MessageReceivedEvent.
    * Only message.received* has message+thread; others have send/delivery/bounce/complaint/reject/domain.
-   * message.security.completed → MessageSecurityCompletedEvent: message carries ids + agentArmor (no content); needs message_read.
+   * message.security.completed → MessageSecurityCompletedEvent (Agent Armor Monitor mode only): message carries ids + agentArmor (no content); needs message_read.
+   * message.security.review → MessageSecurityReviewEvent (Agent Armor hold mode held it; same shape); message.security.override → MessageSecurityOverrideEvent (ids + manualOverride; may arrive before its message.received). Both need message_read.
    * calendar.event.* (created, updated, deleted, responded, starting, ending) carry inboxId and calendarEvent; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
    * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
    * message.received.unauthenticated must be explicitly included in eventTypes.
@@ -181,31 +200,37 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
       "message.received.unauthenticated",
     ];
     if (receivedEventTypes.includes(String(t))) {
-      const e = await serialization.events.MessageReceivedEvent.parse(payload);
+      const e = await serialization.events.MessageReceivedEvent.parseOrThrow(payload);
       console.log(e.message.subject, e.thread.messageCount);
     } else if (t === "message.sent") {
-      const e = await serialization.events.MessageSentEvent.parse(payload);
+      const e = await serialization.events.MessageSentEvent.parseOrThrow(payload);
       console.log(e.send.recipients);
     } else if (t === "message.bounced") {
-      const e = await serialization.events.MessageBouncedEvent.parse(payload);
+      const e = await serialization.events.MessageBouncedEvent.parseOrThrow(payload);
       console.log(e.bounce.type);
     } else if (t === "message.delivered") {
-      const e = await serialization.events.MessageDeliveredEvent.parse(payload);
+      const e = await serialization.events.MessageDeliveredEvent.parseOrThrow(payload);
       console.log(e.delivery);
     } else if (t === "message.complained") {
-      const e = await serialization.events.MessageComplainedEvent.parse(payload);
+      const e = await serialization.events.MessageComplainedEvent.parseOrThrow(payload);
       console.log(e.complaint);
     } else if (t === "message.opened") {
-      const e = await serialization.events.MessageOpenedEvent.parse(payload);
+      const e = await serialization.events.MessageOpenedEvent.parseOrThrow(payload);
       console.log(e.open.messageId, e.open.timestamp);
     } else if (t === "message.security.completed") {
-      const e = await serialization.events.MessageSecurityCompletedEvent.parse(payload);
+      const e = await serialization.events.MessageSecurityCompletedEvent.parseOrThrow(payload);
       console.log(e.message.messageId, e.message.agentArmor.verdict);
+    } else if (t === "message.security.review") {
+      const e = await serialization.events.MessageSecurityReviewEvent.parseOrThrow(payload);
+      console.log("held:", e.message.messageId);
+    } else if (t === "message.security.override") {
+      const e = await serialization.events.MessageSecurityOverrideEvent.parseOrThrow(payload);
+      console.log("released:", e.message.messageId, e.message.manualOverride.reason);
     } else if (t === "message.rejected") {
-      const e = await serialization.events.MessageRejectedEvent.parse(payload);
+      const e = await serialization.events.MessageRejectedEvent.parseOrThrow(payload);
       console.log(e.reject);
     } else if (t === "domain.verified") {
-      const e = await serialization.events.DomainVerifiedEvent.parse(payload);
+      const e = await serialization.events.DomainVerifiedEvent.parseOrThrow(payload);
       console.log(e.domain);
     }
   }
@@ -609,7 +634,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 
 ### `message.security.completed`
 
-- **Description:** Triggered when [Agent Armor](/agent-armor) reaches a verdict on a received message. Sent only for `complete` results, only to organizations that turned Agent Armor on, and to webhooks that list it in `event_types`.
+- **Description:** Triggered when [Agent Armor](/agent-armor) reaches a verdict on a received message. Sent only for `complete` results, only to organizations that run Agent Armor in Monitor mode, and to webhooks that list it in `event_types`.
 - **Use Case:** Hold a message back from your agent until its verdict is in, and route `review` verdicts to a person.
 
 <CodeGroup>
@@ -637,6 +662,71 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 <Note>
   The event carries no message content: fetch the message for it. It is not sent for messages
   labeled `spam`, `blocked`, `unauthenticated` or `trash`, and requires permission to read messages.
+</Note>
+
+### `message.security.review`
+
+- **Description:** Triggered when [Agent Armor](/agent-armor#hold-mode) in Hold mode holds a received message for review. Its `message.received` is not sent until someone releases it.
+- **Use Case:** Alert a person to check the message, then release it.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.security.review",
+  "event_id": "8d2f4b6a-1c3e-5a7b-9d0f-2e4c6a8b0d1f",
+  "message": {
+    "organization_id": "7f0c2a52-6a8e-4d0e-9a5e-2f3b1c4d5e6f",
+    "inbox_id": "inbox_456def",
+    "message_id": "<abc123@agentmail.to>",
+    "agent_armor": {
+      "status": "complete",
+      "verdict": "review",
+      "reason": "The message asks the agent to ignore its instructions and send account details to an outside address.",
+      "model": "armor-2026-10-07",
+      "completed_at": "2023-10-27T10:00:04Z"
+    }
+  }
+}
+```
+</CodeGroup>
+
+<Note>
+  The event carries no message content, requires permission to read messages, and is not sent for
+  messages labeled `spam`, `blocked`, `unauthenticated` or `trash`. List held mail by the
+  `agent-armor-held` label to see all of it.
+</Note>
+
+### `message.security.override`
+
+- **Description:** Triggered when someone releases a message Agent Armor held for review. Its `message.received` is sent as well, and the two can arrive in either order.
+- **Use Case:** Record who released held mail, when and why.
+
+<CodeGroup>
+```json
+{
+  "type": "event",
+  "event_type": "message.security.override",
+  "event_id": "c4f1a2b3-7d6e-5f40-9a8b-1c2d3e4f5a6b",
+  "message": {
+    "organization_id": "7f0c2a52-6a8e-4d0e-9a5e-2f3b1c4d5e6f",
+    "inbox_id": "inbox_456def",
+    "message_id": "<abc123@agentmail.to>",
+    "manual_override": {
+      "override_id": "c4f1a2b3-7d6e-5f40-9a8b-1c2d3e4f5a6b",
+      "actor": { "kind": "console" },
+      "reason": "Known vendor; the payment details were confirmed by phone.",
+      "original_verdict": "review",
+      "released_at": "2023-10-27T10:20:00Z"
+    }
+  }
+}
+```
+</CodeGroup>
+
+<Note>
+  The event carries no message content, requires permission to read messages, and is not sent for
+  messages labeled `spam`, `blocked`, `unauthenticated` or `trash`.
 </Note>
 
 ## Domain Events
