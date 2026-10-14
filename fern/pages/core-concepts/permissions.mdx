@@ -190,6 +190,17 @@ Threads are groupings of messages and have no permissions of their own. Every th
 
 Calendar is in AgentMail Labs; see [Calendar](/calendar).
 
+### Agent Drive
+
+| Permission | Description |
+| --- | --- |
+| `file_read` | List and get files, with their download URLs |
+| `file_create` | Upload files (Create File and Complete File) |
+| `file_update` | Update files. Reserved; no endpoint uses it yet |
+| `file_delete` | Delete files |
+
+Agent Drive is in AgentMail Labs; see [Agent Drive](/drive).
+
 ## Code Examples
 
 ### Read-only key
@@ -465,6 +476,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
     Apps: app_connect, app_share_owner, account_update
     Pods: pod_read, pod_create, pod_update, pod_delete
     Calendar: calendar_read, calendar_update, calendar_event_read, calendar_event_create, calendar_event_update, calendar_event_delete
+    Agent Drive: file_read, file_create, file_update, file_delete
 
   Threads have no permissions of their own: thread reads use message_read,
   thread label updates use message_update, and thread deletes use message_delete.

@@ -1,0 +1,141 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: __package__.yml
+  inboxes: inboxes/__package__.yml
+
+types:
+  FileId:
+    type: string
+    docs: ID of the file. A UUID.
+
+  FilePath:
+    type: string
+    docs: |
+      Where the file lives in its inbox's drive, such as `reports/q3.pdf`. Unique within the inbox. Segments are
+      separated by `/`, with no leading or trailing `/`, no empty, `.` or `..` segment, no `\` and no control or
+      invisible characters. At most 1,024 bytes, and at most 255 bytes per segment. Stored in Unicode NFC, so two
+      spellings of one name are one path. Case is kept.
+
+  FileName:
+    type: string
+    docs: The path's last segment. A download saves under this name.
+
+  FileSize:
+    type: integer
+    docs: Size of the file in bytes. At most 104,857,600 (100 MiB).
+
+  FileSha256:
+    type: string
+    docs: |
+      The base64 encoding of the file's 32-byte SHA-256 digest, as S3's `x-amz-checksum-sha256` takes it (44
+      characters, ending in `=`). S3 refuses an upload whose bytes don't match.
+
+  FileContentType:
+    type: string
+    docs: The file's MIME type, such as `application/pdf`. Defaults to `application/octet-stream`.
+
+  FileStatus:
+    docs: |
+      `pending` until its bytes are uploaded and the upload is completed, then `ready`. Only a `ready` file has a
+      download URL. A pending file is deleted if it isn't completed within a day.
+    enum:
+      - pending
+      - ready
+
+  FileExpiresAt:
+    type: datetime
+    docs: |
+      When the file expires. After it, the file is gone from get and list and its path is free; its bytes are
+      deleted soon after. Absent for a file that never expires.
+
+  FileItem:
+    docs: A file, as a list returns it.
+    properties:
+      file_id: FileId
+      inbox_id: inboxes.InboxId
+      email: inboxes.Email
+      path: FilePath
+      name: FileName
+      size: FileSize
+      content_type: FileContentType
+      sha256: FileSha256
+      status: FileStatus
+      created_at:
+        type: datetime
+        docs: When the file was created.
+      updated_at:
+        type: datetime
+        docs: When the file last changed, such as when its upload was completed.
+      expires_at: optional<FileExpiresAt>
+
+  File:
+    docs: |
+      A file. A `ready` file returned to a caller with the `file_read` permission carries a signed `download_url`.
+    extends: FileItem
+    properties:
+      download_url:
+        type: optional<string>
+        docs: |
+          A signed URL that downloads the file's bytes, named by `name`. No API key is needed to use it, so treat it
+          as a secret. It works until `download_expires_at`, at most an hour, even after the file is deleted. Get the
+          file again for a fresh one.
+      download_expires_at:
+        type: optional<datetime>
+        docs: When `download_url` stops working. Never after the file's own expiry.
+
+  FileUpload:
+    docs: |
+      Where to upload a pending file's bytes: one HTTP `PUT` to `url` with exactly `headers` and the file's bytes as
+      the body. Every header is signed, so S3 refuses the upload if any is missing or different, and refuses bytes
+      whose size or SHA-256 doesn't match the file. Then call Complete File.
+    properties:
+      method:
+        type: literal<"PUT">
+        docs: Always `PUT`.
+      url:
+        type: string
+        docs: The presigned S3 URL. No API key is needed to use it.
+      headers:
+        type: map<string, string>
+        docs: The headers to send with the `PUT`, exactly as given.
+      expires_at:
+        type: datetime
+        docs: When `url` stops working, at most an hour after it was issued. Send the identical create request again for a fresh one.
+
+  CreateFileRequest:
+    properties:
+      path: FilePath
+      size: FileSize
+      sha256: FileSha256
+      content_type: optional<FileContentType>
+      expires_at:
+        type: optional<FileExpiresAt>
+        docs: |
+          When the file expires, in the future. Rounded up to a whole second and returned in UTC. On a retry, send
+          the `expires_at` the first response returned.
+
+  CreateFileResponse:
+    docs: |
+      The created file. A pending file carries `upload`; a create that returns an existing `ready` file does not.
+    extends: File
+    properties:
+      upload: optional<FileUpload>
+
+  ListFilesResponse:
+    properties:
+      count: global.Count
+      limit: global.Limit
+      next_page_token: optional<global.PageToken>
+      files:
+        type: list<FileItem>
+        docs: The inbox's files in path order. A list has no download URLs; get a file for one.
+
+errors:
+  FileForbiddenError:
+    status-code: 403
+    type: global.ErrorResponse
+    docs: |
+      The organization hasn't joined AgentMail Labs, the API key lacks the file permission the endpoint needs, the
+      organization, pod or inbox is suspended, or (for Create File) the file doesn't fit the organization's Drive
+      quota, with code `limit_exceeded`.

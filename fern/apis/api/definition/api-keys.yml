@@ -289,6 +289,18 @@ types:
       calendar_event_delete:
         type: optional<boolean>
         docs: Delete calendar events.
+      file_read:
+        type: optional<boolean>
+        docs: List and get Agent Drive files, with their download URLs.
+      file_create:
+        type: optional<boolean>
+        docs: Upload Agent Drive files (Create File and Complete File).
+      file_update:
+        type: optional<boolean>
+        docs: Update Agent Drive files. Reserved; no endpoint uses it yet.
+      file_delete:
+        type: optional<boolean>
+        docs: Delete Agent Drive files.
 
   BearerApiKey:
     docs: An API key presented as a bearer token in the `Authorization` header.
