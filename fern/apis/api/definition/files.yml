@@ -136,6 +136,9 @@ errors:
     status-code: 403
     type: global.ErrorResponse
     docs: |
-      The organization hasn't joined AgentMail Labs, the API key lacks the file permission the endpoint needs, the
-      organization, pod or inbox is suspended, or (for Create File) the file doesn't fit the organization's Drive
-      quota, with code `limit_exceeded`.
+      `code` says why: `forbidden` when the organization hasn't joined AgentMail Labs; `missing_permission` when the
+      credential lacks the file permission the endpoint needs, including `file_create` in an organization that hasn't
+      completed agent verification, and every file permission for an organization- or pod-scoped key under a
+      content-access policy; `account_suspended`, `pod_suspended` or `inbox_suspended` when the organization, pod or
+      inbox is suspended; and, for Create File only, `limit_exceeded` when the file doesn't fit the organization's
+      Drive quota.

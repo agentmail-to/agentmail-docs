@@ -1029,6 +1029,34 @@ paths:
       - inboxes
       - calendar
       x-fern-sdk-method-name: respond-to-event
+  /v0/inboxes/{inbox_id}/files:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - files
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - files
+      x-fern-sdk-method-name: create
+  /v0/inboxes/{inbox_id}/files/{file_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - files
+      x-fern-sdk-method-name: get
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - files
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/files/{file_id}/complete:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - files
+      x-fern-sdk-method-name: complete
   /v0/inboxes/{inbox_id}/webhooks/polling:
     get:
       x-fern-sdk-group-name:

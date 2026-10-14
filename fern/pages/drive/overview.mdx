@@ -60,6 +60,11 @@ A key with `file_create` but not `file_read` can upload files but never read the
 only files it created itself, and a create at a path another key's file holds returns a plain `409`, so it can't
 learn anything about files it didn't create.
 
+An organization created through [agent sign-up](/agent-onboarding) can't upload until it completes
+[agent verification](/permissions#agent-verification): until then, no key has `file_create`. In an organization with a
+content-access policy, organization- and pod-scoped keys have no file permissions, so only inbox-scoped keys can use
+Agent Drive.
+
 ## Upload a file
 
 An upload is three calls:
@@ -68,7 +73,7 @@ An upload is three calls:
    pending file with an `upload`: a URL and the exact headers to send.
 2. **`PUT` the bytes** to `upload.url` with every header in `upload.headers`. Storage checks the size and the SHA-256
    and refuses bytes that don't match.
-3. **Complete File.** The file is now `ready`, and the response has its `download_url`.
+3. **Complete File.** The file is now `ready`, and for a key with `file_read` the response has its `download_url`.
 
 <CodeBlocks>
 ```python title="Python"
@@ -140,6 +145,9 @@ A different request at a path whose file is still pending and has no bytes repla
 went wrong never holds its path. At any other taken path, Create File returns `409`. Delete the file first, or pick
 another path.
 
+The `PUT` can't overwrite bytes already stored: a retried `PUT` whose first attempt landed returns `412`. A `412` means
+the upload succeeded, so call Complete File (or resend the identical create) instead of starting over.
+
 Complete File is safe to retry too: on a file that is already `ready`, it returns the file.
 
 ## Download a file
@@ -185,8 +193,9 @@ for (const file of page.files) {
 </CodeBlocks>
 
 A page holds up to `limit` files (100 by default, at most 500). When there are more, the response has a
-`next_page_token`; pass it as `page_token` with the same `path_prefix` for the next page. `ascending=false` lists in
-reverse path order.
+`next_page_token`; pass it as `page_token` with the same `path_prefix` and `ascending` for the next page, in the same
+inbox. A token reused with other parameters isn't always refused, and can resume at the wrong place.
+`ascending=false` lists in reverse path order.
 
 ## Delete a file
 
@@ -219,7 +228,8 @@ the message says which limit it hit. To free space:
 
 - Delete files you no longer need, including pending uploads you won't finish. A deleted file's space comes back
   within seconds.
-- Expired files no longer count.
+- Expired files count until a create needs their space: a create that doesn't fit first gives back what expired
+  files hold, a batch at a time, so retry a refusal while many expired files remain.
 
 To raise your organization's limits, email [support@agentmail.to](mailto:support@agentmail.to).
 
@@ -236,7 +246,7 @@ To raise your organization's limits, email [support@agentmail.to](mailto:support
 
 | Status | When |
 | --- | --- |
-| `400` | The request is invalid: a bad path, size, `sha256` or `expires_at`, or a `page_token` from another list. |
+| `400` | The request is invalid: a bad path, size, `sha256` or `expires_at`, or a `page_token` that is malformed or doesn't fit `path_prefix`. |
 | `403` | The organization hasn't joined Labs, the key lacks the permission, the organization, pod or inbox is suspended, or the file doesn't fit the quota (`limit_exceeded`). |
 | `404` | The inbox or the file doesn't exist, has expired, or isn't one the key may act on. |
 | `409` | Create File: the path holds another file. Complete File: the bytes aren't uploaded yet, or don't match the file. |
