@@ -5,6 +5,7 @@ imports:
   inboxes: inboxes/__package__.yml
   threads: threads.yml
   attachments: attachments.yml
+  agentArmor: agent-armor.yml
 
 types:
   MessageId:
@@ -86,33 +87,72 @@ types:
       - permerror
     docs: |
       Result of one email authentication mechanism, in the vocabulary of the
-      `Authentication-Results` header (RFC 8601). `none` means SES found nothing to evaluate (SES
-      calls this GRAY): no SPF record for the envelope MAIL FROM domain, no DKIM signature aligned
-      with the From domain, or no DMARC record for the From domain.
+      `Authentication-Results` header (RFC 8601). `none` means there was nothing to evaluate
+      (Amazon SES calls this GRAY): no SPF record for the envelope MAIL FROM domain, no DKIM
+      signature to check, or no DMARC record for the From domain.
+
+  MessageAuthenticationDomain:
+    type: string
+    docs: |
+      The domain an authentication verdict is about, lowercase. Present only beside its verdict:
+      when the verdict is withheld, so is the domain.
 
   MessageAuthenticationResults:
     docs: |
-      Per-mechanism SPF, DKIM, and DMARC verdicts that Amazon SES computed when the message reached
-      AgentMail, kept only where they speak for the sender's From identity. SPF authenticates the
-      envelope MAIL FROM (Return-Path) domain, so `spf` is present only when that domain exactly
-      matches the sender's domain (the From mailbox, or the Sender header when From spans
-      domains); an unaligned SPF result is withheld whatever its value. `dkim` and `dmarc` are
-      withheld when the From list spans more than one domain or could not be fully parsed. A
-      verdict SES could not compute is absent, so the field can be `{}`. The field is absent on
-      sent messages and on messages received before 2026-09-09.
+      Per-mechanism SPF, DKIM, and DMARC verdicts for a received message, each with the domain it
+      is about, kept only where they speak for the sender's From identity. A verdict that could
+      not be computed is absent, so the field can be `{}`. The field is absent on sent messages
+      and on messages received before 2026-09-09; the `*_domain` and `arc_sealer` keys appear on
+      messages received after they were introduced.
+
+      The verdicts are the ones Amazon SES computed when the message reached AgentMail, with one
+      exception. Forwarded mail fails DMARC at the receiving hop by construction. When AgentMail
+      delivers a forwarded message as authenticated because a trusted forwarder (such as Google or
+      Microsoft) sealed a valid ARC chain vouching for the original, the field reports the
+      verdicts that forwarder recorded for the original message, and `arc_sealer` names it.
+
+      - `spf` is about the envelope MAIL FROM (Return-Path) domain, named in `spf_domain`. It is
+        present only when that domain is aligned with the sender's domain (the From mailbox, or
+        the Sender header when From spans domains), meaning the two share an organizational
+        domain: `mail.example.com` is aligned with `example.com`. An unaligned SPF result is
+        withheld whatever its value.
+      - `dkim` is the DKIM verdict, and `dkim_domain` the signing domain (the `d=` tag). On
+        directly received mail the domain is named only when every DKIM signature on the message
+        is from the same domain; a message signed by more than one domain (a sender and its email
+        provider, for instance) keeps the verdict and omits the domain. `dkim_domain` is the
+        signing domain as written, so compare it with the From domain before relying on it.
+      - `dmarc` is the DMARC verdict for the From domain, named in `dmarc_domain`.
+      - `dkim` and `dmarc` are withheld when the From list spans more than one domain or could not
+        be fully parsed.
+      - On forwarded mail each sealed verdict is reported only when the domain the forwarder
+        recorded it for matches the message's current From domain. If the forwarder rewrote From,
+        or vouched for nothing, the field is `{}`.
 
       The `unauthenticated` label, not this field, is AgentMail's acceptance decision, and it uses
-      a looser rule, so the two can disagree. Forwarded mail accepted through a valid ARC chain is
-      delivered without the label while `dkim` and `dmarc` usually read `fail`, because they are
-      evaluated against the original sender's domain and forwarding broke the signature, and `spf`
-      is withheld because the forwarder's envelope is unaligned. A single-From message whose only
-      pass is an unaligned envelope SPF is delivered without the label while this field shows no
-      pass. Use the label to tell whether AgentMail accepted the message as legitimate, use this
-      field for per-mechanism detail, and do not reject mail on `dmarc: fail` alone.
+      a looser rule, so the two can disagree: a single-From message whose only pass is an
+      unaligned envelope SPF is delivered without the label while this field shows no pass. Use
+      the label to tell whether AgentMail accepted the message as legitimate, and this field to
+      see which domain each mechanism authenticated. Do not reject mail on `dmarc: fail` alone.
     properties:
       spf: optional<MessageAuthenticationVerdict>
       dkim: optional<MessageAuthenticationVerdict>
       dmarc: optional<MessageAuthenticationVerdict>
+      spf_domain:
+        type: optional<MessageAuthenticationDomain>
+        docs: Envelope MAIL FROM domain the `spf` verdict is about (`smtp.mailfrom`).
+      dkim_domain:
+        type: optional<MessageAuthenticationDomain>
+        docs: |
+          Signing domain the `dkim` verdict is about (`header.d`). Present only when `dkim` is
+          `pass` or `fail`.
+      dmarc_domain:
+        type: optional<MessageAuthenticationDomain>
+        docs: From domain the `dmarc` verdict is about (`header.from`).
+      arc_sealer:
+        type: optional<MessageAuthenticationDomain>
+        docs: |
+          Domain of the trusted forwarder whose ARC seal the verdicts were taken from, such as
+          `google.com`. Present only on forwarded mail, and only beside at least one verdict.
 
   MessageSize:
     type: integer
