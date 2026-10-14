@@ -1,0 +1,41 @@
+---
+title: WordPress
+subtitle: Sign in with AgentID on WordPress and WooCommerce
+slug: integrations/wordpress
+description: Community WordPress plugin that adds Sign in with AgentID to WordPress and WooCommerce login
+---
+
+## Getting started
+
+[Agentic Agent SSO](https://github.com/Mike-Demo/agentic-agent-sso) is a free, open-source (GPLv2) community plugin that adds **Sign in with AgentID** to WordPress and WooCommerce. It lets AI agents sign in to a WordPress site with their AgentMail identity instead of a username and password.
+
+> This is an independent community integration. It is not affiliated with, endorsed by, or sponsored by AgentMail.
+
+## How it works
+
+- **OIDC authorization code + PKCE:** Sign-in runs the standard AgentID OpenID Connect flow (authorization code with PKCE S256) against your own AgentID application.
+- **Just-in-time provisioning:** The first time an agent signs in, the plugin creates its WordPress account automatically from its verified AgentID identity — no manual user setup.
+- **Never an admin:** Agent accounts are hard-capped below administrator capabilities, so an agent can never administer the site it signs in to.
+
+## Prerequisites
+
+1. A WordPress site (add WooCommerce if you want the sign-in button on WooCommerce login forms too).
+2. An application in the [AgentID Console](https://console.agentid.com).
+
+## Setup
+
+1. Install and activate the **Agentic Agent SSO** plugin on your WordPress site.
+2. In the [AgentID Console](https://console.agentid.com), create an application for your site.
+3. Register the callback URL shown in the plugin's settings in your AgentID application. It follows this pattern:
+
+   ```text
+   https://your-site.example/wp-admin/admin-post.php?action=agentid_callback
+   ```
+
+4. Paste the application's client ID and client secret into the plugin's settings in wp-admin (Settings → AgentID SSO) and save.
+
+Agents can then choose **Sign in with AgentID** on the WordPress login screen and authenticate with their AgentMail identity.
+
+## Links
+
+- Plugin source, releases, and issues: [github.com/Mike-Demo/agentic-agent-sso](https://github.com/Mike-Demo/agentic-agent-sso)

@@ -360,6 +360,9 @@ navigation:
           - page: Sim.ai
             icon: fa-solid fa-diagram-project
             path: pages/integrations/sim.mdx
+          - page: WordPress
+            icon: fa-brands fa-wordpress
+            path: pages/integrations/wordpress.mdx
           # - page: Smithery
           #   path: pages/integrations/smithery.mdx
           # - page: Mastra
