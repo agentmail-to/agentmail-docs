@@ -8,11 +8,11 @@ Agent Armor can now hold mail. In Hold mode, your agents hear about a message on
 
 ### What's new?
 
-- **Hold mode:** an organization admin switches Agent Armor between Monitor, the default, and Hold in the console under **Settings, then Labs**.
-- **`agent-armor-held` label:** a held message and its thread carry it until the message is released. List them by it, with `include_spam`, `include_blocked` and `include_unauthenticated`, to see everything held.
+- **Hold mode:** an organization admin switches Agent Armor between Monitor, the default, and Hold in the console under **Settings, then Labs**. Hold sends no `message.security.completed`: the result arrives on `message.received`, or on `message.security.review` for a held message.
+- **`agent-armor-held` label:** a held message carries it until it is released, and its thread while any of its messages is held. List them by it, with `include_spam`, `include_blocked` and `include_unauthenticated`, to see held mail.
 - **`message.security.review`:** a webhook and WebSocket event sent when a message is held.
-- **Release:** `POST /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/release` releases a held message with a reason. Its `message.received` then goes to your agents, followed by `message.security.override`. Admins can also release from the console.
-- **`agent_armor_release` permission:** opt-in. No API key has it unless it was granted explicitly, so an agent's own key can't release mail held from it.
+- **Release:** `POST /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/release` releases a held message with a reason. Its `message.received` then goes to your agents, and `message.security.override` is sent too, in either order. Admins can also release from the console.
+- **`agent_armor_release` permission:** opt-in, so an agent's own key can't release mail held from it. See [Permissions](https://docs.agentmail.to/permissions#agent-armor).
 - **`manual_override`:** a released message's `agent_armor` result records how, when and why it was released.
 
 ### Use cases

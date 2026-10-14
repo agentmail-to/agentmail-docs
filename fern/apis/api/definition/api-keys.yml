@@ -167,9 +167,8 @@ types:
       agent_armor_release:
         type: optional<boolean>
         docs: |
-          Release mail Agent Armor holds for review. Opt-in: no key has it unless it was granted explicitly, a key
-          without a `permissions` object included. An organization admin grants it in the console; a key that holds it
-          can grant it to keys it creates.
+          Release mail Agent Armor holds for review. Opt-in: no key has it unless it was granted explicitly, even one
+          without a `permissions` object. See [Permissions](/permissions#agent-armor).
       label_spam_read:
         type: optional<boolean>
         docs: Access messages labeled spam.

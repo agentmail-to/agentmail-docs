@@ -302,7 +302,9 @@ socket.sendSubscribe({
 | `message_complained` | `MessageComplainedEvent` | `AgentMail.MessageComplainedEvent` | Email marked as spam |
 | `message_rejected` | `MessageRejectedEvent` | `AgentMail.MessageRejectedEvent` | Email was rejected |
 | `message_opened` | `MessageOpenedEvent` | `AgentMail.MessageOpenedEvent` | Tracked email was opened for the first time |
-| `message_security_completed` | `MessageSecurityCompletedEvent` | `AgentMail.MessageSecurityCompletedEvent` | [Agent Armor](/agent-armor) finished scanning a received message |
+| `message_security_completed` | `MessageSecurityCompletedEvent` | `AgentMail.MessageSecurityCompletedEvent` | [Agent Armor](/agent-armor) finished scanning a received message, in Monitor mode |
+| `message_security_review` | `MessageSecurityReviewEvent` | `AgentMail.MessageSecurityReviewEvent` | Agent Armor in [Hold mode](/agent-armor#hold-mode) held a received message for review |
+| `message_security_override` | `MessageSecurityOverrideEvent` | `AgentMail.MessageSecurityOverrideEvent` | Someone released a message Agent Armor held |
 
 ### Domain Events
 

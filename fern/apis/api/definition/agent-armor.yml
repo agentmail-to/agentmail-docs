@@ -57,7 +57,7 @@ types:
       unavailable_reason: AgentArmorUnavailableReason
 
   AgentArmorCompletedEventResult:
-    docs: The result in a `message.security.completed` event, which is always `complete`.
+    docs: The result in a `message.security.completed` or `message.security.review` event, which is always `complete`.
     extends: AgentArmorCompleteResult
     properties:
       status: literal<"complete">
@@ -95,7 +95,7 @@ types:
     properties:
       override_id:
         type: string
-        docs: ID of the release.
+        docs: ID of the release, and the `event_id` of its `message.security.override` event.
       actor: AgentArmorReleaseActor
       reason:
         type: string
@@ -111,7 +111,7 @@ types:
     properties:
       reason:
         type: string
-        docs: Why the message is safe to release, up to 2,048 characters. Recorded on the message.
+        docs: Why the message is safe to release, up to 2,048 characters and not blank. Recorded on the message.
 
   ReleaseAgentArmorMessageResponse:
     properties:
