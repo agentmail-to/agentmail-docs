@@ -65,5 +65,8 @@
     "pod_create",
     "pod_update",
     "pod_delete"
+  ],
+  "opt_in": [
+    "agent_armor_release"
   ]
 }
