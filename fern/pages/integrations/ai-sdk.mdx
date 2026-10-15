@@ -1,0 +1,174 @@
+---
+title: Vercel AI SDK
+subtitle: Give your Vercel AI SDK agent its own email inbox
+slug: integrations/ai-sdk
+description: Give a Vercel AI SDK agent its own email inbox. The agentmail-toolkit package exposes the AgentMail API as AI SDK tools for generateText, streamText, and ToolLoopAgent.
+---
+
+## Getting started
+
+The [Vercel AI SDK](https://ai-sdk.dev) is the most widely used TypeScript toolkit for building AI agents. The [`agentmail-toolkit`](https://www.npmjs.com/package/agentmail-toolkit) package exposes the full AgentMail API as AI SDK tools, so an agent built with `generateText`, `streamText`, or `ToolLoopAgent` can create inboxes, send, receive, reply, search, and manage threaded email with no glue code.
+
+To give your AI SDK agent an email inbox, install `agentmail-toolkit`, import `AgentMailToolkit` from `agentmail-toolkit/ai-sdk`, and pass `new AgentMailToolkit().getTools()` as the `tools` option. The agent can then call `create_inbox` to provision its own address and use the other tools to send and read mail from it.
+
+## Use cases
+
+- **Give agents their own inboxes:** Provision a dedicated email address per agent so it can send and receive mail independently.
+- **Triage and reply:** Read recent threads and reply inside the same thread, with threading handled automatically.
+- **Stage and send:** Compose drafts iteratively and send them when they're ready.
+- **Inbound-driven agents:** Pair the toolkit with [AgentMail webhooks](https://docs.agentmail.to/webhooks-overview) so your agent reacts the moment mail arrives.
+
+## Prerequisites
+
+1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to).
+2. Node.js 18+ and the AI SDK (`ai` v6).
+
+## Setup
+
+Install the toolkit alongside the AI SDK and Zod:
+
+```bash
+npm install agentmail-toolkit ai zod
+```
+
+Set your API key:
+
+```bash
+export AGENTMAIL_API_KEY=your-api-key
+```
+
+## Quickstart
+
+Pass the toolkit's tools to `generateText` and let the agent loop through tool calls:
+
+```typescript title="TypeScript"
+import { generateText, stepCountIs } from 'ai'
+import { AgentMailToolkit } from 'agentmail-toolkit/ai-sdk'
+
+const { text } = await generateText({
+  model: 'anthropic/claude-sonnet-4-5',
+  tools: new AgentMailToolkit().getTools(),
+  stopWhen: stepCountIs(5),
+  prompt:
+    'Create an inbox for yourself, then check it for new messages and reply to anything urgent.',
+})
+
+console.log(text)
+```
+
+<Note>
+Plain model strings such as `'anthropic/claude-sonnet-4-5'` are routed through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway). To call a provider directly instead, pass a model from its AI SDK provider package, for example `openai('gpt-4o')` from `@ai-sdk/openai`.
+</Note>
+
+The same tools work with `streamText` and `ToolLoopAgent`:
+
+```typescript title="TypeScript"
+import { ToolLoopAgent } from 'ai'
+import { AgentMailToolkit } from 'agentmail-toolkit/ai-sdk'
+
+const agent = new ToolLoopAgent({
+  model: 'anthropic/claude-sonnet-4-5',
+  instructions: 'You are an email agent that manages its own AgentMail inbox.',
+  tools: new AgentMailToolkit().getTools(),
+})
+
+const { text } = await agent.generate({
+  prompt: 'Summarize the latest thread in my-agent@agentmail.to.',
+})
+
+console.log(text)
+```
+
+## Configuring the toolkit
+
+### Authentication
+
+`new AgentMailToolkit()` reads `AGENTMAIL_API_KEY` from the environment. For custom configuration, pass your own `AgentMailClient` from the [`agentmail`](https://www.npmjs.com/package/agentmail) SDK:
+
+```typescript title="TypeScript"
+import { AgentMailClient } from 'agentmail'
+import { AgentMailToolkit } from 'agentmail-toolkit/ai-sdk'
+
+const toolkit = new AgentMailToolkit(new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY }))
+```
+
+### Selecting tools
+
+`getTools()` returns an object keyed by tool name, ready for the `tools` option of `generateText`, `streamText`, or `ToolLoopAgent`. Pass an array of names to get only that subset:
+
+```typescript title="TypeScript"
+const tools = new AgentMailToolkit().getTools(['send_message', 'list_messages'])
+```
+
+Production agents should usually pass only the tools they need. A smaller tool set keeps the model focused and limits what it can do, for example leaving out `delete_inbox` and `delete_thread`.
+
+<Tip>
+Tool names are snake_case (`send_message`), but tool parameters are camelCase (`inboxId`, `threadId`). An `inboxId` is the inbox's full email address, such as `my-agent@agentmail.to`.
+</Tip>
+
+### Error handling
+
+A failed tool call throws, which the AI SDK surfaces as a native `tool-error` part. The model can distinguish it from a successful result and decide whether to retry or change course.
+
+## Available tools
+
+The toolkit exposes more than 40 tools covering the AgentMail API. The main ones are below.
+
+### Inboxes
+
+| Tool | Description |
+| --- | --- |
+| `create_inbox` | Create an inbox, optionally choosing the username, domain, display name, and metadata |
+| `list_inboxes` | List the organization's inboxes, newest first, paginated |
+| `search_inboxes` | Find inboxes by address or display name |
+| `get_inbox` | Get one inbox by its `inboxId` |
+| `update_inbox` | Update an inbox's display name or metadata |
+| `delete_inbox` | Permanently delete an inbox and all of its threads, messages, and drafts |
+
+### Messages
+
+| Tool | Description |
+| --- | --- |
+| `send_message` | Send an email from an inbox right away |
+| `reply_to_message` | Reply to a message in its thread, optionally to all original recipients |
+| `forward_message` | Forward a message, with its attachments, to new recipients |
+| `get_message` | Get one message by ID with its full body |
+| `list_messages` | List messages in an inbox, newest first, with previews and labels |
+| `search_messages` | Full-text search over messages in an inbox, ranked by relevance |
+| `update_message` | Add or remove labels on one message, for example to mark it read |
+
+### Threads
+
+| Tool | Description |
+| --- | --- |
+| `list_threads` | List threads in an inbox, most recently received first |
+| `search_threads` | Full-text search over threads in an inbox, ranked by relevance |
+| `get_thread` | Get a thread by ID, including its messages |
+| `update_thread` | Add or remove labels on every message in a thread |
+| `delete_thread` | Permanently delete a thread and all of its messages |
+
+### Drafts
+
+| Tool | Description |
+| --- | --- |
+| `create_draft` | Create a draft, or schedule it for automatic sending with `sendAt` |
+| `update_draft` | Update a draft or reschedule its send time |
+| `send_draft` | Send a draft right away |
+| `list_drafts` | List drafts in an inbox, most recently updated first |
+| `get_draft` | Get a draft by ID, including its content and scheduled send time |
+| `delete_draft` | Permanently delete a draft, canceling its send if scheduled |
+
+### Attachments
+
+| Tool | Description |
+| --- | --- |
+| `get_attachment` | Get an attachment's metadata and download URL, plus extracted text for PDF and DOCX files |
+
+Additional tools cover files, allow and block lists, and the rest of the API. Call `getTools()` and inspect the returned keys for the full list.
+
+## Resources
+
+- **Source code:** [github.com/agentmail-to/agentmail-toolkit](https://github.com/agentmail-to/agentmail-toolkit)
+- **npm:** [npmjs.com/package/agentmail-toolkit](https://www.npmjs.com/package/agentmail-toolkit)
+- **Vercel AI SDK docs:** [ai-sdk.dev](https://ai-sdk.dev)
+- **Other frameworks:** The same package exposes LangChain and MCP bindings through `agentmail-toolkit/langchain` and `agentmail-toolkit/mcp`. See the [MCP integration](https://docs.agentmail.to/integrations/mcp) for a hosted server.

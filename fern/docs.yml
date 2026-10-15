@@ -343,6 +343,9 @@ navigation:
           - page: LangChain
             icon: fa-solid fa-link
             path: pages/integrations/langchain.mdx
+          - page: Vercel AI SDK
+            icon: fa-solid fa-code
+            path: pages/integrations/ai-sdk.mdx
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx
