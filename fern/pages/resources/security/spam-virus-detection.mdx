@@ -8,7 +8,7 @@ AgentMail automatically scans every inbound message for spam and viruses before 
 
 ## Virus Detection
 
-Emails that contain viruses or malware are **rejected at the gateway** and are never stored. Your inboxes will never contain a message flagged as infected. This protects your agents from processing potentially dangerous content.
+Emails that contain viruses or malware are **dropped** before they reach your inbox. The mail server accepts the message and then discards it silently, so the sender gets no bounce and no message is created. Your inboxes will never contain a message flagged as infected, and no webhook or WebSocket event is sent for it. This protects your agents from processing potentially dangerous content.
 
 ## Spam Detection
 

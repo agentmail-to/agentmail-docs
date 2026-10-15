@@ -20,18 +20,19 @@ If you don't want to expose a public URL or set up ngrok, [WebSockets](/websocke
 
 ## Available Events
 
-AgentMail supports nineteen webhook event types. When creating a webhook, you can subscribe to specific events or receive all standard events. See [Webhook Events](/events) for full payload details.
+AgentMail supports twenty webhook event types. When creating a webhook, you list the event types it should receive in `event_types`. The field is required and must name at least one type: there is no "all events" default, and a create request without it returns a `400`. See [Webhook Events](/events) for full payload details.
 
 **Message events:**
 - **`message.received`** — New email received and processed in one of your inboxes
 - **`message.received.spam`** — A message was received and classified as spam (requires `label_spam_read` permission)
 - **`message.received.blocked`** — A message was received and matched a block list entry (requires `label_blocked_read` permission)
-- **`message.received.unauthenticated`** — A message was received without authentication headers, so AgentMail could not verify whether it was authenticated
+- **`message.received.unauthenticated`** — A message was delivered with the `unauthenticated` label: none of SPF, DKIM, or DMARC passed, or DMARC failed under the sender's `none` policy (requires `label_unauthenticated_read` permission)
 - **`message.sent`** — Message successfully sent from your inbox
 - **`message.delivered`** — Delivery confirmed by the recipient's mail server
 - **`message.bounced`** — Message failed to deliver and bounced back
 - **`message.complained`** — Recipient marked your message as spam
 - **`message.rejected`** — Message rejected before send (validation or policy)
+- **`message.opened`** — A tracked message was opened for the first time (requires [open tracking](/knowledge-base/open-tracking))
 - **`message.security.completed`** — [Agent Armor](/agent-armor) reached a verdict on a received message, in Monitor mode (requires `message_read`)
 - **`message.security.review`** — Agent Armor in [Hold mode](/agent-armor#hold-mode) held a received message for review (requires `message_read`)
 - **`message.security.override`** — someone released a message Agent Armor held (requires `message_read`)
@@ -53,12 +54,15 @@ AgentMail supports nineteen webhook event types. When creating a webhook, you ca
 
 ## Updating `event_types` on a webhook
 
-When you [update a webhook](https://docs.agentmail.to/api-reference/webhooks/update-webhook), you can change which events it receives by sending `event_types` on `PATCH`:
+When you [update a webhook](/api-reference/webhooks/update), you can change which events it receives by sending `event_types` on `PATCH`:
 
 - **Non-empty array:** Replaces the webhook's subscribed event types **in full** (same idea as create: you set the whole list, not a diff). If you send only one type, the webhook will only receive that type afterward.
-- **Omitted or empty array:** Leaves the current event types unchanged. You cannot clear all subscriptions by sending an empty list.
+- **Omitted:** Leaves the current event types unchanged.
+- **Empty array:** Rejected with a `400`. To keep the current event types, omit the field instead. A webhook always has at least one event type; to stop all deliveries, set `enabled` to `false` or delete the webhook.
 
-Subscribing to `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` on update still requires the same [label permissions](/core-concepts/permissions) as on create.
+Subscribing to `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` on update still requires the same [label permissions](/permissions) as on create.
+
+Sending `"enabled": true` re-enables a disabled webhook, including one disabled after repeated failed deliveries (see [Retries and disabled endpoints](#retries-and-disabled-endpoints)). Re-enabling needs the read permission for every restricted event type the webhook subscribes to: `label_spam_read`, `label_blocked_read`, or `label_unauthenticated_read` for the received variants, `message_read` for `message.security.*`, and `calendar_event_read` for `calendar.event.*`.
 
 ## Custom delivery headers
 
@@ -103,11 +107,11 @@ The same `headers` create field and `get_headers` / `update_headers` methods are
 By default a webhook is registered at the organization level. You can limit it to a [pod](/core-concepts/pods) or inbox in two ways. Both receive the same events; they differ in who owns the webhook:
 
 - **From the organization endpoint:** pass `pod_ids` or `inbox_ids` when you `webhooks.create` (and add or remove them later with `add_pod_ids` / `add_inbox_ids` on update). The webhook still belongs to the organization, so pod- and inbox-scoped API keys cannot see or change it. Use this when one webhook should cover several pods, or when the pod's own users should not manage it.
-- **From the scoped endpoints:** call `pods.webhooks.create(pod_id, ...)` or `inboxes.webhooks.create(inbox_id, ...)`. The pod or inbox comes from the path, so you don't pass `pod_ids` / `inbox_ids` in the body. A pod-scoped webhook receives events for the whole pod (optionally narrowed to specific inboxes with `inbox_ids`); an inbox-scoped webhook is fixed to that inbox and can only change its `event_types`. The webhook belongs to that pod or inbox.
+- **From the scoped endpoints:** call `pods.webhooks.create(pod_id, ...)` or `inboxes.webhooks.create(inbox_id, ...)`. The pod or inbox comes from the path, so you don't pass `pod_ids` / `inbox_ids` in the body. A pod-scoped webhook receives events for the whole pod (optionally narrowed to specific inboxes with `inbox_ids`); an inbox-scoped webhook is fixed to that inbox: it can change its `event_types` and `enabled`, but not which inboxes or pods it covers. The webhook belongs to that pod or inbox.
 
-The scoped endpoints are the natural fit for [pod- or inbox-scoped API keys](/core-concepts/permissions): such a key can manage only its own webhooks, and a scoped webhook must always keep at least one pod or inbox subscription.
+The scoped endpoints are the natural fit for [pod- or inbox-scoped API keys](/permissions): such a key can manage only its own webhooks, and a scoped webhook must always keep at least one pod or inbox subscription.
 
-A webhook receives an event that matches any of its pods or inboxes. A pod covers every inbox in it, so adding one of that pod's inboxes does not narrow the webhook. To receive only specific inboxes, create the webhook with `inbox_ids` and no pod.
+A webhook receives an event that matches any of its pods or inboxes. A pod covers every inbox in it, so adding one of that pod's inboxes does not narrow the webhook. To receive only specific inboxes, create the webhook with `inbox_ids` and no pod. A webhook can list at most 10 pods and inboxes combined; for example, 6 inboxes and 6 pods is rejected with `limit_exceeded`.
 
 <CodeBlocks>
 ```python title="Python"
@@ -185,7 +189,7 @@ The process is straightforward:
           --event-types message.sent
         ```
         </CodeBlocks>
-        Specify which events to receive; omit `event_types` to subscribe to all standard event types. Spam, blocked, and unauthenticated events must always be explicitly included.
+        `event_types` is required: list every event type the webhook should receive. Spam, blocked, and unauthenticated events must always be explicitly included.
     </Step>
     <Step title="3. AgentMail Sends Events">
         When an event occurs (e.g. a new message is received, a message is delivered, or a domain is verified), AgentMail sends a `POST` request with a JSON payload to your registered URL.
@@ -199,9 +203,16 @@ When AgentMail sends a webhook, the payload includes `event_type` and `event_id`
 
 ### Payload size limit
 
-Webhook payloads are capped at **1 MB**. When a message exceeds this limit, AgentMail omits the `text` and `html` fields from the webhook payload to reduce size. All other metadata is still included. Inline images embedded in the HTML (such as base64-encoded data URIs) count toward the payload size and are a common reason for the limit being reached.
+`message.received` and its spam, blocked, and unauthenticated variants include the message body inline only when the stored body is **64 KiB or smaller**. The stored body holds the plain-text and HTML bodies together with their extracted reply content, so the HTML alone can be noticeably smaller than 64 KiB before the limit is reached. Inline images embedded in the HTML (such as base64-encoded data URIs) count toward it and are a common reason for reaching it.
 
-Omitted content is always available through the API. After receiving a webhook, fetch the full message to access the complete body and attachment data:
+Above the limit, the payload omits `text`, `html`, `extracted_text`, and `extracted_html`, and carries two fields instead:
+
+- **`body_url`**: a pre-signed URL that downloads the stored body as a JSON object that includes the `text`, `html`, `extracted_text`, and `extracted_html` fields. It is valid for one hour.
+- **`body_expires_at`**: the time at which `body_url` stops working.
+
+All other message metadata and the `thread` object are still included. Other event types carry no message body.
+
+Omitted content is always available through the API, including after `body_url` expires. After receiving a webhook, fetch the full message to access the complete body and attachment data:
 
 <CodeBlocks>
 ```python
@@ -233,7 +244,7 @@ agentmail inboxes messages get \
 ```json Webhook Payload
 {
   "event_type": "message.received",
-  "event_id": "evt_123abc...",
+  "event_id": "c4ca4238a0b923820dcc509a6f75849b",
   "message": {
     "from_": ["sender@example.com"],
     "organization_id": "org_abc123...",
@@ -271,7 +282,7 @@ agentmail inboxes messages get \
 ### Field Descriptions
 
 - **`event_type`** (`string`): The event type (e.g. `message.received`, `message.sent`, `message.delivered`). Payload structure varies by event—see [Webhook Events](/events) for each event's shape.
-- **`event_id`** (`string`): A unique identifier for this specific event delivery.
+- **`event_id`** (`string`): A unique identifier for the event. It stays the same across retries and redeliveries of the event, and across every webhook that receives it, so use it as your deduplication key. Its format varies by event type; treat it as an opaque string.
 - **`message`** (`object`): A dictionary containing the full details of the received email message.
   - **`from_`** (`array<string>`): The sender's email address. Note the trailing underscore to avoid conflict with the Python keyword.
   - **`organization_id`** (`string`): The ID of your organization.
@@ -281,10 +292,33 @@ agentmail inboxes messages get \
   - **`labels`** (`array<string>`): Labels associated with the message (e.g., `received`, `sent`).
   - **`subject`** (`string`): The subject line of the email.
   - **`preview`** (`string`): A short plain-text preview of the email body.
-  - **`text`** (`string`): The plain-text body of the email. May be omitted when the webhook payload exceeds the 1 MB size limit. Fetch the full message via the API if this field is missing.
-  - **`html`** (`string`): The HTML body of the email, if present. May be omitted when the webhook payload exceeds the 1 MB size limit. Fetch the full message via the API if this field is missing.
+  - **`text`** (`string`): The plain-text body of the email. Omitted when the stored body exceeds the [64 KiB inline limit](#payload-size-limit); read `body_url` or fetch the full message via the API instead.
+  - **`html`** (`string`): The HTML body of the email, if present. Omitted when the stored body exceeds the [64 KiB inline limit](#payload-size-limit); read `body_url` or fetch the full message via the API instead.
+  - **`body_url`** (`string`): Present only when the body was omitted. A pre-signed URL to the stored body, valid until `body_expires_at` (one hour).
   - **`attachments`** (`array<object>`): A list of attachment metadata, each with its own `attachment_id`, `filename`, `content_type`, `size`, and `inline` status. Attachment content is not included in the webhook payload; download attachments through the API.
   - **`in_reply_to`** (`string`): The `message_id` of the email this message is a reply to, if applicable.
+
+## Delivery, retries, and missed events
+
+### Retries and disabled endpoints
+
+A delivery attempt succeeds when your endpoint responds with a `2xx` status within 15 seconds. Any other status, including a redirect, or a slower response counts as a failure. AgentMail retries a failed delivery on this schedule: immediately, then after 5 seconds, 5 minutes, 30 minutes, 2 hours, 5 hours, 10 hours, and 10 hours. That is 8 attempts over about 27.5 hours, after which the event is marked failed for that endpoint.
+
+If every delivery to an endpoint keeps failing for 5 days, the endpoint is disabled automatically. AgentMail does not notify you when this happens: the only signal is that the webhook's `enabled` field reads `false` when you get or list it, so check it from your monitoring. Fix the endpoint, then re-enable it by updating the webhook with `"enabled": true`. Events that occurred while it was disabled are not redelivered.
+
+### Duplicates and ordering
+
+Delivery is at least once, so your endpoint can receive the same event more than once. Deduplicate on `event_id`: it is the same on every retry of an event and on every webhook that receives it. The `svix-id` header stays the same across retries to one webhook, but differs between webhooks registered at different levels (organization, pod, inbox), so do not use it to deduplicate across webhooks.
+
+Events are not guaranteed to arrive in order. Order them by the timestamps in the payload, not by arrival time.
+
+### Recovering missed events
+
+If your endpoint was down or disabled, catch up from the API instead of waiting for redelivery:
+
+- **[List messages](/api-reference/inboxes/messages/list)** with `after` set to the time of the last event you processed and `ascending` set to `true`. Add `include_spam`, `include_blocked`, or `include_unauthenticated` if you subscribe to those events. To skip messages you already handled from webhooks, match on `inbox_id` plus `message_id`, not `message_id` alone: one email sent to several of your inboxes is a separate message in each.
+- **The [inbox events feed](/api-reference/inboxes/events/list)** (`GET /inboxes/{inbox_id}/events`), which records a `label.added` event for each label on every new message, including `received`.
+- **[Polling webhooks](/webhook-polling)** for agents that are often offline. A polling webhook queues events until your agent fetches them, so events wait instead of failing, but it only holds events from after it was created. Polling webhooks are available in the US region only for now.
 
 ## Copy for Cursor / Claude
 
@@ -299,18 +333,20 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
   Return 200 immediately; process payload in background.
 
   API reference:
-  - webhooks.create(url, event_types?, inbox_ids?, pod_ids?, client_id?, headers?)
+  - webhooks.create(url, event_types, inbox_ids?, pod_ids?, client_id?, headers?) (event_types is required and non-empty)
   - webhooks.get(webhook_id), webhooks.get_headers(webhook_id), webhooks.list(limit?, page_token?)
-  - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?, event_types?)
+  - webhooks.update(webhook_id, add_inbox_ids?, remove_inbox_ids?, add_pod_ids?, remove_pod_ids?, event_types?, enabled?)
   - webhooks.update_headers(webhook_id, headers?, remove_headers?)
   - webhooks.delete(webhook_id)
   - scoped variants: pods.webhooks.* (pod_id) and inboxes.webhooks.* (inbox_id) — same CRUD, scope from the path
 
-  Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, message.security.completed, message.security.review, message.security.override, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
+  Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, message.opened, message.security.completed, message.security.review, message.security.override, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
   Payload: event_type, event_id, plus message/send/delivery/bounce/complaint/reject/domain; calendar.event.* carry inbox_id and calendar_event. Verify with Svix (webhook.secret).
   Custom delivery header values are write-only. get_headers returns names only; update_headers rotates or removes them.
-  Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
-  On update, non-empty event_types replaces the subscribed list in full (omit or [] to leave types unchanged).
+  Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in event_types and ensure the API key has the label_spam_read / label_blocked_read / label_unauthenticated_read permission for each.
+  On update, non-empty event_types replaces the subscribed list in full; omit it to leave types unchanged ([] is rejected with 400).
+  message.received* inlines the body only up to 64 KiB of stored body; above that, text/html/extracted_* are omitted and body_url (valid 1 hour) + body_expires_at are sent.
+  Delivery is at least once: dedupe on event_id (same across retries and across webhooks), not svix-id. Retries: 8 attempts over ~27.5h; an endpoint failing for 5 days is disabled (enabled: false) with no notification; re-enable with enabled=True.
   """
   import os
   from dotenv import load_dotenv
@@ -332,17 +368,19 @@ Copy one of the blocks below into Cursor or Claude for complete Webhooks API kno
    * Return 200 immediately; process payload in background.
    *
    * API reference:
-   * - webhooks.create({ url, eventTypes?, inboxIds?, podIds?, clientId?, headers? })
+   * - webhooks.create({ url, eventTypes, inboxIds?, podIds?, clientId?, headers? }) (eventTypes is required and non-empty)
    * - webhooks.get(webhookId), webhooks.getHeaders(webhookId), webhooks.list({ limit?, pageToken? })
-   * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds?, eventTypes? })
+   * - webhooks.update(webhookId, { addInboxIds?, removeInboxIds?, addPodIds?, removePodIds?, eventTypes?, enabled? })
    * - webhooks.updateHeaders(webhookId, { headers?, removeHeaders? })
    * - webhooks.delete(webhookId)
    * - scoped variants: pods.webhooks.* (podId) and inboxes.webhooks.* (inboxId) — same CRUD, scope from the path
    *
-   * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, message.security.completed, message.security.review, message.security.override, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
+   * Events: message.received, message.received.spam, message.received.blocked, message.received.unauthenticated, message.sent, message.delivered, message.bounced, message.complained, message.rejected, message.opened, message.security.completed, message.security.review, message.security.override, domain.verified, calendar.event.created, calendar.event.updated, calendar.event.deleted, calendar.event.responded, calendar.event.starting, calendar.event.ending (calendar events need calendar_event_read)
    * Custom delivery header values are write-only. getHeaders returns names only; updateHeaders rotates or removes them.
-   * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has label_spam_read / label_blocked_read permissions for spam and blocked events.
-   * On update, non-empty eventTypes replaces the subscribed list in full (omit or [] to leave types unchanged).
+   * Note: message.received.spam, message.received.blocked, and message.received.unauthenticated are excluded by default. To receive them, explicitly include them in eventTypes and ensure the API key has the label_spam_read / label_blocked_read / label_unauthenticated_read permission for each.
+   * On update, non-empty eventTypes replaces the subscribed list in full; omit it to leave types unchanged ([] is rejected with 400).
+   * message.received* inlines the body only up to 64 KiB of stored body; above that, text/html/extracted_* are omitted and body_url (valid 1 hour) + body_expires_at are sent.
+   * Delivery is at least once: dedupe on event_id (same across retries and across webhooks), not svix-id. Retries: 8 attempts over ~27.5h; an endpoint failing for 5 days is disabled (enabled: false) with no notification; re-enable with enabled: true.
    * Verify with Svix using webhook.secret. Use express.raw() for body—signature needs raw payload.
    */
   import { AgentMailClient } from "agentmail";

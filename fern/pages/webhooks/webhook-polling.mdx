@@ -7,6 +7,10 @@ description: "Create a polling webhook and read its events from your agent with 
 
 A polling webhook is a webhook you read instead of one we deliver. You subscribe to the same [event types](/events) as a regular webhook and AgentMail queues the matching events for you. Your agent fetches them whenever it runs and commits the ones it has processed. Nothing in your setup needs to be reachable from the internet.
 
+<Note>
+Polling webhooks are available in the US region (`api.agentmail.to`) only for now.
+</Note>
+
 ## When to use it
 
 | | Webhook | WebSocket | Polling webhook |

@@ -62,7 +62,7 @@ Every webhook request from AgentMail includes three headers used for verificatio
 
 | Header | Description |
 |--------|-------------|
-| `svix-id` | Unique message identifier. Same ID is used for retries of the same message. |
+| `svix-id` | Unique message identifier. Same ID is used for retries of the same message to one webhook, but it differs between webhooks registered at different levels (organization, pod, inbox), so deduplicate on the payload's `event_id` instead. |
 | `svix-timestamp` | Unix timestamp (seconds) when the message was sent. |
 | `svix-signature` | Space-delimited list of signatures in the format `v1,<base64>` (e.g., `v1,abc123 v1,def456`). |
 
