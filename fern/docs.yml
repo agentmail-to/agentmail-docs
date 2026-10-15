@@ -346,6 +346,12 @@ navigation:
           - page: Vercel AI SDK
             icon: fa-solid fa-code
             path: pages/integrations/ai-sdk.mdx
+          - page: OpenAI Agents SDK
+            icon: fa-solid fa-microchip
+            path: pages/integrations/openai-agents-sdk.mdx
+          - page: Claude Agent SDK
+            icon: fa-solid fa-asterisk
+            path: pages/integrations/claude-agent-sdk.mdx
           - page: OpenClaw
             icon: fa-solid fa-robot
             path: pages/integrations/openclaw.mdx

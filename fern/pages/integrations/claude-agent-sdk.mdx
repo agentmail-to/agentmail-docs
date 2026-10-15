@@ -1,0 +1,149 @@
+---
+title: Claude Agent SDK
+subtitle: Give your Claude agent its own email inbox
+slug: integrations/claude-agent-sdk
+description: Give a Claude Agent SDK agent its own email inbox by connecting it to the hosted AgentMail MCP server. No extra packages to install.
+---
+
+## Getting started
+
+The [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview) is Anthropic's framework for building agents on Claude, available for TypeScript and Python. It connects to external tools through MCP, and AgentMail runs a hosted MCP server, so a Claude agent gets a full email inbox with a few lines of configuration and no extra packages.
+
+To give your Claude agent an email inbox, add the AgentMail server at `https://mcp.agentmail.to/mcp` to the `mcpServers` option of `query()`, authenticate with your AgentMail API key in the `x-api-key` header, and allow the AgentMail tools with `allowedTools`. There is no AgentMail package to install or update: the server always exposes the current tool set.
+
+## Use cases
+
+- **Give agents their own inboxes:** Provision a dedicated email address per agent so it can send and receive mail independently.
+- **Triage and reply:** Read recent threads and reply inside the same thread, with threading handled automatically.
+- **Stage and send:** Compose drafts iteratively and send them when they're ready.
+- **Inbound-driven agents:** Pair the server with [AgentMail webhooks](https://docs.agentmail.to/webhooks-overview) so your agent reacts the moment mail arrives.
+- **Durable email identity:** Give long-running Claude agents an address they keep across sessions, so contacts and threads persist between runs.
+
+## Prerequisites
+
+1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to).
+2. The Claude Agent SDK (`@anthropic-ai/claude-agent-sdk` for TypeScript or `claude-agent-sdk` for Python) and an Anthropic API key.
+
+## Setup
+
+Install the Claude Agent SDK for your language:
+
+<CodeBlocks>
+```bash title="TypeScript"
+npm install @anthropic-ai/claude-agent-sdk
+```
+
+```bash title="Python"
+pip install claude-agent-sdk
+```
+</CodeBlocks>
+
+Set your API keys:
+
+```bash
+export AGENTMAIL_API_KEY=your-api-key
+export ANTHROPIC_API_KEY=your-anthropic-api-key
+```
+
+## Quickstart
+
+Connect the AgentMail MCP server and allow its tools:
+
+<CodeBlocks>
+```typescript title="TypeScript"
+import { query } from "@anthropic-ai/claude-agent-sdk";
+
+for await (const message of query({
+  prompt: "Create an inbox for yourself, then check it for new messages and reply to anything urgent.",
+  options: {
+    mcpServers: {
+      agentmail: {
+        type: "http",
+        url: "https://mcp.agentmail.to/mcp",
+        headers: { "x-api-key": process.env.AGENTMAIL_API_KEY! },
+      },
+    },
+    allowedTools: ["mcp__agentmail__*"],
+  },
+})) {
+  if (message.type === "result" && message.subtype === "success") {
+    console.log(message.result);
+  }
+}
+```
+
+```python title="Python"
+import asyncio
+import os
+from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage
+
+
+async def main():
+    options = ClaudeAgentOptions(
+        mcp_servers={
+            "agentmail": {
+                "type": "http",
+                "url": "https://mcp.agentmail.to/mcp",
+                "headers": {"x-api-key": os.environ["AGENTMAIL_API_KEY"]},
+            }
+        },
+        allowed_tools=["mcp__agentmail__*"],
+    )
+
+    async for message in query(
+        prompt="Create an inbox for yourself, then check it for new messages and reply to anything urgent.",
+        options=options,
+    ):
+        if isinstance(message, ResultMessage) and message.subtype == "success":
+            print(message.result)
+
+
+asyncio.run(main())
+```
+</CodeBlocks>
+
+## Configuring the connection
+
+### Authentication
+
+Pass an API key from the [AgentMail Console](https://console.agentmail.to) in the `x-api-key` header, as in the quickstart. The [MCP server](https://docs.agentmail.to/integrations/mcp) also supports OAuth sign-in, but that flow is for end-user clients like Claude Desktop. For agents built with the SDK, use the API key header.
+
+### Allowing tools
+
+AgentMail tools surface in the SDK as `mcp__agentmail__<tool_name>`, for example `mcp__agentmail__send_message`. The `mcp__agentmail__*` wildcard in `allowedTools` auto-approves every AgentMail tool.
+
+<Warning>
+`allowedTools` is required. Without it, Claude sees the AgentMail tools but can't call them.
+</Warning>
+
+For production, list only the tools the agent needs:
+
+<CodeBlocks>
+```typescript title="TypeScript"
+allowedTools: ["mcp__agentmail__send_message", "mcp__agentmail__list_messages"],
+```
+
+```python title="Python"
+allowed_tools=["mcp__agentmail__send_message", "mcp__agentmail__list_messages"],
+```
+</CodeBlocks>
+
+## Available tools
+
+The server exposes 43 tools covering inboxes, threads, messages, drafts, attachments, allow and block lists, and agent sign-up. See the [MCP integration](https://docs.agentmail.to/integrations/mcp#available-tools) for the full list.
+
+## Claude Code
+
+If you use the Claude Code CLI rather than the SDK, add the same server with one command:
+
+```bash
+claude mcp add --transport http agentmail https://mcp.agentmail.to/mcp
+```
+
+See [MCP setup for Claude Code](https://docs.agentmail.to/integrations/mcp#claude-code) for details.
+
+## Resources
+
+- **AgentMail MCP server:** [docs.agentmail.to/integrations/mcp](https://docs.agentmail.to/integrations/mcp)
+- **Claude Agent SDK MCP docs:** [code.claude.com/docs/en/agent-sdk/mcp](https://code.claude.com/docs/en/agent-sdk/mcp)
+- **AgentMail Console:** [console.agentmail.to](https://console.agentmail.to)
