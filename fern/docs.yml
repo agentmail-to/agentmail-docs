@@ -23,10 +23,14 @@ favicon: assets/agentmail-favicon.ico
 
 metadata:
   og:description: "AgentMail is the first email provider built for AI agents. Create inboxes, send and receive messages, manage threads, and handle webhooks programmatically. Free tier, no credit card required."
-  canonical-host: agentmail.to/docs
+  # Fern takes only the host from this and appends each instance's own basepath, so
+  # the agentmail.to/docs instance gets www.agentmail.to/docs/<slug>: the URL that
+  # answers 200 (agentmail.to redirects to www). The docs.agentmail.to instance gets
+  # www.agentmail.to/<slug>, which 404s; that host is due to redirect to /docs.
+  canonical-host: www.agentmail.to
 
 agents:
-  page-directive: "For clean Markdown content of this page, append .md to this URL. For the complete documentation index, see https://docs.agentmail.to/llms.txt."
+  page-directive: "For clean Markdown content of this page, append .md to this URL. For the complete documentation index, see https://www.agentmail.to/docs/llms.txt."
 
 ai-search:
   location:
