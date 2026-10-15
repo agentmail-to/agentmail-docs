@@ -15,46 +15,48 @@ slug: knowledge-base/dns-route53
 If your domain is registered with a different registrar but uses Route 53 for DNS, make sure the NS records at your registrar match the name servers listed in your hosted zone.
 </Note>
 
-## Adding a TXT Record (SPF)
+## Records to add
 
-| Field | Value |
-| --- | --- |
-| Record name | Leave blank for root domain, or enter your subdomain |
-| Record type | `TXT` |
-| Value | `"v=spf1 include:agentmail.to ~all"` |
-| TTL | `300` |
+<Markdown src="../../snippets/dns-records.mdx" />
+
+## Adding the TXT records (SPF, DKIM, DMARC)
+
+Create one TXT record for each row below:
+
+| Record | Record name | Value |
+| --- | --- | --- |
+| SPF | `mail` | The SPF value from AgentMail, wrapped in double quotes |
+| DKIM | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) | The DKIM value from AgentMail, wrapped in double quotes |
+| DMARC | `_dmarc` | The DMARC value from AgentMail, wrapped in double quotes |
+
+Set **Record type** to `TXT` and **TTL** to `300` for each one.
 
 <Warning>
-Route 53 requires TXT values to be **wrapped in double quotes**. If you omit the quotes, the record will fail validation. Also, if you already have an SPF record, add `include:agentmail.to` to the existing record rather than creating a second one. Multiple SPF records on the same domain will cause authentication failures.
+Route 53 requires TXT values to be **wrapped in double quotes**. If you omit the quotes, the record will fail validation. If a DKIM TXT value is longer than 255 characters, split it into quoted strings on the same line of one TXT record (see [Common Route 53 Issues](#common-route-53-issues) below).
 </Warning>
 
-## Adding a TXT Record (DKIM)
-
-| Field | Value |
-| --- | --- |
-| Record name | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
-| Record type | `TXT` |
-| Value | The quoted DKIM TXT value from AgentMail |
-| TTL | `300` |
-
-Route 53 requires TXT values to be **wrapped in double quotes**. If a DKIM TXT value is longer than 255 characters, split it into adjacent quoted strings within one TXT record.
+<Note>
+Do not add anything to an existing SPF record on your root domain. AgentMail's SPF record goes on the `mail` record name, so your existing SPF for Google Workspace or another service stays exactly as it is.
+</Note>
 
 <Note>
 Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
 </Note>
 
-## Adding an MX Record (Receiving)
+## Adding the MX records (receiving and bounces)
 
-| Field | Value |
-| --- | --- |
-| Record name | Leave blank for root domain, or enter your subdomain |
-| Record type | `MX` |
-| Value | `10 inbound.agentmail.to` |
-| TTL | `300` |
+Create one MX record for each row below:
 
-Route 53 MX records use the format `priority server` separated by a space (e.g., `10 inbound.agentmail.to`). Do not wrap MX values in quotes.
+| Record | Record name | Value |
+| --- | --- | --- |
+| Receiving | Leave blank for the root domain | `10` and the receiving MX value from AgentMail |
+| Bounces (MAIL FROM) | `mail` | `10` and the `feedback-smtp` MX value from AgentMail |
 
-If you want to receive emails on a subdomain to avoid conflicts with your existing email provider, enter the subdomain in the Record name field instead of leaving it blank.
+Set **Record type** to `MX` and **TTL** to `300`. Skip the receiving MX if you created the domain as send-only (`inbound_enabled: false`). The `mail` MX must be the only value in the `mail` MX record.
+
+Route 53 MX records combine the priority and mail server in one value, separated by a space: `10 <mail server from AgentMail>`. Do not wrap MX values in quotes.
+
+If you registered a subdomain such as `agents.yourdomain.com` to avoid conflicts with your existing email provider, add the subdomain to every record name: `agents` (instead of leaving it blank), `mail.agents`, `_dmarc.agents`, and `selector._domainkey.agents`.
 
 ## Verification
 
@@ -66,26 +68,28 @@ Route 53 name servers typically pick up changes within **60 seconds**, but full 
 
 - **TXT records must be quoted:** Unlike most DNS providers, Route 53 requires double quotes around TXT record values. If your SPF, DKIM, or DMARC TXT records are missing quotes, they won't validate.
 
-- **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
+- **Existing SPF record on your root domain:** Leave it unchanged. Do not add `include:agentmail.to` or any other AgentMail value to it. If an earlier guide told you to add `include:agentmail.to`, remove that mechanism: `agentmail.to` publishes no SPF record, so the include causes an SPF permanent error.
 
 - **Routing policy:** When creating records, use **Simple routing** unless you have a specific reason to use weighted, latency, or other routing policies. Other policies can cause unexpected DNS behavior for email records.
 
-- **Multiple values in one record:** Route 53 lets you add multiple values to a single record. If you need to add a second MX entry, add it as a new line in the same MX record rather than creating a separate record.
+- **Multiple values in one record:** Route 53 lets you add multiple values to a single record. If you need to add a second MX entry on the same name, add it as a new line in the same MX record rather than creating a separate record. This does not apply to the `mail` MX record, which must hold only the AgentMail value.
 
-- **DKIM TXT record too long (CharacterStringTooLong error):** DKIM public keys are often longer than the 255-character limit that Route 53 enforces per string segment. You will see an error like `CharacterStringTooLong (Value is too long)`. To fix this, split the value into two quoted strings within a single record. The split point should be near the middle of the `p=` value. The two quoted strings must have **no space and no line break** between the closing and opening quotes. For example:
+- **DKIM TXT record too long (CharacterStringTooLong error):** DKIM public keys are often longer than the 255-character limit that Route 53 enforces per string segment. You will see an error like `CharacterStringTooLong (Value is too long)`. To fix this, split the value into two quoted strings within a single record. The split point should be near the middle of the `p=` value. Both quoted strings must be on the **same line**; a space between them is fine, a line break is not. For example:
 
   ```
-  "v=DKIM1; k=rsa; p=MIIBIjANBgkqhki...firsthalf""secondhalf...wIDAQAB"
+  "v=DKIM1; k=rsa; p=MIIBIjANBgkqhki...firsthalf" "secondhalf...wIDAQAB"
   ```
 
-  In Route 53, paste the entire value (both quoted strings) into the **Value** field as a single entry. If Route 53 shows two separate copy-pastable values instead of one, there is likely a space or line break between the two strings. Remove it so the closing `"` and opening `"` are directly adjacent (`""`).
+  Writing the strings with no space between them (`...firsthalf""secondhalf...`) works too. Receiving servers join the strings back into one value either way.
 
-  **Incorrect:** A space or line break between the two quoted strings causes Route 53 to treat them as separate values.
+  **Incorrect:** A line break between the two quoted strings. Each line in the Route 53 **Value** box is a separate TXT record, so the key ends up split across two records, neither of which holds the full key, and DKIM fails.
 
-  <img src="../../assets/route53-dkim-incorrect.png" alt="Incorrect Route 53 DKIM configuration with space between quoted strings" />
+  **Entering the value:** Both quoted strings sit on one line of the **Value** box.
 
-  **Correct:** The two quoted strings are directly adjacent with no space, producing a single value in Route 53.
+  <img src="../../assets/route53-dkim-incorrect.png" alt="Route 53 Value box with both DKIM quoted strings on the same line" />
 
-  <img src="../../assets/route53-dkim-correct.png" alt="Correct Route 53 DKIM configuration with no space between quoted strings" />
+  **Saved record:** Route 53 shows a single value containing both strings.
+
+  <img src="../../assets/route53-dkim-correct.png" alt="Saved Route 53 DKIM record showing one value made of both quoted strings" />
 
   You can also use the AWS CLI to add the record, which handles multi-string TXT values more reliably.

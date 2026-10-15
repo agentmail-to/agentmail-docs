@@ -11,45 +11,44 @@ slug: knowledge-base/dns-cloudflare
 3. Go to **DNS**, then click **Records**
 4. Click **Add Record** for each record AgentMail requires
 
-## Adding a TXT Record (SPF)
+## Records to add
 
-| Field | Value |
-| --- | --- |
-| Type | `TXT` |
-| Name | `@` (or your subdomain) |
-| Content | The SPF value from AgentMail (e.g., `v=spf1 include:agentmail.to ~all`) |
-| TTL | `Auto` |
+<Markdown src="../../snippets/dns-records.mdx" />
+
+## Adding the TXT records (SPF, DKIM, DMARC)
+
+Add one TXT record for each row below:
+
+| Record | Name | Content |
+| --- | --- | --- |
+| SPF | `mail` | The SPF value from AgentMail |
+| DKIM | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) | The DKIM value from AgentMail |
+| DMARC | `_dmarc` | The DMARC value from AgentMail |
+
+Set **Type** to `TXT` and **TTL** to `Auto` for each one.
+
+Cloudflare adds your domain to the Name field for you. Enter only the host portion (e.g., `selector._domainkey`), not the full `selector._domainkey.yourdomain.com`.
 
 <Warning>
-If you already have an SPF record for your domain, do **not** create a second one. Instead, add `include:agentmail.to` to your existing SPF record. Having multiple SPF records on the same domain will cause authentication failures.
+Do **not** add anything to an existing SPF record on your root domain (`@`). AgentMail's SPF record goes on the `mail` host, which is a different hostname, so your existing SPF for Google Workspace or another service stays exactly as it is.
 </Warning>
-
-## Adding a TXT Record (DKIM)
-
-| Field | Value |
-| --- | --- |
-| Type | `TXT` |
-| Name | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
-| Content | The DKIM TXT value from AgentMail |
-| TTL | `Auto` |
-
-Cloudflare automatically strips your domain from the Name field. Enter only the selector host portion (e.g., `selector._domainkey`), not the full `selector._domainkey.yourdomain.com`.
 
 <Note>
 Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
 </Note>
 
-## Adding an MX Record (Receiving)
+## Adding the MX records (receiving and bounces)
 
-| Field | Value |
-| --- | --- |
-| Type | `MX` |
-| Name | `@` (or your subdomain) |
-| Mail server | The MX target from AgentMail |
-| Priority | `10` |
-| TTL | `Auto` |
+Add one MX record for each row below:
 
-If you want to receive emails on a subdomain to avoid conflicts with your existing email provider, enter the subdomain instead of `@` in the Name field.
+| Record | Name | Mail server | Priority |
+| --- | --- | --- | --- |
+| Receiving | `@` | The receiving MX value from AgentMail | `10` |
+| Bounces (MAIL FROM) | `mail` | The `feedback-smtp` MX value from AgentMail | `10` |
+
+Set **TTL** to `Auto`. Skip the receiving MX if you created the domain as send-only (`inbound_enabled: false`). The `mail` MX must be the only MX record on the `mail` host.
+
+If you registered a subdomain such as `agents.yourdomain.com` to avoid conflicts with your existing email provider, add the subdomain to every name: `agents`, `mail.agents`, `_dmarc.agents`, and `selector._domainkey.agents`.
 
 ## Verification
 
@@ -59,8 +58,8 @@ Cloudflare DNS typically propagates within **1 to 5 minutes**, making it one of 
 
 ## Common Cloudflare Issues
 
-- **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
+- **Existing SPF record on your root domain:** Leave it unchanged. Do not add `include:agentmail.to` or any other AgentMail value to it. If an earlier guide told you to add `include:agentmail.to`, remove that mechanism: `agentmail.to` publishes no SPF record, so the include causes an SPF permanent error.
 
 - **Duplicate TXT values:** Cloudflare lets you add TXT records with the same name, but duplicate SPF or stale DKIM selector records can make verification fail. Keep only the current values AgentMail provides for each host.
 
-- **Name field auto-strips domain:** Cloudflare removes the domain portion from the Name field automatically. If your DKIM selector is `selector._domainkey`, enter just that. Do not enter `selector._domainkey.yourdomain.com`, or the record will be created incorrectly.
+- **Name field:** Cloudflare adds your domain to the Name field automatically. If your DKIM selector is `selector._domainkey`, enter just that, then check that the saved record shows the name you expect before you verify.

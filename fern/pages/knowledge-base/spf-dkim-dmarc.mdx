@@ -10,29 +10,28 @@ AgentMail provides all three records automatically when you add a custom domain.
 
 ## SPF (Sender Policy Framework)
 
-SPF tells receiving servers which mail servers are authorized to send email for your domain. It is a TXT record that lists approved senders.
+SPF tells receiving servers which mail servers are authorized to send email for a domain. Receivers check SPF against the envelope sender (the Return-Path, also called MAIL FROM), which can be a different hostname from the address in the visible From header.
+
+AgentMail sends from a dedicated MAIL FROM subdomain, `mail.yourdomain.com`. The SPF record goes on that subdomain, together with an MX record that receives bounces and complaints:
 
 **What AgentMail provides:**
 
 ```text
-TXT | @ | v=spf1 include:agentmail.to ~all
+TXT | mail | v=spf1 include:amazonses.com -all
+MX  | mail | 10 feedback-smtp.us-east-1.amazonses.com   (EU domains: eu-central-1)
 ```
 
-This tells receiving servers that AgentMail is an authorized sender for your domain. The `~all` means emails from servers not on the list should be treated as suspicious.
+AgentMail sends through Amazon SES, so the record authorizes `amazonses.com`. The `-all` means mail for this hostname from any other server is unauthorized. Because `mail.yourdomain.com` is a subdomain of your From domain, SPF also passes DMARC's default (relaxed) alignment.
 
 <Warning>
-You can only have **one** SPF record per domain. If you already have an SPF record (e.g., for Google Workspace or another email service), merge AgentMail's `include:` into the existing record rather than creating a second one.
+Do **not** add AgentMail to the SPF record on your root domain. If your root domain already has SPF for another service (for example `v=spf1 include:_spf.google.com ~all` for Google Workspace), leave it exactly as it is. AgentMail's SPF record lives on `mail.yourdomain.com`, a different hostname, so the two never conflict.
+
+`agentmail.to` does not publish an SPF record, so an `include:agentmail.to` mechanism makes SPF evaluation end in a permanent error (`permerror`). If you added it while following an earlier version of this guide, remove it and keep the rest of your record unchanged.
 </Warning>
 
-**Example of merging SPF records:**
-
-```text
-# Before (existing SPF for Google Workspace)
-v=spf1 include:_spf.google.com ~all
-
-# After (with AgentMail added)
-v=spf1 include:_spf.google.com include:agentmail.to ~all
-```
+<Note>
+The `mail` MX record must be the only MX record at `mail.yourdomain.com`. It handles bounce and complaint notifications, not incoming inbox mail.
+</Note>
 
 ## DKIM (DomainKeys Identified Mail)
 
@@ -48,7 +47,7 @@ Legacy orgs should keep existing working DNS records in place. For new domain se
 TXT | selector._domainkey | v=DKIM1; k=rsa; p=(public key provided by AgentMail)
 ```
 
-AgentMail provides the selector name and public key value for your domain. Once you add the TXT record, every email from your domain is signed with the matching private key.
+AgentMail provides the selector name and public key value for your domain. Once you add the TXT record, every email from your domain is signed with the matching private key. Publish exactly one TXT record at the selector host; remove any older record at the same name.
 
 <Note>
 Use the exact selector host shown in the AgentMail Console or API response. Many DNS providers append your domain automatically, so you may need to enter only the `selector._domainkey` portion.
@@ -65,6 +64,10 @@ TXT | _dmarc | v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to
 ```
 
 AgentMail sets the policy to `reject` by default, which means any email that fails DMARC authentication (typically when both SPF and DKIM fail to align with the sender domain) will be rejected outright. The `rua` tag sends aggregate reports to AgentMail so we can monitor your domain's deliverability health.
+
+<Note>
+A domain can have only one DMARC record. If `_dmarc.yourdomain.com` already has one, keep it instead of adding a second record. AgentMail verification accepts your existing record as long as it includes a `rua=mailto:` reporting address.
+</Note>
 
 **If you are setting up DMARC for the first time,** consider starting with a less strict policy and graduating to `reject`:
 
@@ -89,9 +92,13 @@ Without all three, your agent's emails are more likely to land in spam or be rej
 ## How to set them up
 
 1. Add your domain in the [AgentMail Console](https://console.agentmail.to) or via the API
-2. AgentMail provides the exact SPF, DKIM, and DMARC records you need
+2. AgentMail provides the exact SPF, DKIM, DMARC, and MX records you need
 3. Add those records at your DNS provider
 4. Verify your domain in the console
+
+### The full record set
+
+<Markdown src="../../snippets/dns-records.mdx" />
 
 For step-by-step DNS instructions, see our provider guides: [Cloudflare](/knowledge-base/dns-cloudflare), [GoDaddy](/knowledge-base/dns-godaddy), [Route 53](/knowledge-base/dns-route53), [Namecheap](/knowledge-base/dns-namecheap).
 

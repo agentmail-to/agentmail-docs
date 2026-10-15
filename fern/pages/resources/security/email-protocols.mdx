@@ -22,12 +22,12 @@ Your DNS records are simply the way you tell the world that you've authorized us
 ### SPF: Sender Policy Framework
 
 - **What it is:** Think of SPF as a public list of all the servers that are allowed to send email for your domain.
-- **How it works:** You add a `TXT` record to your DNS that lists the approved IP addresses or domains. When an email server receives a message from `you@your-domain.com`, it checks the SPF record for `your-domain.com`. If the server that sent the email is on that list, the check passes. This is what a record we give you might look like
+- **How it works:** You add a `TXT` record to your DNS that lists the approved IP addresses or domains. Receiving servers check SPF against the envelope sender (the Return-Path, also called MAIL FROM) rather than the visible From address. AgentMail sends your email with a MAIL FROM address on `mail.domain.com`, so that is where the SPF record goes. If the server that sent the email is on that list, the check passes. This is what a record we give you looks like:
 - **Your Record:**
   ```text
-  TXT | mail.domain.com | v=spf1 include:agentmail.com -all
+  TXT | mail.domain.com | v=spf1 include:amazonses.com -all
   ```
-  This record tells the world that we are an authorized sender for the `mail.domain.com` subdomain. The `-all` part suggests that any server _not_ on this list should be considered unauthorized.
+  AgentMail sends through Amazon SES, so this record tells the world that Amazon SES servers are authorized senders for the `mail.domain.com` subdomain. The `-all` part says that any server _not_ on this list should be considered unauthorized. Because the record lives on `mail.domain.com`, it never touches an SPF record you already have on `domain.com` for another email service.
 
 ### DKIM: DomainKeys Identified Mail
 
@@ -66,13 +66,17 @@ Finally, to receive emails for your agents, you need to tell the internet where 
 - **What they are:** MX records are the post office address for your domain's email.
 - **How they work:** When someone sends an email to `your-agent@your-domain.com`, their mail server looks up the MX record for `your-domain.com` to find out where to send it.
 
-This is some records that we might give you:
+These are the records we give you for a US-region domain (EU-region domains use `eu-central-1` in place of `us-east-1`):
 
 - **Your Records:**
   ```text
-  MX | domain.com | 10 inbound-agentmail.com
-  MX | mail.domain.com | 10 feedback-smtp.agentmail.com
+  MX | domain.com | 10 inbound-smtp.us-east-1.amazonaws.com
+  MX | mail.domain.com | 10 feedback-smtp.us-east-1.amazonses.com
   ```
-  The first record directs all incoming mail for your domain to our servers, so we can ingest it and trigger your agents. The second `feedback-smtp` record is specifically for routing automated feedback, like bounce and complaint notifications from other mail servers, which is crucial for maintaining a healthy sender reputation.
+  The first record directs all incoming mail for your domain to our servers, so we can ingest it and trigger your agents. If you create the domain as send-only (`inbound_enabled` set to `false`), we leave this record out and your existing email provider keeps receiving your mail. The second `feedback-smtp` record is specifically for routing automated feedback, like bounce and complaint notifications from other mail servers, which is crucial for maintaining a healthy sender reputation. It must be the only MX record on `mail.domain.com`.
+
+## The Full Record Set
+
+<Markdown src="../../../snippets/dns-records.mdx" />
 
 We hope this provides a clear and transparent look into why these DNS records are required. By setting them up, you enable AgentMail to provide a secure and reliable email experience for your AI agents.

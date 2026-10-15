@@ -1,0 +1,19 @@
+AgentMail returns the exact records for your domain in the [AgentMail Console](https://console.agentmail.to) and in the `records` array of the [Create Domain](https://docs.agentmail.to/api-reference/domains/create) response. Always copy the values shown for your domain. For a US-region domain named `example.com`, the full set looks like this:
+
+| Purpose | Type | Name (host) | Value | Priority |
+| --- | --- | --- | --- | --- |
+| Receiving | `MX` | `@` | `inbound-smtp.us-east-1.amazonaws.com` | `10` |
+| Bounces (MAIL FROM) | `MX` | `mail` | `feedback-smtp.us-east-1.amazonses.com` | `10` |
+| SPF (MAIL FROM) | `TXT` | `mail` | `v=spf1 include:amazonses.com -all` | |
+| DKIM | `TXT` | `<selector>._domainkey` | `v=DKIM1; k=rsa; p=...` (your public key) | |
+| DMARC | `TXT` | `_dmarc` | `v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to` | |
+
+- **SPF lives on `mail.example.com`, not your root domain.** AgentMail sends with a custom MAIL FROM subdomain, and SPF is checked against that hostname. Do not add anything to an existing SPF record on your root domain (for example one for Google Workspace or Microsoft 365).
+- **The `mail` MX must be the only MX record at `mail.example.com`.** If another MX record exists at that host, verification reports `duplicate_records`. This record carries bounces and complaints; it does not receive inbox mail.
+- **DMARC needs a reporting address.** If `_dmarc.example.com` already has a DMARC record, keep that single record instead of adding a second one, and make sure it includes a `rua=mailto:` tag.
+- **DKIM needs exactly one TXT record at the selector host.** Remove any older record at the same selector.
+- **Send-only domains:** create the domain with `inbound_enabled` set to `false` and the receiving MX is left out, so your existing provider keeps receiving mail.
+- **Region:** EU-region domains use `eu-central-1` in the MX values in place of `us-east-1`.
+- **Subdomains:** names are relative to your DNS zone. For `agents.example.com`, the hosts become `agents`, `mail.agents`, `_dmarc.agents`, and `<selector>._domainkey.agents`.
+- **Optional records:** a `link` CNAME is added when `tracking_enabled` is on, and a wildcard `*` MX when `subdomains_enabled` is on.
+- **Older domains** may show three DKIM `CNAME` records (`<token>._domainkey` pointing to `<token>.dkim.amazonses.com`) instead of one DKIM TXT record. Keep them if they already verify.
