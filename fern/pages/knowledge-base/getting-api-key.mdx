@@ -38,9 +38,9 @@ const client = new AgentMailClient({
   apiKey: process.env.AGENTMAIL_API_KEY,
 });
 
-// Test the connection by creating an inbox
-const inbox = await client.inboxes.create();
-console.log(`Connected! Created inbox: ${inbox.inboxId}`);
+// test the connection by listing inboxes (this does not use up an inbox slot)
+const { count } = await client.inboxes.list();
+console.log(`Connected! Your organization has ${count} inbox(es).`);
 ```
 
 ## Scoped API keys

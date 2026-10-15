@@ -36,9 +36,16 @@ Subscribe to the `message.bounced` webhook event to track bounces in real time:
 ```typescript title="TypeScript"
 import { serialization } from "agentmail";
 
+// addresses to stop sending to; store these in your database in production
+const doNotSend = new Set<string>();
+
+async function removeFromList(address: string) {
+  doNotSend.add(address.toLowerCase());
+}
+
 async function handleWebhook(payload: Record<string, unknown>) {
   if (payload.event_type === "message.bounced") {
-    const event = await serialization.events.MessageBouncedEvent.parse(payload);
+    const event = await serialization.events.MessageBouncedEvent.parseOrThrow(payload);
 
     console.log(`Bounce type: ${event.bounce.type}`);       // "Permanent" or "Transient"
     console.log(`Sub type: ${event.bounce.subType}`);        // e.g., "General"
