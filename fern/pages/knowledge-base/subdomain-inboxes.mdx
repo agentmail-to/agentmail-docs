@@ -23,9 +23,11 @@ Enable subdomains when you create the parent domain:
 
 <CodeBlocks>
 ```python title="Python"
+import os
+
 from agentmail import AgentMail
 
-client = AgentMail(api_key="YOUR_API_KEY")
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
 # create the parent domain with subdomains enabled
 domain = client.domains.create(
@@ -37,7 +39,7 @@ domain = client.domains.create(
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
-const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
 // create the parent domain with subdomains enabled
 const domain = await client.domains.create({
@@ -52,9 +54,11 @@ If the parent domain is already registered, update it instead:
 
 <CodeBlocks>
 ```python title="Python"
+import os
+
 from agentmail import AgentMail
 
-client = AgentMail(api_key="YOUR_API_KEY")
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
 # enable subdomains on an existing domain
 domain = client.domains.update(
@@ -66,7 +70,7 @@ domain = client.domains.update(
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
-const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
 // enable subdomains on an existing domain
 const domain = await client.domains.update("example.com", {
@@ -80,13 +84,13 @@ You can also update an existing domain through the API:
 
 ```bash title="cURL"
 curl -X PATCH https://api.agentmail.to/v0/domains/example.com \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"subdomains_enabled": true}'
 ```
 
 <Warning>
-Enabling subdomains on an already verified domain changes its status to `PENDING`. The wildcard MX record is now required, so the domain must be verified again. Existing sending is not interrupted while verification is pending.
+Enabling subdomains on an already verified domain changes its status to `PENDING`. The wildcard MX record is now required, so the domain must be verified again. Existing sending is not interrupted while verification is pending, but you cannot create new inboxes on the domain or its subdomains until it is `VERIFIED` again.
 </Warning>
 
 </Step>
@@ -95,12 +99,14 @@ Enabling subdomains on an already verified domain changes its status to `PENDING
 
 The domain response includes the wildcard MX record you need to publish. For a registered domain of `example.com`, it looks like this:
 
-| Field        | Value                                  |
-| ------------ | -------------------------------------- |
-| Type         | `MX`                                   |
-| Name or host | `*`                                    |
-| Value        | `inbound-smtp.us-east-1.amazonaws.com` |
-| Priority     | `10`                                   |
+| Field        | Value                                 |
+| ------------ | ------------------------------------- |
+| Type         | `MX`                                  |
+| Name or host | `*`                                   |
+| Value        | `inbound-smtp.<region>.amazonaws.com` |
+| Priority     | `10`                                  |
+
+The region is `us-east-1` for US organizations and `eu-central-1` for EU organizations (those that call `https://api.agentmail.eu`). Copy the name and value returned for your domain in the AgentMail Console or the API response instead of typing them from this table.
 
 The `*` host represents `*.example.com`. Some DNS providers expect the complete hostname instead. Use the exact name shown in the AgentMail Console or the API response if your provider formats records differently.
 
@@ -114,6 +120,18 @@ If the registered parent is itself a subdomain, such as `mail.example.com`, the 
 
 AgentMail checks the wildcard MX record with the other required DNS records. Wait until the parent domain returns to `VERIFIED` before creating inboxes on its subdomains.
 
+To check the wildcard record yourself, query it directly and through any subdomain that has no DNS records of its own:
+
+```bash
+# the wildcard record itself
+dig +short MX '*.example.com'
+
+# a subdomain without its own records resolves through the wildcard
+dig +short MX anything.example.com
+```
+
+Both should return the value from the domain response, such as `10 inbound-smtp.us-east-1.amazonaws.com.` for a US organization. An empty result means the record is not published yet or has not propagated.
+
 If the domain remains `PENDING`, open it in the [AgentMail Console](https://console.agentmail.to) and confirm that the wildcard MX record is valid. DNS changes may take time to propagate.
 
 </Step>
@@ -124,9 +142,11 @@ Pass the complete subdomain in the inbox's `domain` field:
 
 <CodeBlocks>
 ```python title="Python"
+import os
+
 from agentmail import AgentMail
 
-client = AgentMail(api_key="YOUR_API_KEY")
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
 # create agent@support.example.com
 inbox = client.inboxes.create(
@@ -138,7 +158,7 @@ inbox = client.inboxes.create(
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
-const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
 // create agent@support.example.com
 const inbox = await client.inboxes.create({
@@ -156,12 +176,12 @@ You do not need to register `support.example.com` as another domain. AgentMail a
 
 ## Important behavior
 
-- The parent domain must be `VERIFIED` before you create an inbox on one of its subdomains.
+- The parent domain must be `VERIFIED` before you create an inbox on one of its subdomains. Otherwise inbox creation returns a `403` error with code `domain_not_verified`.
 - Creating a subdomain inbox without enabling subdomains returns a `422` error.
 - Only registered domains appear in the Domains list. Subdomain addresses appear in the Inboxes list.
 - Subdomain inboxes share the parent domain's sending identity, DKIM configuration, and sending reputation.
 - Register a subdomain separately if it needs an isolated sending reputation.
-- If open tracking is enabled, `link.example.com` and domains beneath it are reserved for tracking and cannot host inboxes.
+- If open tracking is enabled, `link.example.com` and domains beneath it are reserved for tracking and cannot host inboxes. Creating one returns a `422` error.
 
 ## Common issues
 
@@ -171,11 +191,19 @@ This is expected after enabling subdomains. Publish the new wildcard MX record a
 
 ### The wildcard MX record is missing
 
-Check whether your DNS provider expects `*`, `*.example.com`, or another relative form. Copy the name and value shown by AgentMail whenever possible.
+Check whether your DNS provider expects `*`, `*.example.com`, or another relative form. Copy the name and value shown by AgentMail whenever possible, then confirm with the `dig` commands in step 3.
+
+### Mail to one subdomain does not arrive while others work
+
+A wildcard record only applies to subdomains that have no DNS records of their own. If the subdomain already has records, such as an `A` record for a website, add an MX record for that subdomain with the same value as the wildcard. A subdomain with a `CNAME` record cannot also have an MX record, so use a different subdomain for inboxes.
 
 ### Inbox creation returns a `422` error
 
-Confirm that `subdomains_enabled` is `true` and that the parent domain is `VERIFIED`. If tracking is enabled, also confirm that the requested address is not on the reserved `link` subdomain.
+Confirm that `subdomains_enabled` is `true` on the parent domain. If tracking is enabled, also confirm that the requested address is not on the reserved `link` subdomain.
+
+### Inbox creation returns a `403` error with code `domain_not_verified`
+
+The parent domain is not `VERIFIED`. This is expected right after enabling subdomains: publish the wildcard MX record and wait for verification to finish.
 
 ### The subdomain is not listed under Domains
 

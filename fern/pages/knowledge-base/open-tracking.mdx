@@ -18,7 +18,14 @@ Open tracking is only available on a custom domain, because the pixel is served 
 
 Enable tracking when you create the domain:
 
+<CodeBlocks>
 ```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
 domain = client.domains.create(
     domain="mail.yourcompany.com",
     tracking_enabled=True,
@@ -28,8 +35,25 @@ for record in domain.records:
     print(record.type, record.name, record.value)
 ```
 
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+const domain = await client.domains.create({
+  domain: "mail.yourcompany.com",
+  trackingEnabled: true,
+});
+
+for (const record of domain.records) {
+  console.log(record.type, record.name, record.value);
+}
+```
+</CodeBlocks>
+
 Or turn it on for a domain you already have:
 
+<CodeBlocks>
 ```python title="Python"
 domain = client.domains.update(
     domain_id="mail.yourcompany.com",
@@ -37,8 +61,16 @@ domain = client.domains.update(
 )
 ```
 
-Either call adds a `link.<domain>` CNAME to the domain's `records`. Publish every record at your DNS provider, then wait for the domain to report `VERIFIED`:
+```typescript title="TypeScript"
+const domain = await client.domains.update("mail.yourcompany.com", {
+  trackingEnabled: true,
+});
+```
+</CodeBlocks>
 
+Until open tracking is enabled on your organization, either call returns `403` with code `forbidden`. Once it is enabled, either call adds a `link.<domain>` CNAME to the domain's `records`. Publish every record at your DNS provider, then wait for the domain to report `VERIFIED`:
+
+<CodeBlocks>
 ```python title="Python"
 domain = client.domains.get(domain_id="mail.yourcompany.com")
 
@@ -46,12 +78,21 @@ print(domain.status)            # VERIFIED when ready
 print(domain.tracking_enabled)  # True
 ```
 
+```typescript title="TypeScript"
+const domain = await client.domains.get("mail.yourcompany.com");
+
+console.log(domain.status); // VERIFIED when ready
+console.log(domain.trackingEnabled); // true
+```
+</CodeBlocks>
+
 Certificate issuance for the `link.` subdomain usually takes a few minutes after the CNAME resolves.
 
 ## Sending a tracked message
 
 Set `track_opens` on any send, reply, or reply-all:
 
+<CodeBlocks>
 ```python title="Python"
 client.inboxes.messages.send(
     inbox_id="agent@mail.yourcompany.com",
@@ -61,6 +102,16 @@ client.inboxes.messages.send(
     track_opens=True,
 )
 ```
+
+```typescript title="TypeScript"
+await client.inboxes.messages.send("agent@mail.yourcompany.com", {
+  to: ["customer@example.com"],
+  subject: "Following up",
+  html: "<p>Just checking in on my last note.</p>",
+  trackOpens: true,
+});
+```
+</CodeBlocks>
 
 <Note>
 The message must have an HTML body. A pixel can only live in HTML, so a text-only message is delivered normally but is not tracked. Sending both `text` and `html` is fine.
@@ -72,6 +123,7 @@ If the domain is not ready, the send is rejected with a `422` rather than going 
 
 On the first open we add the `opened` system label to the message and to its thread. It shows up wherever you already read messages, with no extra call:
 
+<CodeBlocks>
 ```python title="Python"
 message = client.inboxes.messages.get(
     inbox_id="agent@mail.yourcompany.com",
@@ -82,8 +134,18 @@ if "opened" in message.labels:
     print("Opened")
 ```
 
+```typescript title="TypeScript"
+const message = await client.inboxes.messages.get("agent@mail.yourcompany.com", messageId);
+
+if (message.labels.includes("opened")) {
+  console.log("Opened");
+}
+```
+</CodeBlocks>
+
 Because it is a label, you can also filter on it. This is the simplest pattern for an agent that sends, goes away, and checks back later:
 
+<CodeBlocks>
 ```python title="Python"
 opened = client.inboxes.messages.list(
     inbox_id="agent@mail.yourcompany.com",
@@ -91,24 +153,108 @@ opened = client.inboxes.messages.list(
 )
 ```
 
+```typescript title="TypeScript"
+const opened = await client.inboxes.messages.list("agent@mail.yourcompany.com", {
+  labels: ["opened"],
+});
+```
+</CodeBlocks>
+
 ## Reacting to an open in real time
 
 Subscribe to the `message.opened` event to be notified the moment it happens. The event payload carries the open time, which the label alone does not:
 
+<CodeBlocks>
 ```python title="Python"
-client.webhooks.create(
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+webhook = client.webhooks.create(
     url="https://yourapp.com/hooks/agentmail",
     event_types=["message.opened"],
 )
+# store webhook.secret (it starts with whsec_) as AGENTMAIL_WEBHOOK_SECRET
 ```
 
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+const webhook = await client.webhooks.create({
+  url: "https://yourapp.com/hooks/agentmail",
+  eventTypes: ["message.opened"],
+});
+// store webhook.secret (it starts with whsec_) as AGENTMAIL_WEBHOOK_SECRET
+```
+</CodeBlocks>
+
+AgentMail delivers webhooks through Svix, so verify each request's signature against the raw request body before you trust it. These handlers use the `svix` library (`pip install agentmail flask svix` or `npm install express svix`):
+
+<CodeBlocks>
 ```python title="Python"
-elif event_type == "message.opened":
-    event = MessageOpenedEvent(**payload)
-    print(event.open.message_id, event.open.timestamp)
+import os
+
+from agentmail import MessageOpenedEvent
+from flask import Flask, request
+from svix.webhooks import Webhook, WebhookVerificationError
+
+app = Flask(__name__)
+webhook = Webhook(os.environ["AGENTMAIL_WEBHOOK_SECRET"])
+
+
+@app.route("/hooks/agentmail", methods=["POST"])
+def agentmail_webhook():
+    # verify the signature on the raw body, not on parsed json
+    try:
+        payload = webhook.verify(request.get_data(), request.headers)
+    except WebhookVerificationError:
+        return "", 400
+
+    if payload["event_type"] == "message.opened":
+        event = MessageOpenedEvent(**payload)
+        print(event.open.message_id, event.open.timestamp)
+
+    return "", 204
+
+
+if __name__ == "__main__":
+    app.run(port=3000)
 ```
 
-See [Webhook events](/webhooks/events) for the full handler pattern.
+```typescript title="TypeScript"
+import express from "express";
+import { Webhook } from "svix";
+
+const app = express();
+const webhook = new Webhook(process.env.AGENTMAIL_WEBHOOK_SECRET!);
+
+// express.raw keeps the body as bytes so the signature can be checked
+app.post("/hooks/agentmail", express.raw({ type: "application/json" }), (req, res) => {
+  let payload: any;
+  try {
+    payload = webhook.verify(req.body, req.headers as Record<string, string>);
+  } catch {
+    res.status(400).send();
+    return;
+  }
+
+  // the webhook body uses snake_case field names
+  if (payload.event_type === "message.opened") {
+    console.log(payload.open.message_id, payload.open.timestamp);
+  }
+
+  res.status(204).send();
+});
+
+app.listen(3000);
+```
+</CodeBlocks>
+
+See [Webhook events](https://docs.agentmail.to/events) for every event type and [Verifying webhooks](https://docs.agentmail.to/webhook-verification) for more on signature verification.
 
 ## What open tracking can and cannot tell you
 

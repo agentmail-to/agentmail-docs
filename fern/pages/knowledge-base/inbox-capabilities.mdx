@@ -4,92 +4,157 @@ subtitle: A complete overview of inbox capabilities for AI agents.
 slug: knowledge-base/inbox-capabilities
 ---
 
-An AgentMail inbox is a full email account for your AI agent. Each inbox gets a unique email address and can send, receive, reply, forward, and manage emails entirely through the API.
+An AgentMail inbox is a full email account for your AI agent. It has a real address, sends and receives mail, groups messages into threads, and keeps them so your agent can read them back later. You work with it through the REST API, the Python and TypeScript SDKs, the CLI, the MCP server, or standard IMAP and SMTP.
+
+<Note>
+Features marked **Labs** are in AgentMail Labs. An organization admin joins Labs from [Labs](https://console.agentmail.to/dashboard/labs) in the console sidebar, which turns on Calendar and Agent Drive; Agent Armor is then switched on separately on the same page. Labs is available in US production (`api.agentmail.to`), not yet in EU production (`api.agentmail.eu`).
+</Note>
 
 ## Sending
 
-- **Send emails** to anyone on the internet
-- **CC and BCC AI agents in email threads**
-- **Forward emails to humans and AI agents** 
-- **Create and send drafts**
-- **HTML and plain text** 
-- **Attachments** with Base64 encoding (PDFs, images, documents)
-- **Custom display names** 
-- **Labeling email threads**
-- **Schedule send emails for later**
+- **Send, reply, reply all, and forward.** Start new conversations, reply inside a thread, reply to everyone on it, or forward a message to a person or another agent. See [Sending & Receiving Email](https://docs.agentmail.to/sending-receiving-email).
+- **To, CC, and BCC.** Each takes one address or a list, so a human can stay copied on what the agent sends.
+- **HTML and plain text.** Send both `text` and `html` so every email client can display the message. See [Messages](https://docs.agentmail.to/messages).
+- **Attachments.** Provide each file as Base64 `content` or as a `url` that AgentMail downloads. Inline content is limited to 6 MB for the whole request; URL attachments can total around 30 MB per message. See [Attachments](https://docs.agentmail.to/attachments).
+- **Display name.** Set `display_name` on the inbox to control the sender name recipients see. See [Inboxes](https://docs.agentmail.to/inboxes).
+- **Drafts.** Create a draft, let a person or another process review and edit it, then send it. Drafts can also be replies and forwards. See [Drafts](https://docs.agentmail.to/drafts).
+- **Scheduled send.** Set `send_at` on a draft and AgentMail sends it at that time, with no cron job on your side. Update `send_at` to reschedule, or set it to `null` to keep the draft unsent. Scheduling is a draft feature: Send Message always sends immediately. See [Scheduled sending](https://docs.agentmail.to/drafts#scheduled-sending).
+- **Safe retries.** Send an `Idempotency-Key` header so a retried send request does not send the email twice. See [Idempotency](https://docs.agentmail.to/idempotency).
+- **Open tracking (private beta).** Find out when a message is first opened. It requires a custom domain with tracking enabled and the Developer plan or above, and is turned on by request. See [How do I know when an email is opened?](https://docs.agentmail.to/knowledge-base/open-tracking).
 
 ## Receiving
 
-- **Receive emails** from anyone: your inbox has a real email address
-- **Webhooks** for real-time notifications when an email arrives
-- **WebSockets** for persistent event streaming without needing a public URL
-- **Spam and virus detection** on all incoming emails
-- **Attachment downloads** to programmatically access files from received emails
-- **Reply extraction** with built-in `extracted_text` and `extracted_html` fields that strip quoted text
+- **A real address.** Anyone can email the inbox. On `@agentmail.to` this works as soon as the inbox exists; on your own domain, once the domain is verified, unless you set the domain up as send-only.
+- **Threads.** Replies are grouped into conversation threads automatically, using standard email headers. See [Threads](https://docs.agentmail.to/threads).
+- **Reply extraction.** `extracted_text` and `extracted_html` hold only the new content of each message, without the quoted history below it. Attachments with extractable text, such as PDF and Word files, also get a `text_url`. See [Reply & Attachment Extraction](https://docs.agentmail.to/reply-extraction).
+- **Attachment downloads.** Getting an attachment returns a signed `download_url` for its bytes. See [Attachments](https://docs.agentmail.to/attachments).
+- **Spam and virus detection.** Incoming mail is scanned. Spam is kept but left out of list results unless you ask for it. See [Spam & Virus Detection](https://docs.agentmail.to/spam-virus-detection).
 
-## Threading and conversations
+## Finding and organizing mail
 
-- **Automatic threading:** replies are grouped into conversation threads using standard email headers
-- **Reply-to messages** to maintain context in multi-turn conversations
-- **Reply all** to respond to all recipients on a thread
-- **Forward messages** to other addresses or agents
-- **Org-wide thread listing** to query conversations across every inbox in your organization
+- **Filtered lists.** List messages or threads by label, by time range with `before` and `after`, or by text in the sender, recipients, or subject. List Threads without an inbox to see threads across every inbox in your organization. See [Threads](https://docs.agentmail.to/threads).
+- **Full-text search.** Search Messages searches the messages in one inbox. Search Threads searches the threads in one inbox, in one pod, or across your whole organization. Both rank results by relevance and match the sender, recipients, subject, and body. See [Searching threads](https://docs.agentmail.to/threads#searching-threads) and [Searching messages](https://docs.agentmail.to/messages#searching-messages).
+- **Inbox search.** Find inboxes by address or display name with [Search Inboxes](https://docs.agentmail.to/api-reference/inboxes/search).
+- **Labels.** Add your own labels to messages when you send them or later, then filter by label to track workflow state. See [Labels](https://docs.agentmail.to/labels).
+- **Inbox metadata.** Attach your own key-value data to an inbox, such as a user or tenant ID. See [Metadata](https://docs.agentmail.to/inboxes#metadata).
+- **Pausing.** Stop an inbox sending and receiving without deleting it. Mail sent to a paused inbox is not delivered. See [Pausing an inbox](https://docs.agentmail.to/inboxes#pausing-an-inbox).
 
-## Organization and filtering
+## Controlling who an inbox talks to
 
-- **Labels:** add custom string tags to messages (e.g., `urgent`, `sales`, `needs-response`)
-- **Filter by label:** list only messages or threads matching specific labels
-- **Allowlists and blocklists:** control who an inbox can send to and receive from
-- **Pods:** isolate groups of inboxes per customer for multi-tenant applications
+- **Allow and block lists.** Allow or block addresses and domains for sending, receiving, and replies, for the whole organization, one pod, or one inbox. See [Lists](https://docs.agentmail.to/lists) and [How do I set up allowlists and blocklists?](https://docs.agentmail.to/knowledge-base/allowlists-blocklists).
+- **Pods.** Group inboxes per customer or tenant to keep them isolated from each other. See [Pods](https://docs.agentmail.to/documentation/core-concepts/pods) and [How do I use Pods for multi-tenant email?](https://docs.agentmail.to/knowledge-base/pods-multi-tenant).
+- **Scoped API keys and permissions.** Limit a key to one pod or one inbox, and to specific permissions, for example a key that can create drafts but not send them. See [Permissions](https://docs.agentmail.to/permissions).
+- **Agent Armor (Labs).** Scans incoming mail for prompt injection and other attempts to manipulate an agent, and marks each message `clear` or `review`. In Hold mode, messages marked `review` are kept from your agents until someone releases them. See [Agent Armor](https://docs.agentmail.to/agent-armor).
 
-## Identity and authentication
+## Domains
 
-- **Custom domains:** send from your own domain (e.g., `agent@yourcompany.com`) instead of `@agentmail.to`
-- **SPF, DKIM, and DMARC:** full email authentication for production deliverability
-- **Idempotent inbox creation:** use the `client_id` parameter to safely create inboxes without duplicates
+- **Default domain.** Inboxes on `@agentmail.to` need no setup. The domain is shared by all AgentMail users, and so is its sending reputation.
+- **Custom domains.** Send and receive as `agent@yourcompany.com` after you add the DNS records AgentMail gives you and verify the domain. Available on the Developer plan and above. See [How do I set up a custom domain?](https://docs.agentmail.to/knowledge-base/custom-domain-setup).
+- **Subdomain inboxes.** Enable subdomains on a domain and publish the wildcard MX record AgentMail then lists for it. Once the domain verifies, you can create inboxes on any of its subdomains, such as `agent@support.example.com`, without adding each one. See [How do I create inboxes on any subdomain?](https://docs.agentmail.to/knowledge-base/subdomain-inboxes).
 
-## Access methods
+## Events
 
-- **REST API:** full CRUD on inboxes, messages, threads, drafts, and attachments
-- **Python SDK:** `pip install agentmail`
-- **TypeScript SDK:** `npm install agentmail`
-- **SMTP:** connect email clients or existing systems for sending
-- **MCP Server:** use with Claude Code, Cursor, and other AI coding tools
-- **IMAP:** coming soon
+- **Webhooks.** AgentMail sends a request to your endpoint when a message is received, sent, delivered, bounced, and more. See [Webhooks](https://docs.agentmail.to/webhooks-overview) and the [event types](https://docs.agentmail.to/events).
+- **Polling webhooks.** Subscribe to the same events and fetch them whenever your agent runs, with no public URL. Available in the US region. See [Polling Webhooks](https://docs.agentmail.to/webhook-polling).
+- **WebSockets.** Keep a connection open and receive events as they happen, with no public URL. See [WebSockets](https://docs.agentmail.to/websockets).
+- **Metrics.** Query counts of sent, delivered, bounced, and other events over time, for your organization, a pod, or one inbox. See [Query Events](https://docs.agentmail.to/api-reference/metrics/query-events).
+
+## Agent identity and onboarding
+
+- **AgentID.** Sign an agent in to apps that support AgentID, or create accounts for it at them, using its inbox as its identity. See [AgentID Sign-In](https://docs.agentmail.to/agentid-sign-in) and [AgentID in Claude, ChatGPT, and Cursor](https://docs.agentmail.to/agentid-in-assistants).
+- **Agent sign-up.** An agent can sign itself up through the API and receive an API key and an inbox. Until its human verifies it or claims the inbox, it can send only to that human. See [Agent Onboarding](https://docs.agentmail.to/agent-onboarding) and [How do I claim my agent's inbox?](https://docs.agentmail.to/knowledge-base/claiming-agent-inbox).
+
+## Calendar and files
+
+- **Calendar (Labs).** Every inbox has a calendar: create events, send and receive invitations, and get webhooks as events start and end. See [Calendar](https://docs.agentmail.to/calendar).
+- **Agent Drive (Labs).** Store files for an inbox by path and hand out signed download links. See [Agent Drive](https://docs.agentmail.to/drive).
+
+## Ways to connect
+
+- **REST API and SDKs.** Install the Python SDK with `pip install agentmail` or the TypeScript SDK with `npm install agentmail`. See the [API Reference](https://docs.agentmail.to/api-reference).
+- **CLI.** Manage inboxes, messages, and more from a terminal. See [CLI](https://docs.agentmail.to/integrations/cli).
+- **MCP server.** A hosted server at `https://mcp.agentmail.to/mcp` for Claude, ChatGPT, Cursor, and other MCP clients. See [MCP](https://docs.agentmail.to/integrations/mcp).
+- **Skills.** The official AgentMail skill for Claude Code, Cursor, Codex, and other assistants. See [Skills](https://docs.agentmail.to/integrations/skills).
+- **IMAP and SMTP.** Read mail from any IMAP client at `imap.agentmail.to` on port 993, and send through `smtp.agentmail.to` on port 465 or 587. The username is the inbox address and the password is an API key. See [IMAP & SMTP](https://docs.agentmail.to/imap-smtp).
 
 ## Quick example
 
+<CodeBlocks>
 ```python title="Python"
+import os
+from datetime import datetime, timedelta, timezone
+
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 
-client = AgentMail()
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
 
-# Create an inbox with a display name
-inbox = client.inboxes.create(display_name="Support Agent")
-
-# Send an email with a human CC'd
-client.inboxes.messages.send(
-    inbox_id=inbox.inbox_id,
-    to=["customer@example.com"],
-    cc=["manager@yourcompany.com"],
-    subject="Your support request #1234",
-    text="Hi! I've reviewed your request and here is what I found...",
-    html="<p>Hi! I've reviewed your request and here is what I found...</p>",
-    labels=["support", "tier-1"]
+# create an inbox; the client_id makes re-runs reuse it
+inbox = client.inboxes.create(
+    request=CreateInboxRequest(display_name="Support Agent", client_id="support-agent-v1")
 )
 
-# Check for replies
-threads = client.inboxes.threads.list(inbox_id=inbox.inbox_id)
+# send now, with a human on cc and a label for your own tracking
+client.inboxes.messages.send(
+    inbox.inbox_id,
+    to=["customer@example.com"],
+    cc=["manager@example.com"],
+    subject="Your support request",
+    text="Here is what I found.",
+    html="<p>Here is what I found.</p>",
+    labels=["support"],
+)
 
-if threads.threads:
-    # Get the full conversation
-    thread = client.threads.get(thread_id=threads.threads[0].thread_id)
+# schedule a follow-up in two days: scheduling is a draft feature
+client.inboxes.drafts.create(
+    inbox.inbox_id,
+    to=["customer@example.com"],
+    subject="Following up on your support request",
+    text="Did the fix work for you?",
+    html="<p>Did the fix work for you?</p>",
+    send_at=datetime.now(timezone.utc) + timedelta(days=2),
+)
 
-    # Reply to the latest message
-    client.inboxes.messages.reply(
-        inbox_id=inbox.inbox_id,
-        message_id=thread.messages[-1].message_id,
-        text="Following up: have you had a chance to try the fix?",
-        html="<p>Following up: have you had a chance to try the fix?</p>"
-    )
+# search the inbox
+results = client.inboxes.messages.search(inbox.inbox_id, q="support request")
+for message in results.messages:
+    print(message.subject)
 ```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// create an inbox; the clientId makes re-runs reuse it
+const inbox = await client.inboxes.create({
+  displayName: "Support Agent",
+  clientId: "support-agent-v1",
+});
+
+// send now, with a human on cc and a label for your own tracking
+await client.inboxes.messages.send(inbox.inboxId, {
+  to: ["customer@example.com"],
+  cc: ["manager@example.com"],
+  subject: "Your support request",
+  text: "Here is what I found.",
+  html: "<p>Here is what I found.</p>",
+  labels: ["support"],
+});
+
+// schedule a follow-up in two days: scheduling is a draft feature
+await client.inboxes.drafts.create(inbox.inboxId, {
+  to: ["customer@example.com"],
+  subject: "Following up on your support request",
+  text: "Did the fix work for you?",
+  html: "<p>Did the fix work for you?</p>",
+  sendAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+});
+
+// search the inbox
+const results = await client.inboxes.messages.search(inbox.inboxId, { q: "support request" });
+for (const message of results.messages) {
+  console.log(message.subject);
+}
+```
+</CodeBlocks>

@@ -55,7 +55,7 @@ Pods enable you to offer AgentMail's email infrastructure to your own customers 
 As a basis, here are a couple of logistical stuff that happens on the API side when you create resources.
 
 - When you sign up, you are automatically created a `Default Pod`, and all resources created whether its `Inboxes` or `Domains` all are associated with this `Default Pod`.
-- You cannot delete a `Pod` that has existing children resources. Make sure to delete any existing `Inboxes` or `Domains` before deleting a `Pod`.
+- You cannot delete a `Pod` that still has `Inboxes`, `Domains`, or API keys scoped to it. Delete those first, then delete the `Pod`. The `Default Pod` can never be deleted.
 
 ### What You Can Do With Pods
 
@@ -112,7 +112,9 @@ Copy one of the blocks below into Cursor or Claude for complete Pods API knowled
   - pods.domains.list(pod_id, ...), pods.domains.create(pod_id, ...), pods.domains.delete(pod_id, domain_id)
   - pods.threads.list(pod_id, ...), pods.drafts.list(pod_id, ...)
 
-  Delete order: inboxes + domains first, then pod. Deleting inbox/domain cascades to messages/threads.
+  Delete order: inboxes (after their inbox-scoped API keys), pod-scoped API keys, and domains first, then pod.
+  The default pod can never be deleted. Deleting an inbox also deletes its messages, threads and drafts;
+  deleting a domain does NOT delete the inboxes on it.
   """
   from agentmail import AgentMail
 
@@ -135,7 +137,9 @@ Copy one of the blocks below into Cursor or Claude for complete Pods API knowled
    * - pods.domains.list(podId, ...), pods.domains.create(podId, ...), pods.domains.delete(podId, domainId)
    * - pods.threads.list(podId, ...), pods.drafts.list(podId, ...)
    *
-   * Delete order: inboxes + domains first, then pod.
+   * Delete order: inboxes (after their inbox-scoped API keys), pod-scoped API keys, and domains first, then pod.
+   * The default pod can never be deleted. Deleting an inbox also deletes its messages, threads and drafts;
+   * deleting a domain does NOT delete the inboxes on it.
    */
   import { AgentMailClient } from "agentmail";
 
@@ -157,39 +161,84 @@ Copy one of the blocks below into Cursor or Claude for complete Pods API knowled
 
 <Warning>
   **Critical**: You cannot delete a pod that has resources still attached to it.
-  You must delete all inboxes and domains within the pod before you can delete
-  the pod itself.
+  You must delete all inboxes, domains, and API keys scoped to the pod before
+  you can delete the pod itself. The default pod can never be deleted.
 </Warning>
 
-This is a safety mechanism to prevent accidental data loss. Here's the correct deletion sequence:
+This is a safety mechanism to prevent accidental data loss. A blocked delete returns `409` with code [`cannot_delete`](/errors#cannot_delete), and the message names what is still attached. Here's the correct deletion sequence:
 
-```typescript
-// This will FAIL if the pod has any resources
-await client.pods.delete(podId);
+<CodeBlocks>
+```python title="Python"
+import os
 
-// Correct approach: Clean up resources first
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+# this fails with cannot_delete while the pod still has inboxes, domains or API keys
+# client.pods.delete(pod_id)
+
+
+# each list call returns one page: follow next_page_token for larger pods
+def offboard_customer(pod_id: str) -> None:
+    # 1. delete each inbox, after deleting any API keys scoped to it
+    for inbox in client.pods.inboxes.list(pod_id).inboxes:
+        for key in client.inboxes.api_keys.list(inbox.inbox_id).api_keys:
+            client.inboxes.api_keys.delete(inbox.inbox_id, key.api_key_id)
+        client.pods.inboxes.delete(pod_id, inbox.inbox_id)
+
+    # 2. delete API keys scoped to the pod
+    for key in client.pods.api_keys.list(pod_id).api_keys:
+        client.pods.api_keys.delete(pod_id, key.api_key_id)
+
+    # 3. delete the pod's domains
+    for domain in client.pods.domains.list(pod_id).domains:
+        client.pods.domains.delete(pod_id, domain.domain_id)
+
+    # 4. now you can delete the pod
+    client.pods.delete(pod_id)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// this fails with cannot_delete while the pod still has inboxes, domains or API keys
+// await client.pods.delete(podId);
+
+// each list call returns one page: follow nextPageToken for larger pods
 async function offboardCustomer(podId: string) {
-  // 1. Delete all inboxes
-  const inboxRes = await client.inboxes.list(podId);
-  for (const inbox of inboxRes.inboxes) {
-    await client.inboxes.delete(inbox.inbox_id);
+  // 1. delete each inbox, after deleting any API keys scoped to it
+  for (const inbox of (await client.pods.inboxes.list(podId)).inboxes) {
+    for (const key of (await client.inboxes.apiKeys.list(inbox.inboxId)).apiKeys) {
+      await client.inboxes.apiKeys.delete(inbox.inboxId, key.apiKeyId);
+    }
+    await client.pods.inboxes.delete(podId, inbox.inboxId);
   }
 
-  // 2. Delete all domains
-  const domainRes = await client.domains.list({ podId });
-  for (const domain of domainRes.domains) {
-    await client.domains.delete(domain.domain_id);
+  // 2. delete API keys scoped to the pod
+  for (const key of (await client.pods.apiKeys.list(podId)).apiKeys) {
+    await client.pods.apiKeys.delete(podId, key.apiKeyId);
   }
 
-  // 3. Now you can delete the pod
+  // 3. delete the pod's domains
+  for (const domain of (await client.pods.domains.list(podId)).domains) {
+    await client.pods.domains.delete(podId, domain.domainId);
+  }
+
+  // 4. now you can delete the pod
   await client.pods.delete(podId);
 }
 ```
+</CodeBlocks>
 
 <Info>
-  When you delete an inbox or domain, all associated data (messages, threads,
-  drafts) is automatically cleaned up. You don't need to manually delete
-  individual threads or messages.
+  When you delete an inbox, its messages, threads, and drafts are deleted with
+  it, so you don't need to delete them individually. The inbox delete returns
+  `202` and the cleanup finishes in the background. Deleting a domain does not
+  delete the inboxes on it or their data: those inboxes stop sending and
+  receiving email, and you delete them separately.
 </Info>
 
 **What's NOT Isolated to a Pod:**
@@ -243,10 +292,10 @@ Pod: "Support-Agent"
 ├── Inbox: help@mycompany.com
 └── Inbox: tickets@mycompany.com
 
-// Agent 2: Sales Outreach Agent
+// Agent 2: Sales Agent (answers inbound inquiries)
 Pod: "Sales-Agent"
 ├── Inbox: sales@mycompany.com
-├── Inbox: outreach@mycompany.com
+├── Inbox: quotes@mycompany.com
 └── Inbox: leads@mycompany.com
 
 // Agent 3: Marketing Agent

@@ -1,0 +1,73 @@
+---
+title: "Can my agent send cold outreach?"
+subtitle: AgentMail does not support cold outreach. Here is what it is built for, and how to handle opt-outs.
+slug: knowledge-base/cold-outreach
+---
+
+**No.** AgentMail does not support cold outreach: email to people who have not asked to hear from you, such as prospects from a scraped or purchased list, or an automated sales sequence. Writing each message with an LLM does not change that.
+
+## What the Terms say
+
+The [Terms of Service](https://www.agentmail.to/legal/terms) apply to everything your agents send:
+
+- **Section 8(h)** prohibits sending "unsolicited or unauthorized advertising, promotional materials, email" or spam. It also prohibits emailing people who have not consented where the law requires consent, and ignoring unsubscribe or opt-out requests.
+- **Section 4(e)** makes you responsible for every action your agents take, whether they act on their own or not.
+- **Section 4(f)** requires every commercial message to include a working way to opt out and a clear notice of it, as CAN-SPAM requires. On the shared `@agentmail.to` domain, AgentMail adds `List-Unsubscribe` headers to each message; on a custom domain it does not, so add your own. Either way, put a clear opt-out notice in the message itself.
+- **Section 8(j)** requires you to disclose that a message comes from an AI agent where the law requires it.
+
+## What AgentMail is built for
+
+- **Replying to people who wrote first.** Support requests, scheduling, and anything else that starts with an email to your agent.
+- **Emailing people who asked to hear from your agent.** They signed up, requested a quote, or opted in.
+- **Transactional and operational mail.** Confirmations, receipts, status updates, and reminders about something the recipient started.
+- **Work email with people who expect it.** Colleagues, customers, or vendors who have agreed to work with your agent by email.
+
+## Rules for sending
+
+### Honor opt-outs right away
+
+When someone replies asking your agent to stop, add their address to your organization's send block list. An organization-level entry covers all your inboxes, and AgentMail rejects any later send to that address with a `403` and code [`message_rejected`](https://docs.agentmail.to/errors#message_rejected). Some allow entries override that block: one for the same address at any scope, or one for its domain at the pod or inbox level. Remove those for anyone who opted out.
+
+<CodeBlocks>
+```python title="Python"
+import os
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# block future sends to someone who asked to stop
+client.lists.create("send", "block", entry="jane@example.com", reason="opted out by reply")
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// block future sends to someone who asked to stop
+await client.lists.create("send", "block", {
+  entry: "jane@example.com",
+  reason: "opted out by reply",
+});
+```
+</CodeBlocks>
+
+To decide whether a reply is an opt-out, read its `extracted_text`, which holds only the new reply without quoted history. See [Reply extraction](https://docs.agentmail.to/reply-extraction) and [Lists](https://docs.agentmail.to/lists).
+
+### Stop on bounces and complaints
+
+Subscribe to the `message.bounced` and `message.complained` [events](https://docs.agentmail.to/events). A bounce means the address does not accept your mail. A complaint means the recipient marked your message as spam. Do not retry either address, and review what your agent sent and to whom.
+
+AgentMail weighs bounce and complaint signals, and the Terms allow it to suspend accounts that send unsolicited mail.
+
+### Do not use warm-up tools
+
+AgentMail does not recommend third-party warm-up tools. Sending reputation comes from recipients who want your agent's mail and engage with it.
+
+### Expect limits on new accounts
+
+New accounts start with sending limits. See [What are the rate limits?](https://docs.agentmail.to/knowledge-base/rate-limits)
+
+## Get help
+
+Not sure whether your use case fits? Email [support@agentmail.cc](mailto:support@agentmail.cc) before your agent sends, with your organization ID and a short description of who your agent emails and why.

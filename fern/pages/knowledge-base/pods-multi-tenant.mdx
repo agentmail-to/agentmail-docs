@@ -34,15 +34,32 @@ Everything inside a Pod is isolated. Customer A cannot see Customer B's emails, 
 
 ## Creating a Pod and its resources
 
+An inbox on a custom domain such as `acme.com` can only be created once that domain is registered in your organization or in the Pod, and verified. So the order is: create the Pod, add the customer's domain to it, publish the DNS records it returns, wait for the domain to verify, then create inboxes.
+
+<CodeBlocks>
 ```python title="Python"
+import os
+import time
+
 from agentmail import AgentMail
 
-client = AgentMail()
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
-# Create a Pod for a customer
-pod = client.pods.create(name="Acme Corp")
+# create a pod for the customer, keyed by your internal customer id
+pod = client.pods.create(name="Acme Corp", client_id="customer_12345")
 
-# Create inboxes within that Pod
+# register the customer's domain in the pod
+domain = client.pods.domains.create(pod_id=pod.pod_id, domain="acme.com")
+
+# publish these records at the customer's dns provider
+for record in domain.records:
+    print(record.type, record.name, record.value, record.priority or "")
+
+# wait until agentmail has verified the records
+while client.pods.domains.get(pod_id=pod.pod_id, domain_id=domain.domain_id).status != "VERIFIED":
+    time.sleep(60)
+
+# create inboxes on the verified domain
 support_inbox = client.pods.inboxes.create(
     pod_id=pod.pod_id,
     username="support",
@@ -58,30 +75,62 @@ sales_inbox = client.pods.inboxes.create(
 )
 ```
 
-<Note>
-Use the `client_id` parameter when creating a Pod to set your own unique identifier. This way you can map Pods to your internal customer IDs without maintaining a separate mapping table.
-</Note>
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
 
-```python title="Python"
-# Use your internal customer ID as the client_id
-pod = client.pods.create(
-    name="Acme Corp",
-    client_id="customer_12345"
-)
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// create a pod for the customer, keyed by your internal customer id
+const pod = await client.pods.create({ name: "Acme Corp", clientId: "customer_12345" });
+
+// register the customer's domain in the pod
+const domain = await client.pods.domains.create(pod.podId, { domain: "acme.com" });
+
+// publish these records at the customer's dns provider
+for (const record of domain.records) {
+  console.log(record.type, record.name, record.value, record.priority ?? "");
+}
+
+// wait until agentmail has verified the records
+while ((await client.pods.domains.get(pod.podId, domain.domainId)).status !== "VERIFIED") {
+  await new Promise((resolve) => setTimeout(resolve, 60_000));
+}
+
+// create inboxes on the verified domain
+const supportInbox = await client.pods.inboxes.create(pod.podId, {
+  username: "support",
+  domain: "acme.com",
+  displayName: "Acme Support",
+});
+
+const salesInbox = await client.pods.inboxes.create(pod.podId, {
+  username: "sales",
+  domain: "acme.com",
+  displayName: "Acme Sales",
+});
 ```
+</CodeBlocks>
+
+DNS changes can take from a few minutes to 48 hours to propagate. Instead of polling, you can subscribe to the [`domain.verified` event](https://docs.agentmail.to/events). See the [custom domains guide](https://docs.agentmail.to/custom-domains) for the records and verification statuses. Creating an inbox on a domain that is not verified yet fails, and so does creating one on a domain that belongs to a different Pod.
+
+If you do not need a custom domain, omit `domain` and the inbox is created on `agentmail.to`.
+
+<Note>
+Use the `client_id` parameter when creating a Pod to set your own unique identifier, as in the example above. This way you can map Pods to your internal customer IDs without maintaining a separate mapping table, and retrying the create returns the same Pod instead of a duplicate.
+</Note>
 
 ## Listing resources within a Pod
 
 You can list inboxes, threads, drafts, and domains scoped to a specific Pod:
 
 ```python title="Python"
-# List all inboxes in a Pod
+# list inboxes in a pod
 inboxes = client.pods.inboxes.list(pod_id=pod.pod_id)
 
-# List all threads across all inboxes in a Pod
+# list threads across all inboxes in a pod
 threads = client.pods.threads.list(pod_id=pod.pod_id)
 
-# List all pending drafts in a Pod
+# list drafts in a pod
 drafts = client.pods.drafts.list(pod_id=pod.pod_id)
 ```
 
@@ -89,17 +138,55 @@ This makes it easy to build features like "show all unread emails for Customer X
 
 ## Deleting a Pod
 
-You cannot delete a Pod that still has inboxes or domains attached to it. Clean up child resources first:
+You cannot delete a Pod that still has inboxes, domains, or Pod-scoped API keys, and you cannot delete an inbox that still has inbox-scoped API keys. Clean up those child resources first:
 
+<CodeBlocks>
 ```python title="Python"
-# Delete all inboxes in the Pod first
-inboxes = client.pods.inboxes.list(pod_id=pod.pod_id)
-for inbox in inboxes.inboxes:
-    client.inboxes.delete(inbox.inbox_id)
+# each list call returns one page; follow next_page_token if a pod has more
 
-# Then delete the Pod
+# delete each inbox, after any api keys scoped to it
+for inbox in client.pods.inboxes.list(pod_id=pod.pod_id).inboxes:
+    for key in client.inboxes.api_keys.list(inbox_id=inbox.inbox_id).api_keys:
+        client.inboxes.api_keys.delete(inbox_id=inbox.inbox_id, api_key_id=key.api_key_id)
+    client.pods.inboxes.delete(pod_id=pod.pod_id, inbox_id=inbox.inbox_id)
+
+# delete the pod's domains
+for domain in client.pods.domains.list(pod_id=pod.pod_id).domains:
+    client.pods.domains.delete(pod_id=pod.pod_id, domain_id=domain.domain_id)
+
+# delete api keys scoped to the pod
+for key in client.pods.api_keys.list(pod_id=pod.pod_id).api_keys:
+    client.pods.api_keys.delete(pod_id=pod.pod_id, api_key_id=key.api_key_id)
+
+# then delete the pod
 client.pods.delete(pod_id=pod.pod_id)
 ```
+
+```typescript title="TypeScript"
+// each list call returns one page; follow nextPageToken if a pod has more
+
+// delete each inbox, after any api keys scoped to it
+for (const inbox of (await client.pods.inboxes.list(pod.podId)).inboxes) {
+  for (const key of (await client.inboxes.apiKeys.list(inbox.inboxId)).apiKeys) {
+    await client.inboxes.apiKeys.delete(inbox.inboxId, key.apiKeyId);
+  }
+  await client.pods.inboxes.delete(pod.podId, inbox.inboxId);
+}
+
+// delete the pod's domains
+for (const domain of (await client.pods.domains.list(pod.podId)).domains) {
+  await client.pods.domains.delete(pod.podId, domain.domainId);
+}
+
+// delete api keys scoped to the pod
+for (const key of (await client.pods.apiKeys.list(pod.podId)).apiKeys) {
+  await client.pods.apiKeys.delete(pod.podId, key.apiKeyId);
+}
+
+// then delete the pod
+await client.pods.delete(pod.podId);
+```
+</CodeBlocks>
 
 <Warning>
 When you delete an inbox, all associated messages, threads, and drafts are automatically cleaned up. You do not need to delete them individually.
@@ -114,4 +201,4 @@ When you delete an inbox, all associated messages, threads, and drafts are autom
 - **No limit on Pods.** You can create as many Pods as you need for your customers.
 - **Domains can be scoped to one Pod or all Pods.** A domain cannot be shared across a subset of Pods.
 
-For more details, see the [Pods core concept](/pods) documentation.
+For more details, see the [Pods core concept](https://docs.agentmail.to/documentation/core-concepts/pods) documentation.

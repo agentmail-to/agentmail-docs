@@ -573,6 +573,20 @@ navigation:
           - page: Claiming your agent's inbox
             icon: fa-solid fa-hand-holding
             path: pages/knowledge-base/claiming-agent-inbox.mdx
+          - page: Why can my agent only email its human?
+            icon: fa-solid fa-robot
+            path: pages/knowledge-base/agent-sign-up-limits.mdx
+      - section: Account & Billing
+        contents:
+          - page: Why was my account suspended?
+            icon: fa-solid fa-user-slash
+            path: pages/knowledge-base/account-suspended.mdx
+          - page: How do I upgrade, downgrade, or cancel my plan?
+            icon: fa-solid fa-credit-card
+            path: pages/knowledge-base/change-plan-billing.mdx
+          - page: Security and compliance FAQ
+            icon: fa-solid fa-lock
+            path: pages/knowledge-base/security-compliance.mdx
       - section: Agent Patterns
         contents:
           - page: Handling inbound emails
@@ -603,7 +617,6 @@ navigation:
             icon: fa-solid fa-globe
             path: pages/knowledge-base/custom-domain-setup.mdx
           - page: Inboxes on subdomains
-            hidden: true
             icon: fa-solid fa-sitemap
             path: pages/knowledge-base/subdomain-inboxes.mdx
           - page: SPF, DKIM, and DMARC setup
@@ -618,9 +631,9 @@ navigation:
           - page: MX record conflicts
             icon: fa-solid fa-code-merge
             path: pages/knowledge-base/mx-record-conflicts.mdx
-          # - page: Warming up your inbox
-          #   icon: fa-solid fa-fire
-          #   path: pages/knowledge-base/warming-up-your-inbox.mdx
+          - page: Can my agent send cold outreach?
+            icon: fa-solid fa-paper-plane
+            path: pages/knowledge-base/cold-outreach.mdx
       - section: Troubleshooting
         contents:
           - page: API 403 error

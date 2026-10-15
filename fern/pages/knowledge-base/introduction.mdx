@@ -12,7 +12,7 @@ slug: knowledge-base
     icon="fa-regular fa-circle-question"
     href="/knowledge-base/what-is-agentmail"
   >
-    How AgentMail compares to Resend, SendGrid, and other email providers.
+    What AgentMail is and how it differs from sending-only email APIs.
   </Card>
   <Card
     title="What can I do with an inbox?"
@@ -48,6 +48,39 @@ slug: knowledge-base
     href="/knowledge-base/claiming-agent-inbox"
   >
     Take ownership of an inbox your agent created without your email.
+  </Card>
+  <Card
+    title="Why can my agent only email its human?"
+    icon="fa-solid fa-robot"
+    href="/knowledge-base/agent-sign-up-limits"
+  >
+    Limits on agent-created accounts, and how verifying or claiming lifts them.
+  </Card>
+</Cards>
+
+## Account & Billing
+
+<Cards>
+  <Card
+    title="Why was my account suspended?"
+    icon="fa-solid fa-user-slash"
+    href="/knowledge-base/account-suspended"
+  >
+    What each suspension reason means, what still works, and how to get help.
+  </Card>
+  <Card
+    title="Upgrade, downgrade, or cancel"
+    icon="fa-solid fa-credit-card"
+    href="/knowledge-base/change-plan-billing"
+  >
+    Change your plan, manage invoices and payment methods, or cancel.
+  </Card>
+  <Card
+    title="Security and compliance FAQ"
+    icon="fa-solid fa-lock"
+    href="/knowledge-base/security-compliance"
+  >
+    SOC 2, subprocessors, privacy, data residency, and where to send questions.
   </Card>
 </Cards>
 
@@ -109,6 +142,13 @@ slug: knowledge-base
     Send emails from your own domain instead of @agentmail.to.
   </Card>
   <Card
+    title="Inboxes on subdomains"
+    icon="fa-solid fa-sitemap"
+    href="/knowledge-base/subdomain-inboxes"
+  >
+    Create inboxes on any subdomain of a verified domain.
+  </Card>
+  <Card
     title="SPF, DKIM, and DMARC setup"
     icon="fa-solid fa-shield-halved"
     href="/knowledge-base/spf-dkim-dmarc"
@@ -123,7 +163,7 @@ slug: knowledge-base
     Troubleshoot and fix spam folder placement issues.
   </Card>
   <Card
-    title="Domain warming schedule"
+    title="Warming up a new domain"
     icon="fa-solid fa-temperature-half"
     href="/knowledge-base/domain-warming"
   >
@@ -137,17 +177,24 @@ slug: knowledge-base
     Add AgentMail DNS records without breaking existing email.
   </Card>
   <Card
-    title="Warming up your inbox"
-    icon="fa-solid fa-fire"
-    href="/knowledge-base/warming-up-your-inbox"
+    title="Can my agent send cold outreach?"
+    icon="fa-solid fa-paper-plane"
+    href="/knowledge-base/cold-outreach"
   >
-    Connect to third-party warm-up tools before running cold outbound.
+    What kinds of email AgentMail is built for, and how to honor opt-outs.
   </Card>
 </Cards>
 
 ## Troubleshooting
 
 <Cards>
+  <Card
+    title="API 403 error"
+    icon="fa-solid fa-ban"
+    href="/knowledge-base/api-403-error"
+  >
+    What each 403 error code means and how to fix it.
+  </Card>
   <Card
     title="Rate limits"
     icon="fa-solid fa-gauge-high"
@@ -177,11 +224,44 @@ slug: knowledge-base
     Diagnose and resolve email bounce issues.
   </Card>
   <Card
-    title="Email spoofing protection"
-    icon="fa-solid fa-shield-halved"
+    title="Why are my emails not showing up?"
+    icon="fa-solid fa-envelope-circle-check"
     href="/knowledge-base/inbound-emails-missing"
   >
-    How AgentMail protects your inboxes from unauthenticated senders.
+    Why an inbound email was dropped, labeled, or hidden, and how to find it.
+  </Card>
+</Cards>
+
+## AI Tools
+
+<Cards>
+  <Card
+    title="Agent onboarding"
+    icon="fa-solid fa-user-plus"
+    href="/agent-onboarding"
+  >
+    Resources for onboarding AI agents and coding assistants to AgentMail.
+  </Card>
+  <Card
+    title="MCP server"
+    icon="fa-solid fa-plug"
+    href="/integrations/mcp"
+  >
+    Connect AgentMail to Claude, ChatGPT, Cursor, and other MCP clients.
+  </Card>
+  <Card
+    title="Skills"
+    icon="fa-solid fa-wand-magic-sparkles"
+    href="/integrations/skills"
+  >
+    Add AgentMail to AI coding assistants with the official skill.
+  </Card>
+  <Card
+    title="CLI"
+    icon="fa-solid fa-terminal"
+    href="/integrations/cli"
+  >
+    Manage AgentMail resources from the command line.
   </Card>
 </Cards>
 
@@ -219,3 +299,7 @@ Step-by-step instructions for verifying your domain with popular DNS providers.
     Configure AgentMail DNS records in Namecheap.
   </Card>
 </Cards>
+
+## Can't find what you need?
+
+Email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID and, if relevant, the inbox ID, message ID, and the time the problem happened. Check [status.agentmail.to](https://status.agentmail.to) for ongoing incidents.

@@ -6,83 +6,224 @@ slug: knowledge-base/preventing-duplicate-sends
 
 AI agents can sometimes retry requests due to network errors, timeouts, or logic bugs. Without safeguards, this can cause the same email to be sent multiple times. Here is how to prevent that.
 
+AgentMail has two separate mechanisms:
+
+| Mechanism | Use it for | How |
+| --- | --- | --- |
+| `client_id` | Creating inboxes, pods, webhooks, and drafts | Body parameter on the create request |
+| `Idempotency-Key` | Sends, replies, reply-alls, forwards, and draft sends | HTTP header on the send request |
+
 ## Idempotent resource creation with client_id
 
-AgentMail supports idempotency for all **create** operations via the `clientId` parameter. When you provide a `clientId`, AgentMail checks if a resource with that ID already exists. If it does, it returns the existing resource instead of creating a duplicate.
+Creating an inbox, pod, webhook, or draft accepts an optional `client_id`. When you provide one, AgentMail checks whether a resource with that `client_id` already exists. If it does, it returns the existing resource instead of creating a duplicate.
 
-This works for creating inboxes, pods, webhooks, and drafts:
+Not every create operation takes a `client_id`. List entries and standard (bearer) API keys, for example, do not, and sends use the `Idempotency-Key` header described below.
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+# safe to call multiple times: only creates the inbox once
+inbox = client.inboxes.create(
+    request=CreateInboxRequest(username="support", domain="yourdomain.com", client_id="support-inbox-v1")
+)
+
+# calling again with the same client_id returns the existing inbox
+same_inbox = client.inboxes.create(
+    request=CreateInboxRequest(username="support", domain="yourdomain.com", client_id="support-inbox-v1")
+)
+
+assert inbox.inbox_id == same_inbox.inbox_id
+```
 
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
-const client = new AgentMailClient({ apiKey: "am_..." });
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
-// Safe to call multiple times: only creates the inbox once
+// safe to call multiple times: only creates the inbox once
 const inbox = await client.inboxes.create({
   username: "support",
+  domain: "yourdomain.com",
   clientId: "support-inbox-v1",
 });
 
-// Calling again with the same clientId returns the existing inbox
+// calling again with the same clientId returns the existing inbox
 const sameInbox = await client.inboxes.create({
   username: "support",
+  domain: "yourdomain.com",
   clientId: "support-inbox-v1",
 });
 
 // inbox.inboxId === sameInbox.inboxId
 ```
+</CodeBlocks>
 
 ## Preventing duplicate email sends
 
-The `clientId` parameter is for resource creation, not for `messages.send`. Sends are made idempotent with an **`Idempotency-Key` HTTP header** instead.
+`client_id` is for resource creation, not for sends. Sends (`messages.send`, replies, reply-alls, forwards, and `drafts.send`) are made idempotent with an **`Idempotency-Key` HTTP header** instead. The SDKs expose it as `idempotency_key` in Python and as the `idempotencyKey` request option in TypeScript.
 
-Pass a unique key per logical send. A retry carrying the same key returns the original message and sends no second email; reusing a key with a different request (different content, inbox, or endpoint) returns `409 Conflict`. Keys expire 24 hours after the send completes.
+How the key behaves:
 
-```typescript title="TypeScript"
-const key = `order-${orderId}-confirmation`; // unique per logical send, reused across retries
+- **First request with a key:** AgentMail sends the email and records the result against the key.
+- **Retry with the same key:** returns the original `message_id` and `thread_id` and sends no second email. A retry that arrives while the first request is still being processed returns `409 Conflict`; wait briefly and retry the identical request.
+- **Same key, different request** (different message content, a different sending inbox, or a different send endpoint): returns `409 Conflict`.
+- **Format:** 1 to 256 characters from `A-Z a-z 0-9 - . _ ~`. An empty `Idempotency-Key` header is rejected with a `400`.
+- **Lifetime:** keys are scoped to your organization and expire 24 hours after the send completes, after which the key can be reused.
 
-const message = await client.inboxes.messages.send(
-  inbox.inboxId,
-  { to: ["customer@example.com"], subject: "Order confirmation", text: "Your order has been confirmed." },
-  { headers: { "Idempotency-Key": key } },
-);
+Use a key that is unique per logical send and reuse it, with the same request body, across every retry of that send, for example one derived from your own data (`order-4821-confirmation`) or a UUID you generate once and store. If your agent regenerates the email text on each attempt, store the first version and resend that, since a retry with different text is a different request.
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+order_id = "4821"
+
+message = client.inboxes.messages.send(
+    inbox_id="orders@yourdomain.com",
+    to=["customer@example.com"],
+    subject="Order confirmation",
+    text="Your order has been confirmed.",
+    # unique per logical send, reused across retries
+    idempotency_key=f"order-{order_id}-confirmation",
+)
 ```
 
-See the [Idempotent Requests](/idempotency) guide for the full semantics. The application-side patterns below still help when you want to dedupe on your own business state (e.g. "have I already replied to this thread?").
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
 
-### Track sent messages with labels
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
-Use labels to mark messages that your agent has already processed, so it does not reply twice:
+const orderId = "4821";
+
+const message = await client.inboxes.messages.send(
+  "orders@yourdomain.com",
+  { to: ["customer@example.com"], subject: "Order confirmation", text: "Your order has been confirmed." },
+  // unique per logical send, reused across retries
+  { idempotencyKey: `order-${orderId}-confirmation` },
+);
+```
+</CodeBlocks>
+
+See the [Idempotent Requests](https://docs.agentmail.to/idempotency) guide for the full semantics. The application-side patterns below still help when you want to dedupe on your own business state (for example, "have I already replied to this message?").
+
+### Track handled messages with labels
+
+AgentMail adds an `unread` label to every message it receives. Your agent can work through `unread` messages and swap the label for one of its own (such as `replied`) once it has handled each one.
+
+Label-based dedupe is **not atomic**, so do not rely on it alone to stop a second email:
+
+- Two workers can both read a message as unhandled before either one updates its labels.
+- A crash between the reply and the label update leaves a replied message still labeled `unread`.
+- A list filtered by label can briefly return a message right after you relabel it.
+
+Use labels to track workflow state, and put an `Idempotency-Key` on the reply itself so a repeat within the key's 24-hour lifetime cannot become a second email. Message IDs contain characters such as `<` and `@` that a key cannot, so derive the key from a hash of the inbox and message ID. Include the inbox because keys are shared across your organization, and an email sent to two of your inboxes arrives in both with the same message ID.
+
+<CodeBlocks>
+```python title="Python"
+import hashlib
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+inbox_id = "support@yourdomain.com"
+
+unread = client.inboxes.messages.list(inbox_id=inbox_id, labels=["unread"])
+
+for msg in unread.messages:
+    # the same message always yields the same key, so a repeat is not resent
+    key = "reply-" + hashlib.sha256(f"{inbox_id}:{msg.message_id}".encode()).hexdigest()
+    client.inboxes.messages.reply(
+        inbox_id=inbox_id,
+        message_id=msg.message_id,
+        text="Thanks for reaching out!",
+        idempotency_key=key,
+    )
+
+    client.inboxes.messages.update(
+        inbox_id=inbox_id,
+        message_id=msg.message_id,
+        add_labels=["replied"],
+        remove_labels=["unread"],
+    )
+```
 
 ```typescript title="TypeScript"
-// Before replying, check if already handled
-const threads = await client.inboxes.threads.list(inbox.inboxId, {
-  labels: ["unreplied"],
-});
+import { createHash } from "node:crypto";
+import { AgentMailClient } from "agentmail";
 
-for (const thread of threads.threads) {
-  const detail = await client.threads.get(thread.threadId);
-  const lastMessage = detail.messages[detail.messages.length - 1];
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+const inboxId = "support@yourdomain.com";
 
-  // Reply and update labels atomically in your logic
-  await client.inboxes.messages.reply(inbox.inboxId, lastMessage.messageId, {
-    text: "Thanks for reaching out!",
-  });
+const unread = await client.inboxes.messages.list(inboxId, { labels: ["unread"] });
 
-  await client.inboxes.messages.update(inbox.inboxId, lastMessage.messageId, {
+for (const msg of unread.messages) {
+  // the same message always yields the same key, so a repeat is not resent
+  const key = "reply-" + createHash("sha256").update(`${inboxId}:${msg.messageId}`).digest("hex");
+  await client.inboxes.messages.reply(
+    inboxId,
+    msg.messageId,
+    { text: "Thanks for reaching out!" },
+    { idempotencyKey: key },
+  );
+
+  await client.inboxes.messages.update(inboxId, msg.messageId, {
     addLabels: ["replied"],
-    removeLabels: ["unreplied"],
+    removeLabels: ["unread"],
   });
 }
 ```
+</CodeBlocks>
 
 ### Use drafts for critical sends
 
-For high-stakes emails, use drafts instead of sending directly. Create a draft, verify it has not been sent already, then send:
+For high-stakes emails, use drafts instead of sending directly. Create the draft with a deterministic `client_id`, then send it with an `Idempotency-Key`:
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+inbox_id = "orders@yourdomain.com"
+
+# create a draft with a deterministic client_id
+draft = client.inboxes.drafts.create(
+    inbox_id=inbox_id,
+    to=["customer@example.com"],
+    subject="Order confirmation",
+    text="Your order has been confirmed.",
+    html="<p>Your order has been confirmed.</p>",
+    client_id="order-123-confirmation",
+)
+
+# later, send the draft; the key makes a retry return the original message
+sent = client.inboxes.drafts.send(
+    inbox_id=inbox_id,
+    draft_id=draft.draft_id,
+    idempotency_key="order-123-confirmation-send",
+)
+```
 
 ```typescript title="TypeScript"
-// Create a draft with a deterministic clientId
-const draft = await client.inboxes.drafts.create(inbox.inboxId, {
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+const inboxId = "orders@yourdomain.com";
+
+// create a draft with a deterministic clientId
+const draft = await client.inboxes.drafts.create(inboxId, {
   to: ["customer@example.com"],
   subject: "Order confirmation",
   text: "Your order has been confirmed.",
@@ -90,18 +231,24 @@ const draft = await client.inboxes.drafts.create(inbox.inboxId, {
   clientId: "order-123-confirmation",
 });
 
-// Later, send the draft (only works once, draft is deleted after sending)
-const sent = await client.inboxes.drafts.send(inbox.inboxId, draft.draftId);
+// later, send the draft; the key makes a retry return the original message
+const sent = await client.inboxes.drafts.send(
+  inboxId,
+  draft.draftId,
+  {},
+  { idempotencyKey: "order-123-confirmation-send" },
+);
 ```
+</CodeBlocks>
 
-Since drafts support `clientId`, creating the same draft multiple times is safe. And once a draft is sent, it is deleted, so calling `drafts.send` again will fail rather than send a duplicate.
+Since drafts support `client_id`, creating the same draft multiple times is safe. Once a draft is sent it is deleted, so a second `drafts.send` without a key fails with a `404` rather than sending a duplicate. With an `Idempotency-Key`, a retry after a timeout returns the original message instead, so your agent can tell that the email already went out.
 
 ## Best practices
 
-- **Use an `Idempotency-Key` header on sends** (`messages.send`, replies, forwards, `drafts.send`) so retries never duplicate an email
-- **Use `clientId` on all create operations** (inboxes, pods, webhooks, drafts) to make them safe to retry
-- **Generate `clientId` from your business logic** (e.g., `order-${orderId}-confirmation`), not random UUIDs
-- **Track state with labels** to prevent your agent from processing the same message twice
+- **Use an `Idempotency-Key` header on sends** (`messages.send`, replies, reply-alls, forwards, `drafts.send`) so retries never duplicate an email
+- **Use `client_id` when creating inboxes, pods, webhooks, and drafts** to make those creates safe to retry
+- **Derive keys and `client_id` values from your business logic** (for example, `order-4821-confirmation`) so every retry of the same operation reuses the same value
+- **Track state with labels** to organize your agent's work, but do not rely on labels alone to prevent a second email
 - **Use drafts for critical sends** where duplicates would be harmful
 
-For more details, see the [Idempotent Requests](/idempotency) guide.
+For more details, see the [Idempotent Requests](https://docs.agentmail.to/idempotency) guide.

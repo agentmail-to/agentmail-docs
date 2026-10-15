@@ -28,40 +28,83 @@ The manager sees every outgoing email and can step in if something looks wrong. 
 Use Drafts to let your agent compose emails that a human reviews and approves before they go out. This is ideal for high-stakes emails like contracts, legal communications, or financial matters.
 
 ```python title="Python"
-# Agent composes a draft
+# agent composes a draft and labels it for review
 draft = client.inboxes.drafts.create(
     inbox_id="agent@yourdomain.com",
     to=["important-client@example.com"],
     subject="Contract proposal",
     text="Here is our proposal...",
-    html="<p>Here is our proposal...</p>"
+    html="<p>Here is our proposal...</p>",
+    labels=["needs-approval"]
 )
 
 print(f"Draft created: {draft.draft_id}")
 
-# Human reviews the draft, then approves it
+# human reviews the draft, then approves it
+# (labels on a draft carry over to the sent message, so drop the review label)
 sent_message = client.inboxes.drafts.send(
     inbox_id="agent@yourdomain.com",
-    draft_id=draft.draft_id
+    draft_id=draft.draft_id,
+    remove_labels=["needs-approval"]
 )
 ```
 
-You can also list all pending drafts across your entire organization, which is useful for building a central approval dashboard:
+<Warning>
+A draft is only an approval step if the agent cannot send on its own. If the agent's API key can send (`messages.send`, replies, forwards, or `drafts.send`), it can skip the review. Give the agent a key with [scoped permissions](https://docs.agentmail.to/permissions) that grants `draft_create` (plus `draft_read` and `draft_update` if it revises drafts) but not `message_send`, `message_reply`, or `draft_send`. Keep `draft_send` for the key your approval tool uses. Scheduling a draft with `send_at` also requires `draft_send`.
+</Warning>
 
+You can also list drafts across every inbox your API key can access, which is useful for building a central approval dashboard. Two things to keep in mind:
+
+- `drafts.list()` returns every draft unless you filter it, so filter by the label your agent puts on drafts awaiting review.
+- Results come one page at a time. `count` is the number of drafts in the current page, not the total, so follow `next_page_token` until it is absent.
+
+<CodeBlocks>
 ```python title="Python"
-# List all drafts across every inbox in the organization
-all_drafts = client.drafts.list()
-print(f"{all_drafts.count} drafts pending review")
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+# collect every draft awaiting review, one page at a time
+pending = []
+page_token = None
+while True:
+    page = client.drafts.list(labels=["needs-approval"], page_token=page_token)
+    pending.extend(page.drafts)
+    page_token = page.next_page_token
+    if not page_token:
+        break
+
+print(f"{len(pending)} drafts awaiting review")
 ```
 
-For more details, see the [Drafts core concept](/drafts) documentation.
+```typescript title="TypeScript"
+import { AgentMail, AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// collect every draft awaiting review, one page at a time
+const pending: AgentMail.DraftItem[] = [];
+let pageToken: string | undefined;
+do {
+  const page = await client.drafts.list({ labels: ["needs-approval"], pageToken });
+  pending.push(...page.drafts);
+  pageToken = page.nextPageToken;
+} while (pageToken);
+
+console.log(`${pending.length} drafts awaiting review`);
+```
+</CodeBlocks>
+
+For more details, see the [Drafts core concept](https://docs.agentmail.to/drafts) documentation.
 
 ## 3. Labels for escalation
 
 Use labels to flag messages that need human attention. Your agent can detect situations it cannot handle and tag them for review.
 
 ```python title="Python"
-# Agent detects a situation that needs human review
+# agent detects a situation that needs human review
 client.inboxes.messages.update(
     inbox_id="agent@yourdomain.com",
     message_id=msg.message_id,
@@ -72,7 +115,7 @@ client.inboxes.messages.update(
 Then build a dashboard or scheduled job that queries for flagged messages:
 
 ```python title="Python"
-# Periodically check for messages that need human review
+# periodically check for messages that need human review
 flagged = client.inboxes.messages.list(
     inbox_id="agent@yourdomain.com",
     labels=["needs-human-review"]
@@ -84,15 +127,15 @@ for msg in flagged.messages:
 
 ## 4. Allowlists as guardrails
 
-Use a send allowlist to restrict which addresses your agent can email. If the agent tries to send to an address or domain not on the list, AgentMail will reject the request and the email will not go out.
+Use a send allowlist to restrict which addresses your agent can email. If the agent tries to send to an address or domain not on the list, AgentMail rejects the request with a `403` and error code `message_rejected`, and the email does not go out.
 
 ```python title="Python"
-# Only allow sending to known customer domains
+# only allow sending to known customer domains
 client.lists.create("send", "allow", entry="trusted-customer.com")
 client.lists.create("send", "allow", entry="partner-corp.com")
 ```
 
-This acts as a hard safety boundary. Your agent can only email recipients you have explicitly approved, regardless of what the agent logic tries to do.
+This acts as a hard safety boundary. Your agent can only email recipients you have explicitly approved, regardless of what the agent logic tries to do, as long as the agent's API key cannot edit lists (`list_entry_create` and `list_entry_delete`).
 
 ## Best practices
 
@@ -100,4 +143,4 @@ This acts as a hard safety boundary. Your agent can only email recipients you ha
 - **Graduate to autonomous sending** for routine emails, and keep drafts for high-value communications
 - **Always have an escalation path:** agents should know when to stop and ask for help
 - **Use labels consistently** across your agents so dashboards and alerting work reliably
-- **Combine approaches:** for example, use allowlists for autonomous sending to known recipients, drafts for unknown recipients, and CC a human on everything during the first week
+- **Combine approaches:** for example, let the agent send autonomously from an inbox with an inbox-level send allowlist of known recipients, route everything else through drafts in a separate inbox, and CC a human on everything during the first week. Give the agent an inbox-scoped key for each inbox, and leave the send permissions off the drafts inbox's key; a single key that can send would let the agent skip the drafts. Keep the two inboxes separate because a send allowlist also applies when a draft is sent, so an approved draft to a recipient outside the list would still be rejected.

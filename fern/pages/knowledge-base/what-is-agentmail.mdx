@@ -1,36 +1,45 @@
 ---
 title: "What is AgentMail and how is it different?"
-subtitle: Understand how AgentMail compares to traditional email providers.
+subtitle: Understand what AgentMail gives an AI agent and when to use it.
 slug: knowledge-base/what-is-agentmail
 ---
 
-AgentMail is the first email provider built for AI agents. Unlike transactional email APIs that focus on one-way sending, AgentMail is built for two-way agent communication: dedicated inboxes, native threading, and full receiving support with no shared sending domains.
+AgentMail is an email provider built for AI agents. Each agent gets its own inbox through the API: a real address that sends and receives mail, keeps conversations as threads, and stores them so the agent can read them back later. A transactional email service is built around the send call, for an application sending receipts and password resets from its domain. AgentMail is built around the inbox and the two-way conversations that happen in it.
 
-## Key differences
+## What AgentMail gives an agent
 
-| Capability | AgentMail | Transactional API |
-| --- | --- | --- |
-| **Inboxes** | Create thousands of unique inboxes via API, each with its own email address | Shared sending domains, no per-agent inboxes |
-| **Receiving email** | First-class support: agents read, parse, and reply to incoming emails | Simple webhook |
-| **Threaded conversations** | Native threading, support for multi-threaded (cc, bcc, forwarding)| Build threading yourself |
-| **Agent identity** | Each agent gets its own email identity (address, display name) | Not available |
-| **Allowlists / Blocklists** | Control who each agent can send to and receive from | Not available |
-| **Multi-tenant (Pods)** | Built-in tenant isolation for SaaS applications | Build it yourself |
-| **Real-time events** | Webhooks and WebSockets for instant email event streaming | Webhooks only (no WebSocket option) |
-| **IMAP / SMTP** | Full protocol access for connecting to email clients | API only (no IMAP/SMTP access) |
-| **Reply extraction** | Built-in `extracted_text` and `extracted_html` to strip quoted text from replies | Not available |
-| **Full-text search** | Search messages and threads across all inboxes by sender, subject, or content | Not available |
+| Capability | What it means for your agent |
+| --- | --- |
+| **Inboxes on demand** | Create inboxes with one API call each, every one with its own address and display name. Inboxes on `@agentmail.to` work immediately; [custom domains](https://docs.agentmail.to/knowledge-base/custom-domain-setup) and [subdomain inboxes](https://docs.agentmail.to/knowledge-base/subdomain-inboxes) put your agents on your own domain. |
+| **Two-way conversations** | Incoming mail is stored, threaded, and readable through the API. [Reply extraction](https://docs.agentmail.to/reply-extraction) separates the new text of each reply from the quoted history. Agents can reply, reply all, and forward. |
+| **Real-time events** | [Webhooks](https://docs.agentmail.to/webhooks-overview), [polling webhooks](https://docs.agentmail.to/webhook-polling) (US region) for agents with no public URL, and [WebSockets](https://docs.agentmail.to/websockets). |
+| **Search** | Full-text search over the messages in an inbox, and over threads in one inbox, one pod, or your whole organization. |
+| **Control** | [Allow and block lists](https://docs.agentmail.to/lists), [scoped API keys](https://docs.agentmail.to/permissions), [drafts](https://docs.agentmail.to/drafts) for human review and scheduled sending, and [Pods](https://docs.agentmail.to/documentation/core-concepts/pods) that keep each customer's inboxes isolated. |
+| **Protection from manipulation** | [Agent Armor](https://docs.agentmail.to/agent-armor) (in AgentMail Labs) scans incoming mail for prompt injection and flags messages to review before your agent acts on them. |
+| **Agent identity** | [AgentID](https://docs.agentmail.to/agentid-sign-in) lets an agent sign in to apps that support AgentID, or create accounts at them, with its inbox as its identity. |
+| **Agent sign-up** | An agent can [sign itself up](https://docs.agentmail.to/agent-onboarding) through the API and get an API key and an inbox. It can send only to the human it works for until that human verifies it or [claims the inbox](https://docs.agentmail.to/knowledge-base/claiming-agent-inbox) in the console. |
+| **Standard protocols and tools** | [IMAP and SMTP](https://docs.agentmail.to/imap-smtp) alongside the REST API, the Python and TypeScript SDKs, the [CLI](https://docs.agentmail.to/integrations/cli), and a hosted [MCP server](https://docs.agentmail.to/integrations/mcp). |
+
+For the full list, see [What can I do with an AgentMail inbox?](https://docs.agentmail.to/knowledge-base/inbox-capabilities).
+
+## Shared domain or your own?
+
+Every account can create inboxes on `@agentmail.to` with no DNS setup. That domain is shared by all AgentMail users, and so is its sending reputation, which makes it a good fit for development and testing. For production, a [custom domain](https://docs.agentmail.to/knowledge-base/custom-domain-setup) gives your agents a sending reputation of their own. Custom domains are available on the Developer plan and above.
 
 ## When to use AgentMail
 
-AgentMail is the right choice when:
+AgentMail fits when:
 
-- Your agents are first-class users that need threading, identity, and storage
-- Your agent needs its **own email identity** rather than a shared noreply@ address
-- You are building **conversational email workflows** like outreach, support, or scheduling
-- You need **per-agent or per-customer inbox isolation** (Pods)
-- Your agent needs to **sign up for services**, receive verification codes, or act as a user on the internet
+- Your agent needs its **own email address** and identity, not a shared no-reply sender
+- Your agent **holds conversations** with people or other agents, such as support, scheduling, or coordination
+- Your agent must **receive** email: replies, documents, verification codes, or magic links
+- You need **per-agent or per-customer isolation** with [Pods](https://docs.agentmail.to/knowledge-base/pods-multi-tenant)
+- Your agent **signs up for or signs in to services** on the internet
 
-## Can I migrate from other platforms?
+AgentMail does not support cold outreach. The [Terms of Service](https://www.agentmail.to/legal/terms) (section 8) prohibit sending unsolicited email.
 
-Yes. AgentMail's send API works similarly. Replace your existing send call with `client.inboxes.messages.send()` and you get the same sending capability plus full receiving, threading, and agent identity features on top. See the [Quickstart](/quickstart) to get started in minutes.
+## Can I migrate from another email API?
+
+Yes. Sending works much like other email APIs: call `client.inboxes.messages.send()` with `to`, `subject`, `text`, and `html`. The difference is that every message is sent from an inbox, so create an inbox for each address your agent sends from. Replies come back to that inbox, threaded with the original message. If an existing system sends over SMTP, you can point it at `smtp.agentmail.to` instead, logging in with the inbox address and an API key; see [IMAP & SMTP](https://docs.agentmail.to/imap-smtp).
+
+To get started, follow the [Quickstart](https://docs.agentmail.to/quickstart).

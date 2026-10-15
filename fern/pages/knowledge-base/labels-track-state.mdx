@@ -4,7 +4,17 @@ subtitle: Use labels to manage agent workflow state on emails and threads.
 slug: knowledge-base/labels-track-state
 ---
 
-Labels are string-based tags you attach to messages and threads. They are the primary way agents track state, classify emails, and filter conversations in AgentMail.
+Labels are string-based tags you attach to messages, threads, and drafts. They are the primary way agents track state, classify emails, and filter conversations in AgentMail.
+
+## Labels AgentMail applies
+
+Some labels are set by AgentMail rather than by your agent:
+
+- **System labels** such as `received`, `sent`, `delivered`, `bounced`, `complained`, `delayed`, `rejected`, and `opened` track a message's delivery lifecycle. You can filter on them, but you cannot add or remove them: a request that tries is rejected with a `400`.
+- **`unread`** is added to every message AgentMail receives. Unlike the system labels, you can remove it, which is how an agent marks a message as handled.
+- **Classification labels** `spam`, `unauthenticated`, and `blocked` mark inbound mail that AgentMail or your [lists](https://docs.agentmail.to/lists) flagged. Messages and threads with these labels, or with the `trash` label, are left out of list results unless you pass the matching `include_spam`, `include_unauthenticated`, `include_blocked`, or `include_trash` parameter and your API key has the matching read [permission](https://docs.agentmail.to/permissions).
+
+Beyond these, labels are yours to define. Labels are stored in lowercase, so `Needs-Review` and `needs-review` are the same label.
 
 ## Adding labels when sending
 
@@ -13,11 +23,11 @@ You can attach labels directly when sending a message:
 ```python title="Python"
 client.inboxes.messages.send(
     inbox_id="agent@yourdomain.com",
-    to=["prospect@example.com"],
-    subject="Quick question",
-    text="Hi, I wanted to ask about...",
-    html="<p>Hi, I wanted to ask about...</p>",
-    labels=["outreach", "first-touch", "tech-vertical"]
+    to=["customer@example.com"],
+    subject="Your support request",
+    text="Hi, following up on your request...",
+    html="<p>Hi, following up on your request...</p>",
+    labels=["support", "follow-up", "billing"]
 )
 ```
 
@@ -26,7 +36,7 @@ client.inboxes.messages.send(
 Add or remove labels on messages that have already been sent or received. This is how agents change the state of a conversation as they process it:
 
 ```python title="Python"
-# Mark a message as processed
+# mark a message as processed
 client.inboxes.messages.update(
     inbox_id="agent@yourdomain.com",
     message_id=msg.message_id,
@@ -35,97 +45,155 @@ client.inboxes.messages.update(
 )
 ```
 
+To change labels on many messages at once, `batch_update` applies one label change to up to 50 messages in a single request. The update is atomic: either all of the messages it finds are updated or none are (IDs that do not exist, or that your key cannot see, are skipped). To relabel a whole thread, `threads.update` applies the change to every message in the thread; it rejects threads with 100 or more messages with a `422`.
+
 ## Filtering by label
 
-List messages or threads that match specific labels. This is where labels become powerful for building agent workflows:
+List messages or threads that match specific labels. When you pass several labels, results must carry all of them. This is where labels become powerful for building agent workflows:
 
 ```python title="Python"
-# Get all unread messages in an inbox
+# get unread messages in an inbox
 unread = client.inboxes.messages.list(
     inbox_id="agent@yourdomain.com",
     labels=["unread"]
 )
 
-# Get threads that need a follow-up from a specific campaign
+# get threads labeled both billing and needs-response
 follow_ups = client.inboxes.threads.list(
     inbox_id="agent@yourdomain.com",
-    labels=["q4-campaign", "needs-response"]
+    labels=["billing", "needs-response"]
 )
 
-# Get escalations that need human review
+# get escalations that need human review
 escalations = client.inboxes.messages.list(
     inbox_id="agent@yourdomain.com",
     labels=["escalation", "needs-human-review"]
 )
 ```
 
+List calls return one page at a time. Pass `next_page_token` as `page_token` to get the next page.
+
 ## Common label patterns for agents
 
 | Label | Purpose |
 | --- | --- |
-| `unread` / `read` | Track which messages the agent has seen |
-| `unreplied` / `replied` | Track which threads need a response |
-| `outreach` / `inbound` | Classify message direction |
+| `unread` / `read` | Track which messages the agent has seen. AgentMail adds `unread` on receipt; `read` is yours to add |
+| `replied` | Agent has answered this message |
 | `needs-human-review` | Route to a human for oversight |
 | `escalation` | Flag high-priority issues |
 | `processed` | Agent has finished handling this message |
 | `positive` / `negative` | Sentiment classification |
-| `campaign-{name}` | Track which campaign generated the email |
+| `customer-{id}` | Tie a conversation to a customer or account in your own system |
 
-Labels are free-form strings. Use whatever naming convention makes sense for your agent's workflow.
+Apart from `unread`, every label in this table is one your agent applies; AgentMail does not add them for you. You do not need labels for message direction: AgentMail already applies `sent` and `received`. Labels are free-form strings, so use whatever naming convention makes sense for your agent's workflow.
 
 ## Example: agent workflow with labels
 
-Here is a complete pattern for an agent that processes inbound emails, classifies them, and tracks state:
+Here is a complete pattern for an agent that processes inbound emails, classifies them, and tracks state. It starts from the `unread` label AgentMail applies, and the reply carries an `Idempotency-Key` so a retry within 24 hours cannot send a second email:
 
+<CodeBlocks>
 ```python title="Python"
+import hashlib
+import os
+
 from agentmail import AgentMail
 
-client = AgentMail()
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+inbox_id = "support@yourdomain.com"
 
-# Find threads that need a reply
-unreplied = client.inboxes.threads.list(
-    inbox_id="support@yourdomain.com",
-    labels=["unreplied"]
-)
+# find threads with received mail the agent has not handled yet
+unread = client.inboxes.threads.list(inbox_id=inbox_id, labels=["unread"])
 
-for thread_item in unreplied.threads:
-    # Get the full thread
+for thread_item in unread.threads:
+    # get the thread and the messages still waiting on the agent
     thread = client.threads.get(thread_id=thread_item.thread_id)
-    last_message = thread.messages[-1]
-    
-    # Classify the message (your agent logic here)
-    category = classify(last_message.extracted_text or last_message.text)
-    
+    pending = [m for m in thread.messages if "unread" in m.labels]
+    if not pending:
+        continue
+    latest = pending[-1]
+
+    # classify the message (your agent logic here)
+    category = classify(latest.extracted_text or latest.text)
+
     if category == "needs-human":
-        # Escalate: add label, skip auto-reply
-        client.inboxes.messages.update(
-            inbox_id="support@yourdomain.com",
-            message_id=last_message.message_id,
+        # escalate: add labels, skip the auto-reply
+        client.inboxes.messages.batch_update(
+            inbox_id=inbox_id,
+            message_ids=[m.message_id for m in pending],
             add_labels=["needs-human-review", "escalation"],
-            remove_labels=["unreplied"]
+            remove_labels=["unread"],
         )
     else:
-        # Auto-reply and mark as handled
-        reply_text = generate_reply(last_message, category)
+        # auto-reply; hash the inbox and message id, since message ids contain characters a key cannot
+        reply_text = generate_reply(latest, category)
         client.inboxes.messages.reply(
-            inbox_id="support@yourdomain.com",
-            message_id=last_message.message_id,
-            text=reply_text
+            inbox_id=inbox_id,
+            message_id=latest.message_id,
+            text=reply_text,
+            idempotency_key="reply-" + hashlib.sha256(f"{inbox_id}:{latest.message_id}".encode()).hexdigest(),
         )
-        client.inboxes.messages.update(
-            inbox_id="support@yourdomain.com",
-            message_id=last_message.message_id,
+        # mark as handled
+        client.inboxes.messages.batch_update(
+            inbox_id=inbox_id,
+            message_ids=[m.message_id for m in pending],
             add_labels=["replied", "processed", category],
-            remove_labels=["unreplied"]
+            remove_labels=["unread"],
         )
 ```
+
+```typescript title="TypeScript"
+import { createHash } from "node:crypto";
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+const inboxId = "support@yourdomain.com";
+
+// find threads with received mail the agent has not handled yet
+const unread = await client.inboxes.threads.list(inboxId, { labels: ["unread"] });
+
+for (const threadItem of unread.threads) {
+  // get the thread and the messages still waiting on the agent
+  const thread = await client.threads.get(threadItem.threadId);
+  const pending = thread.messages.filter((m) => m.labels.includes("unread"));
+  if (pending.length === 0) continue;
+  const latest = pending[pending.length - 1];
+  const messageIds = pending.map((m) => m.messageId);
+
+  // classify the message (your agent logic here)
+  const category = await classify(latest.extractedText ?? latest.text);
+
+  if (category === "needs-human") {
+    // escalate: add labels, skip the auto-reply
+    await client.inboxes.messages.batchUpdate(inboxId, {
+      messageIds,
+      addLabels: ["needs-human-review", "escalation"],
+      removeLabels: ["unread"],
+    });
+  } else {
+    // auto-reply; hash the inbox and message id, since message ids contain characters a key cannot
+    const replyText = await generateReply(latest, category);
+    await client.inboxes.messages.reply(
+      inboxId,
+      latest.messageId,
+      { text: replyText },
+      { idempotencyKey: "reply-" + createHash("sha256").update(`${inboxId}:${latest.messageId}`).digest("hex") },
+    );
+    // mark as handled
+    await client.inboxes.messages.batchUpdate(inboxId, {
+      messageIds,
+      addLabels: ["replied", "processed", category],
+      removeLabels: ["unread"],
+    });
+  }
+}
+```
+</CodeBlocks>
 
 ## Best practices
 
 - **Be consistent:** Pick a naming convention (e.g., `kebab-case`) and stick with it across all your agents
-- **Use prefixes for grouping:** Labels like `status-pending`, `priority-high`, `campaign-q4` are easier to manage at scale
+- **Use prefixes for grouping:** Labels like `status-pending`, `priority-high`, `customer-acme` are easier to manage at scale
 - **Keep it concise:** A message with too many labels becomes hard to query. Aim for a meaningful, focused set
 - **Combine with threads:** Filter threads by label to find conversations in a specific state, then get the thread details to process them
 
-For more details, see the [Labels core concept](/labels) documentation.
+For more details, see the [Labels core concept](https://docs.agentmail.to/labels) documentation.

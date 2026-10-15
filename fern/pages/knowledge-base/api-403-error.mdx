@@ -6,24 +6,65 @@ slug: knowledge-base/api-403-error
 
 A `403 Forbidden` response from the AgentMail API means your request was rejected. This can happen for several reasons, and the fix depends on the cause.
 
-**Check the response body first.** Application-level 403s carry a machine-readable `code`, a `fix` describing the concrete next action, and a `docs` link into the [Error Reference](/errors) — the `fix` usually resolves the issue directly. The one exception is a bare `{"message":"Forbidden"}` with none of those fields: that response comes from the API gateway rejecting your credential before it reaches the API, which almost always means cause 1 below.
+**Check the response body first.** Application-level 403s carry a machine-readable `code`, a `fix` describing the concrete next action, and a `docs` link into the [Error Reference](/errors). The `fix` usually resolves the issue directly. The one exception is a bare `{"message":"Forbidden"}` with none of those fields: that response comes from the API gateway rejecting your credential before it reaches the API, which almost always means cause 1 below.
+
+<Note>
+A `401` instead of a `403` usually means the request had no `Authorization` header at all. Send your key as `Authorization: Bearer <api_key>`. An expired key can also return `401` with code `api_key_expired`. See [missing_authorization](/errors#missing_authorization) and [api_key_expired](/errors#api_key_expired) in the Error Reference.
+</Note>
+
+## 403 codes at a glance
+
+Branch on `code`, not on `message`: many 403s keep the message `Forbidden` for backward compatibility.
+
+| `code` | What it means | How to fix |
+| --- | --- | --- |
+| None (body is `{"message":"Forbidden"}`) | The API gateway rejected your credential: the key is incomplete, unknown, revoked, or expired, or the `Authorization` header is not in the `Bearer <api_key>` form. | Check the header format, then create a new key in the [Console](https://console.agentmail.to) if needed and copy the whole value. See cause 1. |
+| `missing_permission` | Your key lacks a permission this endpoint needs. The `fix` names it. | Retry with a key that holds that permission. See cause 5. |
+| `forbidden` | Your key's scope does not cover this route (for example, an inbox-scoped key on a pod route), or your organization has not joined AgentMail Labs for Calendar or Agent Drive. | Use a key whose scope covers the resource. For Calendar or Agent Drive, join Labs first: a different key will not help. See [forbidden](/errors#forbidden). |
+| `permission_escalation`, `unrestricted_key_required` | You tried to create or change an API key with more access than the key making the request. | Retry with a key that already holds those permissions, or with an unrestricted key. |
+| `account_suspended` | Your account is suspended. Sending, creating inboxes, and some other operations are blocked. Receiving mail, webhooks, and most API reads keep working. | Email [support@agentmail.cc](mailto:support@agentmail.cc). Retrying keeps failing until the suspension is resolved. See [Why was my account suspended?](https://docs.agentmail.to/knowledge-base/account-suspended). |
+| `inbox_suspended`, `pod_suspended` | Sending from this inbox or pod is suspended. AgentMail weighs signals such as bounces and complaints. Other inboxes and pods keep sending, and receiving continues. | Email [support@agentmail.cc](mailto:support@agentmail.cc). |
+| `inbox_paused` | The inbox is paused, so it cannot send. | Resume it with `PATCH /v0/inboxes/{inbox_id}` and `{"status": "active"}`. See [inbox_paused](/errors#inbox_paused). |
+| `message_rejected` | This message was not sent. Causes include a recipient missing from an active send allow list, an unverified agent organization sending to anyone other than its human, content classified as spam, or an attachment URL that could not be fetched. | Read the `fix`, change the recipients or content, and resend. |
+| `domain_not_verified` | The domain you are sending from, or creating an inbox on, has not passed DNS verification. | Publish the records from `GET /v0/domains/{domain}`, then call `POST /v0/domains/{domain}/verify`. |
+| `limit_exceeded` | You reached a limit. The `message` names it, for example `Inbox limit exceeded`. | For inbox and domain limits, delete one you no longer need or upgrade your plan: the response includes `upgrade_url`. Other limits, such as labels or webhook subscriptions, are fixed and an upgrade does not raise them. |
+| `already_exists` | A resource with these details already exists. | Fetch or update the existing resource instead of creating a duplicate. |
+| `resource_taken` | The value you asked for, such as an inbox username, is already in use. | Choose a different value. The response may include `suggestions`. |
 
 ## 1. Incorrect API key
 
-The most common cause. Your API key may be missing, incomplete, or invalid.
+The most common cause. Your API key may be missing characters, revoked, or expired.
 
 **How to fix:**
 
 - Go to the [AgentMail Console](https://console.agentmail.to) and generate a new API key
 - When you generate a new key, **copy the entire key immediately**. It is only shown once and starts with `am_`
 - Make sure you are passing the key in the `Authorization` header as `Bearer am_...`
+- If the key has an expiry that has passed, create a new key. Expiry cannot be extended
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+# AGENTMAIL_API_KEY must hold the full key, with no trailing spaces or missing characters
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+# a cheap call that fails with 403 if the key is rejected
+print(client.inboxes.list(limit=1).count)
+```
 
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
-// Make sure the full key is copied, no trailing spaces or missing characters
-const client = new AgentMailClient({ apiKey: "am_..." });
+// AGENTMAIL_API_KEY must hold the full key, with no trailing spaces or missing characters
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// a cheap call that fails with 403 if the key is rejected
+console.log((await client.inboxes.list({ limit: 1 })).count);
 ```
+</CodeBlocks>
 
 <Warning>
 A common mistake is copying only part of the key. API keys are long strings. Double check that you copied the complete value from start to finish.
@@ -31,13 +72,13 @@ A common mistake is copying only part of the key. API keys are long strings. Dou
 
 ## 2. Accessing a resource you do not own
 
-Accessing an inbox, message, thread, or domain that belongs to a different organization — or one outside your key's pod or inbox scope — returns a `404` with `code: "not_found"`, not a 403: resources outside your credential's scope are deliberately indistinguishable from ones that don't exist. The 403 you can hit in this family is using an inbox-scoped key on a pod route.
+Accessing an inbox, message, thread, or domain that belongs to a different organization, or one outside your key's pod or inbox scope, returns a `404` with `code: "not_found"`, not a 403. Resources outside your credential's scope are deliberately indistinguishable from ones that don't exist. The 403 you can hit in this family is `forbidden`, from using an inbox-scoped key on a pod route.
 
 **How to fix:** Verify that the `inbox_id`, `message_id`, `thread_id`, or `domain_id` in your request actually belongs to your account and is within your key's scope. See [not_found](/errors#not_found) in the Error Reference.
 
 ## 3. Missing required parameters
 
-Some endpoints return a 403 when required path parameters are missing or malformed. For example, calling `/v0/inboxes//messages` with an empty `inbox_id` may return 403 instead of 400.
+An empty or missing path parameter is not a cause of a 403 from the API. A path that matches no route, such as `/v0/inboxes//messages` with an empty `inbox_id`, returns `404` with `code: "not_found"`, and the `fix` points you to the API reference. A path parameter that names a resource your key cannot see also returns `404` (see cause 2).
 
 **How to fix:** Double check that all required path parameters are filled in correctly.
 
@@ -49,9 +90,9 @@ AgentMail automatically suppresses addresses that have previously bounced, been 
 
 ## 5. Your API key lacks a permission
 
-API keys can be created with granular permissions (for example, a key that can read messages but not send them). A denial from a permission gate returns `code: "missing_permission"`, and the `fix` names the exact missing permission and how to obtain it — including when a new key at the same scope *cannot* help (the permission is outside your key's scope, or the organization has not completed agent verification).
+API keys can be created with granular permissions (for example, a key that can read messages but not send them). A denial from a permission gate returns `code: "missing_permission"`, and the `fix` names the exact missing permission and how to obtain it. That includes the cases where a new key at the same scope *cannot* help: the permission is outside your key's scope, or the organization has not completed agent verification.
 
-**How to fix:** Read the `fix` field, then retry with a key that holds the named permission — created from a credential that already holds it, since a key cannot grant a permission it lacks. Keys created without a permissions object are unrestricted. See [missing_permission](/errors#missing_permission) in the Error Reference.
+**How to fix:** Read the `fix` field, then retry with a key that holds the named permission. Create that key from a credential that already holds the permission, since a key cannot grant a permission it lacks. Keys created without a permissions object are unrestricted. See [missing_permission](/errors#missing_permission) in the Error Reference.
 
 ## Test your API key
 
