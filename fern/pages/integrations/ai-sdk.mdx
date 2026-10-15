@@ -21,7 +21,7 @@ To give your AI SDK agent an email inbox, install `agentmail-toolkit`, import `A
 ## Prerequisites
 
 1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to).
-2. Node.js 18+ and the AI SDK (`ai` v6).
+2. Node.js 18+ and the AI SDK (`ai` v6 or later).
 
 ## Setup
 
@@ -42,19 +42,21 @@ export AGENTMAIL_API_KEY=your-api-key
 Pass the toolkit's tools to `generateText` and let the agent loop through tool calls:
 
 ```typescript title="TypeScript"
-import { generateText, stepCountIs } from 'ai'
+import { generateText, isStepCount } from 'ai'
 import { AgentMailToolkit } from 'agentmail-toolkit/ai-sdk'
 
 const { text } = await generateText({
   model: 'anthropic/claude-sonnet-4-5',
   tools: new AgentMailToolkit().getTools(),
-  stopWhen: stepCountIs(5),
+  stopWhen: isStepCount(5),
   prompt:
     'Create an inbox for yourself, then check it for new messages and reply to anything urgent.',
 })
 
 console.log(text)
 ```
+
+On `ai` v6, import `stepCountIs` instead of `isStepCount`; it was renamed in v7.
 
 <Note>
 Plain model strings such as `'anthropic/claude-sonnet-4-5'` are routed through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway). To call a provider directly instead, pass a model from its AI SDK provider package, for example `openai('gpt-4o')` from `@ai-sdk/openai`.
