@@ -27,7 +27,7 @@ Add one TXT record for each row below:
 
 Set **Type** to `TXT` and **TTL** to `Auto` for each one.
 
-Cloudflare automatically strips your domain from the Name field. Enter only the host portion (e.g., `selector._domainkey`), not the full `selector._domainkey.yourdomain.com`.
+Cloudflare adds your domain to the Name field for you. Enter only the host portion (e.g., `selector._domainkey`), not the full `selector._domainkey.yourdomain.com`.
 
 <Warning>
 Do **not** add anything to an existing SPF record on your root domain (`@`). AgentMail's SPF record goes on the `mail` host, which is a different hostname, so your existing SPF for Google Workspace or another service stays exactly as it is.
@@ -62,4 +62,4 @@ Cloudflare DNS typically propagates within **1 to 5 minutes**, making it one of 
 
 - **Duplicate TXT values:** Cloudflare lets you add TXT records with the same name, but duplicate SPF or stale DKIM selector records can make verification fail. Keep only the current values AgentMail provides for each host.
 
-- **Name field auto-strips domain:** Cloudflare removes the domain portion from the Name field automatically. If your DKIM selector is `selector._domainkey`, enter just that. Do not enter `selector._domainkey.yourdomain.com`, or the record will be created incorrectly.
+- **Name field:** Cloudflare adds your domain to the Name field automatically. If your DKIM selector is `selector._domainkey`, enter just that, then check that the saved record shows the name you expect before you verify.

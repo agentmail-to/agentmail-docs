@@ -4,7 +4,60 @@ subtitle: What to do when your domain verification is stuck.
 slug: knowledge-base/domain-not-verifying
 ---
 
-If your domain is stuck in a pending or failed verification state, work through these common causes.
+If your domain is stuck in a pending or failed verification state, start by reading what AgentMail reports for it, then work through the common causes below.
+
+## Start with the domain's status and reason
+
+The domain's `status` says where verification is, and its `reason` says why it has not finished. Each entry in `records` has its own `status` (`MISSING`, `INVALID`, or `VALID`), and an `INVALID` record has a `reason` too. The [AgentMail Console](https://console.agentmail.to) shows the same information under **Domains**.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="am_...")
+
+# check why the domain is not verified yet
+domain = client.domains.get("yourcompany.com")
+print(domain.status, domain.reason)
+for record in domain.records:
+    print(record.type, record.name, record.status, record.reason)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "am_..." });
+
+// check why the domain is not verified yet
+const domain = await client.domains.get("yourcompany.com");
+console.log(domain.status, domain.reason);
+for (const record of domain.records) {
+  console.log(record.type, record.name, record.status, record.reason);
+}
+```
+</CodeBlocks>
+
+**Domain reasons:**
+
+| Reason | What it means | What to do |
+| --- | --- | --- |
+| `dns_records_missing` | At least one required record was not found | Add every record marked `MISSING`, then wait for propagation (cause 1 below) |
+| `dns_records_invalid` | A record exists but does not match | Fix each record marked `INVALID` using its record reason below |
+| `dns_records_duplicate` | The only problem is extra TXT records at the DKIM selector host | Delete every record at that host except the one AgentMail gave you |
+| `ses_dkim_pending`, `ses_mail_from_pending` | DNS looks right and the sending infrastructure is still checking it | Wait; no change needed |
+| `ses_dkim_temporary_failure`, `ses_mail_from_temporary_failure` | A transient error that is retried automatically | Usually resolves without changes; wait before editing DNS |
+| `ses_dkim_failed`, `ses_mail_from_failed` | A final failure for DKIM or for the MAIL FROM records | Confirm the DKIM record (or the `mail` MX and SPF records) are correct, then click **Verify Domain** |
+| `ses_dkim_not_started`, `ses_mail_from_not_started` | That part of verification was never started | Click **Verify Domain** |
+| `ses_not_verified_for_sending` | DKIM and MAIL FROM both pass, but the domain is not yet enabled for sending | Click **Verify Domain**; contact support if it persists |
+
+**Record reasons:**
+
+| Reason | What it means | What to do |
+| --- | --- | --- |
+| `value_mismatch` | A record exists at that name but none matches AgentMail's value | Replace the value with the exact one AgentMail shows (causes 3 and 4 below) |
+| `duplicate_records` | AgentMail's value is present, but extra records share the same name | Remove the extra records (cause 5 below) |
+
+Clicking **Verify Domain** in the Console does the same as the [Verify Domain](https://docs.agentmail.to/api-reference/domains/verify) endpoint (`client.domains.verify("yourcompany.com")`).
 
 ## 1. DNS propagation delay
 
@@ -19,16 +72,21 @@ DNS changes can take anywhere from a few minutes to 48 hours to propagate, depen
 | GoDaddy | 15 to 30 minutes |
 | Namecheap | 15 to 30 minutes |
 
-## 2. Wrong record type
+## 2. Wrong or missing record type
 
-Make sure you are adding the exact record type AgentMail provides. AgentMail uses TXT records for SPF, DMARC, and DKIM selector verification, plus MX records when the domain receives mail.
+Make sure you are adding every record AgentMail lists, with the exact type it shows.
 
-| Record | Correct type |
-| --- | --- |
-| SPF | TXT |
-| DKIM | TXT |
-| DMARC | TXT |
-| MX | MX |
+| Record | Type | Required when |
+| --- | --- | --- |
+| Receiving MX (`@`) | MX | The domain receives mail (`inbound_enabled` is not `false`) |
+| Bounces, MAIL FROM (`mail`) | MX | Always, including send-only domains |
+| SPF (`mail`) | TXT | Always, including send-only domains |
+| DKIM (`<selector>._domainkey`) | TXT | Always (older domains use three DKIM CNAME records instead) |
+| DMARC (`_dmarc`) | TXT | Always |
+| Open tracking (`link`) | CNAME | `tracking_enabled` is on |
+| Subdomain inboxes (`*`) | MX | `subdomains_enabled` is on |
+
+A send-only domain skips only the receiving MX. The `mail` MX and SPF records are still required, because AgentMail sends every message with a MAIL FROM address on `mail.yourcompany.com`.
 
 Double check the records in the AgentMail Console under **Domains** to see the exact type and value required.
 
@@ -36,27 +94,37 @@ Double check the records in the AgentMail Console under **Domains** to see the e
 Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
 </Note>
 
-## 3. Extra quotes or spaces
+## 3. Extra quotes or line breaks
 
 Some DNS providers (like GoDaddy) automatically wrap TXT values in quotes. If you paste a value that already includes quotes, you end up with double-quoted values that fail verification.
 
 **What to do:** Paste the value exactly as provided by AgentMail. If your DNS provider adds quotes automatically, do not add your own.
 
-Route 53 is the opposite: it **requires** quotes around TXT values. If you omit them, the record will not validate.
+Route 53 is the opposite: it **requires** quotes around TXT values. If you omit them, the record will not validate. A DKIM value longer than 255 characters must be split into quoted strings on the **same line**. A line break between them creates two separate TXT records, neither of which holds the full key, so the DKIM record stays `INVALID`. See the [Route 53 guide](/knowledge-base/dns-route53).
 
 ## 4. Domain name auto-appended
 
-Many DNS providers (Namecheap, GoDaddy, Cloudflare) automatically append your domain to the record name. If AgentMail provides a DKIM selector host like `selector._domainkey.yourcompany.com`, entering the full hostname may create `selector._domainkey.yourcompany.com.yourcompany.com`, which will fail.
+Namecheap and GoDaddy automatically append your domain to the record name. If AgentMail provides a DKIM selector host like `selector._domainkey.yourcompany.com`, entering the full hostname creates `selector._domainkey.yourcompany.com.yourcompany.com`, which will fail.
 
-**What to do:** Enter only the host portion your DNS provider expects. For example, if your provider appends the domain automatically, enter `selector._domainkey`, not the full hostname.
+**What to do:** Enter only the host portion (for example `selector._domainkey`, `mail`, or `_dmarc`). Cloudflare also expects only the host portion in its Name field and adds your domain for you.
 
-## 5. Conflicting records
+## 5. Duplicate or conflicting records
 
-Some DNS providers reject multiple records with the same host and type, and multiple SPF records on one host will fail authentication. If an old DKIM record or another stale record exists at the same selector host, it can also prevent the new TXT selector record from validating.
+Extra records on these hosts break verification or authentication:
 
-**What to do:** Check your DNS dashboard for conflicts on the DKIM selector host. Keep the current TXT value from AgentMail and remove stale or duplicate records that use the same host.
+- **`mail.yourcompany.com` must have exactly one MX record**, the `feedback-smtp` value AgentMail gives you. Any other MX on that host makes the record `INVALID` with reason `duplicate_records`.
+- **The DKIM selector host must have exactly one TXT record** while the domain is being verified. An older key at the same selector makes the record `INVALID` with reason `duplicate_records`.
+- **One SPF record per host.** Receiving servers fail SPF when a host has more than one TXT record starting with `v=spf1`, even if AgentMail verification passes. Do not add AgentMail values to the SPF record on your root domain; it is a different host.
 
-## 6. Nameservers pointing elsewhere
+**What to do:** Check your DNS dashboard for each of these hosts. Keep the current value from AgentMail and remove stale or duplicate records that use the same host.
+
+## 6. Existing DMARC record without a reporting address
+
+AgentMail verifies DMARC by looking for a TXT record at `_dmarc.yourcompany.com` that starts with `v=DMARC1` and includes a `rua=mailto:` tag. If your domain already had a DMARC record without a `rua` tag (common when another email provider set it up), the DMARC record shows as `INVALID`.
+
+**What to do:** Keep a single DMARC record and add a `rua=mailto:` reporting address to it, or replace it with the value AgentMail provides. Do not add a second DMARC record.
+
+## 7. Nameservers pointing elsewhere
 
 If your domain's nameservers are pointed to a different provider than where you are adding records, the records will have no effect. For example, if your domain uses Cloudflare nameservers but you add records in the Namecheap panel, those records are ignored.
 
@@ -71,7 +139,7 @@ You can check your domain's status in the [AgentMail Console](https://console.ag
 | `NOT_STARTED` | Click Verify Domain to begin |
 | `PENDING` | DNS records need to be added or corrected |
 | `INVALID` | Records are misconfigured; review the values |
-| `FAILED` | Records look correct but need a manual recheck; click Verify Domain again |
+| `FAILED` | Records look correct but verification did not complete; check the reason, then click Verify Domain again |
 | `VERIFYING` | Records are correct, authorization in progress |
 | `VERIFIED` | Domain is ready |
 

@@ -49,9 +49,10 @@ Choose your preferred method to create a domain and get the required DNS records
 
     <CodeBlocks>
       ```bash title="cURL"
-      curl -X POST https://api.agentmail.to/domains/your-domain.com \
+      curl -X POST https://api.agentmail.to/v0/domains \
         -H "Authorization: Bearer YOUR_API_KEY" \
-        -H "Content-Type: application/json"
+        -H "Content-Type: application/json" \
+        -d '{"domain": "your-domain.com"}'
       ```
 
       ```python title="Python"
@@ -60,13 +61,10 @@ Choose your preferred method to create a domain and get the required DNS records
       client = AgentMail(api_key="YOUR_API_KEY")
 
       # Create domain with default settings
-      domain = client.domains.create("your-domain.com")
+      domain = client.domains.create(domain="your-domain.com")
 
       # Or with custom feedback forwarding
-      domain = client.domains.create(
-        "your-domain.com",
-        feedback_enabled=False
-      )
+      # domain = client.domains.create(domain="your-domain.com", feedback_enabled=False)
 
       print("Domain created:", domain)
       print("DNS Records:", domain.records)
@@ -80,12 +78,10 @@ Choose your preferred method to create a domain and get the required DNS records
       });
 
       // Create domain with default settings
-      const domain = await client.domains.create("your-domain.com");
+      const domain = await client.domains.create({ domain: "your-domain.com" });
 
       // Or with custom feedback forwarding
-      const domain = await client.domains.create("your-domain.com", {
-        feedback_enabled: false
-      });
+      // const domain = await client.domains.create({ domain: "your-domain.com", feedbackEnabled: false });
 
       console.log("Domain created:", domain);
       console.log("DNS Records:", domain.records);
@@ -187,14 +183,14 @@ A BIND zone file is a text file that contains DNS resource records in a standard
 
           **When entering TXT values in the Route 53 UI, you MUST do the following.**
           1. Split the value into two quoted strings.
-            a. e.g.: "abcd" -> "ab""cd"
-          2. Ensure there is NO SPACE between the quoted strings. This will make or break validation.
+            a. e.g.: "abcd" -> "ab" "cd"
+          2. Keep both quoted strings on the **same line**. A space between them is fine; a line break is not.
 
-          **Correct:** `"first-part-of-value""second-part-of-value"`
+          **Correct:** `"first-part-of-value" "second-part-of-value"` (with or without the space between the strings)
 
-          **Wrong:** `"first-part-of-value" "second-part-of-value"` (space between strings)
+          **Wrong:** the two quoted strings on separate lines
 
-          If you accidentally include a space or click enter, Route 53 will create **two separate TXT records** instead of one concatenated record. This will cause email authentication to fail, and providers like **Gmail will reject your emails**.
+          Each line in the Route 53 **Value** box is a separate TXT record. If you press Enter between the strings, Route 53 creates **two separate TXT records** instead of one record with two strings, neither record holds the full key, and the DKIM record fails verification. Email authentication then fails, and providers like **Gmail will reject your emails**.
         </Warning>
 
   </Tab>
@@ -249,6 +245,10 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
   Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records returned by the AgentMail Console or API.
 </Callout>
 
+<Callout type="warning" title="Existing DMARC record">
+  A domain can have only one DMARC record. If `_dmarc.your-domain.com` already has one, keep it instead of adding a second record, and make sure it includes a `rua=mailto:` reporting address. AgentMail verification fails on a DMARC record without a `rua=mailto:` tag.
+</Callout>
+
 <Tabs>
   <Tab title="Via Console">
     If you created your domain through the [AgentMail Console](https://console.agentmail.to), the DNS records are displayed in a simplified format that's ready for copy-paste into your DNS provider.
@@ -262,7 +262,7 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
           - **Content:** Copy the **Value** from the console.
 
         - **MX:**
-          - **Name:** Enter `@` to apply the record to the root domain.
+          - **Name:** Copy the **Name** value from the console: `@` for the receiving MX, `mail` for the bounce (MAIL FROM) MX.
           - **Mail server:** Copy the **Value** from the console.
           - **Priority:** Use the priority shown in the console.
 
@@ -280,19 +280,19 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
 
           **When entering TXT values in the Route 53 UI, you MUST do the following.**
           1. Split the value into two quoted strings.
-            a. e.g.: "abcd" -> "ab""cd"
-          2. Ensure there is NO SPACE between the quoted strings. This will make or break validation.
+            a. e.g.: "abcd" -> "ab" "cd"
+          2. Keep both quoted strings on the **same line**. A space between them is fine; a line break is not.
 
-          **Correct:** `"first-part-of-value""second-part-of-value"`
+          **Correct:** `"first-part-of-value" "second-part-of-value"` (with or without the space between the strings)
 
-          **Wrong:** `"first-part-of-value" "second-part-of-value"` (space between strings)
+          **Wrong:** the two quoted strings on separate lines
 
-          If you accidentally include a space or click enter, Route 53 will create **two separate TXT records** instead of one concatenated record. This will cause email authentication to fail, and providers like **Gmail will reject your emails**.
+          Each line in the Route 53 **Value** box is a separate TXT record. If you press Enter between the strings, Route 53 creates **two separate TXT records** instead of one record with two strings, neither record holds the full key, and the DKIM record fails verification. Email authentication then fails, and providers like **Gmail will reject your emails**.
         </Warning>
 
         - **MX:**
-          - **Record name:** Enter the value exactly as we return it, whether its `@` or the subdomain.
-          - **Value:** Copy the **Value** from the console (e.g., `inbound-smtp.us-east-1.amazonaws.com`).
+          - **Record name:** Enter the **Name** exactly as we return it (for example `mail`). Leave the field blank when the name is `@`.
+          - **Value:** Copy the **Value** from the console (e.g., `inbound-smtp.us-east-1.amazonaws.com`, or `eu-central-1` in place of `us-east-1` for EU-region domains).
           - **Priority:** Use the priority shown in the console (typically `10`).
 
       </Tab>
@@ -304,18 +304,18 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
 
   </Tab>
   <Tab title="Via API">
-    If you're using the API directly, the DNS records are returned as fully qualified domain names (FQDNs) that require some manual parsing.
+    If you're using the API directly, the DNS records are in the `records` array of the response. Each `name` is already relative to your DNS zone (for example `@`, `mail`, `_dmarc`, or `selector._domainkey`), the same as in the console.
 
     <Tabs>
       <Tab title="Cloudflare">
         In the dashboard (**DNS > Records**), click **"Add record"**.
 
         - **TXT (DMARC/SPF/DKIM):**
-          - **Name:** Enter the part of the `name` before your root domain (e.g. `_dmarc`).
+          - **Name:** Enter the `name` from the API response (e.g. `_dmarc`).
           - **Content:** Copy paste the `value` from the API response.
 
         - **MX:**
-          - **Name:** Enter the part of the name before your root domain
+          - **Name:** Enter the `name` from the API: `@` for the receiving MX, `mail` for the bounce (MAIL FROM) MX.
           - **Mail server:** Enter the `value` from the API.
           - **Priority:** Enter the `priority` from the API.
 
@@ -324,7 +324,7 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
         In your hosted zone, click **"Create record"**.
 
         - **TXT (DMARC/SPF/DKIM):**
-          - **Record name:** Enter the part of the `name` before your root domain (e.g., `_dmarc` for a `name` of `_dmarc.domain.com`, or `mail` for a `name` of `mail.domain.com`, or `selector._domainkey` for a `name` of `selector._domainkey.agents.com`).
+          - **Record name:** Enter the `name` from the API (e.g., `_dmarc`, `mail`, or `selector._domainkey`).
           - **Value:** Copy paste the `value` from the API, ensuring it is enclosed in quotes.
 
         <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
@@ -332,19 +332,19 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
 
           **When entering TXT values in the Route 53 UI, you MUST do the following.**
           1. Split the value into two quoted strings.
-            a. e.g.: "abcd" -> "ab""cd"
-          2. Ensure there is NO SPACE between the quoted strings. This will make or break validation.
+            a. e.g.: "abcd" -> "ab" "cd"
+          2. Keep both quoted strings on the **same line**. A space between them is fine; a line break is not.
 
-          **Correct:** `"first-part-of-value""second-part-of-value"`
+          **Correct:** `"first-part-of-value" "second-part-of-value"` (with or without the space between the strings)
 
-          **Wrong:** `"first-part-of-value" "second-part-of-value"` (space between strings)
+          **Wrong:** the two quoted strings on separate lines
 
-          If you accidentally include a space or click enter, Route 53 will create **two separate TXT records** instead of one concatenated record. This will cause email authentication to fail, and providers like **Gmail will reject your emails**.
+          Each line in the Route 53 **Value** box is a separate TXT record. If you press Enter between the strings, Route 53 creates **two separate TXT records** instead of one record with two strings, neither record holds the full key, and the DKIM record fails verification. Email authentication then fails, and providers like **Gmail will reject your emails**.
         </Warning>
 
         - **MX:**
-          - **Record name:** Leave this field blank to apply the record to the root domain.
-          - **Value:** This is critical. You must combine the `priority` and `value` from the API into a single string, separated by a space. For example: `10 inbound-smtp.us-east-1.amazonaws.com`.
+          - **Record name:** Enter the `name` from the API (for example `mail`). Leave the field blank when the name is `@`.
+          - **Value:** This is critical. You must combine the `priority` and `value` from the API into a single string, separated by a space. For example: `10 inbound-smtp.us-east-1.amazonaws.com` (EU-region domains use `eu-central-1` in place of `us-east-1`).
 
       </Tab>
     </Tabs>
@@ -387,7 +387,7 @@ Here are instructions for some common DNS providers. This list is not exhaustive
 | **Wix**              | [MX: Adding or Updating MX Records in Your Wix Account](https://support.wix.com/en/article/adding-or-updating-mx-records-in-your-wix-account) <br/> [TXT: Adding or Updating TXT Records in Your Wix Account](https://support.wix.com/en/article/adding-or-updating-txt-records-in-your-wix-account)                                                                                    |
 
 <Callout type="success" title="Ready to Go!" icon="fa-solid fa-rocket">
-  Once your domain status is `ready`, you can start creating `Inboxes` with your
+  Once your domain status is `VERIFIED`, you can start creating `Inboxes` with your
   custom domain and building your agents!
 </Callout>
 
@@ -455,6 +455,8 @@ The response `records` array (and the BIND zone file) now includes a wildcard MX
 | Name / Host | `*` (resolves to `*.example.com`)  |
 | Value       | `inbound-smtp.us-east-1.amazonaws.com` |
 | Priority    | `10`                               |
+
+EU-region domains use `inbound-smtp.eu-central-1.amazonaws.com`. Copy the exact value shown for your domain.
 
 <Callout type="info" title="If your domain is itself a subdomain">
   If the domain you registered is itself a subdomain (e.g. `mail.example.com`), the wildcard is `*.mail.example.com`, so enter `*.mail` as the host. The console and zone file always show the exact name to use.
