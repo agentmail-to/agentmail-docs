@@ -1,0 +1,90 @@
+---
+title: "How do I upgrade, downgrade, or cancel my plan?"
+subtitle: Change your plan, manage payment methods and invoices, or cancel from the AgentMail Console.
+slug: knowledge-base/change-plan-billing
+---
+
+<Note>
+Console labels may change. If you can't find a control described here, contact [support@agentmail.cc](mailto:support@agentmail.cc).
+</Note>
+
+Organization admins manage billing in the [AgentMail Console](https://console.agentmail.to) under **Settings**, then **Billing**. Upgrades start right away. Downgrades and cancellations take effect at the end of the current billing period, and subscription fees are not refunded.
+
+Other members of the organization see "Billing is limited to organization admins" and need to ask an admin to make changes.
+
+## Upgrade
+
+**From Free:** select **Upgrade** in the sidebar, or **Change plan** on the Billing page. Pick a plan and billing interval, then select **Choose** on that plan to pay through Stripe Checkout.
+
+**From a paid plan:** on the Billing page, select **Change plan**, then **Upgrade to** the higher plan. You pay today for the rest of the current billing period, prorated, and the new plan starts immediately. The console shows the amount before you confirm.
+
+To compare what each plan includes, see the [pricing page](https://www.agentmail.to/pricing) and [What are the rate limits?](https://docs.agentmail.to/knowledge-base/rate-limits)
+
+## Downgrade
+
+On the Billing page, select **Change plan**, then **Downgrade to** the lower plan. Nothing is charged, and the change takes effect on your renewal date. Until then you keep your current plan, and the Billing page shows the scheduled change with a **Cancel scheduled change** button that undoes it.
+
+To move from a paid plan to Free, cancel instead.
+
+## Cancel
+
+1. On the Billing page, open **Manage billing** and select **Cancel plan**.
+2. Choose a reason and select **Continue**. The next step shows the date your paid limits end and, where available, how your recent usage compares with Free.
+3. Select **Continue cancellation**, review the dates, then select **Schedule cancellation**.
+
+Your plan and limits stay active until the end of the current billing period, then the organization moves to Free. No charge or refund is created when you cancel. Until the period ends, you can select **Undo cancellation** on the Billing page to keep your plan.
+
+The [Terms of Service](https://www.agentmail.to/legal/terms) (Section 6) say that subscription payments are non-refundable, that cancellation takes effect at the end of the current subscription period, and that no part of the fee for that period is refunded.
+
+## Payment methods and invoices
+
+On the Billing page, open **Manage billing** and select **Payment methods and invoices**. This opens the Stripe customer portal, where you manage your payment methods and invoices. The Billing page also links your latest invoice under **Latest invoice**.
+
+If a payment fails, the Billing page shows a banner. Paid access continues while Stripe retries the charge, so update your payment method from the banner. If the retries run out, the organization moves to Free. Pay the open invoice in the Stripe portal to restore your plan.
+
+## Add-ons
+
+On Developer and Startup, you can buy extra inboxes, domains, monthly sends, or seats instead of changing plans. Add or remove them in the **Add-ons** section of the Billing page. Increases are prorated for the rest of the billing period, and reductions take effect at renewal. See the [pricing page](https://www.agentmail.to/pricing) for prices.
+
+## I paid but still see Free
+
+1. **Reload the Billing page.** Plan changes usually appear within a few seconds of Stripe confirming the payment.
+2. **Look for a payment confirmation banner.** If your bank needs to approve the charge, the Billing page asks you to select **Confirm payment**. Nothing changes until you do.
+3. **Check the limits the API sees.** Call [Get Organization](https://docs.agentmail.to/api-reference/organizations/get) with an organization-scoped API key. `inbox_limit` and `domain_limit` reflect your plan and any add-ons.
+
+<CodeBlocks>
+```python title="Python"
+import os
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# limits reflect your current plan and add-ons
+org = client.organizations.get()
+print(org.inbox_limit, org.domain_limit)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// limits reflect your current plan and add-ons
+const org = await client.organizations.get();
+console.log(org.inboxLimit, org.domainLimit);
+```
+</CodeBlocks>
+
+Sending limits update separately: after a plan change, sends can keep hitting your old limits for up to about five minutes.
+
+If the limits still match Free, email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID and the invoice or receipt from Stripe.
+
+## Billed through Vercel, x402, MPP, or a custom contract
+
+- **Vercel Marketplace:** organizations created from the [Vercel Marketplace](https://docs.agentmail.to/integrations/vercel) are billed on your Vercel invoice. Change plans and billing in your Vercel dashboard under **Integrations**, then **AgentMail**, then **Settings**. The console's Billing page links there with **Manage in Vercel**.
+- **x402 and MPP:** agents that pay per request through [x402](https://docs.agentmail.to/integrations/x402) or [MPP](https://docs.agentmail.to/integrations/mpp) have no subscription to change.
+- **Plans managed by the AgentMail team:** if the Billing page says your subscription is managed by the AgentMail team, contact support to make changes.
+
+## Get help
+
+Email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID and a description of the billing change you need. Check [status.agentmail.to](https://status.agentmail.to) for ongoing incidents.

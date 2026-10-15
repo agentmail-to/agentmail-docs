@@ -1,0 +1,101 @@
+---
+title: "Why was my account suspended?"
+subtitle: What each suspension reason means, what still works while suspended, and how to get a review.
+slug: knowledge-base/account-suspended
+---
+
+AgentMail suspends an account when it cannot confirm who owns it at sign-up, when too many accounts were created from the same email domain, or when its mail bounces or draws spam complaints at a high rate. A suspended account keeps receiving and reading email but cannot send. Only AgentMail support can lift a suspension: email [support@agentmail.cc](mailto:support@agentmail.cc).
+
+## At a glance
+
+| `suspended_reason` | What the API says | What to send support |
+| --- | --- | --- |
+| `unauthorized.signup` | Unverified account ownership at signup | The email address and domain you signed up with, and what your agent is for |
+| `signup.domain_limit` | Too many recent sign-ups from your email domain | The email address you signed up with, your company, and whether a teammate already has an AgentMail organization |
+| `message.bounced` | A high email bounce rate | Where your agent gets recipient addresses, and what you changed to stop the bounces |
+| `message.complained` | A high spam complaint rate | Who your agent emails, why they expect it, and how you handle opt-outs |
+
+## Symptoms
+
+- Sends fail with a `403` whose `code` is `account_suspended`. The body includes `suspended_reason`. On a send, the `message` starts with "Message rejected: Your account has been suspended due to" followed by the phrase in the table above. Other blocked requests, such as creating an inbox, return the `message` "Account suspended".
+- The Console shows a suspension banner. For bounce and complaint suspensions, AgentMail also emails the members of your organization, and you may have received a warning email before it.
+
+| Still works | Blocked |
+| --- | --- |
+| Receiving mail in your existing inboxes | Send, reply, reply-all, forward, and sending drafts, including over SMTP |
+| Webhook and WebSocket events for inbound mail | Scheduled sends: when one comes due, its draft's `send_status` becomes `failed` and it is not retried |
+| Reading inboxes, threads, messages, and drafts in the API and Console | Creating inboxes |
+| `GET /v0/organizations` | Calendar invitation emails |
+
+AgentMail can also suspend a single inbox or pod instead of the whole account. Then only sends from that inbox or pod fail, with the code `inbox_suspended` or `pod_suspended`, and the rest of your account keeps sending.
+
+## Why
+
+`unauthorized.signup` and `signup.domain_limit` are applied at sign-up: when an account is created in the Console, or when a human claims an agent's inbox. `signup.domain_limit` usually means several people at one company signed up separately.
+
+`message.bounced` and `message.complained` come from your sending. AgentMail weighs bounce and complaint signals across your organization's mail and does not publish exact thresholds. Common causes are addresses a model guessed or scraped, old contact lists, and mail recipients did not ask for. AgentMail does not support cold outreach.
+
+## How to check
+
+`GET /v0/organizations` returns `suspended_at` and `suspended_reason` while the account is suspended. It needs an organization-scoped API key. Read the fields as shown below: the API returns them even when your SDK version's `Organization` type does not list them. For bounce and complaint suspensions, the [rates endpoint](https://docs.agentmail.to/api-reference/metrics/query-rates) shows your organization-wide bounce and complaint rates over time.
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# suspended_at and suspended_reason are only present while the account is suspended
+org = client.organizations.get()
+print(org.organization_id, getattr(org, "suspended_reason", None), getattr(org, "suspended_at", None))
+
+# organization-wide bounce and complaint rates, latest point last
+rates = client.metrics.query_rates()
+for rate_type, points in rates.items():
+    if points:
+        print(rate_type, points[-1].rate, points[-1].sent)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// suspended_at and suspended_reason are only present while the account is suspended
+const org = await client.organizations.get();
+const { suspended_reason, suspended_at } = org as { suspended_reason?: string; suspended_at?: string };
+console.log(org.organizationId, suspended_reason, suspended_at);
+
+// organization-wide bounce and complaint rates, latest point last
+const rates = await client.metrics.queryRates();
+for (const [rateType, points] of Object.entries(rates)) {
+    const latest = points?.[points.length - 1];
+    if (latest) console.log(rateType, latest.rate, latest.sent);
+}
+```
+</CodeBlocks>
+
+## What to do
+
+Retrying, creating new API keys, or pausing and resuming inboxes does not lift a suspension. Before you contact support about a bounce or complaint suspension, fix the cause:
+
+- Validate addresses before sending, and never let the model guess or construct an address.
+- Handle the `message.bounced` and `message.complained` [events](https://docs.agentmail.to/events), and stop emailing addresses that bounce or complain.
+- Honor opt-out replies: when someone asks your agent to stop, add them to your [send block list](https://docs.agentmail.to/lists).
+- Email only people who expect to hear from your agent.
+
+For `signup.domain_limit`, if a teammate already has an AgentMail organization, you can ask them to invite you to it instead.
+
+Scheduled drafts that come due while you are suspended fail, so resend or reschedule them once sending is back. After support lifts a suspension, your API key can keep returning `account_suspended` for up to 5 minutes.
+
+## Get help
+
+Email [support@agentmail.cc](mailto:support@agentmail.cc). The support link in the Console banner fills in your organization ID for you. Include:
+
+- Your organization ID, plus the inbox ID or pod ID if the error was `inbox_suspended` or `pod_suspended`
+- `suspended_reason` and `suspended_at`, or the full error response and the time of the failed request
+- The details for your reason from the table above
+
+If sends fail without `account_suspended`, `inbox_suspended`, or `pod_suspended` in the response, check [status.agentmail.to](https://status.agentmail.to).

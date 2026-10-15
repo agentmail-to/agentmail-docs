@@ -1,0 +1,87 @@
+---
+title: "Why can my agent only email its human?"
+subtitle: The limits on an account an agent created for itself, the errors it sees, and how verification lifts them.
+slug: knowledge-base/agent-sign-up-limits
+---
+
+An agent that signs up through the API starts with a restricted account: 1 inbox, no custom domains, 10 emails a day (each recipient counts as one), and it can email only the human whose address is attached to it. Once the agent verifies with the code emailed to that human, or the human claims its inbox, the account moves to the Free plan and can email anyone, starting with a limit on new recipients.
+
+## At a glance
+
+| | After agent sign-up | After verification or claim (Free plan) |
+| --- | --- | --- |
+| Inboxes | 1 | 3 |
+| Custom domains | None | None: custom domains need a paid plan |
+| Emails per day | 10 | 100 |
+| Who the agent can email | Only the attached human. Nobody, if no human is attached | Anyone, up to 3 distinct new recipients in the first hour, 5 in the first day, and 10 in the first week |
+| Receiving email | Yes | Yes |
+
+## Symptoms
+
+| Error `message` | Status and `code` | When it happens |
+| --- | --- | --- |
+| `Message rejected: Recipient(s) blocked: bob@example.com (not in allow list)` | `403` `message_rejected` | Before verification, a send to anyone other than the attached human. With no human attached, any send |
+| `Daily send limit exceeded` | `429` `rate_limit_exceeded` | A send that would take the day past 10 emails before verification, or past 100 on Free. Each recipient counts as one email. The `Retry-After` header says when the window resets |
+| `Inbox limit exceeded` | `403` `limit_exceeded` | Creating a second inbox before verification, or a fourth on Free |
+| `Domain limit exceeded` | `403` `limit_exceeded` | Adding a custom domain on either plan |
+| Starts with `Recipient limit exceeded` | `429` `rate_limit_exceeded` | After verification, emailing more new recipients than the first hour, day, or week allows. The message says when the limit rises |
+| Varies by endpoint | `403` `missing_permission` | Before verification, creating API keys, list entries, or pods. See [agent verification](https://docs.agentmail.to/permissions#agent-verification) |
+
+If the agent signed up without a human, then for up to 5 minutes after one is attached, sends to that human can still return the daily send limit `429` while the API key's cached limits catch up. The same delay applies to the new limits after verification.
+
+## Why
+
+Anyone can create an agent account without a Console login, so AgentMail keeps it small until a human takes responsibility for it. An agent that signed up without `human_email` is receive-only: it can receive mail but cannot send to anyone until a human is attached.
+
+## How to check
+
+Read the `fix` field on the error. While the account is unverified, the fix on the allow list, daily limit, inbox limit, and `missing_permission` errors points to `POST /v0/agent/verify`, or to `POST /v0/agent/human` if no human is attached yet. `GET /v0/organizations` also tells you: `inbox_limit` is `1` before verification and `3` after.
+
+## What to do
+
+Connect a human, in one of these ways:
+
+1. **Verify with a code.** If no human is attached yet, attach one with `POST /v0/agent/human`. AgentMail emails that human a 6-digit code, and the agent submits it to `POST /v0/agent/verify`. If the code expired, call `POST /v0/agent/human` again with the same email for a new one. An address that already has a Console account cannot be attached: that human creates an API key for the agent in their own organization instead.
+2. **Claim in the Console.** The human pastes the agent's API key at [console.agentmail.to/claim](https://console.agentmail.to/claim). This works for US-region keys, which start with `am_us_`. See [How do I claim my agent's inbox?](https://docs.agentmail.to/knowledge-base/claiming-agent-inbox)
+3. **Sign up as the attached human.** In the US region, the attached human can sign up in the Console with that email address, and the agent's inbox moves into their account.
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# attach the human who owns the agent; AgentMail emails them a 6-digit code
+client.agent.attach_human(human_email="you@yourcompany.com")
+
+# once the human gives the agent the code
+client.agent.verify(otp_code="123456")
+
+# inbox_limit is 1 before verification and 3 after
+print(client.organizations.get().inbox_limit)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// attach the human who owns the agent; AgentMail emails them a 6-digit code
+await client.agent.attachHuman({ humanEmail: "you@yourcompany.com" });
+
+// once the human gives the agent the code
+await client.agent.verify({ otpCode: "123456" });
+
+// inbox_limit is 1 before verification and 3 after
+const org = await client.organizations.get();
+console.log(org.inboxLimit);
+```
+</CodeBlocks>
+
+After verification, the new-recipient limit counts from the moment of verification. Replies to people who have emailed the account since then do not count against it, and paid plans do not have it. A claim can also land the account suspended; see [Why was my account suspended?](https://docs.agentmail.to/knowledge-base/account-suspended)
+
+## Get help
+
+For the agent's side of sign-up, see [Agent Onboarding](https://docs.agentmail.to/agent-onboarding). If sends within these limits are still refused more than 5 minutes after verifying, email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID, the inbox ID, the full error response, and the time of the failed request.

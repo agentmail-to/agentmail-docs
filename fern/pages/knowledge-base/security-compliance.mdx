@@ -1,0 +1,49 @@
+---
+title: "Security and compliance FAQ"
+subtitle: SOC 2, subprocessors, privacy, data residency, retention, email authentication, and where to send other questions.
+slug: knowledge-base/security-compliance
+---
+
+Short answers to the security and compliance questions we get most often. For anything not covered here, email [support@agentmail.cc](mailto:support@agentmail.cc).
+
+## Is AgentMail SOC 2 compliant?
+
+Yes. AgentMail completed its first SOC 2 Type II audit in 2025, and its 2026 annual audit is underway with A-LIGN. Request the report, security policies, or help with a security questionnaire through the Trust Center linked from the [SOC 2 Compliance](https://docs.agentmail.to/documentation/resources/security-privacy/soc-2-compliance) page. Documents are shared after access approval.
+
+## Who are your subprocessors?
+
+The [Subprocessors](https://www.agentmail.to/legal/subprocessors) page lists each third party AgentMail uses, with its location and purpose, and is updated when one is added or removed. To be notified of changes, email [support@agentmail.cc](mailto:support@agentmail.cc).
+
+## How do you handle personal data, and how do I exercise my privacy rights?
+
+The [Privacy Notice](https://www.agentmail.to/legal/privacy) describes what AgentMail collects, how it is used and shared, and how long it is kept. Depending on the law that applies to you, it lets you request access to, a copy of, correction of, or deletion of your personal information, object to or restrict processing, opt out of certain processing, and withdraw consent. To make a request, use the contact details in the notice's Contact Us section. If the data protection laws of the European Economic Area or the United Kingdom apply to your personal information, you can also complain to your supervisory authority.
+
+The notice does not cover data AgentMail processes for a customer under a written agreement with that customer. If you use AgentMail through another company's product, send requests about that data to the company.
+
+## Where is my data stored?
+
+AgentMail runs separate US and EU environments. EU organizations call the API at `https://api.agentmail.eu` instead of `https://api.agentmail.to`. The [pricing page](https://www.agentmail.to/pricing) lists the EU region under the Enterprise plan; email [support@agentmail.cc](mailto:support@agentmail.cc) to discuss it.
+
+The [Privacy Notice](https://www.agentmail.to/legal/privacy) says personal information may be processed in the United States and other countries, and that EU Standard Contractual Clauses are one of the safeguards it may use for transfers from the EEA, Switzerland, and the UK. The [Subprocessors](https://www.agentmail.to/legal/subprocessors) page lists where each subprocessor operates.
+
+## How long do you keep messages?
+
+The [Privacy Notice](https://www.agentmail.to/legal/privacy) says AgentMail keeps personal information for as long as you use the service, as long as needed for the purposes it was collected for, or as long as needed for AgentMail's business purposes.
+
+For tighter control, organizations can ask for early access to [24-hour message expiry](https://docs.agentmail.to/message-expiry), an optional policy that is off by default. AgentMail confirms availability and activation for each organization. When it is on, access to each message ends 24 hours after AgentMail records it. Expiry limits access through AgentMail. It does not withdraw copies made before a message expired, such as downloaded content, content copied into drafts, or webhook payloads already accepted for delivery.
+
+## How is mail sent from my domain authenticated?
+
+Mail sent from a verified custom domain is signed with DKIM for that domain. The DNS records AgentMail generates for a custom domain also include a DMARC record with `p=reject`. See [How do I set up SPF, DKIM, and DMARC?](https://docs.agentmail.to/knowledge-base/spf-dkim-dmarc)
+
+## Does AgentMail check the authentication of inbound mail?
+
+Yes. On authentication grounds, AgentMail drops inbound mail only when it fails DMARC, the sender's domain enforces DMARC (`p=quarantine` or `p=reject`), and no trusted ARC seal rescues it. All other mail passes this check. Mail that passes no check, or fails DMARC under `p=none`, is delivered with the `unauthenticated` label. See [Why are my emails not showing up?](https://docs.agentmail.to/knowledge-base/inbound-emails-missing)
+
+## DPA, HIPAA, encryption at rest, penetration tests, and vulnerability reports
+
+Email [support@agentmail.cc](mailto:support@agentmail.cc). This covers data processing agreements, HIPAA and protected health information, encryption at rest, penetration test results, and reporting a security vulnerability.
+
+## Get help
+
+Email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID and your question. Check [status.agentmail.to](https://status.agentmail.to) for ongoing incidents.
