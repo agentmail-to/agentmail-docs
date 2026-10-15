@@ -36,9 +36,16 @@ Subscribe to the `message.bounced` webhook event to track bounces in real time:
 ```typescript title="TypeScript"
 import { serialization } from "agentmail";
 
+// addresses to stop sending to; store these in your database in production
+const doNotSend = new Set<string>();
+
+async function removeFromList(address: string) {
+  doNotSend.add(address.toLowerCase());
+}
+
 async function handleWebhook(payload: Record<string, unknown>) {
   if (payload.event_type === "message.bounced") {
-    const event = await serialization.events.MessageBouncedEvent.parse(payload);
+    const event = await serialization.events.MessageBouncedEvent.parseOrThrow(payload);
 
     console.log(`Bounce type: ${event.bounce.type}`);       // "Permanent" or "Transient"
     console.log(`Sub type: ${event.bounce.subType}`);        // e.g., "General"
@@ -65,14 +72,14 @@ const client = new AgentMailClient({ apiKey: "am_..." });
 
 await client.webhooks.create({
   url: "https://your-domain.ngrok-free.app/webhooks",
-  events: ["message.bounced"],
+  eventTypes: ["message.bounced"],
 });
 ```
 
 ## Automatic suppression
 
 <Warning>
-AgentMail automatically prevents you from sending to addresses that have previously bounced, been rejected, or filed a spam complaint. This protects your sender reputation. Keep your account bounce rate under 4%, otherwise your account may be placed under review.
+AgentMail automatically prevents you from sending to addresses that have previously bounced, been rejected, or filed a spam complaint. This protects your sender reputation. AgentMail also weighs bounce and complaint signals across your account and may suspend sending when they indicate a problem, so keep your bounce rate low.
 </Warning>
 
 ## Keeping bounce rates low
@@ -83,6 +90,6 @@ AgentMail automatically prevents you from sending to addresses that have previou
 | Remove permanent bounces immediately | Repeated sends to invalid addresses damage reputation fast |
 | Avoid purchased or scraped lists | These lists have high rates of invalid addresses |
 | Warm up new domains gradually | Sudden high volume from a new domain triggers suspicion |
-| Monitor bounce rate | Keep it under 2% for healthy reputation; under 4% to avoid account review |
+| Monitor bounce rate | Keep it under 2% for healthy reputation; a rising rate puts your account's sending at risk |
 
 For more on maintaining healthy sending metrics, see the [Email Deliverability](/email-deliverability) best practices.

@@ -13,10 +13,12 @@ All webhook payloads follow the same basic structure:
 {
   "type": "event",
   "event_type": "event.name",
-  "event_id": "evt_123abc..."
+  "event_id": "c4ca4238a0b923820dcc509a6f75849b"
   // ... event-specific data object
 }
 ```
+
+`event_id` identifies the event, not the delivery: it is the same on every retry and on every webhook that receives the event, so use it to deduplicate. Its format varies by event type; treat it as an opaque string. See [Duplicates and ordering](/webhooks-overview#duplicates-and-ordering).
 
 ## Parsing events with SDKs
 
@@ -151,8 +153,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
   message.security.completed (Agent Armor Monitor mode only) carries message ids + agent_armor (no content) and needs message_read.
   message.security.review (Agent Armor hold mode held the message) carries the same; message.security.override (someone released it; may arrive before its message.received) carries ids + manual_override. Both need message_read.
   calendar.event.* (created, updated, deleted, responded, starting, ending) carry inbox_id and calendar_event; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
-  Note: message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
-  message.received.unauthenticated must be explicitly included in event_types.
+  Note: message.received.spam, message.received.blocked, and message.received.unauthenticated require label_spam_read / label_blocked_read / label_unauthenticated_read permissions
+  and must be explicitly included in event_types. Dedupe on event_id: it is the same across retries and across webhooks.
   """
   from agentmail import (
     MessageReceivedEvent,
@@ -186,8 +188,8 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
    * message.security.completed → MessageSecurityCompletedEvent (Agent Armor Monitor mode only): message carries ids + agentArmor (no content); needs message_read.
    * message.security.review → MessageSecurityReviewEvent (Agent Armor hold mode held it; same shape); message.security.override → MessageSecurityOverrideEvent (ids + manualOverride; may arrive before its message.received). Both need message_read.
    * calendar.event.* (created, updated, deleted, responded, starting, ending) carry inboxId and calendarEvent; they need calendar_event_read. See https://docs.agentmail.to/calendar-webhooks.
-   * message.received.spam and message.received.blocked require label_spam_read / label_blocked_read permissions.
-   * message.received.unauthenticated must be explicitly included in eventTypes.
+   * message.received.spam, message.received.blocked, and message.received.unauthenticated require label_spam_read / label_blocked_read / label_unauthenticated_read permissions
+   * and must be explicitly included in eventTypes. Dedupe on event_id: it is the same across retries and across webhooks.
    */
   import { serialization } from "agentmail";
 
@@ -264,7 +266,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.received",
-  "event_id": "evt_123abc",
+  "event_id": "c81e728d9d4c2f636f067f89cc14862c",
   "message": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -314,7 +316,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.received.spam",
-  "event_id": "evt_spam123",
+  "event_id": "eccbc87e4b5ce2fe28308fd9f2a7baf3",
   "message": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -364,7 +366,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.received.blocked",
-  "event_id": "evt_blocked456",
+  "event_id": "a87ff679a2f3e71d9181a67b7542122c",
   "message": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -402,15 +404,16 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 
 ### `message.received.unauthenticated`
 
-- **Description:** Triggered when a new email is received without authentication headers, so AgentMail cannot verify whether it is authenticated. These messages are processed and labeled `unauthenticated` because legitimate senders may omit the headers; messages with authentication headers that explicitly fail are dropped.
-- **Example use-case:** Monitor senders whose messages are missing authentication headers so you can decide whether to trust them or ask them to improve their email setup.
+- **Description:** Triggered when a new email is delivered with the `unauthenticated` label: none of SPF, DKIM, or DMARC passed (for example because the sender publishes no records, or its SPF and DKIM both failed), or DMARC failed under the sender's `none` policy. A failing SPF or DKIM check on its own does not drop a message. AgentMail drops a message only when DMARC fails under an enforcing policy (`quarantine` or `reject`) and no trusted forwarder's ARC seal vouches for it, so dropped mail sends no event. See [Why are my emails not showing up?](/knowledge-base/inbound-emails-missing) for the full rules.
+- **Example use-case:** Monitor senders whose messages do not authenticate so you can decide whether to trust them or ask them to improve their email setup.
+- **Permission:** Subscribing requires the `label_unauthenticated_read` permission on the API key.
 
 <CodeGroup>
 ```json
 {
   "type": "event",
   "event_type": "message.received.unauthenticated",
-  "event_id": "evt_unauth789",
+  "event_id": "e4da3b7fbbce2345d7772b0674a318d5",
   "message": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -456,7 +459,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.sent",
-  "event_id": "evt_456def",
+  "event_id": "1679091c5a880faf6fb5e6087eb1b2dc",
   "send": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -480,7 +483,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.delivered",
-  "event_id": "evt_789ghi",
+  "event_id": "0f7c3a2e-5b1d-4e8a-9c6f-2d4b8a1e7c35",
   "delivery": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -525,7 +528,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.bounced",
-  "event_id": "evt_012jkl",
+  "event_id": "6a9d2b4f-1e7c-4c3a-8f5b-9e2d7a4c1b68",
   "bounce": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -554,7 +557,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.complained",
-  "event_id": "evt_345mno",
+  "event_id": "b3e8f1c6-7a2d-4f9b-a5c4-3d1e6b8f2a97",
   "complaint": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -580,7 +583,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.rejected",
-  "event_id": "evt_678pqr",
+  "event_id": "d2f5a8c1-4b6e-4a3d-9e7f-8c1b5d2a6e43",
   "reject": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -595,8 +598,9 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 <Warning>
   If you send an email to a `bounced` address, `rejected` address, or
   `complained` address we prevent you from sending to this email address ever
-  again to keep bounce rates low. Make sure to keep your account bounce rate
-  under 4%, otherwise we will put your account under review.
+  again to keep bounce rates low. AgentMail weighs bounce and complaint
+  signals across your account and may suspend sending when they indicate a
+  problem.
 </Warning>
 
 ### `message.opened`
@@ -609,7 +613,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "message.opened",
-  "event_id": "evt_901stu",
+  "event_id": "9e4b7d2a-3c8f-4e1b-b6a5-7f2d9c4e8a10",
   "open": {
     "inbox_id": "inbox_456def",
     "thread_id": "thd_789ghi",
@@ -741,7 +745,7 @@ Copy one of the blocks below into Cursor or Claude for webhook event parsing in 
 {
   "type": "event",
   "event_type": "domain.verified",
-  "event_id": "evt_901stu",
+  "event_id": "domain.verified.example.com.1698397200000",
   "domain": {
     "domain_id": "dom_123abc",
     "status": "verified",
@@ -797,7 +801,7 @@ When creating a webhook, you can specify which events to subscribe to. This allo
 For example, if you only need to trigger workflows on incoming messages, you can subscribe to just `message.received`. If you're building a delivery tracking system, you might subscribe to `message.sent`, `message.delivered`, and `message.bounced`.
 
 <Callout intent="info">
-  By default, spam, blocked, and unauthenticated events are **not** delivered. To receive them, you must explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in the `event_types` list when creating your webhook. The API key must also have the corresponding `label_spam_read` or `label_blocked_read` permission for spam and blocked events.
+  By default, spam, blocked, and unauthenticated events are **not** delivered. To receive them, you must explicitly include `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` in the `event_types` list when creating your webhook. The API key must also have the corresponding `label_spam_read`, `label_blocked_read`, or `label_unauthenticated_read` permission.
 </Callout>
 
 If you have any specific webhook notifications you would like, please ping us in the `#feature-requests` channel in the [Discord](https://discord.gg/hTYatWYWBc)

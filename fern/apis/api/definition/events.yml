@@ -70,15 +70,18 @@ types:
 
   PodIds:
     type: list<string>
-    docs: Pods for which to send events. Maximum 10 per webhook.
+    docs: Pods for which to send events.
 
   InboxIds:
     type: list<string>
-    docs: Inboxes for which to send events. Maximum 10 per webhook.
+    docs: Inboxes for which to send events.
 
   EventId:
     type: string
-    docs: ID of event.
+    docs: |
+      ID of the event. It is the same on every retry and redelivery of the event and on every webhook
+      or WebSocket subscription that receives it, so use it to deduplicate. The format varies by event
+      type; treat it as an opaque string.
 
   Timestamp:
     type: datetime
@@ -162,13 +165,32 @@ types:
       message_id: messages.MessageId
       timestamp: Timestamp
 
+  ReceivedMessage:
+    docs: |
+      The received message. The body (`text`, `html`, `extracted_text`, and `extracted_html`) is included
+      inline only when it is small enough. Webhooks omit it when the stored body is larger than 64 KiB;
+      WebSocket events also omit it when the serialized event would be larger than 30 KiB. When the body
+      is omitted, `body_url` and `body_expires_at` are set instead.
+    extends: messages.Message
+    properties:
+      body_url:
+        type: optional<string>
+        docs: |
+          Pre-signed URL that downloads the stored body as a JSON object including `text`, `html`,
+          `extracted_text`, and `extracted_html`. Present only when the body is omitted from the event.
+          Valid until `body_expires_at`, one hour after the event was built. The body stays available
+          through the get message endpoint after the URL expires.
+      body_expires_at:
+        type: optional<datetime>
+        docs: Time at which `body_url` expires. Present only with `body_url`.
+
   MessageReceivedEvent:
     docs: A message was received. Spam, blocked, and unauthenticated received-message events use the same payload shape with different `event_type` values.
     properties:
       type: literal<"event">
       event_type: MessageReceivedEventType
       event_id: EventId
-      message: messages.Message
+      message: ReceivedMessage
       thread: threads.ThreadItem
 
   MessageSecurity:

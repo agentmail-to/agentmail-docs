@@ -1,10 +1,10 @@
 ---
 title: "How do I handle inbound emails with my agent?"
-subtitle: Compare Webhooks and WebSockets for processing incoming emails.
+subtitle: Compare webhooks, WebSockets, and polling webhooks for processing incoming emails.
 slug: knowledge-base/handling-inbound-emails
 ---
 
-AgentMail offers two ways to process incoming emails, each suited to different use cases.
+AgentMail offers three ways to process incoming emails, each suited to different use cases.
 
 ## 1. Webhooks (Recommended for Production)
 
@@ -17,10 +17,17 @@ from agentmail import AgentMail
 app = Flask(__name__)
 client = AgentMail()
 
+processed_event_ids = set()  # use a database or cache in production
+
 @app.route("/webhooks", methods=["POST"])
 def handle_webhook():
     payload = request.json
-    
+
+    # deliveries are at least once, so skip events you already handled
+    if payload["event_id"] in processed_event_ids:
+        return "OK", 200
+    processed_event_ids.add(payload["event_id"])
+
     if payload["event_type"] == "message.received":
         message = payload["message"]
         
@@ -42,13 +49,36 @@ Register your webhook via the API:
 ```python title="Python"
 client.webhooks.create(
     url="https://your-domain.ngrok-free.app/webhooks",
-    events=["message.received"],
+    event_types=["message.received"],
 )
 ```
 
+`event_types` is required: list every event type the webhook should receive.
+
 <Note>
-Always return a `200 OK` immediately and process the webhook in the background. If your endpoint takes too long to respond, AgentMail will retry delivery. Also, filter out `message.sent` events to prevent your agent from replying to its own messages in a loop.
+Always return a `200 OK` immediately and process the webhook in the background. A response slower than 15 seconds counts as a failed delivery, and AgentMail retries it. Also, filter out `message.sent` events to prevent your agent from replying to its own messages in a loop.
 </Note>
+
+### Deduplicate on `event_id`
+
+Webhook delivery is at least once: a retry can arrive after your endpoint already processed the event, so the same event can reach you twice. Every payload carries an `event_id` that stays the same across retries and across every webhook that receives the event. Record the `event_id` values you have processed and skip repeats, as in the example above. Do not deduplicate on the `svix-id` header: it differs between webhooks registered for the same events at different levels (organization, pod, inbox).
+
+### If your endpoint goes down
+
+AgentMail retries a failed delivery 8 times over about 27.5 hours. If deliveries keep failing for 5 days, the webhook is disabled automatically and AgentMail does not notify you: the webhook's `enabled` field turns `false`. After you fix the endpoint, re-enable it with `client.webhooks.update(webhook_id, enabled=True)`. Events from while it was down are not redelivered, so catch up by listing messages received since the last event you processed:
+
+```python title="Python"
+response = client.inboxes.messages.list(
+    inbox_id="agent@agentmail.to",
+    after=last_processed_at,  # datetime of the last event you handled
+    ascending=True,
+)
+for item in response.messages:  # page with next_page_token if there are more
+    message = client.inboxes.messages.get(inbox_id=item.inbox_id, message_id=item.message_id)
+    your_agent.process(message)
+```
+
+See [Recovering missed events](/webhooks-overview#recovering-missed-events) for the other options.
 
 For local development, use [ngrok](https://ngrok.com) to expose your local server. See the [Webhook Setup Guide](/webhook-setup) for full instructions.
 
@@ -97,11 +127,27 @@ with client.websockets.connect() as socket:
 
 See the [WebSocket Overview](/websockets) for more details.
 
+## 3. Polling webhooks (Agents That Start and Stop)
+
+A polling webhook queues events for your agent instead of pushing them. Your agent fetches the queued events whenever it runs and commits the ones it has processed, so nothing is lost while it is offline and nothing needs to be reachable from the internet. This fits cron jobs, serverless functions, and agents behind a firewall.
+
+```python title="Python"
+subscription = client.webhooks.polling.create(
+    client_id="support-agent",
+    event_types=["message.received"],
+    inbox_ids=["agent@agentmail.to"],
+)
+token = subscription.token  # read the queue with the Svix SDK's AutoConfigConsumer
+```
+
+Polling webhooks are available in the US region only for now. See [Polling Webhooks](/webhook-polling) for how to read and commit events.
+
 ## Which should I use?
 
 | Method | Best for | Requires public URL? | Real-time? |
 | --- | --- | --- | --- |
 | Webhooks | Production applications | Yes | Yes |
 | WebSockets | Local dev, desktop agents | No | Yes |
+| Polling webhooks | Agents that run on a schedule or start and stop | No | On your next fetch |
 
-For most production use cases, **webhooks** are recommended. They are reliable, event-driven, and integrate well with serverless platforms. If you need real-time events without exposing a public URL, **WebSockets** are the best option.
+For most production use cases, **webhooks** are recommended. They are reliable, event-driven, and integrate well with serverless platforms. If you need real-time events without exposing a public URL, **WebSockets** are the best option. If your agent cannot stay connected, use a **polling webhook** so events wait for it.

@@ -16,7 +16,7 @@ This is the same standard enforced by Gmail, Outlook, Yahoo, and other major ema
 
 When an email arrives, AgentMail inspects the SPF, DKIM, and DMARC verdicts computed by Amazon SES, the receiving mail server, and applies these rules in order:
 
-- The email is dropped when it fails virus scanning, or when DMARC fails and the sender's published DMARC policy is `quarantine` or `reject`.
+- The email is dropped when it fails virus scanning, or when DMARC fails and the sender's published DMARC policy is `quarantine` or `reject`, unless a trusted forwarder's ARC seal vouches for it (see forwarded mail below). A failing SPF or DKIM check on its own never drops an email.
 - The email is delivered with the `unauthenticated` label when DMARC fails under a `none` policy, or when none of SPF, DKIM, or DMARC passes (for example because the sender publishes no records). A From header that lists more than one mailbox is also labelled unless its chosen sender mailbox authenticated.
 - Otherwise the email is delivered as authenticated: at least one of SPF, DKIM, or DMARC passed.
 
@@ -34,10 +34,10 @@ The verdicts below are SES's, written the way `authentication_results` reports t
 
 Messages received since 2026-09-09 carry the verdicts in the `authentication_results` field, with `spf`, `dkim`, and `dmarc` each `pass`, `fail`, `none`, or another RFC 8601 result, and `spf_domain`, `dkim_domain`, and `dmarc_domain` naming the domain each verdict is about. A key is absent when SES could not compute it, or when the verdict does not speak for the sender: SPF authenticates the envelope (Return-Path) domain, so `spf` is kept only when that domain shares an organizational domain with the sender's domain, and `dkim` and `dmarc` are kept only when every From mailbox is on the sender's domain. The `unauthenticated` label is the acceptance decision and follows the looser rules above, so the two can disagree: a message whose only pass is an unaligned envelope SPF is delivered without the label while the field shows no pass. Use the label to decide whether AgentMail accepted the message, and the field to see which domain each mechanism authenticated. The `Authentication-Results` header itself is not included in `headers`; read this field instead.
 
-Forwarded mail fails DMARC at the receiving hop, because the forwarder's server is not authorized for the original sender's domain. AgentMail delivers it as authenticated when a trusted forwarder sealed a valid ARC chain vouching for the original message. For those messages `authentication_results` reports the verdicts the forwarder recorded for the original message, and `arc_sealer` names the forwarder. See [Get Message](/api-reference/inboxes/messages/get) for each key.
+Forwarded mail fails DMARC at the receiving hop, because the forwarder's server is not authorized for the original sender's domain. AgentMail delivers it as authenticated when a trusted forwarder sealed a valid ARC chain vouching for the original message. For those messages `authentication_results` reports the verdicts the forwarder recorded for the original message, and `arc_sealer` names the forwarder. See [Get Message](/api-reference/inboxes/messages/get) for each key. The trusted forwarders are `google.com`, `microsoft.com`, `outlook.com`, and `icloud.com`; an enforcing DMARC failure forwarded through any other service is dropped.
 
 <Warning>
-Emails dropped due to failed authentication are rejected without a bounce-back to the sender. The sender's mail server may still report successful delivery because AgentMail's servers did receive the message, but it was rejected during authentication verification. To monitor emails delivered as `unauthenticated`, subscribe to the `message.received.unauthenticated` webhook or WebSocket event.
+Emails dropped due to failed authentication are dropped silently, with no bounce-back to the sender. AgentMail's servers accept the message before checking it, so the sender's mail server reports successful delivery, but no message is created and no event is sent. To monitor emails delivered as `unauthenticated`, subscribe to the `message.received.unauthenticated` webhook or WebSocket event, which requires the `label_unauthenticated_read` permission on the API key.
 </Warning>
 
 ## Why this matters

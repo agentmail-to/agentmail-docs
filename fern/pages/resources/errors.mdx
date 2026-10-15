@@ -90,7 +90,7 @@ The requested value (for example, an inbox username) is already in use. Choose a
 
 ### limit_exceeded
 
-A resource limit has been reached (for example, the webhook endpoint limit). Remove an existing resource before adding another, or email support@agentmail.to to raise your limit. For agent-verification OTP attempts, the `fix` distinguishes the two states: while the exhausted code is still live, every submission is rejected (even the correct code) until it expires 24 hours from issue, after which `POST /v0/agent/sign-up` issues a fresh code with a reset attempt count; if the code has already expired, sign up again immediately.
+A resource limit has been reached (for example, the webhook endpoint limit). Remove an existing resource before adding another, or email support@agentmail.cc to raise your limit. For agent-verification OTP attempts, the `fix` distinguishes the two states: while the exhausted code is still live, every submission is rejected (even the correct code) until it expires 24 hours from issue, after which `POST /v0/agent/sign-up` issues a fresh code with a reset attempt count; if the code has already expired, sign up again immediately.
 
 ### domain_not_verified
 
@@ -162,7 +162,7 @@ The calendar cannot do this for the event (`409`): only events the inbox organiz
 
 ### calendar_inbox_required
 
-Sending invitations or cancellations needs the inbox the calendar belongs to (`409`). Every calendar is linked to its inbox, so this is not expected in normal use. If you see it, email [support@agentmail.to](mailto:support@agentmail.to); retrying with `send_invites` set to `false` applies the change without emailing attendees.
+Sending invitations or cancellations needs the inbox the calendar belongs to (`409`). Every calendar is linked to its inbox, so this is not expected in normal use. If you see it, email [support@agentmail.cc](mailto:support@agentmail.cc); retrying with `send_invites` set to `false` applies the change without emailing attendees.
 
 ### event_expired
 
@@ -174,16 +174,46 @@ The date ended more than 30 days ago and its record is no longer kept, or it was
 
 The message was not sent. The message names the reason, and the `fix` states which case applies:
 
-- **Recipients on a send block list** — remove them from the request, or delete the matched block entry. The `fix` names the stored entry (which may be a domain rather than the recipient address) and the exact `DELETE /v0/…/lists/send/block/{entry}` path at the scope where it lives. Deleting an entry at a broader scope than your key (an organization-level block hit by a pod- or inbox-scoped key) requires a key scoped at that level. Read-only entries — added automatically from bounces, complaints, and unsubscribes — cannot be deleted via the API; email support@agentmail.to to have one reviewed.
+- **Recipients on a send block list** — remove them from the request, or delete the matched block entry. The `fix` names the stored entry (which may be a domain rather than the recipient address) and the exact `DELETE /v0/…/lists/send/block/{entry}` path at the scope where it lives. Deleting an entry at a broader scope than your key (an organization-level block hit by a pod- or inbox-scoped key) requires a key scoped at that level. Read-only entries — added automatically from bounces, complaints, and unsubscribes — cannot be deleted via the API; email support@agentmail.cc to have one reviewed.
 - **Recipients missing from an active send allow list** — add them via `POST /v0/lists/send/allow` (there is no block entry to delete). On an agent organization that has not completed verification, sending is restricted to the human's email and list entries cannot be created yet — complete `POST /v0/agent/verify` instead. If no human email is attached yet, sending is blocked for every recipient until one is attached with `POST /v0/agent/human`.
-- **A suspended account** — email support@agentmail.to; retrying will keep failing until the suspension is resolved.
+- A suspended account, inbox, or pod is not `message_rejected`: it returns [`account_suspended`](#account_suspended), [`inbox_suspended`](#inbox_suspended), or [`pod_suspended`](#pod_suspended).
 - **An unfetchable attachment URL** — use a URL that AgentMail can download without custom authentication headers or cookies, or send the attachment inline as Base64. Redirects and pre-signed URLs are supported, and the final response must be a successful 2xx response.
+
+### account_suspended
+
+The organization is suspended (`403`). AgentMail weighs signals such as bounce and complaint rates and may suspend an account's sending; the response's `suspended_reason` field says why, in a short machine-readable form such as `message.bounced` or `message.complained`.
+
+While the account is suspended:
+
+- **Sending is blocked** on every path: send, reply, reply-all, forward, and draft send. A scheduled draft fails instead of sending. Some other operations, such as creating inboxes, also return `account_suspended`.
+- **Receiving continues.** Inbound mail is still accepted and stored, webhooks and WebSocket events still fire, and API reads keep working, so your agent can still list and read its messages.
+
+No change to the request clears this, so retrying keeps failing until the suspension is resolved. Email [support@agentmail.cc](mailto:support@agentmail.cc). `GET /v0/organizations` returns `suspended_at` and `suspended_reason`, so an agent can check its own status.
+
+```json
+{
+  "name": "AccountSuspendedError",
+  "code": "account_suspended",
+  "message": "Message rejected: Your account has been suspended due to a high email bounce rate. Please contact support for assistance.",
+  "fix": "Sending is disabled while the account is suspended. Email support@agentmail.cc to resolve the suspension; retrying will keep failing until then.",
+  "suspended_reason": "message.bounced",
+  "docs": "https://docs.agentmail.to/errors#account_suspended"
+}
+```
+
+### inbox_suspended
+
+Sending from this inbox is suspended for its bounce or complaint rate (`403`); `suspended_reason` says which. Other inboxes in your organization are unaffected and keep sending. The inbox still receives mail, and webhooks and WebSocket events for it still fire. A scheduled draft from the inbox fails instead of sending. Resuming a paused inbox does not lift a suspension; email [support@agentmail.cc](mailto:support@agentmail.cc).
+
+### pod_suspended
+
+Sending from the inboxes in this pod is suspended for the pod's bounce or complaint rate (`403`); `suspended_reason` says which. Other pods in your organization are unaffected and keep sending. Inboxes in the pod still receive mail, and webhooks and WebSocket events still fire. Email [support@agentmail.cc](mailto:support@agentmail.cc) to resolve it.
 
 ### inbox_paused
 
 The inbox is paused, so it cannot send. Resume it with `PATCH /v0/inboxes/{inbox_id}` and `{"status": "active"}` using a key with the `inbox_update` permission, then send again. Mail that arrived while the inbox was paused was dropped and is not delivered on resume. See [Pausing an inbox](/inboxes#pausing-an-inbox).
 
-If the inbox has also been suspended for its bounce or complaint rate, the send reports that suspension instead. A suspension of the inbox's pod is reported only after the inbox is resumed. Resuming the inbox does not lift either suspension: email support@agentmail.to.
+If the inbox has also been suspended for its bounce or complaint rate, the send reports that suspension instead. A suspension of the inbox's pod is reported only after the inbox is resumed. Resuming the inbox does not lift either suspension: email support@agentmail.cc.
 
 ## Request too large (413)
 
@@ -215,4 +245,4 @@ A downstream service is temporarily unavailable. Retry the request after a short
 
 ### internal_error
 
-A server-side error, not a problem with your request. Retry with exponential backoff; if it persists, email support@agentmail.to.
+A server-side error, not a problem with your request. Retry with exponential backoff; if it persists, email support@agentmail.cc.
