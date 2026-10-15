@@ -11,47 +11,50 @@ slug: knowledge-base/dns-godaddy
 3. Scroll down to the **DNS Records** section
 4. Click **Add** to create each record AgentMail requires
 
-## Adding a TXT Record (SPF)
+## Records to add
 
-| Field | Value |
-| --- | --- |
-| Type | `TXT` |
-| Name | `@` (or your subdomain) |
-| Value | The SPF value from AgentMail (e.g., `v=spf1 include:agentmail.to ~all`) |
-| TTL | `1 Hour` |
+<Markdown src="../../snippets/dns-records.mdx" />
 
-<Warning>
-GoDaddy automatically wraps TXT values in double quotes, so do **not** add your own quotes around the value. If you do, the record will end up double-quoted and fail validation. Also, if you already have an SPF record, add `include:agentmail.to` to the existing record rather than creating a second one.
-</Warning>
+## Adding the TXT records (SPF, DKIM, DMARC)
 
-## Adding a TXT Record (DKIM)
+Add one TXT record for each row below:
 
-| Field | Value |
-| --- | --- |
-| Type | `TXT` |
-| Name | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) |
-| Value | The DKIM TXT value from AgentMail |
-| TTL | `1 Hour` |
+| Record | Name | Value |
+| --- | --- | --- |
+| SPF | `mail` | The SPF value from AgentMail |
+| DKIM | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) | The DKIM value from AgentMail |
+| DMARC | `_dmarc` | The DMARC value from AgentMail |
+
+Set **Type** to `TXT` and **TTL** to `1 Hour` for each one.
 
 <Warning>
-GoDaddy automatically appends your domain to the Name field. Enter only the selector host portion. For example, enter `selector._domainkey`, not `selector._domainkey.yourdomain.com`.
+GoDaddy automatically wraps TXT values in double quotes, so do **not** add your own quotes around the value. If you do, the record will end up double-quoted and fail validation.
 </Warning>
+
+<Warning>
+GoDaddy automatically appends your domain to the Name field. Enter only the host portion. For example, enter `selector._domainkey`, not `selector._domainkey.yourdomain.com`.
+</Warning>
+
+<Note>
+Do not add anything to an existing SPF record on your root domain (`@`). AgentMail's SPF record goes on the `mail` host, so your existing SPF for Google Workspace or another service stays exactly as it is.
+</Note>
 
 <Note>
 Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
 </Note>
 
-## Adding an MX Record (Receiving)
+## Adding the MX records (receiving and bounces)
 
-| Field | Value |
-| --- | --- |
-| Type | `MX` |
-| Name | `@` (or your subdomain) |
-| Value | The MX target from AgentMail |
-| Priority | `10` |
-| TTL | `1 Hour` |
+Add one MX record for each row below:
 
-If you want to receive emails on a subdomain to avoid conflicts with your existing email provider, use the subdomain instead of `@` in the Name field.
+| Record | Name | Value | Priority |
+| --- | --- | --- | --- |
+| Receiving | `@` | The receiving MX value from AgentMail | `10` |
+| Bounces (MAIL FROM) | `mail` | The `feedback-smtp` MX value from AgentMail | `10` |
+
+Set **TTL** to `1 Hour`. Skip the receiving MX if you created the domain as send-only (`inbound_enabled: false`). The `mail` MX must be the only MX record on the `mail` host.
+
+If you registered a subdomain such as `agents.yourdomain.com` to avoid conflicts with your existing email provider, add the subdomain to every name: `agents`, `mail.agents`, `_dmarc.agents`, and `selector._domainkey.agents`.
 
 ## Verification
 
@@ -63,9 +66,9 @@ GoDaddy DNS typically propagates within **15 to 30 minutes**, but it can occasio
 
 - **Double-quoted TXT values:** GoDaddy adds quotes around TXT records automatically. If you paste a value that already includes quotes, the final record will be double-quoted and will fail. Paste the raw value without quotes.
 
-- **Name field auto-appends domain:** GoDaddy appends your domain to the Name field. Enter only the selector host portion (e.g., `selector._domainkey`). If you enter the full hostname, it will be duplicated as `selector._domainkey.yourdomain.com.yourdomain.com`.
+- **Name field auto-appends domain:** GoDaddy appends your domain to the Name field. Enter only the host portion (e.g., `selector._domainkey`). If you enter the full hostname, it will be duplicated as `selector._domainkey.yourdomain.com.yourdomain.com`.
 
-- **Existing SPF record:** If you already have a TXT record starting with `v=spf1`, add `include:agentmail.to` before the `~all` or `-all` in that existing record. Do not create a second SPF TXT record.
+- **Existing SPF record on your root domain:** Leave it unchanged. Do not add `include:agentmail.to` or any other AgentMail value to it. If an earlier guide told you to add `include:agentmail.to`, remove that mechanism: `agentmail.to` publishes no SPF record, so the include causes an SPF permanent error.
 
 - **DNS managed elsewhere:** If you have changed your nameservers away from GoDaddy (e.g., to Cloudflare or Route 53), records added in the GoDaddy DNS panel will have no effect. Add records at the provider that controls your nameservers instead.
 

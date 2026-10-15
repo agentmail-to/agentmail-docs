@@ -27,7 +27,7 @@ import { AgentMailClient } from "agentmail";
 const client = new AgentMailClient({ apiKey: "am_..." });
 
 // use a subdomain to avoid MX conflicts
-const domain = await client.domains.create("agents.yourcompany.com");
+const domain = await client.domains.create({ domain: "agents.yourcompany.com" });
 
 // create inboxes on the subdomain
 const inbox = await client.inboxes.create({
@@ -38,7 +38,7 @@ const inbox = await client.inboxes.create({
 // inbox address: support@agents.yourcompany.com
 ```
 
-Then add the MX, SPF, and DKIM records for `agents.yourcompany.com` at your DNS provider. These records are completely separate from your root domain's records and will not affect your existing email.
+Then add the records AgentMail returns for `agents.yourcompany.com` at your DNS provider: the receiving MX, the MAIL FROM MX and SPF on `mail.agents.yourcompany.com`, DKIM, and DMARC. All of them sit on `agents.yourcompany.com` or names below it, so they are completely separate from your root domain's records and will not affect your existing email.
 
 ## Hosting inboxes on many subdomains
 
@@ -46,30 +46,48 @@ The setup above puts all your agents on one subdomain. If you instead want inbox
 
 ## Can I use my root domain?
 
-Yes, but only in these scenarios:
+Yes. Pick the option that matches how you want mail to flow:
 
-**Sending only (no receiving):** If you only need AgentMail to send emails from your root domain, you only need SPF, DKIM, and DMARC TXT records. These do not conflict with existing MX records, so your Gmail or Outlook inbound mail is unaffected.
+**Sending only (no receiving):** Create the domain with `inbound_enabled` set to `false`. AgentMail then leaves the receiving MX out of the records it returns, and registration skips the existing-provider check. You still add the MAIL FROM MX and SPF records on `mail.yourcompany.com`, plus the DKIM and DMARC TXT records. None of these change your root domain's MX records or its existing SPF record, so your Gmail or Outlook inbound mail is unaffected.
 
-**Full AgentMail (sending and receiving):** If you want AgentMail to also receive emails on your root domain, you would need to replace your existing MX records with AgentMail's. This means all incoming mail for that domain routes to AgentMail instead of Gmail or Outlook. Only do this if you want AgentMail to handle all inbound email for that domain.
+```typescript title="TypeScript"
+// send-only: your existing provider keeps receiving mail
+const domain = await client.domains.create({
+  domain: "yourcompany.com",
+  inboundEnabled: false,
+});
+```
+
+<Note>
+If `_dmarc.yourcompany.com` already has a DMARC record, keep that single record instead of adding a second one, and make sure it includes a `rua=mailto:` reporting address.
+</Note>
+
+**Sending and receiving alongside Google Workspace:** Google stays the preferred mail server for your domain and a Google Workspace routing rule passes mail for unrecognized addresses to AgentMail. Register the domain with `allow_conflicting_provider` set to `true` and follow the [Google Workspace guide](/google-workspace). Without that flag, registering a domain whose MX records point to Google Workspace or Microsoft 365 returns a `422` error.
+
+**AgentMail handles all inbound mail:** Replace your existing MX records with AgentMail's receiving MX. All incoming mail for the domain then routes to AgentMail instead of Gmail or Outlook. Only do this if you want AgentMail to handle all inbound email for that domain.
 
 ## Example DNS setup
 
 **Before (Gmail only):**
 
 ```text
-yourcompany.com    MX    10    aspmx.l.google.com.
-yourcompany.com    MX    20    alt1.aspmx.l.google.com.
+yourcompany.com                              MX     10    aspmx.l.google.com.
+yourcompany.com                              MX     20    alt1.aspmx.l.google.com.
 ```
 
 **After (Gmail on root + AgentMail on subdomain):**
 
 ```text
-yourcompany.com            MX    10    aspmx.l.google.com.
-yourcompany.com            MX    20    alt1.aspmx.l.google.com.
-agents.yourcompany.com     MX    10    inbound.agentmail.to.
-agents.yourcompany.com     TXT         v=spf1 include:agentmail.to ~all
-selector._domainkey.agents.yourcompany.com TXT (DKIM value from AgentMail)
+yourcompany.com                              MX     10    aspmx.l.google.com.
+yourcompany.com                              MX     20    alt1.aspmx.l.google.com.
+agents.yourcompany.com                       MX     10    inbound-smtp.us-east-1.amazonaws.com.
+mail.agents.yourcompany.com                  MX     10    feedback-smtp.us-east-1.amazonses.com.
+mail.agents.yourcompany.com                  TXT          "v=spf1 include:amazonses.com -all"
+_dmarc.agents.yourcompany.com                TXT          "v=DMARC1; p=reject; rua=mailto:dmarc@agentmail.to"
+selector._domainkey.agents.yourcompany.com   TXT          (DKIM value from AgentMail)
 ```
+
+These are the values for a US-region domain. Copy the exact names and values AgentMail returns for your domain; see [the full record set](/knowledge-base/spf-dkim-dmarc#the-full-record-set) for what each record does.
 
 <Note>
 Legacy orgs should keep existing working DNS records in place. For new domain setup, add the TXT selector records shown in AgentMail.
@@ -82,7 +100,7 @@ Your team's email continues to flow through Gmail. Agent emails go through Agent
 | Subdomain | Example address |
 | --- | --- |
 | `agents.yourcompany.com` | `support@agents.yourcompany.com` |
-| `mail.yourcompany.com` | `outreach@mail.yourcompany.com` |
+| `outreach.yourcompany.com` | `sales@outreach.yourcompany.com` |
 | `ai.yourcompany.com` | `assistant@ai.yourcompany.com` |
 
-Pick whatever makes sense for your brand. The important thing is that it is a separate subdomain from your root domain's email.
+Pick whatever makes sense for your brand. The important thing is that it is a separate subdomain from your root domain's email. Avoid `mail.yourcompany.com` if you also register your root domain with AgentMail: that hostname is your root domain's MAIL FROM subdomain, and its only MX record must be AgentMail's bounce record.
