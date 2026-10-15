@@ -1,0 +1,152 @@
+---
+title: OpenAI Agents SDK
+subtitle: Give your OpenAI agent its own email inbox
+slug: integrations/openai-agents-sdk
+description: Give an OpenAI Agents SDK agent its own email address. The agentmail-toolkit Python package exposes the AgentMail API as OpenAI Agents SDK tools.
+---
+
+## Getting started
+
+The [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) is OpenAI's Python framework for building agents. The [`agentmail-toolkit`](https://pypi.org/project/agentmail-toolkit/) package exposes the AgentMail API as OpenAI Agents SDK tools, so an agent can create inboxes, send, receive, reply, forward, and manage threaded email with no glue code.
+
+To give your OpenAI agent an email address, install `agentmail-toolkit`, import `AgentMailToolkit` from `agentmail_toolkit.openai`, and pass `AgentMailToolkit().get_tools()` as the agent's `tools`. The agent can then call `create_inbox` to provision its own address and use the other tools to send and read mail from it.
+
+## Use cases
+
+- **Give agents their own inboxes:** Provision a dedicated email address per agent so it can send and receive mail independently.
+- **Triage and reply:** Read recent threads and reply inside the same thread, with threading handled automatically.
+- **Forward and label:** Route messages to the right people with `forward_message` and track what's been handled with labels.
+- **Inbound-driven agents:** Pair the toolkit with [AgentMail webhooks](https://docs.agentmail.to/webhooks-overview) so your agent reacts the moment mail arrives.
+
+## Prerequisites
+
+1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to).
+2. Python 3.11+ and the OpenAI Agents SDK (`openai-agents`), with an `OPENAI_API_KEY` set.
+
+## Setup
+
+Install the toolkit alongside the OpenAI Agents SDK:
+
+```bash
+pip install agentmail-toolkit openai-agents
+```
+
+Set your API key:
+
+```bash
+export AGENTMAIL_API_KEY=your-api-key
+```
+
+## Quickstart
+
+Create an agent with the AgentMail tools:
+
+```python title="Python"
+from agentmail_toolkit.openai import AgentMailToolkit
+from agents import Agent
+
+agent = Agent(
+    name="Email Agent",
+    instructions="You are an agent created by AgentMail that can send, receive, and manage emails.",
+    tools=AgentMailToolkit().get_tools(),
+)
+```
+
+Then run it with `Runner`:
+
+```python title="Python"
+import asyncio
+
+from agents import Runner
+
+
+async def main():
+    result = await Runner.run(
+        agent,
+        "Create an inbox for yourself, then check it for new messages and reply to anything urgent.",
+    )
+    print(result.final_output)
+
+
+asyncio.run(main())
+```
+
+## Configuring the toolkit
+
+### Authentication
+
+`AgentMailToolkit()` reads `AGENTMAIL_API_KEY` from the environment. For custom configuration, pass your own `AgentMail` client from the [`agentmail`](https://pypi.org/project/agentmail/) SDK:
+
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+from agentmail_toolkit.openai import AgentMailToolkit
+
+toolkit = AgentMailToolkit(AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"]))
+```
+
+### Selecting tools
+
+`get_tools()` returns every tool. Pass a list of names to get only that subset:
+
+```python title="Python"
+tools = AgentMailToolkit().get_tools(["send_message", "reply_to_message"])
+```
+
+Production agents should usually pass only the tools they need. A smaller tool set keeps the model focused and limits what it can do, for example leaving out `delete_inbox`.
+
+<Tip>
+Tool names and parameters are both snake_case (`send_message`, `inbox_id`, `thread_id`). An `inbox_id` is the inbox's full email address, such as `my-agent@agentmail.to`.
+</Tip>
+
+### Error handling
+
+A failed tool call raises `RuntimeError`, which the OpenAI Agents SDK surfaces as a tool failure. The model can tell it apart from a successful result and decide whether to retry or change course.
+
+## Available tools
+
+### Inboxes
+
+| Tool | Description |
+| --- | --- |
+| `create_inbox` | Create an inbox, optionally choosing the username, domain, and display name |
+| `list_inboxes` | List the organization's inboxes, newest first, paginated |
+| `get_inbox` | Get one inbox by its `inbox_id` |
+| `delete_inbox` | Permanently delete an inbox and all of its threads, messages, and drafts |
+
+### Messages
+
+| Tool | Description |
+| --- | --- |
+| `send_message` | Send an email from an inbox right away |
+| `reply_to_message` | Reply to a message in its thread, optionally to all original recipients |
+| `forward_message` | Forward a message, with its attachments, to new recipients |
+| `update_message` | Add or remove labels on one message, for example to mark it read |
+
+### Threads
+
+| Tool | Description |
+| --- | --- |
+| `list_threads` | List threads in an inbox, most recently received first |
+| `get_thread` | Get a thread by ID with its messages, including their bodies |
+
+### Attachments
+
+| Tool | Description |
+| --- | --- |
+| `get_attachment` | Get an attachment's metadata and download URL, plus extracted text for PDF and DOCX files |
+
+### Agent verification
+
+| Tool | Description |
+| --- | --- |
+| `agent_attach_human` | Attach the human the agent works for to an unverified agent organization and email them a verification code |
+| `agent_verify` | Verify an agent organization with the code emailed to the attached human, lifting the unverified plan's caps |
+
+## Resources
+
+- **Source code:** [github.com/agentmail-to/agentmail-toolkit](https://github.com/agentmail-to/agentmail-toolkit)
+- **PyPI:** [pypi.org/project/agentmail-toolkit](https://pypi.org/project/agentmail-toolkit/)
+- **OpenAI Agents SDK docs:** [openai.github.io/openai-agents-python](https://openai.github.io/openai-agents-python/)
+- **Other frameworks:** The same package ships LangChain and LiveKit Agents bindings through `agentmail_toolkit.langchain` and `agentmail_toolkit.livekit`. See the [LiveKit guide](https://docs.agentmail.to/integrate-livekit-agents) for a voice agent example, or the [MCP integration](https://docs.agentmail.to/integrations/mcp) for the hosted server.
