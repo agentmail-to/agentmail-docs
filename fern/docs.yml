@@ -599,7 +599,6 @@ navigation:
             icon: fa-solid fa-globe
             path: pages/knowledge-base/custom-domain-setup.mdx
           - page: Inboxes on subdomains
-            hidden: true
             icon: fa-solid fa-sitemap
             path: pages/knowledge-base/subdomain-inboxes.mdx
           - page: SPF, DKIM, and DMARC setup
@@ -614,9 +613,6 @@ navigation:
           - page: MX record conflicts
             icon: fa-solid fa-code-merge
             path: pages/knowledge-base/mx-record-conflicts.mdx
-          # - page: Warming up your inbox
-          #   icon: fa-solid fa-fire
-          #   path: pages/knowledge-base/warming-up-your-inbox.mdx
       - section: Troubleshooting
         contents:
           - page: API 403 error

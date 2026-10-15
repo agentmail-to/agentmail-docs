@@ -31,7 +31,8 @@ for t in threads.threads:
 ### Across your entire organization
 
 ```python title="Python"
-# Get all threads from every inbox in your organization
+# list threads from every inbox in your organization, newest first
+# (one page per call: pass next_page_token as page_token for the next page)
 all_threads = client.threads.list()
 ```
 
@@ -39,27 +40,78 @@ This org-wide query is useful for building supervisor agents that monitor conver
 
 ## Getting a full thread
 
-Retrieve a thread by its ID to access all messages in the conversation:
+Retrieve a thread by its ID to read the messages in the conversation. Get Thread can return a long thread in pages, so do not assume one response holds every message:
 
+- The first page holds the **newest** messages. Within each page, messages are ordered oldest to newest.
+- When `next_page_token` is present, pass it as `page_token` to fetch the next, **older** page. It is absent once you have the whole thread.
+- Pass `limit` (up to 100) to set the page size.
+
+<CodeBlocks>
 ```python title="Python"
-thread = client.threads.get(thread_id="thread_abc123")
+import os
 
-for message in thread.messages:
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+thread_id = "thread_abc123"
+
+# the first page holds the newest messages
+page = client.threads.get(thread_id=thread_id, limit=50)
+pages = [page.messages]
+
+# follow next_page_token to fetch older pages
+while page.next_page_token:
+    page = client.threads.get(thread_id=thread_id, limit=50, page_token=page.next_page_token)
+    pages.append(page.messages)
+
+# each page is oldest to newest, so put the oldest page first
+messages = [m for p in reversed(pages) for m in p]
+
+for message in messages:
     print(f"From: {message.from_}")
     print(f"Subject: {message.subject}")
     print(f"Body: {message.text}")
 ```
+
+```typescript title="TypeScript"
+import { AgentMail, AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+const threadId = "thread_abc123";
+
+// the first page holds the newest messages
+let page = await client.threads.get(threadId, { limit: 50 });
+const pages: AgentMail.Message[][] = [page.messages];
+
+// follow nextPageToken to fetch older pages
+while (page.nextPageToken) {
+  page = await client.threads.get(threadId, { limit: 50, pageToken: page.nextPageToken });
+  pages.push(page.messages);
+}
+
+// each page is oldest to newest, so put the oldest page first
+const messages = pages.reverse().flat();
+
+for (const message of messages) {
+  console.log(`From: ${message.from}`);
+  console.log(`Subject: ${message.subject}`);
+  console.log(`Body: ${message.text}`);
+}
+```
+</CodeBlocks>
 
 ## Replying in a thread
 
 To continue a conversation, reply to the most recent message in the thread:
 
 ```python title="Python"
-# Get the thread and find the latest message
+# the first page holds the newest messages, so its last item is the latest
 thread = client.threads.get(thread_id="thread_abc123")
 last_message = thread.messages[-1]
 
-# Reply to continue the conversation
+# reply to continue the conversation
 client.inboxes.messages.reply(
     inbox_id="agent@agentmail.to",
     message_id=last_message.message_id,
@@ -77,10 +129,10 @@ Always provide both `text` and `html` when sending replies. This ensures readabi
 When people reply to emails, their email client often includes the entire previous conversation as quoted text. AgentMail provides `extracted_text` and `extracted_html` fields on received messages, which contain only the new reply content without the quoted history.
 
 ```python title="Python"
-# Use extracted_text to get only the new content
+# use extracted_text to get only the new content
 new_content = message.extracted_text
 
-# Falls back to full text if extraction isn't available
+# fall back to the full text if extraction isn't available
 content = message.extracted_text or message.text
 ```
 
@@ -88,40 +140,94 @@ This prevents your agent from re-processing the entire conversation history on e
 
 ## Using labels to track conversation state
 
-Combine threads with labels to manage your agent's workflow. For example, you can track which threads need a reply:
+Combine threads with labels to manage your agent's workflow. AgentMail adds an `unread` label to every message it receives, and a thread carries the labels of its messages, so listing threads with `labels=["unread"]` finds conversations with mail your agent has not handled yet. Labels such as `replied`, `escalated`, or `resolved` are your own: AgentMail does not apply them, so your agent adds them as it works.
 
+After replying, remove `unread` from the messages you handled so the thread drops out of the list. `batch_update` changes labels on up to 50 messages in one request. The `Idempotency-Key` on the reply means that an identical retry within 24 hours returns the original `message_id` and `thread_id` instead of sending a second email.
+
+<CodeBlocks>
 ```python title="Python"
-# Find threads that need a reply
-unreplied = client.inboxes.threads.list(
-    inbox_id="agent@agentmail.to",
-    labels=["unreplied"]
-)
+import hashlib
+import os
 
-for thread in unreplied.threads:
-    thread_detail = client.threads.get(thread.thread_id)
-    last_message = thread_detail.messages[-1]
-    
-    # Process and reply
-    reply_text = your_agent.process(last_message)
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+inbox_id = "agent@agentmail.to"
+
+# threads with received mail the agent has not handled yet
+unread = client.inboxes.threads.list(inbox_id=inbox_id, labels=["unread"])
+
+for item in unread.threads:
+    thread = client.threads.get(thread_id=item.thread_id)
+    pending = [m for m in thread.messages if "unread" in m.labels]
+    if not pending:
+        continue
+    latest = pending[-1]
+
+    # process and reply; the key is derived from the inbox and message, so a retry reuses it
+    reply_text = your_agent.process(latest)
     client.inboxes.messages.reply(
-        inbox_id="agent@agentmail.to",
-        message_id=last_message.message_id,
+        inbox_id=inbox_id,
+        message_id=latest.message_id,
         text=reply_text,
-        html=f"<p>{reply_text}</p>"
+        html=f"<p>{reply_text}</p>",
+        idempotency_key="reply-" + hashlib.sha256(f"{inbox_id}:{latest.message_id}".encode()).hexdigest(),
     )
-    
-    # Update labels
-    client.inboxes.messages.update(
-        inbox_id="agent@agentmail.to",
-        message_id=last_message.message_id,
+
+    # mark what you handled so the thread leaves the unread list
+    client.inboxes.messages.batch_update(
+        inbox_id=inbox_id,
+        message_ids=[m.message_id for m in pending],
         add_labels=["replied"],
-        remove_labels=["unreplied"]
+        remove_labels=["unread"],
     )
 ```
+
+```typescript title="TypeScript"
+import { createHash } from "node:crypto";
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+const inboxId = "agent@agentmail.to";
+
+// threads with received mail the agent has not handled yet
+const unread = await client.inboxes.threads.list(inboxId, { labels: ["unread"] });
+
+for (const item of unread.threads) {
+  const thread = await client.threads.get(item.threadId);
+  const pending = thread.messages.filter((m) => m.labels.includes("unread"));
+  if (pending.length === 0) continue;
+  const latest = pending[pending.length - 1];
+
+  // process and reply; the key is derived from the inbox and message, so a retry reuses it
+  const replyText = await yourAgent.process(latest);
+  await client.inboxes.messages.reply(
+    inboxId,
+    latest.messageId,
+    { text: replyText, html: `<p>${replyText}</p>` },
+    { idempotencyKey: "reply-" + createHash("sha256").update(`${inboxId}:${latest.messageId}`).digest("hex") },
+  );
+
+  // mark what you handled so the thread leaves the unread list
+  await client.inboxes.messages.batchUpdate(inboxId, {
+    messageIds: pending.map((m) => m.messageId),
+    addLabels: ["replied"],
+    removeLabels: ["unread"],
+  });
+}
+```
+</CodeBlocks>
+
+<Note>
+Idempotency keys may only contain `A-Z a-z 0-9 - . _ ~` and be up to 256 characters. Message IDs contain characters such as `<`, `@`, and `>`, so hash the ID instead of using it directly. Include the inbox in the hash: keys are shared across your organization, and an email sent to two of your inboxes arrives in both with the same message ID.
+
+A key only replays an identical request. If your agent writes different reply text on a retry, AgentMail returns `409 Conflict` instead of sending, so treat a `409` as a sign that a reply may already exist rather than retrying with a new key.
+</Note>
 
 ## Tips
 
 - Use threads to maintain context in multi-turn conversations, so your agent can reference what was said earlier
 - Query org-wide threads with `client.threads.list()` to build dashboards or route conversations between agents
-- Use labels like `unreplied`, `replied`, `escalated`, and `resolved` to track conversation state
-- Always reply to the **last message** in a thread to keep email headers correct
+- Filter on the `unread` label AgentMail applies to received mail, and add your own labels such as `replied`, `escalated`, and `resolved` to track conversation state
+- Follow `next_page_token` when you need a thread's full history, since Get Thread can return long threads in pages
+- Always reply to the **latest message** in a thread to keep email headers correct

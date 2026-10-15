@@ -55,6 +55,11 @@ Instructions for creating Knowledge Base articles in `fern/pages/knowledge-base/
 - **No broken internal links.** Before adding a link to another docs page, verify the target page actually exists. If it doesn't, don't add the link.
 - **Verify correctness.** After finishing each article, re-read it. Search online if needed to confirm provider-specific details (e.g., DNS propagation times, UI field names).
 - **Don't invent features.** Only document what AgentMail actually supports. If unsure whether a feature works a certain way, leave it out rather than guess.
+- **Never publish moderation thresholds.** No bounce or complaint percentages, time windows, or minimum send counts behind suspensions or other moderation. Say AgentMail weighs signals such as bounces and complaints.
+- **Support address is `support@agentmail.cc`.** Not `support@agentmail.to`. The status page is `https://status.agentmail.to`.
+- **Don't document organization deletion.** Per-resource deletes (inboxes, domains, pods, API keys) are fine.
+- **AgentMail does not support cold outreach.** Don't write how-to guides for it, and don't recommend third-party warm-up tools.
+- **Route security and compliance questions to support.** For vulnerability reports, HIPAA, encryption at rest, and DPA requests, point readers to `support@agentmail.cc` and make no claims.
 
 ## File structure
 
@@ -92,7 +97,7 @@ Match Resend KB quality. Articles should include:
 - WebSocket SDK uses `client.websockets.connect()` with typed events (`Subscribe`, `Subscribed`, `MessageReceivedEvent`)
 - Reply API: `client.inboxes.messages.reply(inbox_id=..., message_id=..., text=..., html=...)`
 - Labels: `client.inboxes.messages.update(..., add_labels=[...], remove_labels=[...])`
-- Lists: `client.lists.create(direction, type, entry=...)` where direction is "send"/"receive" and type is "allow"/"block"
+- Lists: `client.lists.create(direction, type, entry=...)` where direction is "send", "receive" or "reply" and type is "allow"/"block"
 - Drafts: `client.inboxes.drafts.create(inbox_id=..., to=[...], ...)` then `client.inboxes.drafts.send(inbox_id=..., draft_id=...)`
 
 ## Reference

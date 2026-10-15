@@ -89,54 +89,66 @@ agentmail inboxes messages send \
 
 ## Retrieving `Attachments`
 
-To retrieve an `Attachment`, you first need its `attachment_id`. You can get this ID from the `attachments` array on a `Message` object. Once you have the ID, you can download the file.
+To retrieve an `Attachment`, you first need its `attachment_id`. You can get this ID from the `attachments` array on a `Message` or `Thread` object.
 
-The API response for getting an attachment is the raw file itself, which you can then save to disk or process in memory.
+Get Attachment returns JSON, not the file itself. The response carries the attachment's metadata (`filename`, `size`, `content_type`) and a `download_url`, a signed HTTPS URL that you fetch to download the file bytes. When AgentMail has extracted plain text from the file, the response also includes `text_url` (see [Reply & Attachment Extraction](/reply-extraction)). Both URLs expire at `expires_at`, so request the attachment again for fresh URLs instead of storing them.
 
 ### From a Specific `Message`
 
 If you know the `Message` an `Attachment` belongs to, you can retrieve it directly.
 
 <CodeBlocks>
-```python
-inbox_id = "inbox_123"
-message_id = "<def456@agentmail.to>"
-attachment_id = "attach_789" # From the message object
+```python title="Python"
+import os
 
-file_data = client.inboxes.messages.get_attachment(
-inbox_id=inbox_id,
-message_id=message_id,
-attachment_id=attachment_id
+import httpx
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+# get the attachment metadata and a signed download url
+attachment = client.inboxes.messages.get_attachment(
+    inbox_id="agent@agentmail.to",
+    message_id="<def456@agentmail.to>",
+    attachment_id="attach_789",  # from message.attachments
 )
 
-# Now you can save the file
+# download the file bytes before expires_at
+response = httpx.get(attachment.download_url)
+response.raise_for_status()
 
-with open("downloaded_file.pdf", "wb") as f:
-f.write(file_data)
-
-````
+with open(os.path.basename(attachment.filename or "attachment"), "wb") as f:
+    f.write(response.content)
+```
 
 ```typescript title="TypeScript"
-const inboxId = "inbox_123";
-const messageId = "<def456@agentmail.to>";
-const attachmentId = "attach_789"; // From the message object
+import { writeFile } from "node:fs/promises";
+import { basename } from "node:path";
+import { AgentMailClient } from "agentmail";
 
-const fileData = await client.inboxes.messages.get_attachment(
-  inboxId,
-  messageId,
-  attachmentId
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// get the attachment metadata and a signed download url
+const attachment = await client.inboxes.messages.getAttachment(
+  "agent@agentmail.to",
+  "<def456@agentmail.to>",
+  "attach_789", // from message.attachments
 );
 
-// fileData is a Blob/Buffer that you can process
-// For example, in Node.js:
-// import fs from 'fs';
-// fs.writeFileSync('downloaded_file.pdf', fileData);
-````
+// download the file bytes before expiresAt
+const response = await fetch(attachment.downloadUrl);
+if (!response.ok) throw new Error(`download failed: ${response.status}`);
+
+await writeFile(
+  basename(attachment.filename ?? "attachment"),
+  Buffer.from(await response.arrayBuffer()),
+);
+```
 
 ```bash title="CLI"
-# get an attachment from a specific message
+# get the attachment metadata and download_url from a specific message
 agentmail inboxes messages get-attachment \
-  --inbox-id inbox_123 \
+  --inbox-id agent@agentmail.to \
   --message-id "<def456@agentmail.to>" \
   --attachment-id attach_789
 ```
@@ -145,39 +157,45 @@ agentmail inboxes messages get-attachment \
 
 ### From a Specific `Thread`
 
-Similarly, you can retrieve an `Attachment` if you know the `Thread` it's in, which can be more convenient for multi-message conversations.
+Similarly, you can retrieve an `Attachment` if you know the `Thread` it's in, which can be more convenient for multi-message conversations. The response has the same shape.
 
 <CodeBlocks>
-```python
-inbox_id = "inbox_123"
-thread_id = "thread_abc"
-attachment_id = "attach_789" # From a message within the thread
+```python title="Python"
+import os
 
-file_data = client.inboxes.threads.get_attachment(
-inbox_id=inbox_id,
-thread_id=thread_id,
-attachment_id=attachment_id
+import httpx
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+
+attachment = client.inboxes.threads.get_attachment(
+    inbox_id="agent@agentmail.to",
+    thread_id="4f3e2d1c-9b8a-4c7d-8e6f-5a4b3c2d1e0f",
+    attachment_id="attach_789",  # from thread.attachments
 )
 
-````
+file_bytes = httpx.get(attachment.download_url).content
+```
 
 ```typescript title="TypeScript"
-const inboxId = "inbox_123";
-const threadId = "thread_abc";
-const attachmentId = "attach_789"; // From a message within the thread
+import { AgentMailClient } from "agentmail";
 
-const fileData = await client.inboxes.threads.get_attachment(
-  inboxId,
-  threadId,
-  attachmentId
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+const attachment = await client.inboxes.threads.getAttachment(
+  "agent@agentmail.to",
+  "4f3e2d1c-9b8a-4c7d-8e6f-5a4b3c2d1e0f",
+  "attach_789", // from thread.attachments
 );
-````
+
+const fileBytes = Buffer.from(await (await fetch(attachment.downloadUrl)).arrayBuffer());
+```
 
 ```bash title="CLI"
-# get an attachment from a specific thread
+# get the attachment metadata and download_url from a specific thread
 agentmail inboxes threads get-attachment \
-  --inbox-id inbox_123 \
-  --thread-id thread_abc \
+  --inbox-id agent@agentmail.to \
+  --thread-id 4f3e2d1c-9b8a-4c7d-8e6f-5a4b3c2d1e0f \
   --attachment-id attach_789
 ```
 
@@ -195,13 +213,19 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
   Send: attachments=[{ content: base64_string, filename?, content_type? }] in messages.send/reply.
   Get attachment_id from message.attachments or thread.attachments.
 
-  - messages.get_attachment(inbox_id, message_id, attachment_id) → bytes
-  - threads.get_attachment(inbox_id, thread_id, attachment_id) → bytes
+  - messages.get_attachment(inbox_id, message_id, attachment_id) → AttachmentResponse (JSON, not bytes)
+  - threads.get_attachment(inbox_id, thread_id, attachment_id) → AttachmentResponse (JSON, not bytes)
+  AttachmentResponse: attachment_id, filename, size, content_type, download_url, text_url (only when
+  extracted text exists), expires_at. Fetch download_url for the file bytes; both URLs expire at
+  expires_at, so call get_attachment again for fresh URLs.
   """
   import base64
+  import os
+
+  import httpx
   from agentmail import AgentMail
 
-  client = AgentMail(api_key="YOUR_API_KEY")
+  client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
   encoded = base64.b64encode(b"file content").decode()
   client.inboxes.messages.send(
@@ -212,8 +236,9 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
     attachments=[{"content": encoded, "filename": "report.txt", "content_type": "text/plain"}],
   )
 
-  data = client.inboxes.messages.get_attachment("inbox@am.to", "<abc123@agentmail.to>", "att_456")
-  with open("downloaded.pdf", "wb") as f:
+  attachment = client.inboxes.messages.get_attachment("agent@agentmail.to", "<abc123@agentmail.to>", "att_456")
+  data = httpx.get(attachment.download_url).content
+  with open(os.path.basename(attachment.filename or "attachment"), "wb") as f:
     f.write(data)
   ```
 
@@ -224,12 +249,15 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
    * Send: attachments: [{ content: base64String, filename?, contentType? }] in messages.send/reply.
    * Get attachmentId from message.attachments or thread.attachments.
    *
-   * - messages.get_attachment(inboxId, messageId, attachmentId) → Buffer/Blob
-   * - threads.get_attachment(inboxId, threadId, attachmentId) → Buffer/Blob
+   * - messages.getAttachment(inboxId, messageId, attachmentId) → AttachmentResponse (JSON, not bytes)
+   * - threads.getAttachment(inboxId, threadId, attachmentId) → AttachmentResponse (JSON, not bytes)
+   * AttachmentResponse: attachmentId, filename, size, contentType, downloadUrl, textUrl (only when
+   * extracted text exists), expiresAt. Fetch downloadUrl for the file bytes; both URLs expire at
+   * expiresAt, so call getAttachment again for fresh URLs.
    */
   import { AgentMailClient } from "agentmail";
 
-  const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+  const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
   const encoded = Buffer.from("file content").toString("base64");
   await client.inboxes.messages.send("agent@agentmail.to", {
@@ -239,6 +267,7 @@ Copy one of the blocks below into Cursor or Claude for complete Attachments usag
     attachments: [{ content: encoded, filename: "report.txt", contentType: "text/plain" }],
   });
 
-  const data = await client.inboxes.messages.get_attachment("inbox@am.to", "<abc123@agentmail.to>", "att_456");
+  const attachment = await client.inboxes.messages.getAttachment("agent@agentmail.to", "<abc123@agentmail.to>", "att_456");
+  const data = Buffer.from(await (await fetch(attachment.downloadUrl)).arrayBuffer());
   ```
 </CodeBlocks>

@@ -4,93 +4,137 @@ subtitle: Get up and running with your first AgentMail inbox.
 slug: knowledge-base/creating-first-inbox
 ---
 
-Creating an inbox gives your AI agent its own email address. You can create inboxes on the default `@agentmail.to` domain or on your own custom domain.
+An inbox gives your AI agent its own email address. You can create one on the shared `@agentmail.to` domain right away, or on your own domain once it is verified. For the full path from sign-up to your first sent email, follow the [Quickstart](https://docs.agentmail.to/quickstart).
 
 ## Install the SDK
+
+<CodeBlocks>
+```bash title="Python"
+pip install agentmail
+```
 
 ```bash title="TypeScript"
 npm install agentmail
 ```
+</CodeBlocks>
+
+The examples below read your API key from the `AGENTMAIL_API_KEY` environment variable. Keep the key out of your source code. See [How do I get my API key?](https://docs.agentmail.to/knowledge-base/getting-api-key) to create one.
 
 ## Create an inbox
+
+With no arguments, AgentMail picks a random username on `@agentmail.to`:
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# create an inbox with a random address on agentmail.to
+inbox = client.inboxes.create()
+print(f"Inbox created: {inbox.email}")
+```
 
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
 
-const client = new AgentMailClient({ apiKey: "am_..." });
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
-// Create an inbox with a random address on agentmail.to
+// create an inbox with a random address on agentmail.to
 const inbox = await client.inboxes.create();
-console.log(`Inbox created: ${inbox.inboxId}`);
+console.log(`Inbox created: ${inbox.email}`);
+```
+</CodeBlocks>
+
+`email` is the new address, such as `cleverstar482@agentmail.to`. Pass `inbox_id` (`inboxId` in TypeScript) to every other call on the inbox. The inbox can receive mail as soon as it exists.
+
+## Choose the address and make creation safe to retry
+
+The main fields, all optional:
+
+| Field | What it does |
+| --- | --- |
+| `username` | The part before the `@`. Random if you leave it out. |
+| `domain` | Defaults to `agentmail.to`. Can be one of your verified domains, or a subdomain of a verified domain that has subdomains enabled. |
+| `display_name` | The sender name recipients see. If you leave it out, the display name is `AgentMail`. |
+| `client_id` | Your own ID for this inbox. Calling create again with the same `client_id` returns the inbox it created the first time instead of creating another one. |
+| `metadata` | Your own key-value data, such as a user or tenant ID. See [Metadata](https://docs.agentmail.to/inboxes#metadata). |
+
+Use `client_id` whenever your agent creates its inbox on startup, so a restart or a retried request does not create a second inbox:
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# safe to run on every startup: the same client_id returns the same inbox
+inbox = client.inboxes.create(
+    request=CreateInboxRequest(
+        username="acme-support-agent",
+        display_name="Acme Support",
+        client_id="acme-support-agent-v1",
+    )
+)
+
+# send your first email
+client.inboxes.messages.send(
+    inbox.inbox_id,
+    to=["you@example.com"],
+    subject="Hello from my agent",
+    text="This is a plain text version.",
+    html="<p>This is an <strong>HTML</strong> version.</p>",
+)
 ```
 
-The inbox now has a unique email address (e.g., `randomname@agentmail.to`) and can send and receive emails immediately.
-
-## Customize your inbox
-
-You can specify a username, domain, and display name:
-
 ```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// safe to run on every startup: the same clientId returns the same inbox
 const inbox = await client.inboxes.create({
-  username: "support",
-  domain: "yourcompany.com",
-  displayName: "Support Agent",
+  username: "acme-support-agent",
+  displayName: "Acme Support",
+  clientId: "acme-support-agent-v1",
 });
 
-// inbox.inboxId will be support@yourcompany.com
-console.log(`Inbox created: ${inbox.inboxId}`);
-```
-
-<Note>
-Using a custom domain requires a verified domain. See the [Creating Custom Domains](/custom-domains) guide to set one up. If you don't specify a domain, AgentMail uses the default `@agentmail.to` domain.
-</Note>
-
-## Use client_id for idempotency
-
-If your agent creates inboxes programmatically (e.g., on startup), use `clientId` to prevent duplicates. If an inbox with the same `clientId` already exists, AgentMail returns the existing inbox instead of creating a new one:
-
-```typescript title="TypeScript"
-const inbox = await client.inboxes.create({
-  username: "my-agent",
-  clientId: "my-agent-inbox-v1",
-  displayName: "My Agent",
-});
-
-// Safe to call multiple times: same inbox returned every time
-```
-
-## Send your first email
-
-Once the inbox is created, you can send an email:
-
-```typescript title="TypeScript"
+// send your first email
 await client.inboxes.messages.send(inbox.inboxId, {
-  to: "recipient@example.com",
-  subject: "Hello from my agent!",
+  to: ["you@example.com"],
+  subject: "Hello from my agent",
   text: "This is a plain text version.",
   html: "<p>This is an <strong>HTML</strong> version.</p>",
 });
 ```
+</CodeBlocks>
 
 <Note>
-Always provide both `text` and `html` when sending emails. This ensures readability across all email clients and improves deliverability.
+Send both `text` and `html` so the message reads well in every email client. To create inboxes on your own domain, set `domain` to a domain you have added and verified. Custom domains are available on the Developer plan and above; see [How do I set up a custom domain?](https://docs.agentmail.to/knowledge-base/custom-domain-setup).
 </Note>
 
-## List your inboxes
+## Common issues
 
-```typescript title="TypeScript"
-const inboxes = await client.inboxes.list();
-console.log(`You have ${inboxes.count} inboxes.`);
+| Error | What it means | What to do |
+| --- | --- | --- |
+| `403` `resource_taken` | The address is not available to your organization, usually because another AgentMail user already has that username on `agentmail.to`. | Choose a different `username`. When the error includes a `suggestions` field, it lists usernames that are currently available. |
+| `403` `already_exists` | Your organization already has an inbox with this address. | Fetch the existing inbox. If you created it with a `client_id`, calling create with that same `client_id` returns it instead of this error. |
+| `403` `limit_exceeded` | Your organization has as many inboxes as its plan allows. The Free plan includes 3. An agent that signed itself up has 1 until its human verifies it or claims the inbox, which moves it to the Free plan. | Delete an inbox you no longer need, or upgrade your plan. A self-signed-up agent should complete [verification](https://docs.agentmail.to/agent-onboarding) instead; the error's `fix` field explains how. |
+| `404` `not_found` | The `domain` has not been added to your organization, or is outside your API key's scope. | Add the domain first. See [How do I set up a custom domain?](https://docs.agentmail.to/knowledge-base/custom-domain-setup). |
+| `403` `domain_not_verified` | The domain is added but its DNS records have not been verified yet. | Add the DNS records AgentMail returns for the domain, then verify it. See [Why is my domain not verifying?](https://docs.agentmail.to/knowledge-base/domain-not-verifying). |
+| `422` `unprocessable`, "does not have subdomains enabled" | `domain` is a subdomain of a domain you added, and that domain does not have subdomains enabled. | Enable subdomains on the parent domain, publish the wildcard MX record it then lists, and wait for the domain to verify again. Or add the subdomain as a domain of its own. See [How do I create inboxes on any subdomain?](https://docs.agentmail.to/knowledge-base/subdomain-inboxes). |
+| Duplicate inboxes after restarts | Without a `username`, every create call makes a new inbox with a random address. | Pass a stable `client_id`, as in the example above. |
 
-for (const inbox of inboxes.inboxes) {
-  console.log(`  ${inbox.inboxId}`);
-}
-```
+Most error responses also carry a `fix` field with the next step. See the [Error Reference](https://docs.agentmail.to/errors) for all error codes.
 
 ## Next steps
 
-Now that you have an inbox, explore what you can do with it:
-
-- [Send and receive emails](/sending-receiving-email) in a conversational loop
-- [Set up webhooks](/webhook-setup) to get notified when emails arrive
-- [Use labels](/labels) to track message state in your agent workflows
+- [Send and receive emails](https://docs.agentmail.to/sending-receiving-email) in a conversational loop
+- [Set up webhooks](https://docs.agentmail.to/webhook-setup) to get notified when emails arrive
+- [Use labels](https://docs.agentmail.to/labels) to track message state in your agent workflows
+- See [What can I do with an AgentMail inbox?](https://docs.agentmail.to/knowledge-base/inbox-capabilities) for everything else an inbox supports

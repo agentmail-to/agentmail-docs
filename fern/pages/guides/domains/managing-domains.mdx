@@ -71,12 +71,12 @@ As you scale, your domain strategy must evolve beyond a single domain. A sophist
 
 ### Strategy 1: Isolate Reputations with Subdomains
 
-Different agents have different sending patterns and risk profiles. A transactional agent sending receipts is low-risk, while a cold outreach agent is high-risk. Mixing their traffic on the same domain means the high-risk agent can damage the reputation of the critical transactional one.
+Different agents have different sending patterns and risk profiles. A transactional agent sending receipts is low-risk, while an agent sending high-volume marketing email to opted-in subscribers carries more reputation risk. Mixing their traffic on the same domain means the higher-risk agent can damage the reputation of the critical transactional one.
 
 **The Solution:** Segment agents onto different subdomains to isolate their sending reputations.
 
 - **`billing.your-company.com`**: For critical transactional agents (receipts, invoices).
-- **`outreach.your-company.com`**: For high-volume sales or marketing agents.
+- **`marketing.your-company.com`**: For high-volume marketing agents, such as newsletters to opted-in subscribers.
 - **`support.your-company.com`**: For customer service and support agents.
 
 Registering each subdomain as its own domain gives it an independent sending identity (its own DKIM), which is what isolates its reputation. If you don't need isolated reputations and only want inboxes to live on many subdomains under one verified parent, [enable subdomains](/custom-domains#setting-up-subdomains) instead: turn them on once for the parent domain, publish the wildcard MX record, then create inboxes on any subdomain without registering each one. Inboxes created this way send under the parent domain's identity, so they share its sending reputation rather than building their own.
@@ -97,4 +97,4 @@ Instead of relying on one domain, you build a pool of multiple root domains (e.g
 
 By default, AgentMail configures your domain with a strict DMARC policy (`p=reject`). This is the best possible setting for security, as it tells receiving mail servers to block any email that fails authentication.
 
-However, this is obviously up to your discretion if you want to impose a more relaxed DMARC policy, whether its `p=none` where it doesn't do anything if both SPF and DMARC fail, or its `p=quarantine`, where it puts the mail in spam/junk. Feel free to do more research at your own discretion. You can do this by changing the value in the TXT record in your DNS configuration where the name starts with `_dmarc`.
+However, this is obviously up to your discretion if you want to impose a more relaxed DMARC policy, whether it's `p=none`, where receivers take no action even if both SPF and DKIM fail, or `p=quarantine`, where it puts the mail in spam/junk. Feel free to do more research at your own discretion. You can do this by changing the value in the TXT record in your DNS configuration where the name starts with `_dmarc`. Keep the `v=DMARC1` prefix and a `rua=mailto:` tag when you edit the record: AgentMail's domain verification checks for both, so a record without them fails verification.
