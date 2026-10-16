@@ -62,9 +62,9 @@ client.inboxes.drafts.send(
 ```
 
 ```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail({ apiKey: "your-api-key" });
+const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // create a draft in an inbox
 const draft = await client.inboxes.drafts.create("support@example.com", {
@@ -82,7 +82,7 @@ await client.inboxes.drafts.update(
 );
 
 // send the draft
-await client.inboxes.drafts.send("support@example.com", draft.draftId);
+await client.inboxes.drafts.send("support@example.com", draft.draftId, {});
 ```
 </CodeBlocks>
 

@@ -43,14 +43,14 @@ Here's the step-by-step logic for a polling-based conversational agent.
             print("No threads need a reply.")
         else:
             # Let's work on the first unreplied thread
-            thread_to_reply_to = threadsRes.thread[0]
+            thread_to_reply_to = threadsRes.threads[0]
         ```
         ```typescript
         // Find all threads in this inbox that are marked as unreplied
         const threadRes = await client.threads.list(
             {
                 labels: [
-                    "huh"
+                    "unreplied"
                 ]
             }
         )
@@ -82,7 +82,7 @@ Here's the step-by-step logic for a polling-based conversational agent.
 
         // The last message in the array is the one we want to reply to
         const lastMessage = threadDetails.messages[threadDetails.messages.length - 1];
-        const messageIdToReplyTo = lastMessage.message_id;
+        const messageIdToReplyTo = lastMessage.messageId;
         ```
         </CodeBlocks>
 
@@ -185,7 +185,7 @@ await client.inboxes.drafts.create(
         subject: "Quick question about your workflow",
         text: "Hi, I noticed you're using...",
         html: "<p>Hi, I noticed you're using...</p>",
-        sendAt: sendTime.toISOString()
+        sendAt: sendTime
     }
 );
 ```

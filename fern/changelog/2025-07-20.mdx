@@ -56,9 +56,9 @@ async with client.websockets.subscribe(
 ```
 
 ```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail({ apiKey: "your-api-key" });
+const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // subscribe to events for an inbox
 for await (const event of client.websockets.subscribe("support@example.com")) {

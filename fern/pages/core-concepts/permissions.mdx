@@ -210,30 +210,32 @@ Create an API key that can read all resources but cannot create, update, or dele
 
 <CodeBlocks>
 ```python title="Python"
-from agentmail import AgentMail
+from agentmail import AgentMail, CreateBearerApiKeyRequest
 
 client = AgentMail(api_key="YOUR_API_KEY")
 
 key = client.api_keys.create(
-    name="read-only-agent",
-    permissions={
-        "inbox_read": True,
-        "message_read": True,
-        "draft_read": True,
-        "webhook_read": True,
-        "domain_read": True,
-        "list_entry_read": True,
-        "metrics_read": True,
-        "api_key_read": True,
-        "pod_read": True,
-        "label_spam_read": True,
-        "label_blocked_read": True,
-        "label_unauthenticated_read": True,
-        "label_trash_read": True,
-        "calendar_read": True,
-        "calendar_event_read": True,
-        "file_read": True,
-    }
+    request=CreateBearerApiKeyRequest(
+        name="read-only-agent",
+        permissions={
+            "inbox_read": True,
+            "message_read": True,
+            "draft_read": True,
+            "webhook_read": True,
+            "domain_read": True,
+            "list_entry_read": True,
+            "metrics_read": True,
+            "api_key_read": True,
+            "pod_read": True,
+            "label_spam_read": True,
+            "label_blocked_read": True,
+            "label_unauthenticated_read": True,
+            "label_trash_read": True,
+            "calendar_read": True,
+            "calendar_event_read": True,
+            "file_read": True,
+        },
+    )
 )
 
 print(key.api_key)
@@ -266,7 +268,7 @@ const key = await client.apiKeys.create({
   },
 });
 
-console.log(key.apiKey);
+if ("apiKey" in key) console.log(key.apiKey);
 ```
 
 ```bash title="CLI"
@@ -300,61 +302,65 @@ Create a key with full access but block visibility into spam, blocked, unauthent
 
 <CodeBlocks>
 ```python title="Python"
+from agentmail import CreateBearerApiKeyRequest
+
 key = client.api_keys.create(
-    name="clean-inbox-agent",
-    permissions={
-        "inbox_read": True,
-        "inbox_create": True,
-        "inbox_update": True,
-        "inbox_delete": True,
-        "message_read": True,
-        "message_reply": True,
-        "message_send": True,
-        "message_update": True,
-        "message_delete": True,
-        "label_spam_read": False,
-        "label_blocked_read": False,
-        "label_unauthenticated_read": False,
-        "label_trash_read": False,
-        "draft_read": True,
-        "draft_create": True,
-        "draft_update": True,
-        "draft_delete": True,
-        "draft_send": True,
-        "webhook_read": True,
-        "webhook_create": True,
-        "webhook_update": True,
-        "webhook_delete": True,
-        "domain_read": True,
-        "domain_create": True,
-        "domain_update": True,
-        "domain_delete": True,
-        "list_entry_read": True,
-        "list_entry_create": True,
-        "list_entry_delete": True,
-        "metrics_read": True,
-        "api_key_read": True,
-        "api_key_create": True,
-        "api_key_update": True,
-        "api_key_delete": True,
-        "app_connect": True,
-        "app_share_owner": True,
-        "account_update": True,
-        "pod_read": True,
-        "pod_create": True,
-        "pod_update": True,
-        "pod_delete": True,
-        "calendar_read": True,
-        "calendar_update": True,
-        "calendar_event_read": True,
-        "calendar_event_create": True,
-        "calendar_event_update": True,
-        "calendar_event_delete": True,
-        "file_read": True,
-        "file_create": True,
-        "file_update": True,
-        "file_delete": True,
-    }
+    request=CreateBearerApiKeyRequest(
+        name="clean-inbox-agent",
+        permissions={
+            "inbox_read": True,
+            "inbox_create": True,
+            "inbox_update": True,
+            "inbox_delete": True,
+            "message_read": True,
+            "message_reply": True,
+            "message_send": True,
+            "message_update": True,
+            "message_delete": True,
+            "label_spam_read": False,
+            "label_blocked_read": False,
+            "label_unauthenticated_read": False,
+            "label_trash_read": False,
+            "draft_read": True,
+            "draft_create": True,
+            "draft_update": True,
+            "draft_delete": True,
+            "draft_send": True,
+            "webhook_read": True,
+            "webhook_create": True,
+            "webhook_update": True,
+            "webhook_delete": True,
+            "domain_read": True,
+            "domain_create": True,
+            "domain_update": True,
+            "domain_delete": True,
+            "list_entry_read": True,
+            "list_entry_create": True,
+            "list_entry_delete": True,
+            "metrics_read": True,
+            "api_key_read": True,
+            "api_key_create": True,
+            "api_key_update": True,
+            "api_key_delete": True,
+            "app_connect": True,
+            "app_share_owner": True,
+            "account_update": True,
+            "pod_read": True,
+            "pod_create": True,
+            "pod_update": True,
+            "pod_delete": True,
+            "calendar_read": True,
+            "calendar_update": True,
+            "calendar_event_read": True,
+            "calendar_event_create": True,
+            "calendar_event_update": True,
+            "calendar_event_delete": True,
+            "file_read": True,
+            "file_create": True,
+            "file_update": True,
+            "file_delete": True,
+        },
+    )
 )
 ```
 
@@ -509,16 +515,18 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
   Threads have no permissions of their own: thread reads use message_read,
   thread label updates use message_update, and thread deletes use message_delete.
 
-  API: api_keys.create(name, permissions={...})
+  API: api_keys.create(request=CreateBearerApiKeyRequest(name, permissions={...}))
   """
-  from agentmail import AgentMail
+  from agentmail import AgentMail, CreateBearerApiKeyRequest
 
   client = AgentMail(api_key="YOUR_API_KEY")
 
   # read-only key
   key = client.api_keys.create(
-      name="read-only",
-      permissions={"inbox_read": True, "message_read": True}
+      request=CreateBearerApiKeyRequest(
+          name="read-only",
+          permissions={"inbox_read": True, "message_read": True},
+      )
   )
   print(key.api_key)
   ```
@@ -562,7 +570,7 @@ Copy one of the blocks below into Cursor or Claude for complete Permissions API 
       name: "read-only",
       permissions: { inboxRead: true, messageRead: true },
     });
-    console.log(key.apiKey);
+    if ("apiKey" in key) console.log(key.apiKey);
   }
   main();
   ```

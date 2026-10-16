@@ -247,23 +247,25 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
   - agent.verify(otp_code) — verify with OTP sent to human_email
 
   API reference:
-  - inboxes.create(username?, domain?, display_name?, client_id?) — client_id for idempotent retries
+  - inboxes.create(request=CreateInboxRequest(username?, domain?, display_name?, client_id?)) — client_id for idempotent retries
   - messages.send(inbox_id, to, subject, text, html?, cc?, bcc?, reply_to?, attachments?)
-  - messages.list(inbox_id, limit?, page_token?, labels?) — receive emails; use extracted_text/extracted_html for reply content
+  - messages.list(inbox_id, limit?, page_token?, labels?) — receive emails; items carry a preview, messages.get(inbox_id, message_id) returns the body
+  - messages.get(inbox_id, message_id) — use extracted_text/extracted_html for reply content
 
   Errors: SDK raises on 4xx/5xx. Inspect error.body.message or str(e).
   Rate limit: 429 with Retry-After header. Implement exponential backoff for retries.
-  Idempotency: Pass client_id to inboxes.create() to safely retry without duplicates.
+  Idempotency: Pass client_id in CreateInboxRequest to safely retry without duplicates.
   """
   import os
   from dotenv import load_dotenv
   from agentmail import AgentMail
+  from agentmail.inboxes import CreateInboxRequest
 
   load_dotenv()
   client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
   # create inbox (client_id enables safe retries)
-  inbox = client.inboxes.create(client_id="my-agent-inbox-v1")
+  inbox = client.inboxes.create(request=CreateInboxRequest(client_id="my-agent-inbox-v1"))
 
   # send email
   try:
@@ -279,8 +281,9 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
       print(f"Send failed: {e}")
       raise
 
-  # receive messages
-  for msg in client.inboxes.messages.list(inbox.inbox_id, limit=10).messages:
+  # receive messages (list items carry a preview; get returns the full message)
+  for item in client.inboxes.messages.list(inbox.inbox_id, limit=10).messages:
+      msg = client.inboxes.messages.get(inbox.inbox_id, item.message_id)
       print(msg.subject, msg.extracted_text or msg.text)
   ```
 
@@ -298,7 +301,8 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
    * API reference:
    * - inboxes.create({ username?, domain?, displayName?, clientId? }) — clientId for idempotent retries
    * - messages.send(inboxId, { to, subject, text, html?, cc?, bcc?, replyTo?, attachments? })
-   * - messages.list(inboxId, { limit?, pageToken?, labels? }) — receive; use extractedText/extractedHtml for reply content
+   * - messages.list(inboxId, { limit?, pageToken?, labels? }) — receive; items carry a preview, messages.get(inboxId, messageId) returns the body
+   * - messages.get(inboxId, messageId) — use extractedText/extractedHtml for reply content
    *
    * Errors: SDK throws on 4xx/5xx. Check error.body?.message.
    * Rate limit: 429 with Retry-After header. Use exponential backoff for retries.
@@ -331,8 +335,10 @@ Copy one of the blocks below into Cursor or Claude for a complete, working Agent
     }
 
     // receive messages
+    // list items carry a preview; get returns the full message
     const res = await client.inboxes.messages.list(inbox.inboxId, { limit: 10 });
-    for (const msg of res.messages) {
+    for (const item of res.messages) {
+      const msg = await client.inboxes.messages.get(inbox.inboxId, item.messageId);
       console.log(msg.subject, msg.extractedText ?? msg.text);
     }
   }

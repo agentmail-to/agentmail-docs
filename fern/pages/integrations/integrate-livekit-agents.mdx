@@ -39,6 +39,7 @@ import os
 import asyncio
 
 from agentmail import AgentMail, AsyncAgentMail, Subscribe, MessageReceivedEvent
+from agentmail.inboxes import CreateInboxRequest
 from agentmail_toolkit.livekit import AgentMailToolkit
 ```
 
@@ -54,7 +55,9 @@ class EmailAssistant(Agent):
 
         # By setting the client_id the inbox is created only once.
         username = os.getenv("AGENTMAIL_USERNAME")
-        inbox = client.inboxes.create(username=username, client_id=f"{username}-inbox")
+        inbox = client.inboxes.create(
+            request=CreateInboxRequest(username=username, client_id=f"{username}-inbox")
+        )
 
         self.inbox_id = inbox.inbox_id
 

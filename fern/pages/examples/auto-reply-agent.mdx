@@ -74,6 +74,7 @@ load_dotenv()
 from flask import Flask, request, Response
 import ngrok
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 import threading
 
 # Configuration
@@ -94,8 +95,10 @@ def setup_agentmail():
     # Create inbox (or get existing one)
     try:
         inbox = client.inboxes.create(
-            username=INBOX_USERNAME,
-            client_id=f"{INBOX_USERNAME}-inbox"
+            request=CreateInboxRequest(
+                username=INBOX_USERNAME,
+                client_id=f"{INBOX_USERNAME}-inbox",
+            )
         )
         print(f"✓ Inbox created: {inbox.inbox_id}")
     except Exception as e:
@@ -307,6 +310,7 @@ load_dotenv()
 from flask import Flask, request, Response
 import ngrok
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 
 # Initialize the AgentMail client
 client = AgentMail()  # Reads AGENTMAIL_API_KEY from environment
@@ -329,8 +333,10 @@ def setup_agentmail():
     # Create inbox (or get existing one)
     try:
         inbox = client.inboxes.create(
-            username=INBOX_USERNAME,
-            client_id=f"{INBOX_USERNAME}-inbox"  # ← Idempotency key
+            request=CreateInboxRequest(
+                username=INBOX_USERNAME,
+                client_id=f"{INBOX_USERNAME}-inbox",  # ← Idempotency key
+            )
         )
         print(f"✓ Inbox created: {inbox.inbox_id}")
     except Exception as e:

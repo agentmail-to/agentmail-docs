@@ -43,13 +43,13 @@ result = client.new_method(
 
 ```typescript title="TypeScript"
 // before
-import { AgentMail } from "agentmail";
-const client = new AgentMail({ apiKey: "key" });
+import { AgentMailClient } from "agentmail";
+const client = new AgentMailClient({ apiKey: "key" });
 const result = await client.oldMethod("value");
 
 // after
-import { AgentMail } from "agentmail";
-const client = new AgentMail({ apiKey: "key" });
+import { AgentMailClient } from "agentmail";
+const client = new AgentMailClient({ apiKey: "key" });
 const result = await client.newMethod("value", { newParam: "required_value" });
 ```
 </CodeBlocks>
@@ -90,9 +90,9 @@ for item in result.items:
     print(f"Item: {item.name}")
 ```
 ```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail({ apiKey: "your-api-key" });
+const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // example showing the new feature
 const result = await client.endpoint.method("user@example.com", { param: "value" });

@@ -469,7 +469,11 @@ Once the domain is `Verified`, create an inbox on any subdomain by passing it as
 
 <CodeBlocks>
 ```python title="Python"
-inbox = client.inboxes.create(username="agent", domain="bot.example.com")
+from agentmail.inboxes import CreateInboxRequest
+
+inbox = client.inboxes.create(
+    request=CreateInboxRequest(username="agent", domain="bot.example.com")
+)
 print(inbox.inbox_id)  # agent@bot.example.com
 ```
 

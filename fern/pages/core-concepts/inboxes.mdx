@@ -100,13 +100,13 @@ const newInbox = await client.inboxes.create({
   domain: "domain.com",
   displayName: "Docs Tester",
 });
-console.log(`Created Inbox: ${newInbox.id}`);
+console.log(`Created Inbox: ${newInbox.inboxId}`);
 
 // --- Retrieve an Inbox ---
 // Gets a specific inbox by its ID
-const inboxId = newInbox.id;
+const inboxId = newInbox.inboxId;
 const retrievedInbox = await client.inboxes.get(inboxId);
-console.log(`Retrieved Inbox: ${retrievedInbox.inbox_id}`);
+console.log(`Retrieved Inbox: ${retrievedInbox.inboxId}`);
 
 // --- List Inboxes ---
 // Lists all inboxes in your organization
@@ -155,15 +155,19 @@ Values may be a string, number, or boolean. An `Inbox` can hold up to 256 keys, 
 <CodeBlocks>
 
 ```python title="Python"
+from agentmail.inboxes import CreateInboxRequest
+
 # Attach metadata when creating an inbox; values may be a string, int, float, or boolean
 inbox = client.inboxes.create(
-    username="support-agent",
-    metadata={
-        "tenant_id": "acme",       # string
-        "seat_count": 5,           # int
-        "monthly_spend": 19.99,    # float
-        "active": True,            # boolean
-    },
+    request=CreateInboxRequest(
+        username="support-agent",
+        metadata={
+            "tenant_id": "acme",       # string
+            "seat_count": 5,           # int
+            "monthly_spend": 19.99,    # float
+            "active": True,            # boolean
+        },
+    )
 )
 
 # Read it back from any inbox response
@@ -284,10 +288,12 @@ You can create API keys that are restricted to a single inbox. An inbox-scoped k
 
 <CodeBlocks>
 ```python
+from agentmail import CreateBearerApiKeyRequest
+
 # Create a key scoped to one inbox
 key = client.inboxes.api_keys.create(
     new_inbox.inbox_id,
-    name="support-agent-key"
+    request=CreateBearerApiKeyRequest(name="support-agent-key"),
 )
 
 # The full key is only returned once
@@ -295,12 +301,12 @@ print(key.api_key)
 ```
 
 ```typescript title="TypeScript"
-const key = await client.inboxes.apiKeys.create(newInbox.id, {
+const key = await client.inboxes.apiKeys.create(newInbox.inboxId, {
   name: "support-agent-key",
 });
 
 // The full key is only returned once
-console.log(key.apiKey);
+if ("apiKey" in key) console.log(key.apiKey);
 ```
 </CodeBlocks>
 
@@ -318,13 +324,13 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.create(username?, domain?, display_name?, client_id?, metadata?) — client_id for idempotent retries; metadata is custom key-value data
+  - inboxes.create(request=CreateInboxRequest(username?, domain?, display_name?, client_id?, metadata?)) — client_id for idempotent retries; metadata is custom key-value data
   - inboxes.get(inbox_id)
   - inboxes.list(limit?, page_token?)
   - inboxes.update(inbox_id, display_name?, metadata?) — at least one field required; metadata is merged, not replaced
   - pause/resume: not in the SDK yet; PATCH /v0/inboxes/{inbox_id} with {"status": "paused"} stops sending and receiving, {"status": "active"} resumes
   - inboxes.delete(inbox_id)
-  - inboxes.api_keys.create(inbox_id, name) — inbox-scoped key
+  - inboxes.api_keys.create(inbox_id, request=CreateBearerApiKeyRequest(name)) — inbox-scoped key
   - inboxes.api_keys.list(inbox_id)
   - inboxes.api_keys.delete(inbox_id, api_key_id)
 
@@ -333,12 +339,13 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   import os
   from dotenv import load_dotenv
   from agentmail import AgentMail
+  from agentmail.inboxes import CreateInboxRequest
 
   load_dotenv()
   client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
   # Create (client_id for idempotent retries)
-  inbox = client.inboxes.create(client_id="my-inbox-v1")
+  inbox = client.inboxes.create(request=CreateInboxRequest(client_id="my-inbox-v1"))
 
   # Get, list
   retrieved = client.inboxes.get(inbox.inbox_id)

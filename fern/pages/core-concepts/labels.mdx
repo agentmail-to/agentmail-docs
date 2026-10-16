@@ -92,7 +92,7 @@ You can modify the `Labels` on a `Message` that has already been sent using the 
 ```python
 # Let's add a 'resolved' label to a message
 
-client.messages.update(
+client.inboxes.messages.update(
 inbox_id='outbound@domain.com',
 message_id='<abc123@agentmail.to>',
 add_labels=["resolved"],

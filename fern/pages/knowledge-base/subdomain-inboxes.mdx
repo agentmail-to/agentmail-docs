@@ -145,13 +145,16 @@ Pass the complete subdomain in the inbox's `domain` field:
 import os
 
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 
 client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
 # create agent@support.example.com
 inbox = client.inboxes.create(
-    username="agent",
-    domain="support.example.com",
+    request=CreateInboxRequest(
+        username="agent",
+        domain="support.example.com",
+    )
 )
 ```
 
