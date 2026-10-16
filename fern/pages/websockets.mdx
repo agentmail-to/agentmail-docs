@@ -73,7 +73,8 @@ You can also use event handlers instead of iterating:
 
 ```python
 import asyncio
-from agentmail import AsyncAgentMail, Subscribe, EventType
+from agentmail import AsyncAgentMail, Subscribe
+from agentmail.core.events import EventType
 
 client = AsyncAgentMail(api_key="YOUR_API_KEY")
 
@@ -96,7 +97,8 @@ For sync usage with event handlers, run the listener in a background thread:
 
 ```python
 import threading
-from agentmail import AgentMail, Subscribe, EventType
+from agentmail import AgentMail, Subscribe
+from agentmail.core.events import EventType
 
 client = AgentMail(api_key="YOUR_API_KEY")
 
@@ -146,8 +148,8 @@ async function main() {
   socket.on("message", (event: AgentMail.Subscribed | AgentMail.MessageReceivedEvent) => {
     if (event.type === "subscribed") {
       console.log("Subscribed to:", event.inboxIds);
-    } else if (event.type === "message_received") {
-      console.log("New email from:", event.message.from_);
+    } else if (event.type === "event" && event.eventType === "message.received") {
+      console.log("New email from:", event.message.from);
       console.log("Subject:", event.message.subject);
     }
   });
@@ -193,7 +195,7 @@ function useAgentMailWebSocket(apiKey: string, inboxIds: string[]) {
       });
 
       socket.on("message", (event) => {
-        if (event.type === "message_received") {
+        if (event.type === "event" && event.eventType === "message.received") {
           setLastMessage(event);
         }
       });
@@ -371,7 +373,7 @@ async def main():
 
 **TypeScript:**
 ```typescript
-import { AgentMailClient, AgentMail, AgentMailError } from "agentmail";
+import { AgentMailClient, AgentMailError } from "agentmail";
 
 const client = new AgentMailClient({
   apiKey: process.env.AGENTMAIL_API_KEY,
@@ -388,8 +390,8 @@ async function main() {
       });
     });
 
-    socket.on("message", (event: AgentMail.MessageReceivedEvent) => {
-      if (event.type === "message_received") {
+    socket.on("message", (event) => {
+      if (event.type === "event" && event.eventType === "message.received") {
         processEmail(event.message);
       }
     });
@@ -446,7 +448,7 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
    *
    * const socket = await client.websockets.connect();
    * socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: [...] }));
-   * socket.on("message", (e) => { if (e.type === "subscribed") ...; if (e.type === "message_received") ... });
+   * socket.on("message", (e) => { if (e.type === "subscribed") ...; if (e.type === "event" && e.eventType === "message.received") ... });
    * socket.on("close" | "error", ...);
    */
   import { AgentMailClient } from "agentmail";
@@ -458,7 +460,7 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
     socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: ["agent@agentmail.to"] }));
     socket.on("message", (e) => {
       if (e.type === "subscribed") console.log(e.inboxIds);
-      if (e.type === "message_received") console.log(e.message.subject);
+      if (e.type === "event" && e.eventType === "message.received") console.log(e.message.subject);
     });
   }
   main().catch(console.error);

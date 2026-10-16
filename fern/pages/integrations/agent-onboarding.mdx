@@ -262,6 +262,7 @@ Sign up, create an inbox, and send your first email:
 
 ```python title="Python"
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 
 # sign up (no API key needed)
 client = AgentMail()
@@ -272,7 +273,7 @@ client = AgentMail(api_key=response.api_key)
 client.agent.verify(otp_code="123456")
 
 # create an inbox and send an email
-inbox = client.inboxes.create(display_name="My AI Agent")
+inbox = client.inboxes.create(request=CreateInboxRequest(display_name="My AI Agent"))
 print(f"Agent email: {inbox.inbox_id}")
 
 client.inboxes.messages.send(

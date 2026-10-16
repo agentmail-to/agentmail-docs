@@ -25,30 +25,30 @@ Build agents that:
 
 <CodeBlocks>
 ```python title="Python"
-from agentmail import AgentMail
+from agentmail import AgentMail, CreateBearerApiKeyRequest
 
 client = AgentMail(api_key="your-api-key")
 
 # create an api key scoped to a single inbox
 key = client.inboxes.api_keys.create(
     inbox_id="user@example.com",
-    name="integration-key"
+    request=CreateBearerApiKeyRequest(name="integration-key"),
 )
 
 print(key.api_key)
 ```
 
 ```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail({ apiKey: "your-api-key" });
+const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // create an api key scoped to a single inbox
 const key = await client.inboxes.apiKeys.create("user@example.com", {
   name: "integration-key",
 });
 
-console.log(key.apiKey);
+if ("apiKey" in key) console.log(key.apiKey);
 ```
 </CodeBlocks>
 

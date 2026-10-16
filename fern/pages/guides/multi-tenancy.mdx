@@ -81,10 +81,12 @@ Pod-scoped keys can access all resources within a pod (inboxes, threads, drafts,
 
 <CodeBlocks>
 ```python
+from agentmail import CreateBearerApiKeyRequest
+
 # Create a key that can only access Acme's pod
 scoped_key = client.pods.api_keys.create(
     pod.pod_id,
-    name="acme-service-key"
+    request=CreateBearerApiKeyRequest(name="acme-service-key"),
 )
 
 # This is the only time you'll see the full key, so store it
@@ -114,10 +116,12 @@ Inbox-scoped keys are even more restrictive: they only grant access to a single 
 
 <CodeBlocks>
 ```python
+from agentmail import CreateBearerApiKeyRequest
+
 # Create a key that can only access the support inbox
 inbox_key = client.inboxes.api_keys.create(
     inbox.inbox_id,
-    name="support-inbox-key"
+    request=CreateBearerApiKeyRequest(name="support-inbox-key"),
 )
 
 print(inbox_key.api_key)
@@ -128,7 +132,7 @@ const inboxKey = await client.inboxes.apiKeys.create(inbox.inboxId, {
   name: "support-inbox-key",
 });
 
-console.log(inboxKey.apiKey);
+if ("apiKey" in inboxKey) console.log(inboxKey.apiKey);
 ```
 </CodeBlocks>
 
@@ -203,7 +207,7 @@ Here's what onboarding a new tenant looks like end to end:
 
 <CodeBlocks>
 ```python
-from agentmail import AgentMail
+from agentmail import AgentMail, CreateBearerApiKeyRequest
 
 client = AgentMail()
 
@@ -220,11 +224,14 @@ def onboard_tenant(tenant_id: str, domain_name: str):
     domain = client.pods.domains.create(pod.pod_id, domain=domain_name)
 
     # Pod-scoped key for the tenant
-    key = client.pods.api_keys.create(pod.pod_id, name=f"{tenant_id}-key")
+    key = client.pods.api_keys.create(
+        pod.pod_id, request=CreateBearerApiKeyRequest(name=f"{tenant_id}-key")
+    )
 
     # Inbox-scoped key for the support inbox
     inbox_key = client.inboxes.api_keys.create(
-        inbox.inbox_id, name=f"{tenant_id}-support-key"
+        inbox.inbox_id,
+        request=CreateBearerApiKeyRequest(name=f"{tenant_id}-support-key"),
     )
 
     # Webhook for their events
@@ -282,7 +289,7 @@ async function onboardTenant(tenantId: string, domainName: string) {
     podId: pod.podId,
     inboxId: inbox.inboxId,
     podApiKey: key.apiKey, // deliver securely to tenant
-    inboxApiKey: inboxKey.apiKey,
+    inboxApiKey: "apiKey" in inboxKey ? inboxKey.apiKey : undefined,
     webhookId: webhook.webhookId,
   };
 }

@@ -60,7 +60,7 @@ const draft = await client.inboxes.drafts.create("agent@agentmail.to", {
 });
 
 // review, then send when ready
-await client.inboxes.drafts.send("agent@agentmail.to", draft.draftId);
+await client.inboxes.drafts.send("agent@agentmail.to", draft.draftId, {});
 ```
 
 </CodeBlocks>

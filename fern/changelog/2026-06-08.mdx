@@ -29,6 +29,7 @@ Build agents that:
 
 ```python title="Python"
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 
 client = AgentMail(api_key="your-api-key")
 
@@ -36,7 +37,7 @@ client = AgentMail(api_key="your-api-key")
 domain = client.domains.update("example.com", subdomains_enabled=True)
 
 # Publish the new wildcard MX record, then create inboxes on any subdomain
-inbox = client.inboxes.create(username="agent", domain="bot.example.com")
+inbox = client.inboxes.create(request=CreateInboxRequest(username="agent", domain="bot.example.com"))
 print(inbox.inbox_id)  # agent@bot.example.com
 ```
 

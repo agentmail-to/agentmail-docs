@@ -78,6 +78,7 @@ import ngrok
 from flask import Flask, request, Response
 
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 from agentmail_toolkit.openai import AgentMailToolkit
 from agents import WebSearchTool, Agent, Runner
 
@@ -124,8 +125,10 @@ inbox_client_id = f"inbox-for-{inbox_username}"
 print(f"Attempting to create or retrieve inbox '{inbox}' with client_id: {inbox_client_id}")
 try:
 client.inboxes.create(
+request=CreateInboxRequest(
 username=inbox_username,
-client_id=inbox_client_id
+client_id=inbox_client_id,
+)
 )
 print("Inbox creation/retrieval successful.")
 except Exception as e:
@@ -145,6 +148,7 @@ print(f"Attempting to create or retrieve webhook for URL: {webhook_url}")
 try:
 client.webhooks.create(
 url=webhook_url,
+event_types=["message.received"],
 client_id=webhook_client_id,
 )
 print("Webhook creation/retrieval successful.")

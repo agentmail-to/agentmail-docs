@@ -27,14 +27,16 @@ Earlier releases know only the former names: earlier SDKs drop `appConnect` the 
 
 <CodeBlocks>
 ```python title="Python"
-from agentmail import AgentMail
+from agentmail import AgentMail, CreateBearerApiKeyRequest
 
 client = AgentMail(api_key="YOUR_API_KEY")
 
 # before: permissions={"inbox_read": True, "provider_connect": True}
 key = client.api_keys.create(
-    name="sign-in agent",
-    permissions={"inbox_read": True, "app_connect": True},
+    request=CreateBearerApiKeyRequest(
+        name="sign-in agent",
+        permissions={"inbox_read": True, "app_connect": True},
+    )
 )
 print(key.api_key_id)
 ```

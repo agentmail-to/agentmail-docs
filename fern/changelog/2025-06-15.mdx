@@ -58,9 +58,9 @@ for pod in pods.pods:
 ```
 
 ```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail({ apiKey: "your-api-key" });
+const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // create a pod for your sales team
 const pod = await client.pods.create({

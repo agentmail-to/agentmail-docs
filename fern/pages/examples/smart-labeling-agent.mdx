@@ -80,6 +80,7 @@ load_dotenv()
 from flask import Flask, request, Response
 import ngrok
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 from openai import OpenAI
 
 # Configuration
@@ -98,8 +99,10 @@ def setup_agentmail():
     # Create inbox
     try:
         inbox = client.inboxes.create(
-            username=INBOX_USERNAME,
-            client_id=f"{INBOX_USERNAME}-inbox"
+            request=CreateInboxRequest(
+                username=INBOX_USERNAME,
+                client_id=f"{INBOX_USERNAME}-inbox",
+            )
         )
     except Exception as e:
         if "already exists" in str(e).lower():
@@ -368,8 +371,10 @@ The `setup_agentmail()` function creates your inbox and webhook:
 ```python
 # Create inbox with idempotency
 inbox = client.inboxes.create(
-    username=INBOX_USERNAME,
-    client_id=f"{INBOX_USERNAME}-inbox"  # Prevents duplicates
+    request=CreateInboxRequest(
+        username=INBOX_USERNAME,
+        client_id=f"{INBOX_USERNAME}-inbox",  # Prevents duplicates
+    )
 )
 
 # Start ngrok tunnel (localhost → public URL)

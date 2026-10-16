@@ -93,7 +93,7 @@ file = client.inboxes.files.create(
     inbox_id,
     path="reports/q3.pdf",
     size=len(data),
-    sha256=base64.b64encode(hashlib.sha256(data).digest()).decode(),
+    sha_256=base64.b64encode(hashlib.sha256(data).digest()).decode(),
     content_type="application/pdf",
 )
 httpx.put(file.upload.url, headers=file.upload.headers, content=data).raise_for_status()

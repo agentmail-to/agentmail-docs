@@ -51,16 +51,16 @@ def handle_webhook(request):
 ```
 
 ```typescript title="TypeScript"
-import { AgentMail } from "agentmail";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail({ apiKey: "your-api-key" });
+const client = new AgentMailClient({ apiKey: "your-api-key" });
 
 // in your webhook handler: verify signature and handle event
 // (use Svix or the raw headers for verification)
-function handleWebhook(request: Request) {
+async function handleWebhook(request: Request) {
   const eventId = request.headers.get("svix-id");
   const signature = request.headers.get("svix-signature");
-  const payload = request.json();
+  const payload = await request.json();
   if (payload.event_type === "message.received") {
     const message = payload.message;
     // process new email

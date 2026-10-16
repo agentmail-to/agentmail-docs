@@ -72,7 +72,7 @@ Once a `Draft` is created, you can retrieve it by its ID
 <CodeBlocks>
 ```python title="Python"
 # Get the draft
-draft = client.inboxes.drafts.get(inbox_id = “my_inbox@domain.com”, draft_id = “draft_id_123”)
+draft = client.inboxes.drafts.get(inbox_id = "my_inbox@domain.com", draft_id = "draft_id_123")
 
 ````
 
@@ -112,9 +112,9 @@ print(f"Draft sent! New message ID: {sent_message.message_id}")
 
 ```typescript title="TypeScript"
 
-const sentMessage = await client.inboxes.drafts.send('my_inbox@domain.com', 'draft_id_123');
+const sentMessage = await client.inboxes.drafts.send('my_inbox@domain.com', 'draft_id_123', {});
 
-console.log(`Draft sent! New message ID: ${sentMessage.message_id}`);
+console.log(`Draft sent! New message ID: ${sentMessage.messageId}`);
 ````
 
 ```bash title="CLI"
@@ -188,7 +188,7 @@ const forward = await client.inboxes.drafts.create("agent@domain.com", {
 });
 
 // review, then send when ready
-await client.inboxes.drafts.send("agent@domain.com", draft.draftId);
+await client.inboxes.drafts.send("agent@domain.com", draft.draftId, {});
 ```
 
 ```bash title="CLI"
@@ -289,7 +289,7 @@ const scheduledDraft = await client.inboxes.drafts.create(
         to: ["prospect@example.com"],
         subject: "Following up on our conversation",
         text: "Hi, just wanted to follow up on our chat yesterday...",
-        sendAt: sendTime.toISOString()
+        sendAt: sendTime
     }
 );
 
@@ -345,7 +345,7 @@ newTime.setUTCHours(14, 0, 0, 0);
 await client.inboxes.drafts.update(
     "outreach@domain.com",
     scheduledDraft.draftId,
-    { sendAt: newTime.toISOString() }
+    { sendAt: newTime }
 );
 
 // Or un-schedule but keep the draft (clears sendAt and the 'scheduled' label)
@@ -478,7 +478,7 @@ const followUp = await client.inboxes.drafts.create(inboxId, {
     subject: "Re: Quick question about your workflow",
     text: "Hi again — just bumping this in case it got buried...",
     inReplyTo: initial.messageId,
-    sendAt: followUpTime.toISOString()
+    sendAt: followUpTime
 });
 
 // Tag the thread so your webhook handler can find the draft
@@ -652,7 +652,7 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
    * - inboxes.drafts.update(inboxId, draftId, { to?, cc?, bcc?, replyTo?, subject?, text?, html?, addAttachments?, removeAttachments?, addLabels?, removeLabels?, sendAt? })
    *     * kind (plain/reply/forward) is fixed at create; omit=unchanged, null (or [] for recipients)=clear
    *     * sendAt: null un-schedules; a draft already 'sending' can't be edited (409)
-   * - inboxes.drafts.send(inboxId, draftId) — converts to Message, deletes draft
+   * - inboxes.drafts.send(inboxId, draftId, { addLabels?, removeLabels? }) — converts to Message, deletes draft
    * - inboxes.drafts.delete(inboxId, draftId)
    * - inboxes.drafts.list(inboxId, { limit?, pageToken?, labels? })
    * - drafts.list({ limit?, pageToken? }) — org-wide
@@ -677,7 +677,7 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
       to: ["review@example.com"],
       subject: "[REVIEW] Proposed reply",
     });
-    const sent = await client.inboxes.drafts.send(inboxId, draft.draftId);
+    const sent = await client.inboxes.drafts.send(inboxId, draft.draftId, {});
     console.log(sent.messageId);
 
     // Schedule for later
@@ -689,7 +689,7 @@ Copy one of the blocks below into Cursor or Claude for complete Drafts API knowl
       to: ["prospect@example.com"],
       subject: "Follow up",
       text: "Just following up...",
-      sendAt: sendTime.toISOString(),
+      sendAt: sendTime,
     });
     console.log(`Scheduled for ${scheduled.sendAt}, status: ${scheduled.sendStatus}`);
 

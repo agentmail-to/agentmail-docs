@@ -35,9 +35,9 @@ signing_secret = webhook.secret
 print(f"Signing secret: {signing_secret}")
 ```
 ```typescript
-import AgentMail from "agentmail";
+import { AgentMailClient } from "agentmail";
 
-const client = new AgentMail();
+const client = new AgentMailClient();
 
 // Get webhook details including the signing secret
 const webhook = await client.webhooks.get("ep_xxx");

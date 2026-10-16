@@ -62,13 +62,16 @@ Before you can receive webhooks, you need an inbox to receive messages. Create o
 
 ```python
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 
 client = AgentMail()
 
 # Create an inbox for your webhook agent
 inbox = client.inboxes.create(
-    username="webhook-demo",
-    client_id="webhook-demo-inbox"  # Ensures idempotency
+    request=CreateInboxRequest(
+        username="webhook-demo",
+        client_id="webhook-demo-inbox",  # Ensures idempotency
+    )
 )
 
 print(f"Inbox created: {inbox.inbox_id}")
@@ -236,17 +239,20 @@ Copy one of the blocks below into Cursor or Claude for webhook setup in one shot
   """
   AgentMail Webhook Setup — copy into Cursor/Claude.
 
-  Flow: 1) ngrok http 3000 → copy URL. 2) inboxes.create(client_id=...) 3) webhooks.create(url=ngrok+/webhooks, event_types=[...], client_id=...)
+  Flow: 1) ngrok http 3000 → copy URL. 2) inboxes.create(request=CreateInboxRequest(client_id=...)) 3) webhooks.create(url=ngrok+/webhooks, event_types=[...], client_id=...)
   4) Flask POST /webhooks: return 200 immediately, process request.json in background.
   Local: use http://127.0.0.1:3000 in browser, not ngrok URL.
   """
   from flask import Flask, request, Response
   from agentmail import AgentMail
+  from agentmail.inboxes import CreateInboxRequest
 
   app = Flask(__name__)
   client = AgentMail()
 
-  inbox = client.inboxes.create(username="webhook-demo", client_id="webhook-demo-inbox")
+  inbox = client.inboxes.create(
+      request=CreateInboxRequest(username="webhook-demo", client_id="webhook-demo-inbox")
+  )
   wh = client.webhooks.create(url="https://YOUR_NGROK.ngrok-free.app/webhooks", event_types=["message.received"], client_id="webhook-demo-webhook")
 
   @app.route("/webhooks", methods=["POST"])
