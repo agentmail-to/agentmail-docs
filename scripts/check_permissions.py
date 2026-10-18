@@ -22,6 +22,10 @@ PERMISSION = re.compile(r"^[a-z]+(_[a-z]+)*$")
 # describe only that.
 UNDOCUMENTED = {"owner_profile", "owner_email"}
 
+# Agent Drive's permissions, which the docs don't describe until it is released. The API has them and the
+# SDKs are generated from ApiKeyPermissions, so it keeps them; the permissions page doesn't list them.
+UNRELEASED = {"file_read", "file_create", "file_update", "file_delete"}
+
 
 def gh(*args):
     result = subprocess.run(["gh", "api", *args], capture_output=True, text=True)
@@ -85,9 +89,10 @@ def validate(manifest):
         names = manifest.get(key)
         if not isinstance(names, list) or not names or not set(names) <= set(permissions):
             raise ValueError(f"manifest {key} must be a non-empty subset of permissions")
-    stale = UNDOCUMENTED - set(permissions)
-    if stale:
-        raise ValueError(f"UNDOCUMENTED names permissions the API no longer has: {', '.join(sorted(stale))}")
+    for name, names in (("UNDOCUMENTED", UNDOCUMENTED), ("UNRELEASED", UNRELEASED)):
+        stale = names - set(permissions)
+        if stale:
+            raise ValueError(f"{name} names permissions the API no longer has: {', '.join(sorted(stale))}")
     return manifest
 
 
@@ -115,7 +120,7 @@ def opt_in_notes(block):
 def doc_lists(manifest):
     definition = DEFINITION.read_text(encoding="utf-8")
     page = PAGE.read_text(encoding="utf-8")
-    documented = set(manifest["permissions"]) - UNDOCUMENTED
+    documented = set(manifest["permissions"]) - UNDOCUMENTED - UNRELEASED
     opt_in = set(manifest["opt_in"])
     full_access = documented - opt_in
     reads = {p for p in full_access if p.endswith("_read")}
@@ -134,7 +139,7 @@ def doc_lists(manifest):
             f"{DEFINITION.relative_to(ROOT)} ApiKeyPermissions",
             every,
             set(re.findall(r"^      ([a-z_]+):$", section(definition, r"^  ApiKeyPermissions:$", r"^  \S"), re.M)),
-            documented,
+            documented | UNRELEASED,
         ),
         (
             f"{page_name} reference tables",
@@ -160,7 +165,7 @@ def doc_lists(manifest):
             f"{page_name} Agent verification list",
             "verification-gated permissions",
             set(re.findall(r"`([a-z_]+)`", "\n".join(re.findall(r"^- .*$", verification, re.M)))),
-            set(manifest["verification_gated"]),
+            set(manifest["verification_gated"]) - UNRELEASED,
         ),
     ]
     for key, example, rule, expected in (

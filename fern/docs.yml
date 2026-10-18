@@ -314,13 +314,6 @@ navigation:
             icon: fa-solid fa-shield-halved
             path: pages/agent-armor/overview.mdx
             availability: beta
-      - section: Agent Drive (Labs)
-        availability: beta
-        contents:
-          - page: Agent Drive
-            icon: fa-solid fa-folder-open
-            path: pages/drive/overview.mdx
-            availability: beta
       - section: Integrations
         contents:
           - page: Agent Onboarding
@@ -535,7 +528,11 @@ navigation:
           typescript: agentmail
         layout:
           - agent
-          - inboxes
+          # Agent Drive isn't public yet: its endpoints stay reachable by URL (noindex) but out of the sidebar.
+          - inboxes:
+              contents:
+                - inboxes/files:
+                    hidden: true
           - threads
           - drafts
           - webhooks
