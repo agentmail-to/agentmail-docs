@@ -59,7 +59,6 @@ GROUPS = [
     ("Messages", "message"),
     ("Drafts", "draft"),
     ("Attachments", "attachment"),
-    ("Agent Drive (Labs)", "file"),
     ("Allow and block lists", "entr"),
     ("Agent sign-up", "agent"),
     ("Apps", "_app"),
@@ -67,6 +66,9 @@ GROUPS = [
     ("AgentMail Labs", "labs"),
     ("Organizations (OAuth sessions only)", "organization"),
 ]
+
+# Tools the server exposes that the docs don't describe yet (Agent Drive). The catalog and its counts leave them out.
+UNLISTED = {"upload_file", "list_files", "get_file", "delete_file"}
 
 
 # Docs-facing copy. The manifest descriptions are written for LLM sessions
@@ -109,10 +111,6 @@ DESCRIPTIONS = {
     "get_app": "Get one app by ID, including its terms and sign-up limit. Works for registered apps the marketplace does not list.",
     "connect_app": "Create an account at an app as an inbox, or sign an existing one back in. Returns a single-use sign-in link.",
     "list_accounts": "List which inboxes have accounts at which apps.",
-    "upload_file": "Store a file at a path in an inbox's drive and get it back ready, with a download link. Takes text, or base64 for other files; about 7 MB at most through the hosted server.",
-    "list_files": "List the files in an inbox's drive in path order, optionally under a path prefix.",
-    "get_file": "Get a file from an inbox's drive, with a download link that works for up to an hour.",
-    "delete_file": "Delete a file from an inbox's drive. Its path and quota space are freed.",
     "get_labs": "Check whether the organization is in AgentMail Labs, and whether Labs is offered in this deployment.",
     "join_labs": "Join AgentMail Labs for the whole organization. Needs an organization API key with no permissions restriction.",
     "list_organizations": "List the organizations you belong to and show which is currently selected.",
@@ -132,7 +130,7 @@ def table_cell(value):
 
 
 def render(manifest):
-    tools = manifest["tools"]
+    tools = [tool for tool in manifest["tools"] if tool["name"] not in UNLISTED]
     shared_count = sum(not tool["oauthOnly"] for tool in tools)
     oauth_count = len(tools) - shared_count
     names = {tool["name"] for tool in tools}
