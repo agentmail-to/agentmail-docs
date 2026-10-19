@@ -549,8 +549,8 @@ errors:
     status-code: 403
     type: global.ErrorResponse
     docs: |
-      The organization does not have calendar access (it has not joined AgentMail Labs), or the API
-      key lacks the required calendar permission.
+      Calendar isn't available in this region (EU production), or the API key lacks the required
+      calendar permission.
 
   EventExpiredError:
     status-code: 410
