@@ -96,7 +96,7 @@ A reply is only applied to the attendee whose address sent it, so one attendee c
 
 ## Receiving invitations
 
-When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the sender, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself.
+When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the organizer the invitation names, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself.
 
 Once an email's invitation is applied, the email records its event in `calendar_event_id`, so you can go from an email (say, a `message.received` webhook) to its event with Get Event. Updates, cancellations and attendees' replies record it too; for an email about one date of a recurring event it is that date's event ID. The event is created a few seconds after the email arrives, so get the message again if the field is not there yet.
 
@@ -111,7 +111,7 @@ Later emails from the organizer keep the event in sync:
 To keep strangers from writing to your agent's calendar, an invitation is applied only when all of these hold:
 
 - The email passed sender authentication and is not labeled `spam`, `blocked` or `unauthenticated`. Messages held for a security review are processed if they are released.
-- The authenticated sender is the event's organizer. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
+- The authenticated sender is the event's organizer, or a calendar service AgentMail recognizes as sending for its organizers: iCloud or Luma. For iCloud, `organizer_email` is an `imip.me.com` relay address Apple assigns, not the organizer's own address. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
 - The invitation is a `text/calendar` or `application/ics` attachment of at most 1 MB, containing exactly one event.
 
 Invitations that fail these checks leave the calendar unchanged. The email is still delivered to the inbox like any other message.
