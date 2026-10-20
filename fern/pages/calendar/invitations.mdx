@@ -111,7 +111,7 @@ Later emails from the organizer keep the event in sync:
 To keep strangers from writing to your agent's calendar, an invitation is applied only when all of these hold:
 
 - The email passed sender authentication and is not labeled `spam`, `blocked` or `unauthenticated`. Messages held for a security review are processed if they are released.
-- The authenticated sender is the event's organizer, or a calendar service AgentMail recognizes as sending for its organizers: iCloud, Luma or Maven. For iCloud, `organizer_email` is an `imip.me.com` relay address Apple assigns, not the organizer's own address. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
+- The authenticated sender is the event's organizer, or a calendar service AgentMail recognizes as sending for its organizers: iCloud or Luma. For iCloud, `organizer_email` is an `imip.me.com` relay address Apple assigns, not the organizer's own address. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
 - The invitation is a `text/calendar` or `application/ics` attachment of at most 1 MB, containing exactly one event.
 
 Invitations that fail these checks leave the calendar unchanged. The email is still delivered to the inbox like any other message.
