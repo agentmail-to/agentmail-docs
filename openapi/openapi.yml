@@ -196,6 +196,11 @@ paths:
         Name"
 
         ```
+
+
+        To pause an inbox, set `status` to `paused`; set it back to `active` to
+
+        resume. See [Pausing an inbox](/inboxes#pausing-an-inbox).
       operationId: inboxes_update
       tags:
         - Inboxes
@@ -224,6 +229,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       summary: Update Inbox
       servers:
         - url: https://api.agentmail.to
@@ -234,8 +245,8 @@ paths:
         - BearerAuth: []
       requestBody:
         description: >-
-          Expects an object; provide at least one of `display_name` or
-          `metadata`.
+          Expects an object; provide at least one of `display_name`, `status`,
+          or `metadata`.
         required: true
         content:
           application/json:
@@ -963,10 +974,10 @@ paths:
         endpoint or, for a US-region inbox, claims it in the AgentMail Console
         with the API key (see [How do I claim my agent's
         inbox?](https://docs.agentmail.to/knowledge-base/claiming-agent-inbox)).
-        There is also no way to recover the API key, so store it
-        durably. Calling sign-up again without `human_email` creates a new
-        organization, which needs a different `username`: the original username
-        stays with the lost organization's inbox.
+        There is also no way to recover the API key, so store it durably.
+        Calling sign-up again without `human_email` creates a new organization,
+        which needs a different `username`: the original username stays with the
+        lost organization's inbox.
 
 
         This endpoint is idempotent. Calling it again with the same
@@ -2449,10 +2460,11 @@ paths:
         make an update conditional.
 
 
-        Requires the `calendar_read` permission. Calendar is in private beta:
-        organizations without
+        Requires the `calendar_read` permission. Calendar is available in US
+        production
 
-        access receive a `403`.
+        (`api.agentmail.to`) but not yet in EU production (`api.agentmail.eu`),
+        which returns `403`.
       operationId: inboxes_calendar_get
       tags:
         - InboxesCalendar
@@ -2532,8 +2544,10 @@ paths:
         update applies to the calendar as it is.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_update
       tags:
         - InboxesCalendar
@@ -2556,10 +2570,6 @@ paths:
           schema:
             type: string
             nullable: true
-          example: '"rv-0"'
-          examples:
-            Example1:
-              value: '"rv-0"'
       responses:
         '200':
           description: ''
@@ -2659,8 +2669,10 @@ paths:
         permission.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_listEvents
       tags:
         - InboxesCalendar
@@ -2830,8 +2842,10 @@ paths:
         conditional. Requires the `calendar_event_create` permission.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_createEvent
       tags:
         - InboxesCalendar
@@ -3010,7 +3024,12 @@ paths:
         366 days. Items omit
 
         `description`, `metadata` and `attendees`; get an event by ID for the
-        full object. Dates of
+        full object. An item
+
+        the inbox is invited to still carries `response_status`, so
+        `needs_action` marks an
+
+        invitation waiting for a reply. Dates of
 
         recurring events appear only up to about 90 days from now; use List
         Event Instances for a
@@ -3033,8 +3052,10 @@ paths:
         away. Requires the `calendar_event_read` permission.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_getAgenda
       tags:
         - InboxesCalendar
@@ -3240,8 +3261,10 @@ paths:
         the `calendar_event_read` permission.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_getEvent
       tags:
         - InboxesCalendar
@@ -3430,8 +3453,10 @@ paths:
         `rate_limit_exceeded` and changes nothing.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_updateEvent
       tags:
         - InboxesCalendar
@@ -3478,12 +3503,6 @@ paths:
           schema:
             type: string
             nullable: true
-          example: '"rv-0"'
-          examples:
-            Reschedule a one-off event:
-              value: '"rv-0"'
-            Move one date of a series:
-              value: '"occ-0-0-0-none-none"'
       responses:
         '200':
           description: ''
@@ -3672,8 +3691,10 @@ paths:
         `rate_limit_exceeded` and deletes nothing.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_deleteEvent
       tags:
         - InboxesCalendar
@@ -3732,12 +3753,6 @@ paths:
           schema:
             type: string
             nullable: true
-          example: '"rv-1"'
-          examples:
-            Delete an event:
-              value: '"rv-1"'
-            Cancel one date of a series:
-              value: '"occ-0-0-0-none-none"'
         - name: Idempotency-Key
           in: header
           description: >-
@@ -3882,8 +3897,10 @@ paths:
         permission.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_listEventInstances
       tags:
         - InboxesCalendar
@@ -4106,8 +4123,10 @@ paths:
         `rate_limit_exceeded` and changes nothing.
 
 
-        Calendar is in private beta: organizations without access receive a
-        `403`.
+        Calendar is available in US production (`api.agentmail.to`) but not yet
+        in EU production
+
+        (`api.agentmail.eu`), which returns `403`.
       operationId: inboxes_calendar_respondToEvent
       tags:
         - InboxesCalendar
@@ -4139,10 +4158,6 @@ paths:
           schema:
             type: string
             nullable: true
-          example: '"rv-0"'
-          examples:
-            Example1:
-              value: '"rv-0"'
       responses:
         '200':
           description: ''
@@ -4178,6 +4193,7 @@ paths:
                           comment: See you there.
                           responded_at: '2026-10-02T08:05:00Z'
                       attendee_count: 2
+                      response_status: accepted
                       uid: 4q2m9x8k1v7c@google.com
                       sequence: 0
                       source: email
@@ -4725,6 +4741,525 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List Inbox Events
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/inboxes/{inbox_id}/files:
+    post:
+      description: >-
+        Starts an upload: creates a pending file at `path` and returns an
+        `upload` to `PUT` its bytes to. The bytes go
+
+        straight to storage, not through the API. Then call Complete File to
+        make the file `ready`.
+
+
+        Retry-safe: sending the identical request again (same `path`, `size`,
+        `sha256`, `content_type` and
+
+        `expires_at`) returns the existing file with `200` instead of `201`: a
+        pending one with a fresh `upload`, or
+
+        a `ready` one without. If its bytes were uploaded but the upload was
+        never completed, it is completed then. A
+
+        different request at a path whose file is still pending and has no bytes
+        replaces that file; at any other
+
+        taken path it returns `409`.
+
+
+        The file counts against the organization's Drive quota from creation,
+        pending or not: 1 GiB and 10,000 files
+
+        by default. A file that doesn't fit returns `403` with code
+        `limit_exceeded`. Deleting a file frees its
+
+        space within seconds. Expired files count until a create needs their
+        space: a create that doesn't fit first
+
+        gives back what expired files hold, a batch at a time, so retry a
+        refusal while many expired files remain.
+
+
+        Requires the `file_create` permission, which an unverified
+        organization's keys don't have at any scope until
+
+        it completes agent verification. A key without `file_read` can still
+        create files, but gets the plain `409` at
+
+        any taken path, even for an identical request at a file it didn't
+        create.
+
+
+        Agent Drive is in AgentMail Labs, available in US production
+        (`api.agentmail.to`) but not yet in EU
+
+        production (`api.agentmail.eu`). Organizations that have not joined Labs
+        receive a `403`.
+      operationId: inboxes_files_create
+      tags:
+        - InboxesFiles
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: reports@agentmail.to
+          examples:
+            Example1:
+              value: reports@agentmail.to
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateFileResponse'
+              examples:
+                Example1:
+                  value:
+                    file_id: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+                    inbox_id: reports@agentmail.to
+                    email: reports@agentmail.to
+                    path: reports/q3.pdf
+                    name: q3.pdf
+                    size: 48213
+                    content_type: application/pdf
+                    sha256: n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+                    status: pending
+                    created_at: '2026-10-14T16:20:00Z'
+                    updated_at: '2026-10-14T16:20:00Z'
+                    upload:
+                      method: PUT
+                      url: >-
+                        https://file-bucket-8c41a7e.s3.us-east-1.amazonaws.com/files/6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f?X-Amz-Signature=...
+                      headers:
+                        Content-Length: '48213'
+                        Content-Type: application/pdf
+                        If-None-Match: '*'
+                        x-amz-checksum-sha256: n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+                        x-amz-tagging: upload-state=pending
+                      expires_at: '2026-10-14T17:20:00Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create File
+      x-fern-availability: pre-release
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              allOf:
+                - $ref: '#/components/schemas/CreateFileRequest'
+            examples:
+              Example1:
+                value:
+                  path: reports/q3.pdf
+                  size: 48213
+                  sha256: n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+                  content_type: application/pdf
+    get:
+      description: >-
+        Lists the inbox's files in path order, pending ones included, optionally
+        only those whose path starts with
+
+        `path_prefix`. A prefix matches characters, not whole segments:
+        `reports/q` matches `reports/q3.pdf`. Items
+
+        carry no download URL; get a file for one.
+
+
+        The list is read in the region that serves the request, so a file
+        created or deleted a moment ago may not
+
+        show yet. Expired files never show.
+
+
+        Requires the `file_read` permission.
+      operationId: inboxes_files_list
+      tags:
+        - InboxesFiles
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: reports@agentmail.to
+          examples:
+            Example1:
+              value: reports@agentmail.to
+        - name: path_prefix
+          in: query
+          description: >-
+            Only files whose path starts with this. Held to the path rules,
+            except it may stop partway.
+          required: false
+          schema:
+            type: string
+            nullable: true
+          example: reports/
+          examples:
+            Example1:
+              value: reports/
+        - name: limit
+          in: query
+          description: Page size, 100 by default and at most 500.
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+        - name: ascending
+          in: query
+          description: Path order, `true` by default. `false` lists in reverse.
+          required: false
+          schema:
+            type: boolean
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFilesResponse'
+              examples:
+                Example1:
+                  value:
+                    count: 1
+                    limit: 100
+                    files:
+                      - file_id: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+                        inbox_id: reports@agentmail.to
+                        email: reports@agentmail.to
+                        path: reports/q3.pdf
+                        name: q3.pdf
+                        size: 48213
+                        content_type: application/pdf
+                        sha256: n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+                        status: ready
+                        created_at: '2026-10-14T16:20:00Z'
+                        updated_at: '2026-10-14T16:20:05Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List Files
+      x-fern-availability: pre-release
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/inboxes/{inbox_id}/files/{file_id}/complete:
+    post:
+      description: >-
+        Makes a pending file `ready` once its bytes are uploaded, and returns
+        it, with its `download_url` if the key
+
+        has `file_read`. Calling it on a file that is already `ready` returns
+        the file.
+
+
+        Returns `409` if the bytes haven't been uploaded yet, or if what was
+        uploaded doesn't match the file's `size`
+
+        and `sha256`. Returns `404` for a file that has expired or was deleted,
+        including a pending file not
+
+        completed within a day of its creation.
+
+
+        Requires the `file_create` permission. Only a key with `file_read`, or
+        the key that created the file, can
+
+        complete it; any other key gets `404`.
+      operationId: inboxes_files_complete
+      tags:
+        - InboxesFiles
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: reports@agentmail.to
+          examples:
+            Example1:
+              value: reports@agentmail.to
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/FileId'
+          example: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+          examples:
+            Example1:
+              value: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+              examples:
+                Example1:
+                  value:
+                    file_id: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+                    inbox_id: reports@agentmail.to
+                    email: reports@agentmail.to
+                    path: reports/q3.pdf
+                    name: q3.pdf
+                    size: 48213
+                    content_type: application/pdf
+                    sha256: n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+                    status: ready
+                    created_at: '2026-10-14T16:20:00Z'
+                    updated_at: '2026-10-14T16:20:05Z'
+                    download_url: >-
+                      https://cdn.agentmail.to/files/6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f?filename=71332e706466&Signature=...
+                    download_expires_at: '2026-10-14T17:20:05Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Complete File
+      x-fern-availability: pre-release
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/inboxes/{inbox_id}/files/{file_id}:
+    get:
+      description: >-
+        Gets a file. A `ready` file comes with a fresh `download_url`, valid for
+        up to an hour.
+
+
+        A get reads the region that serves the request, so for about a second
+        after a delete it can still return
+
+        the deleted file. A file that has expired returns `404` at once.
+
+
+        Requires the `file_read` permission.
+      operationId: inboxes_files_get
+      tags:
+        - InboxesFiles
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: reports@agentmail.to
+          examples:
+            Example1:
+              value: reports@agentmail.to
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/FileId'
+          example: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+          examples:
+            Example1:
+              value: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+              examples:
+                Example1:
+                  value:
+                    file_id: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+                    inbox_id: reports@agentmail.to
+                    email: reports@agentmail.to
+                    path: reports/q3.pdf
+                    name: q3.pdf
+                    size: 48213
+                    content_type: application/pdf
+                    sha256: n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+                    status: ready
+                    created_at: '2026-10-14T16:20:00Z'
+                    updated_at: '2026-10-14T16:20:05Z'
+                    download_url: >-
+                      https://cdn.agentmail.to/files/6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f?filename=71332e706466&Signature=...
+                    download_expires_at: '2026-10-14T17:21:00Z'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get File
+      x-fern-availability: pre-release
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    delete:
+      description: >-
+        Deletes a file, pending or `ready`, and frees its path at once. Its
+        bytes are deleted, and its space given
+
+        back to the organization's quota, within seconds. A download URL signed
+        before the delete keeps working
+
+        until it expires, at most an hour. Deleting a file that is already gone
+        returns `404`.
+
+
+        Requires the `file_delete` permission. Only a key with `file_read`, or
+        the key that created the file, can
+
+        delete it; any other key gets `404`.
+      operationId: inboxes_files_delete
+      tags:
+        - InboxesFiles
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+          example: reports@agentmail.to
+          examples:
+            Example1:
+              value: reports@agentmail.to
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/FileId'
+          example: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+          examples:
+            Example1:
+              value: 6f1c2f4e-8d3b-4a5e-9c7d-1b2a3c4d5e6f
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete File
+      x-fern-availability: pre-release
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -5309,6 +5844,144 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/feedback:
+    post:
+      description: >-
+        Tell us whether Agent Armor's verdict on a message was right. The
+        message needs a completed result. A message
+
+        accepts up to 20 pieces of feedback. Requires permission to read the
+        message.
+      operationId: inboxes_messages_createAgentArmorFeedback
+      tags:
+        - InboxesMessages
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/MessageId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentArmorFeedback'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Agent Armor Feedback
+      x-fern-availability: pre-release
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentArmorFeedbackRequest'
+  /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/release:
+    post:
+      description: >-
+        Release a message Agent Armor held for review in hold mode: your agents
+        are sent its `message.received`
+
+        event, `message.security.override` is sent too, in either order, and its
+        `agent-armor-held` label is removed.
+
+        Only a message whose verdict is `review` and that is still held can be
+        released; anything else answers `409`.
+
+        Repeating a release with the same reason and the same API key returns
+        the first release; any other repeat
+
+        answers `409`.
+
+
+        Requires the opt-in `agent_armor_release` permission and permission to
+        read the message. An organization
+
+        admin can also release from the console.
+      operationId: inboxes_messages_releaseAgentArmorMessage
+      tags:
+        - InboxesMessages
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/MessageId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseAgentArmorMessageResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Release Agent Armor Message
+      x-fern-availability: pre-release
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseAgentArmorMessageRequest'
   /v0/inboxes/{inbox_id}/messages/batch-get:
     post:
       description: >-
@@ -6796,6 +7469,206 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/webhooksUpdateWebhookHeadersRequest'
+  /v0/inboxes/{inbox_id}/webhooks/polling:
+    get:
+      description: |-
+        Lists the polling webhooks created through this inbox route.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes webhooks polling list --inbox-id <inbox_id>
+        ```
+      operationId: inboxes_webhooks_polling_list
+      tags:
+        - InboxesWebhooksPolling
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+        - name: ascending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ascending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksListPollingWebhooksResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: List Polling Webhooks
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: >-
+        Create a polling webhook scoped to this inbox and return the `token`
+        that reads it.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes webhooks polling create --inbox-id <inbox_id>
+        --client-id my-agent --event-types message.received
+
+        ```
+      operationId: inboxes_webhooks_polling_create
+      tags:
+        - InboxesWebhooksPolling
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksCreatePollingWebhookResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksCreateInboxPollingWebhookRequest'
+  /v0/inboxes/{inbox_id}/webhooks/polling/{webhook_id}:
+    get:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes webhooks polling get --inbox-id <inbox_id>
+        --webhook-id <webhook_id>
+
+        ```
+      operationId: inboxes_webhooks_polling_get
+      tags:
+        - InboxesWebhooksPolling
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksPollingWebhook'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    delete:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail inboxes webhooks polling delete --inbox-id <inbox_id>
+        --webhook-id <webhook_id>
+
+        ```
+      operationId: inboxes_webhooks_polling_delete
+      tags:
+        - InboxesWebhooksPolling
+      parameters:
+        - name: inbox_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/inboxesInboxId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/lists/{direction}/{type}:
     get:
       description: |-
@@ -7248,6 +8121,111 @@ paths:
               schema:
                 $ref: '#/components/schemas/Organization'
       summary: Get Organization
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+  /v0/organizations/labs:
+    get:
+      description: >-
+        Returns whether the organization is in AgentMail Labs, which turns on
+        features that are still in preview, such as [Agent
+        Armor](https://docs.agentmail.to/agent-armor). Requires an
+        organization-scoped API key.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail organizations get-labs
+
+        ```
+      operationId: organizations_getLabs
+      tags:
+        - Organizations
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationLabs'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Labs
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: >-
+        Joins AgentMail Labs for the whole organization, which turns on every
+        feature in Labs for every inbox. Joining again has no effect. There is
+        no leave on the API; an organization admin can leave in the console
+        under [Settings, then
+        Labs](https://console.agentmail.to/dashboard/settings/labs).
+
+
+        Join only when your organization has decided to. Get Labs reads the same
+        for an organization that never joined and one whose admin left Labs on
+        purpose, so don't join just because `enabled` is `false`.
+
+
+        Requires an organization-scoped API key with no permissions restriction,
+        and a verified organization. API keys see the change within five
+        minutes. Where Labs isn't offered (`available` is `false` on Get Labs),
+        joining returns `403`.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail organizations join-labs
+
+        ```
+      operationId: organizations_joinLabs
+      tags:
+        - Organizations
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationLabs'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Join Labs
       servers:
         - url: https://api.agentmail.to
         - url: https://x402.api.agentmail.to
@@ -8263,6 +9241,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/inboxesInbox'
         '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
           description: ''
           content:
             application/json:
@@ -9528,6 +10512,206 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/webhooksUpdateWebhookHeadersRequest'
+  /v0/pods/{pod_id}/webhooks/polling:
+    get:
+      description: |-
+        Lists the polling webhooks created through this pod route.
+
+        **CLI:**
+        ```bash
+        agentmail pods webhooks polling list --pod-id <pod_id>
+        ```
+      operationId: pods_webhooks_polling_list
+      tags:
+        - PodsWebhooksPolling
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+        - name: ascending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ascending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksListPollingWebhooksResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: List Polling Webhooks
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: >-
+        Create a polling webhook scoped to this pod and return the `token` that
+        reads it.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail pods webhooks polling create --pod-id <pod_id> --client-id
+        my-agent --event-types message.received
+
+        ```
+      operationId: pods_webhooks_polling_create
+      tags:
+        - PodsWebhooksPolling
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksCreatePollingWebhookResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksCreatePodPollingWebhookRequest'
+  /v0/pods/{pod_id}/webhooks/polling/{webhook_id}:
+    get:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail pods webhooks polling get --pod-id <pod_id> --webhook-id
+        <webhook_id>
+
+        ```
+      operationId: pods_webhooks_polling_get
+      tags:
+        - PodsWebhooksPolling
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksPollingWebhook'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    delete:
+      description: >-
+        **CLI:**
+
+        ```bash
+
+        agentmail pods webhooks polling delete --pod-id <pod_id> --webhook-id
+        <webhook_id>
+
+        ```
+      operationId: pods_webhooks_polling_delete
+      tags:
+        - PodsWebhooksPolling
+      parameters:
+        - name: pod_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/podsPodId'
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
   /v0/threads:
     get:
       description: |-
@@ -9913,6 +11097,200 @@ paths:
         - url: https://api.agentmail.eu
       security:
         - BearerAuth: []
+  /v0/webhooks/polling:
+    get:
+      description: >-
+        Lists the polling webhooks created through this route. `page_token` must
+        come from this
+
+        endpoint; a token from another list endpoint is rejected.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail webhooks polling list
+
+        ```
+      operationId: webhooks_polling_list
+      tags:
+        - WebhooksPolling
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Limit'
+            nullable: true
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PageToken'
+            nullable: true
+        - name: ascending
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ascending'
+            nullable: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksListPollingWebhooksResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      summary: List Polling Webhooks
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    post:
+      description: >-
+        Creates a subscription the agent polls for events, and returns the
+        `token` that reads it. Each
+
+        organization, pod, and inbox holds at most 10 polling webhooks; a repeat
+        create with the same
+
+        `client_id` re-issues the token of the existing one instead of counting
+        against that limit.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail webhooks polling create --client-id my-agent --event-types
+        message.received
+
+        ```
+      operationId: webhooks_polling_create
+      tags:
+        - WebhooksPolling
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksCreatePollingWebhookResponse'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhooksCreatePollingWebhookRequest'
+  /v0/webhooks/polling/{webhook_id}:
+    get:
+      description: >-
+        The `token` is never returned here: create again with the same
+        `client_id` to get a new one.
+
+
+        **CLI:**
+
+        ```bash
+
+        agentmail webhooks polling get --webhook-id <webhook_id>
+
+        ```
+      operationId: webhooks_polling_get
+      tags:
+        - WebhooksPolling
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webhooksPollingWebhook'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
+    delete:
+      description: |-
+        Stops delivery and invalidates the subscription's token.
+
+        **CLI:**
+        ```bash
+        agentmail webhooks polling delete --webhook-id <webhook_id>
+        ```
+      operationId: webhooks_polling_delete
+      tags:
+        - WebhooksPolling
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/webhooksWebhookId'
+      responses:
+        '204':
+          description: ''
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete Polling Webhook
+      servers:
+        - url: https://api.agentmail.to
+        - url: https://x402.api.agentmail.to
+        - url: https://mpp.api.agentmail.to
+        - url: https://api.agentmail.eu
+      security:
+        - BearerAuth: []
 components:
   schemas:
     Limit:
@@ -10088,6 +11466,17 @@ components:
         value may be a string, number, boolean, or null. Setting a key to null
         removes it. Up to 256 keys; keys and string values are each limited to
         256 characters.
+    inboxesInboxStatus:
+      title: inboxesInboxStatus
+      type: string
+      enum:
+        - active
+        - paused
+      description: |-
+        Whether the inbox sends and receives mail. `paused` stops both: sends
+        return `403` with code `inbox_paused`, and incoming mail is not
+        delivered and not bounced, then or on resume. Mail already in the inbox,
+        its drafts, and its API keys are kept. Set `active` to resume.
     inboxesInbox:
       title: inboxesInbox
       type: object
@@ -10104,6 +11493,13 @@ components:
         client_id:
           $ref: '#/components/schemas/inboxesClientId'
           nullable: true
+        status:
+          $ref: '#/components/schemas/inboxesInboxStatus'
+          nullable: true
+          description: |-
+            `paused` when the inbox is paused. Omitted when the inbox is active.
+            Treat any value other than `paused` as an inbox that sends and
+            receives normally.
         metadata:
           $ref: '#/components/schemas/inboxesMetadata'
           nullable: true
@@ -10186,6 +11582,10 @@ components:
         client_id:
           $ref: '#/components/schemas/inboxesClientId'
           nullable: true
+        status:
+          $ref: '#/components/schemas/inboxesInboxStatus'
+          nullable: true
+          description: Set `paused` to create the inbox paused.
         metadata:
           $ref: '#/components/schemas/inboxesMetadata'
           nullable: true
@@ -10197,6 +11597,16 @@ components:
         display_name:
           $ref: '#/components/schemas/inboxesDisplayName'
           nullable: true
+        status:
+          $ref: '#/components/schemas/inboxesInboxStatus'
+          nullable: true
+          description: >-
+            `paused` stops the inbox sending and receiving mail; `active`
+            resumes
+
+            it. Mail that arrived while the inbox was paused is not delivered on
+
+            resume.
         metadata:
           $ref: '#/components/schemas/inboxesUpdateMetadata'
           nullable: true
@@ -10211,9 +11621,9 @@ components:
 
             `metadata` as null. Sending an empty object is rejected; use null to
 
-            clear. Each update must include at least one of `display_name` or
+            clear. Each update must include at least one of `display_name`,
 
-            `metadata`.
+            `status`, or `metadata`.
     inboxesAuthorizeInboxRequest:
       title: inboxesAuthorizeInboxRequest
       type: object
@@ -10743,6 +12153,322 @@ components:
         status:
           $ref: '#/components/schemas/UpdateAccountStatus'
           nullable: true
+    AgentArmorVerdict:
+      title: AgentArmorVerdict
+      type: string
+      enum:
+        - clear
+        - review
+      description: >-
+        What the scan concluded. `clear` means Agent Armor found no threat. It
+        is advisory, not a guarantee that the
+
+        message is safe. `review` means the message may try to manipulate an
+        agent: inspect it before an agent acts on it.
+    AgentArmorUnavailableReason:
+      title: AgentArmorUnavailableReason
+      type: string
+      enum:
+        - unsupported_dsn
+        - payload_too_large
+        - no_scannable_content
+        - enqueue_failed
+        - scorer_failed
+        - contract_error
+        - deadline_exceeded
+      description: Why no verdict is available.
+    AgentArmorPendingResult:
+      title: AgentArmorPendingResult
+      type: object
+      properties:
+        started_at:
+          type: string
+          format: date-time
+          description: When the message was received. The deadline counts from here.
+        deadline_at:
+          type: string
+          format: date-time
+          description: >-
+            When the scan gives up. A result still pending then reads as
+            `unavailable` with `deadline_exceeded`.
+      required:
+        - started_at
+        - deadline_at
+    AgentArmorCompleteResult:
+      title: AgentArmorCompleteResult
+      type: object
+      properties:
+        verdict:
+          $ref: '#/components/schemas/AgentArmorVerdict'
+        reason:
+          type: string
+          description: A short explanation of the verdict.
+        model:
+          type: string
+          description: >-
+            Identifies the Agent Armor release that produced the verdict.
+            Opaque; it changes when Agent Armor is updated.
+        completed_at:
+          type: string
+          format: date-time
+          description: When the scan finished.
+        manual_override:
+          $ref: '#/components/schemas/AgentArmorManualOverride'
+          nullable: true
+          description: Present on a `review` held in hold mode that someone released.
+      required:
+        - verdict
+        - reason
+        - model
+        - completed_at
+    AgentArmorUnavailableResult:
+      title: AgentArmorUnavailableResult
+      type: object
+      properties:
+        unavailable_reason:
+          $ref: '#/components/schemas/AgentArmorUnavailableReason'
+      required:
+        - unavailable_reason
+    AgentArmorCompletedEventResult:
+      title: AgentArmorCompletedEventResult
+      type: object
+      description: >-
+        The result in a `message.security.completed` or
+        `message.security.review` event, which is always `complete`.
+      properties:
+        status:
+          type: string
+          const: complete
+      required:
+        - status
+      allOf:
+        - $ref: '#/components/schemas/AgentArmorCompleteResult'
+    AgentArmorResult:
+      title: AgentArmorResult
+      oneOf:
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - pending
+            - $ref: '#/components/schemas/AgentArmorPendingResult'
+          required:
+            - status
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - complete
+            - $ref: '#/components/schemas/AgentArmorCompleteResult'
+          required:
+            - status
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - unavailable
+            - $ref: '#/components/schemas/AgentArmorUnavailableResult'
+          required:
+            - status
+      description: >-
+        Agent Armor's result for this message. Present only on messages received
+        while Agent Armor was on for your
+
+        organization. A scan starts `pending` and usually completes within
+        seconds. `message.security.completed` is
+
+        sent only for `complete` results, so a message still `pending` at
+        `deadline_at` reads `unavailable` with no
+
+        event.
+    AgentArmorReleaseApiKeyActor:
+      title: AgentArmorReleaseApiKeyActor
+      type: object
+      properties:
+        api_key_id:
+          type: string
+          description: The API key that released it.
+      required:
+        - api_key_id
+    AgentArmorReleaseConsoleActor:
+      title: AgentArmorReleaseConsoleActor
+      type: object
+      properties: {}
+    AgentArmorReleaseActor:
+      title: AgentArmorReleaseActor
+      oneOf:
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - api_key
+            - $ref: '#/components/schemas/AgentArmorReleaseApiKeyActor'
+          required:
+            - kind
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - console
+            - $ref: '#/components/schemas/AgentArmorReleaseConsoleActor'
+          required:
+            - kind
+      description: Who released the message.
+    AgentArmorManualOverride:
+      title: AgentArmorManualOverride
+      type: object
+      description: The record of a release of a message Agent Armor held for review.
+      properties:
+        override_id:
+          type: string
+          description: >-
+            ID of the release, and the `event_id` of its
+            `message.security.override` event.
+        actor:
+          $ref: '#/components/schemas/AgentArmorReleaseActor'
+        reason:
+          type: string
+          description: Why it was released, as given by whoever released it.
+        original_verdict:
+          type: string
+          const: review
+          description: The verdict that held the message.
+        released_at:
+          type: string
+          format: date-time
+          description: When it was released.
+      required:
+        - override_id
+        - actor
+        - reason
+        - original_verdict
+        - released_at
+    ReleaseAgentArmorMessageRequest:
+      title: ReleaseAgentArmorMessageRequest
+      type: object
+      properties:
+        reason:
+          type: string
+          description: >-
+            Why the message is safe to release, up to 2,048 characters and not
+            blank. Recorded on the message.
+      required:
+        - reason
+    ReleaseAgentArmorMessageResponse:
+      title: ReleaseAgentArmorMessageResponse
+      type: object
+      properties:
+        manual_override:
+          $ref: '#/components/schemas/AgentArmorManualOverride'
+      required:
+        - manual_override
+    AgentArmorFeedbackValue:
+      title: AgentArmorFeedbackValue
+      type: string
+      enum:
+        - correct_review
+        - incorrect_review
+        - missed_threat
+        - legitimate_agent_instruction
+        - spam_or_phishing
+      description: Your assessment of a completed verdict.
+    CreateAgentArmorFeedbackRequest:
+      title: CreateAgentArmorFeedbackRequest
+      type: object
+      properties:
+        feedback:
+          $ref: '#/components/schemas/AgentArmorFeedbackValue'
+        notes:
+          type: string
+          nullable: true
+          description: Anything else about the verdict, up to 2,048 characters.
+      required:
+        - feedback
+    AgentArmorFeedbackApiKeyActor:
+      title: AgentArmorFeedbackApiKeyActor
+      type: object
+      properties:
+        api_key_id:
+          type: string
+          description: The API key that sent it.
+      required:
+        - api_key_id
+    AgentArmorFeedbackConsoleActor:
+      title: AgentArmorFeedbackConsoleActor
+      type: object
+      properties: {}
+    AgentArmorFeedbackActor:
+      title: AgentArmorFeedbackActor
+      oneOf:
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - api_key
+            - $ref: '#/components/schemas/AgentArmorFeedbackApiKeyActor'
+          required:
+            - kind
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - console
+            - $ref: '#/components/schemas/AgentArmorFeedbackConsoleActor'
+          required:
+            - kind
+      description: Who sent the feedback.
+    AgentArmorFeedback:
+      title: AgentArmorFeedback
+      type: object
+      properties:
+        feedback_id:
+          type: string
+          description: ID of the feedback.
+        feedback:
+          $ref: '#/components/schemas/AgentArmorFeedbackValue'
+        notes:
+          type: string
+          nullable: true
+        actor:
+          $ref: '#/components/schemas/AgentArmorFeedbackActor'
+        original_verdict:
+          $ref: '#/components/schemas/AgentArmorVerdict'
+          description: The verdict the feedback is about.
+        model:
+          type: string
+          description: The Agent Armor release that produced that verdict.
+        created_at:
+          type: string
+          format: date-time
+          description: When the feedback was recorded.
+      required:
+        - feedback_id
+        - feedback
+        - actor
+        - original_verdict
+        - model
+        - created_at
     AgentSignupRequest:
       title: AgentSignupRequest
       type: object
@@ -11106,6 +12832,15 @@ components:
           type: boolean
           nullable: true
           description: Delete messages. Also required to delete threads.
+        agent_armor_release:
+          type: boolean
+          nullable: true
+          description: >-
+            Release mail Agent Armor holds for review. Opt-in: no key has it
+            unless it was granted explicitly, even one
+
+            without a `permissions` object. See
+            [Permissions](/permissions#agent-armor).
         label_spam_read:
           type: boolean
           nullable: true
@@ -11273,6 +13008,22 @@ components:
           type: boolean
           nullable: true
           description: Delete calendar events.
+        file_read:
+          type: boolean
+          nullable: true
+          description: Reserved; not released yet.
+        file_create:
+          type: boolean
+          nullable: true
+          description: Reserved; not released yet.
+        file_update:
+          type: boolean
+          nullable: true
+          description: Reserved; not released yet.
+        file_delete:
+          type: boolean
+          nullable: true
+          description: Reserved; not released yet.
     BearerApiKey:
       title: BearerApiKey
       type: object
@@ -11896,13 +13647,19 @@ components:
       title: IanaTimezone
       type: string
       description: >-
-        Canonical IANA time zone name, for example `America/New_York`,
-        `Europe/London` or `UTC`.
+        IANA time zone name, for example `America/New_York`, `Europe/London` or
+        `UTC`. Requests accept
 
-        Abbreviations such as `PST`, Windows names such as `Pacific Standard
-        Time`, and spellings that
+        any capitalization and IANA aliases such as `US/Eastern`. The calendar
+        stores and returns the
 
-        differ from the canonical name are rejected.
+        canonical name, which for some zones is an older spelling:
+        `Asia/Kolkata` is returned as
+
+        `Asia/Calcutta`. Abbreviations such as `PST` and Windows names such as
+        `Pacific Standard Time`
+
+        are rejected.
     ResourceRevision:
       title: ResourceRevision
       type: integer
@@ -12150,8 +13907,10 @@ components:
             `FREQ=WEEKLY;BYDAY=MO,WE,FR` or `FREQ=MONTHLY;BYDAY=-1FR;COUNT=12`.
             Supported parts: `FREQ`,
 
-            `INTERVAL` (1 to 366), `COUNT` (1 to 10,000), `UNTIL` (`YYYYMMDD` or
-            `YYYYMMDDTHHMMSSZ`),
+            `INTERVAL` (1 to 366), `COUNT` (1 to 10,000), `UNTIL` (`YYYYMMDD`
+            for all-day events,
+
+            `YYYYMMDDTHHMMSSZ` for timed events),
 
             `WKST`, `BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`,
             `BYHOUR`, `BYMINUTE`,
@@ -12319,6 +14078,21 @@ components:
           type: integer
           description: Number of attendees.
           example: 1
+        response_status:
+          $ref: '#/components/schemas/AttendeeStatus'
+          nullable: true
+          description: >-
+            The inbox's own response: the `status` of its entry in `attendees`.
+            Present only on events
+
+            the inbox can respond to: `email` events with an `organizer_email`
+            and an
+
+            `origin_message_id` that list the inbox as an attendee. Included on
+            agenda and instance list
+
+            items, which omit `attendees`. `needs_action` means the invitation
+            is waiting for a reply.
         uid:
           type: string
           description: >-
@@ -12621,7 +14395,11 @@ components:
             Replaces the recurrence. Set to `null` to turn a series into a
             one-off event (only when no
 
-            date of it has been edited). Not accepted for dated event IDs.
+            date of it has been edited). Not accepted for dated event IDs. A
+            series ended with a
+
+            `mode=future` delete stays ended: the new rule keeps its
+            `truncate_before`.
         attendees:
           type: array
           items:
@@ -12766,6 +14544,20 @@ components:
       title: FeedbackEnabled
       type: boolean
       description: Bounce and complaint notifications are sent to your inboxes.
+    InboundEnabled:
+      title: InboundEnabled
+      type: boolean
+      description: >-
+        Receive email for this domain. Defaults to `true`. Set `false` for a
+        send-only
+
+        domain: the apex MX record is not required and is omitted from
+        `records`, so the
+
+        domain's existing email provider keeps receiving its mail. Inboxes on a
+        send-only
+
+        domain can still send.
     SubdomainsEnabled:
       title: SubdomainsEnabled
       type: boolean
@@ -12815,10 +14607,19 @@ components:
             usually resolves without changes), `ses_dkim_failed` /
             `ses_mail_from_failed` (a terminal verdict; re-verify after fixing),
             `ses_dkim_not_started` / `ses_mail_from_not_started` (the attribute
-            was never configured on the identity — re-verify to push it), and
-            `ses_not_verified_for_sending`. Absent when VERIFIED.
+            was never configured on the identity — re-verify to push it),
+            `ses_not_verified_for_sending`, and `tracking_certificate_failed`
+            (the certificate for the open tracking `link.` subdomain was
+            refused; fix CAA or DNS, then turn tracking off and back on). Absent
+            when VERIFIED.
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+        inbound_enabled:
+          $ref: '#/components/schemas/InboundEnabled'
+          nullable: true
+          description: >-
+            Absent on domains created before this field existed; those receive
+            email.
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
         tracking_enabled:
@@ -12827,9 +14628,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/VerificationRecord'
-          description: |-
-            A list of DNS records required to verify the domain. Includes a
-            wildcard MX record (`*.<domain>`) when `subdomains_enabled` is true.
+          description: >-
+            A list of DNS records required to verify the domain. Includes the
+            apex
+
+            MX record unless `inbound_enabled` is false, and a wildcard MX
+            record
+
+            (`*.<domain>`) when `subdomains_enabled` is true.
         client_id:
           $ref: '#/components/schemas/ClientId'
           nullable: true
@@ -12864,6 +14670,12 @@ components:
           $ref: '#/components/schemas/DomainName'
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+        inbound_enabled:
+          $ref: '#/components/schemas/InboundEnabled'
+          nullable: true
+          description: >-
+            Absent on domains created before this field existed; those receive
+            email.
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
         tracking_enabled:
@@ -12978,8 +14790,14 @@ components:
 
             Workspace domains, follow the [Google Workspace
             guide](/google-workspace).
+
+            Only checked when `inbound_enabled` is true; a send-only domain
+            skips the check.
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+          nullable: true
+        inbound_enabled:
+          $ref: '#/components/schemas/InboundEnabled'
           nullable: true
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
@@ -12993,20 +14811,24 @@ components:
       title: UpdateDomainRequest
       type: object
       description: >-
-        Provide at least one of `feedback_enabled`, `subdomains_enabled`, or
+        Provide at least one of `feedback_enabled`, `inbound_enabled`,
 
-        `tracking_enabled`. Omitted
+        `subdomains_enabled`, or `tracking_enabled`. Omitted fields are left
 
-        fields are left unchanged; an empty body is rejected. Enabling
+        unchanged; an empty body is rejected. Enabling `inbound_enabled` or
 
         `subdomains_enabled` on a verified domain returns it to `PENDING` until
         the
 
-        newly-required wildcard MX record (`*.<domain>`) is published and
-        verified.
+        newly required MX record (the apex MX, or the wildcard `*.<domain>`) is
+
+        published and verified.
       properties:
         feedback_enabled:
           $ref: '#/components/schemas/FeedbackEnabled'
+          nullable: true
+        inbound_enabled:
+          $ref: '#/components/schemas/InboundEnabled'
           nullable: true
         subdomains_enabled:
           $ref: '#/components/schemas/SubdomainsEnabled'
@@ -13385,6 +15207,9 @@ components:
         - message.received.spam
         - message.received.blocked
         - message.received.unauthenticated
+        - message.security.completed
+        - message.security.review
+        - message.security.override
         - message.sent
         - message.delivered
         - message.bounced
@@ -13660,6 +15485,138 @@ components:
         - event_id
         - message
         - thread
+    MessageSecurity:
+      title: MessageSecurity
+      type: object
+      description: >-
+        The message an Agent Armor result is for. Fetch the message for its
+        content.
+      properties:
+        organization_id:
+          $ref: '#/components/schemas/OrganizationId'
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        message_id:
+          $ref: '#/components/schemas/MessageId'
+        agent_armor:
+          $ref: '#/components/schemas/AgentArmorCompletedEventResult'
+      required:
+        - organization_id
+        - inbox_id
+        - message_id
+        - agent_armor
+    MessageSecurityCompletedEvent:
+      title: MessageSecurityCompletedEvent
+      type: object
+      description: >-
+        Agent Armor reached a verdict on a received message. Sent only in
+        monitor mode, and only for `complete` results:
+
+        an `unavailable` result sends no event. Sent once per message and inbox;
+        `event_id` is stable, so use it to
+
+        deduplicate. Not sent for messages labeled `spam`, `blocked`,
+        `unauthenticated`, or `trash`: read those through
+
+        the API.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: message.security.completed
+        event_id:
+          $ref: '#/components/schemas/EventId'
+        message:
+          $ref: '#/components/schemas/MessageSecurity'
+      required:
+        - type
+        - event_type
+        - event_id
+        - message
+      x-fern-availability: pre-release
+    MessageSecurityReviewEvent:
+      title: MessageSecurityReviewEvent
+      type: object
+      description: >-
+        In hold mode, Agent Armor held a received message for review: your
+        agents are not sent its `message.received`
+
+        until someone releases it. The message carries the `agent-armor-held`
+        label until then. Sent once per message and
+
+        inbox; `event_id` is stable. Not sent for messages labeled `spam`,
+        `blocked`, `unauthenticated`, or `trash`: list
+
+        held mail by the `agent-armor-held` label instead.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: message.security.review
+        event_id:
+          $ref: '#/components/schemas/EventId'
+        message:
+          $ref: '#/components/schemas/MessageSecurity'
+      required:
+        - type
+        - event_type
+        - event_id
+        - message
+      x-fern-availability: pre-release
+    MessageSecurityOverride:
+      title: MessageSecurityOverride
+      type: object
+      description: >-
+        The message someone released, and the record of the release. Fetch the
+        message for its content.
+      properties:
+        organization_id:
+          $ref: '#/components/schemas/OrganizationId'
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        message_id:
+          $ref: '#/components/schemas/MessageId'
+        manual_override:
+          $ref: '#/components/schemas/AgentArmorManualOverride'
+      required:
+        - organization_id
+        - inbox_id
+        - message_id
+        - manual_override
+    MessageSecurityOverrideEvent:
+      title: MessageSecurityOverrideEvent
+      type: object
+      description: >-
+        Someone released a message Agent Armor held for review. Its
+        `message.received` is sent to your agents as well,
+
+        and the two can arrive in either order.
+
+        Sent once per message and inbox; `event_id` is stable. Not sent for
+        messages labeled `spam`, `blocked`,
+
+        `unauthenticated`, or `trash`.
+      properties:
+        type:
+          type: string
+          const: event
+        event_type:
+          type: string
+          const: message.security.override
+        event_id:
+          $ref: '#/components/schemas/EventId'
+        message:
+          $ref: '#/components/schemas/MessageSecurityOverride'
+      required:
+        - type
+        - event_type
+        - event_id
+        - message
+      x-fern-availability: pre-release
     MessageSentEvent:
       title: MessageSentEvent
       type: object
@@ -14052,6 +16009,235 @@ components:
         - inbox_id
         - calendar_event
         - scheduled_at
+    FileId:
+      title: FileId
+      type: string
+      description: ID of the file. A UUID.
+    FilePath:
+      title: FilePath
+      type: string
+      description: >-
+        Where the file lives in its inbox's drive, such as `reports/q3.pdf`.
+        Unique within the inbox. Segments are
+
+        separated by `/`, with no leading or trailing `/`, no empty, `.` or `..`
+        segment, no `\` and no control or
+
+        invisible characters. At most 1,024 bytes, and at most 255 bytes per
+        segment. Stored in Unicode NFC, so two
+
+        spellings of one name are one path. Case is kept.
+    FileName:
+      title: FileName
+      type: string
+      description: The path's last segment. A download saves under this name.
+    FileSize:
+      title: FileSize
+      type: integer
+      description: Size of the file in bytes. At most 104,857,600 (100 MiB).
+    FileSha256:
+      title: FileSha256
+      type: string
+      description: >-
+        The base64 encoding of the file's 32-byte SHA-256 digest, as S3's
+        `x-amz-checksum-sha256` takes it (44
+
+        characters, ending in `=`). S3 refuses an upload whose bytes don't
+        match.
+    FileContentType:
+      title: FileContentType
+      type: string
+      description: >-
+        The file's MIME type, such as `application/pdf`. Defaults to
+        `application/octet-stream`.
+    FileStatus:
+      title: FileStatus
+      type: string
+      enum:
+        - pending
+        - ready
+      description: >-
+        `pending` until its bytes are uploaded and the upload is completed, then
+        `ready`. Only a `ready` file has a
+
+        download URL. A pending file is deleted if it isn't completed within a
+        day.
+    FileExpiresAt:
+      title: FileExpiresAt
+      type: string
+      format: date-time
+      description: >-
+        When the file expires. After it, the file is gone from get and list and
+        its path is free; its bytes are
+
+        deleted soon after. Absent for a file that never expires.
+    FileItem:
+      title: FileItem
+      type: object
+      description: A file, as a list returns it.
+      properties:
+        file_id:
+          $ref: '#/components/schemas/FileId'
+        inbox_id:
+          $ref: '#/components/schemas/inboxesInboxId'
+        email:
+          $ref: '#/components/schemas/inboxesEmail'
+        path:
+          $ref: '#/components/schemas/FilePath'
+        name:
+          $ref: '#/components/schemas/FileName'
+        size:
+          $ref: '#/components/schemas/FileSize'
+        content_type:
+          $ref: '#/components/schemas/FileContentType'
+        sha256:
+          $ref: '#/components/schemas/FileSha256'
+        status:
+          $ref: '#/components/schemas/FileStatus'
+        created_at:
+          type: string
+          format: date-time
+          description: When the file was created.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the file last changed, such as when its upload was completed.
+        expires_at:
+          $ref: '#/components/schemas/FileExpiresAt'
+          nullable: true
+      required:
+        - file_id
+        - inbox_id
+        - email
+        - path
+        - name
+        - size
+        - content_type
+        - sha256
+        - status
+        - created_at
+        - updated_at
+    File:
+      title: File
+      type: object
+      description: >-
+        A file. A `ready` file returned to a caller with the `file_read`
+        permission carries a signed `download_url`.
+      properties:
+        download_url:
+          type: string
+          nullable: true
+          description: >-
+            A signed URL that downloads the file's bytes, named by `name`. No
+            API key is needed to use it, so treat it
+
+            as a secret. It works until `download_expires_at`, at most an hour,
+            even after the file is deleted. Get the
+
+            file again for a fresh one.
+        download_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            When `download_url` stops working. Never after the file's own
+            expiry.
+      allOf:
+        - $ref: '#/components/schemas/FileItem'
+    FileUpload:
+      title: FileUpload
+      type: object
+      description: >-
+        Where to upload a pending file's bytes: one HTTP `PUT` to `url` with
+        exactly `headers` and the file's bytes as
+
+        the body. Every header is signed, so S3 refuses the upload if any is
+        missing or different, and refuses bytes
+
+        whose size or SHA-256 doesn't match the file. Then call Complete File.
+      properties:
+        method:
+          type: string
+          const: PUT
+          description: Always `PUT`.
+        url:
+          type: string
+          description: The presigned S3 URL. No API key is needed to use it.
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: The headers to send with the `PUT`, exactly as given.
+        expires_at:
+          type: string
+          format: date-time
+          description: >-
+            When `url` stops working, at most an hour after it was issued. Send
+            the identical create request again for a fresh one.
+      required:
+        - method
+        - url
+        - headers
+        - expires_at
+    CreateFileRequest:
+      title: CreateFileRequest
+      type: object
+      properties:
+        path:
+          $ref: '#/components/schemas/FilePath'
+        size:
+          $ref: '#/components/schemas/FileSize'
+        sha256:
+          $ref: '#/components/schemas/FileSha256'
+        content_type:
+          $ref: '#/components/schemas/FileContentType'
+          nullable: true
+        expires_at:
+          $ref: '#/components/schemas/FileExpiresAt'
+          nullable: true
+          description: >-
+            When the file expires, in the future. Rounded up to a whole second
+            and returned in UTC. On a retry, send
+
+            the `expires_at` the first response returned.
+      required:
+        - path
+        - size
+        - sha256
+    CreateFileResponse:
+      title: CreateFileResponse
+      type: object
+      description: >-
+        The created file. A pending file carries `upload`; a create that returns
+        an existing `ready` file does not.
+      properties:
+        upload:
+          $ref: '#/components/schemas/FileUpload'
+          nullable: true
+      allOf:
+        - $ref: '#/components/schemas/File'
+    ListFilesResponse:
+      title: ListFilesResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/Limit'
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileItem'
+          description: >-
+            The inbox's files in path order. A list has no download URLs; get a
+            file for one.
+      required:
+        - count
+        - limit
+        - files
     InboxEventId:
       title: InboxEventId
       type: string
@@ -14511,6 +16697,23 @@ components:
       type: string
       format: date-time
       description: Time at which message was created.
+    MessageCalendarEventId:
+      title: MessageCalendarEventId
+      type: string
+      description: >-
+        The calendar event this email's invitation was applied to: set when the
+        email's calendar
+
+        invitation, update, cancellation or attendee reply changed the inbox's
+        calendar, a few seconds
+
+        after the email arrives. For an email about one date of a recurring
+        event, it is that date's
+
+        event ID. Absent on other emails, and on invitations that were not
+        imported. Calendar is in
+
+        AgentMail Labs.
     MessageItem:
       title: MessageItem
       type: object
@@ -14547,6 +16750,9 @@ components:
         in_reply_to:
           $ref: '#/components/schemas/MessageInReplyTo'
           nullable: true
+        calendar_event_id:
+          $ref: '#/components/schemas/MessageCalendarEventId'
+          nullable: true
         references:
           $ref: '#/components/schemas/MessageReferences'
           nullable: true
@@ -14556,6 +16762,10 @@ components:
         authentication_results:
           $ref: '#/components/schemas/MessageAuthenticationResults'
           nullable: true
+        agent_armor:
+          $ref: '#/components/schemas/AgentArmorResult'
+          nullable: true
+          x-fern-availability: pre-release
         size:
           $ref: '#/components/schemas/MessageSize'
         updated_at:
@@ -14631,6 +16841,9 @@ components:
         in_reply_to:
           $ref: '#/components/schemas/MessageInReplyTo'
           nullable: true
+        calendar_event_id:
+          $ref: '#/components/schemas/MessageCalendarEventId'
+          nullable: true
         references:
           $ref: '#/components/schemas/MessageReferences'
           nullable: true
@@ -14640,6 +16853,10 @@ components:
         authentication_results:
           $ref: '#/components/schemas/MessageAuthenticationResults'
           nullable: true
+        agent_armor:
+          $ref: '#/components/schemas/AgentArmorResult'
+          nullable: true
+          x-fern-availability: pre-release
         size:
           $ref: '#/components/schemas/MessageSize'
         updated_at:
@@ -15306,6 +17523,32 @@ components:
         - domain_count
         - updated_at
         - created_at
+    OrganizationLabs:
+      title: OrganizationLabs
+      type: object
+      description: >-
+        Whether the organization is in AgentMail Labs, and whether Labs is
+        offered in this deployment.
+      properties:
+        enabled:
+          type: boolean
+          description: Whether the organization is in AgentMail Labs.
+        enabled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Time at which the organization joined Labs. `null` when it is not in
+            Labs.
+        available:
+          type: boolean
+          description: >-
+            Whether Labs is offered in this deployment. Labs is available in US
+            production (`api.agentmail.to`), not yet in EU production
+            (`api.agentmail.eu`).
+      required:
+        - enabled
+        - available
     ThreadId:
       title: ThreadId
       type: string
@@ -15644,6 +17887,178 @@ components:
       title: webhooksSvixSignature
       type: string
       description: Signature of webhook message.
+    webhooksPollingToken:
+      title: webhooksPollingToken
+      type: string
+      description: >-
+        Credential for reading this subscription's events. Hand it to the Svix
+        AutoConfig consumer
+
+        (`AutoConfigConsumer` in the `svix` package for TypeScript and Python):
+        `receive` returns the events
+
+        queued since your last commit, `commit` marks them as processed.
+        Returned by create only and never
+
+        readable afterward. Create again with the same `client_id` to get a new
+        token; the previous one stops
+
+        working immediately.
+    webhooksPollingClientId:
+      title: webhooksPollingClientId
+      $ref: '#/components/schemas/webhooksClientId'
+      description: >-
+        Required. Idempotency key of the subscription: creating again with the
+        same `client_id` through the
+
+        same route returns the existing subscription with a fresh token instead
+        of a second subscription, so a
+
+        restarted agent resumes where it left off. Also accepted in place of
+        `webhook_id` on get and delete.
+    webhooksPollingWebhook:
+      title: webhooksPollingWebhook
+      type: object
+      description: >-
+        A subscription the agent polls for events instead of receiving them at a
+        URL. Same event types,
+
+        channels (pods and inboxes) and permissions as a webhook; no public
+        endpoint is needed.
+      properties:
+        webhook_id:
+          $ref: '#/components/schemas/webhooksWebhookId'
+        client_id:
+          $ref: '#/components/schemas/webhooksPollingClientId'
+        event_types:
+          $ref: '#/components/schemas/EventTypes'
+        pod_ids:
+          $ref: '#/components/schemas/PodIds'
+          nullable: true
+        inbox_ids:
+          $ref: '#/components/schemas/InboxIds'
+          nullable: true
+        pod_id:
+          type: string
+          nullable: true
+          description: >-
+            ID of the pod the subscription belongs to: the pod it was created
+            in, or the pod of the inbox it
+
+            belongs to. Absent for an organization subscription. This is not the
+            list of pods it receives
+
+            events for; see `pod_ids`.
+        inbox_id:
+          type: string
+          nullable: true
+          description: >-
+            ID of the inbox the subscription belongs to, if it was created for
+            an inbox. This is not the
+
+            list of inboxes it receives events for; see `inbox_ids`.
+        updated_at:
+          type: string
+          format: date-time
+          description: Time at which the subscription was last updated.
+        created_at:
+          type: string
+          format: date-time
+          description: Time at which the subscription was created.
+      required:
+        - webhook_id
+        - client_id
+        - event_types
+        - updated_at
+        - created_at
+    webhooksCreatePollingWebhookResponse:
+      title: webhooksCreatePollingWebhookResponse
+      type: object
+      description: The subscription plus the one-time `token` that reads it.
+      properties:
+        token:
+          $ref: '#/components/schemas/webhooksPollingToken'
+      required:
+        - token
+      allOf:
+        - $ref: '#/components/schemas/webhooksPollingWebhook'
+    webhooksListPollingWebhooksResponse:
+      title: webhooksListPollingWebhooksResponse
+      type: object
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        limit:
+          $ref: '#/components/schemas/Limit'
+          nullable: true
+        next_page_token:
+          $ref: '#/components/schemas/PageToken'
+          nullable: true
+        polling_webhooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/webhooksPollingWebhook'
+          description: >-
+            Ordered by `created_at` descending. Lists the subscriptions created
+            through this route
+
+            (organization, pod, or inbox); subscriptions created through a pod
+            or inbox route are listed
+
+            through that route.
+      required:
+        - count
+        - polling_webhooks
+    webhooksCreateInboxPollingWebhookRequest:
+      title: webhooksCreateInboxPollingWebhookRequest
+      type: object
+      description: >-
+        Create a polling webhook scoped to an inbox. The inbox comes from the
+        path, so `inbox_ids` and
+
+        `pod_ids` are not accepted.
+      properties:
+        client_id:
+          $ref: '#/components/schemas/webhooksPollingClientId'
+        event_types:
+          $ref: '#/components/schemas/webhooksCreateWebhookEventTypes'
+      required:
+        - client_id
+        - event_types
+    webhooksCreatePodPollingWebhookRequest:
+      title: webhooksCreatePodPollingWebhookRequest
+      type: object
+      description: >-
+        Create a polling webhook scoped to a pod. The pod comes from the path,
+        so `pod_ids` is not accepted.
+
+        Optionally pass `inbox_ids` to narrow the subscription to specific
+        inboxes within the pod; omit to
+
+        receive events for the whole pod.
+      properties:
+        inbox_ids:
+          $ref: '#/components/schemas/InboxIds'
+          nullable: true
+      allOf:
+        - $ref: '#/components/schemas/webhooksCreateInboxPollingWebhookRequest'
+    webhooksCreatePollingWebhookRequest:
+      title: webhooksCreatePollingWebhookRequest
+      type: object
+      properties:
+        pod_ids:
+          $ref: '#/components/schemas/PodIds'
+          nullable: true
+          description: >-
+            Pods for which to receive events. Maximum 10 channels (pods plus
+            inboxes) per subscription. The
+
+            subscription receives an event that matches any listed pod or inbox,
+            so a listed pod already
+
+            covers every inbox in it.
+      allOf:
+        - $ref: '#/components/schemas/webhooksCreatePodPollingWebhookRequest'
     Subscribe:
       title: Subscribe
       type: object
