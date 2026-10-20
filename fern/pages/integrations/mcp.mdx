@@ -7,7 +7,7 @@ description: Connect AgentMail to Claude, ChatGPT, Cursor, and other MCP clients
 
 ## Overview
 
-The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, and attachment tools to any compatible client, plus [AgentID](/agentid-in-assistants) tools that create accounts for your agent at services like Firecrawl. Clients that support [MCP Events](/integrations/mcp-events), such as ChatGPT, can also subscribe to new mail and act on it as it arrives.
+The Model Context Protocol (MCP) is an open standard that lets AI clients call external tools. AgentMail runs a hosted MCP server at `https://mcp.agentmail.to/mcp` that exposes inbox, message, thread, draft, attachment, and calendar tools to any compatible client, plus [AgentID](/agentid-in-assistants) tools that create accounts for your agent at services like Firecrawl. Clients that support [MCP Events](/integrations/mcp-events), such as ChatGPT, can also subscribe to new mail and act on it as it arrives.
 
 The server supports two authentication paths:
 
@@ -98,7 +98,7 @@ MCP clients discover the live tool catalog from the hosted server. The canonical
 
 **Claude says it cannot access AgentMail.** The connector is not installed or not connected. Follow the Claude Desktop setup steps above and confirm the connector shows as connected in **Settings**, then **Connectors**.
 
-**The assistant does not list the AgentID tools.** Disconnect and reconnect the AgentMail connector so the client reloads the tool list, then ask `List AgentID apps`.
+**The assistant does not list the AgentID or calendar tools.** Disconnect and reconnect the AgentMail connector so the client reloads the tool list, then ask `List AgentID apps`.
 
 **OAuth opens `console.agentmail.to` but says you do not have an account.** Sign up at [console.agentmail.to](https://console.agentmail.to) first, then retry the connector flow.
 

@@ -53,12 +53,14 @@ def load_manifest():
     return manifest
 
 
+# A string keyword matches tool names containing it; a set matches exactly the names in it. The first group that matches wins.
 GROUPS = [
     ("Inboxes", "inbox"),
     ("Threads", "thread"),
     ("Messages", "message"),
     ("Drafts", "draft"),
     ("Attachments", "attachment"),
+    ("Calendar", {"get_agenda", "get_event", "create_event", "update_event", "delete_event", "respond_to_invitation", "get_calendar", "update_calendar"}),
     ("Allow and block lists", "entr"),
     ("Agent sign-up", "agent"),
     ("Apps", "_app"),
@@ -100,6 +102,14 @@ DESCRIPTIONS = {
     "send_draft": "Send a draft immediately (converted to a sent message and deleted).",
     "delete_draft": "Delete a draft. Also cancels a scheduled send.",
     "get_attachment": "Get an attachment from a thread. Returns metadata and a download URL, plus extracted text for PDF/DOCX.",
+    "get_agenda": "List what is on an inbox's calendar in a time window: one-off events and each date of recurring events, by start time.",
+    "get_event": "Get a calendar event by ID, with its description, attendees, and their responses.",
+    "create_event": "Create a one-off or recurring event on an inbox's calendar. `sendInvites` emails every attendee an invitation.",
+    "update_event": "Change an event, one date of a recurring event, or that date and every later one. Pass `sendInvites` again to email attendees the change (events this inbox organizes only).",
+    "delete_event": "Delete an event, or cancel dates of a recurring one. `sendInvites` emails attendees a cancellation, for events this inbox organizes; to turn down an invitation, use `respond_to_invitation`.",
+    "respond_to_invitation": "Accept, decline, or tentatively accept a calendar invitation the inbox received by email, and email the answer to the organizer (`sendReply: false` records it only on the calendar).",
+    "get_calendar": "Get an inbox's calendar: its default time zone and how many events it holds.",
+    "update_calendar": "Set an inbox's calendar default time zone for events created without one.",
     "list_list_entries": "List the entries on one of an inbox's allow or block lists (send, receive, or reply).",
     "get_list_entry": "Get one entry from an inbox's allow or block list, by email address or domain.",
     "create_list_entry": "Add an email address or domain to an inbox's allow or block list. The first allow entry turns that list on.",
@@ -120,7 +130,7 @@ DESCRIPTIONS = {
 
 def group_for(name):
     for title, keyword in GROUPS:
-        if keyword in name:
+        if (name in keyword) if isinstance(keyword, set) else (keyword in name):
             return title
     raise ValueError(f"tool {name} matches no resource group; update GROUPS")
 
