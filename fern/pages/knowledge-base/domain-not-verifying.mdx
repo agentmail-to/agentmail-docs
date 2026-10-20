@@ -49,6 +49,7 @@ for (const record of domain.records) {
 | `ses_dkim_failed`, `ses_mail_from_failed` | A final failure for DKIM or for the MAIL FROM records | Confirm the DKIM record (or the `mail` MX and SPF records) are correct, then click **Verify Domain** |
 | `ses_dkim_not_started`, `ses_mail_from_not_started` | That part of verification was never started | Click **Verify Domain** |
 | `ses_not_verified_for_sending` | DKIM and MAIL FROM both pass, but the domain is not yet enabled for sending | Click **Verify Domain**; contact support if it persists |
+| `tracking_certificate_failed` | The certificate for the open tracking `link` subdomain was refused | Set the `link` record to DNS only and allow Amazon in any CAA records, then turn open tracking off and back on. See [open tracking setup](/knowledge-base/open-tracking#setup) |
 
 **Record reasons:**
 

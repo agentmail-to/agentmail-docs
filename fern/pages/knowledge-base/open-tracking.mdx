@@ -4,17 +4,26 @@ subtitle: Track opens on the emails your agent sends, and react when a recipient
 slug: knowledge-base/open-tracking
 ---
 
-<Warning>
-Open tracking is in **private beta**. It requires the **Developer plan or above** and must be enabled on your organization by our team. Email [support@agentmail.cc](mailto:support@agentmail.cc) to request access.
-</Warning>
-
 When you send with `track_opens`, AgentMail adds an invisible 1x1 pixel to your HTML body, served from your own domain. The first time a recipient's mail client loads that pixel, the message is marked as opened.
 
 You can see opens two ways: the `opened` label on the message, which you can poll or filter on, and the `message.opened` event, which is pushed to your webhook the moment it happens.
 
+Open tracking is included on every plan at no extra cost. You turn it on per domain, in the console or through the API.
+
 ## Setup
 
 Open tracking is only available on a custom domain, because the pixel is served from your domain and carries your sender reputation rather than a shared one. See [Custom domain setup](/knowledge-base/custom-domain-setup) if you do not have one yet.
+
+### Turn it on in the console
+
+In the [AgentMail Console](https://console.agentmail.to), go to **Domains**:
+
+- **New domain:** click **Add Domain** and check **Open tracking**.
+- **Existing domain:** open the domain's actions menu, choose **Edit**, and check **Open tracking**.
+
+The console then shows the domain's records, including the new `link.<domain>` CNAME.
+
+### Turn it on with the API
 
 Enable tracking when you create the domain:
 
@@ -68,7 +77,11 @@ const domain = await client.domains.update("mail.yourcompany.com", {
 ```
 </CodeBlocks>
 
-Until open tracking is enabled on your organization, either call returns `403` with code `forbidden`. Once it is enabled, either call adds a `link.<domain>` CNAME to the domain's `records`. Publish every record at your DNS provider, then wait for the domain to report `VERIFIED`:
+Either call adds a `link.<domain>` CNAME to the domain's `records`.
+
+### Publish the CNAME record
+
+Publish every record at your DNS provider, then wait for the domain to report `VERIFIED`:
 
 <CodeBlocks>
 ```python title="Python"
@@ -86,11 +99,22 @@ console.log(domain.trackingEnabled); // true
 ```
 </CodeBlocks>
 
-Certificate issuance for the `link.` subdomain usually takes a few minutes after the CNAME resolves.
+Once the CNAME resolves, AgentMail requests a TLS certificate for `link.<domain>`. Issuance usually takes a few minutes.
+
+<Warning>
+Turning on tracking for a domain that is already `VERIFIED` moves it back to `PENDING`. It returns to `VERIFIED` once the CNAME resolves and the certificate is issued. Until then, you cannot create new inboxes on the domain, and sends with `track_opens` are rejected. Sending without `track_opens` is not affected.
+</Warning>
+
+Two DNS settings commonly block the certificate:
+
+- **Proxied records.** If your DNS provider can proxy traffic, such as Cloudflare's orange cloud, set the `link` record to **DNS only**. A proxied record does not resolve to the CNAME target, so the domain cannot verify.
+- **CAA records.** If your domain or a parent domain has CAA records, they must allow Amazon to issue the certificate. Add `0 issue "amazon.com"` next to your existing CAA records. If you have no CAA records, there is nothing to change.
+
+If the certificate is refused, the domain moves to `FAILED` with the reason `tracking_certificate_failed`. Fix the DNS, then turn tracking off and back on to request a new certificate.
 
 ## Sending a tracked message
 
-Set `track_opens` on any send, reply, or reply-all:
+Set `track_opens` on any send, reply, reply-all, or forward:
 
 <CodeBlocks>
 ```python title="Python"
@@ -269,10 +293,6 @@ If your agent takes action on an open, such as sending a follow-up, design it to
 
 - **First open only.** The label and the event fire once per message. Repeat opens are not counted.
 - **One pixel per message, not per recipient.** A message sent to several recipients fires once when any of them opens it, and the event does not say which one. Send separate messages if you need per-recipient attribution.
-- **Immediate sends only.** `track_opens` is honored on send, reply, and reply-all. It is not yet supported on drafts or scheduled sends.
+- **Immediate sends only.** `track_opens` is honored on send, reply, reply-all, and forward. It is not yet supported on drafts or scheduled sends.
 - **Custom domains only.** Tracking is not available on shared AgentMail domains.
 - **No click tracking** yet.
-
-## Getting access
-
-Open tracking is in private beta on the Developer plan and above. Email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization and we will enable it. We are actively collecting feedback on this feature, so tell us what is missing.
