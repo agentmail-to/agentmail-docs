@@ -166,6 +166,19 @@ The toolkit exposes more than 40 tools covering the AgentMail API. The main ones
 | --- | --- |
 | `get_attachment` | Get an attachment's metadata and download URL, plus extracted text for PDF and DOCX files |
 
+### Calendar
+
+| Tool | Description |
+| --- | --- |
+| `get_agenda` | List an inbox's events in a time window, including each date of recurring events |
+| `get_event` | Get one event with its description, attendees, and their responses |
+| `create_event` | Create a one-off or recurring event, emailing invitations with `sendInvites` |
+| `update_event` | Change an event, one date of a recurring event, or that date and every later one |
+| `delete_event` | Delete an event, or cancel dates of a recurring one |
+| `respond_to_invitation` | Accept, decline, or tentatively accept an emailed invitation, emailing the organizer by default |
+| `get_calendar` | Get an inbox's calendar settings, including its default time zone |
+| `update_calendar` | Set the default time zone for events created without one |
+
 Additional tools cover files, allow and block lists, and the rest of the API. Call `getTools()` and inspect the returned keys for the full list.
 
 ## Resources

@@ -53,14 +53,14 @@ def load_manifest():
     return manifest
 
 
-# Each keyword is a regular expression searched for in the tool name; the first group that matches wins.
+# A string keyword matches tool names containing it; a set matches exactly the names in it. The first group that matches wins.
 GROUPS = [
     ("Inboxes", "inbox"),
     ("Threads", "thread"),
     ("Messages", "message"),
     ("Drafts", "draft"),
     ("Attachments", "attachment"),
-    ("Calendar", "agenda|event|calendar|invitation"),
+    ("Calendar", {"get_agenda", "get_event", "create_event", "update_event", "delete_event", "respond_to_invitation", "get_calendar", "update_calendar"}),
     ("Allow and block lists", "entr"),
     ("Agent sign-up", "agent"),
     ("Apps", "_app"),
@@ -105,9 +105,9 @@ DESCRIPTIONS = {
     "get_agenda": "List what is on an inbox's calendar in a time window: one-off events and each date of recurring events, by start time.",
     "get_event": "Get a calendar event by ID, with its description, attendees, and their responses.",
     "create_event": "Create a one-off or recurring event on an inbox's calendar. `sendInvites` emails every attendee an invitation.",
-    "update_event": "Change an event, one date of a recurring event, or that date and every later one. Pass `sendInvites` again to email attendees the change.",
-    "delete_event": "Delete an event, or cancel dates of a recurring one. `sendInvites` emails attendees a cancellation.",
-    "respond_to_invitation": "Accept, decline, or tentatively accept a calendar invitation the inbox received by email.",
+    "update_event": "Change an event, one date of a recurring event, or that date and every later one. Pass `sendInvites` again to email attendees the change (events this inbox organizes only).",
+    "delete_event": "Delete an event, or cancel dates of a recurring one. `sendInvites` emails attendees a cancellation, for events this inbox organizes; to turn down an invitation, use `respond_to_invitation`.",
+    "respond_to_invitation": "Accept, decline, or tentatively accept a calendar invitation the inbox received by email, and email the answer to the organizer (`sendReply: false` records it only on the calendar).",
     "get_calendar": "Get an inbox's calendar: its default time zone and how many events it holds.",
     "update_calendar": "Set an inbox's calendar default time zone for events created without one.",
     "list_list_entries": "List the entries on one of an inbox's allow or block lists (send, receive, or reply).",
@@ -130,7 +130,7 @@ DESCRIPTIONS = {
 
 def group_for(name):
     for title, keyword in GROUPS:
-        if re.search(keyword, name):
+        if (name in keyword) if isinstance(keyword, set) else (keyword in name):
             return title
     raise ValueError(f"tool {name} matches no resource group; update GROUPS")
 
