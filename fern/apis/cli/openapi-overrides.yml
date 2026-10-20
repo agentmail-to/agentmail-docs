@@ -1131,3 +1131,9 @@ paths:
       - webhooks
       - polling
       x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/release:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - messages
+      x-fern-sdk-method-name: release-agent-armor-message
