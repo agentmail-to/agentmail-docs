@@ -123,7 +123,7 @@ The TypeScript SDK provides a WebSocket client with automatic reconnection.
 ### Basic Usage
 
 ```typescript
-import { AgentMailClient, AgentMail } from "agentmail";
+import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient({
   apiKey: process.env.AGENTMAIL_API_KEY,
@@ -143,11 +143,11 @@ async function main() {
     });
   });
 
-  socket.on("message", (event: AgentMail.Subscribed | AgentMail.MessageReceivedEvent) => {
+  socket.on("message", (event) => {
     if (event.type === "subscribed") {
       console.log("Subscribed to:", event.inboxIds);
-    } else if (event.type === "message_received") {
-      console.log("New email from:", event.message.from_);
+    } else if (event.type === "event" && event.eventType === "message.received") {
+      console.log("New email from:", event.message.from);
       console.log("Subject:", event.message.subject);
     }
   });
@@ -193,7 +193,7 @@ function useAgentMailWebSocket(apiKey: string, inboxIds: string[]) {
       });
 
       socket.on("message", (event) => {
-        if (event.type === "message_received") {
+        if (event.type === "event" && event.eventType === "message.received") {
           setLastMessage(event);
         }
       });
@@ -285,45 +285,47 @@ socket.sendSubscribe({
 
 ## Event Types
 
+Every event arrives with `type: "event"`. Tell events apart by `event_type` (`eventType` in TypeScript), or by class in Python.
+
 ### Connection Events
 
-| Event | Python | TypeScript | Description |
+| `type` | Python | TypeScript | Description |
 |-------|--------|------------|-------------|
 | `subscribed` | `Subscribed` | `AgentMail.Subscribed` | Subscription confirmed |
 
 ### Message Events
 
-| Event | Python | TypeScript | Description |
+| `event_type` | Python | TypeScript | Description |
 |-------|--------|------------|-------------|
-| `message_received` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | Email received. Check `event_type` for `message.received`, `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` |
-| `message_sent` | `MessageSentEvent` | `AgentMail.MessageSentEvent` | Email was sent |
-| `message_delivered` | `MessageDeliveredEvent` | `AgentMail.MessageDeliveredEvent` | Email was delivered |
-| `message_bounced` | `MessageBouncedEvent` | `AgentMail.MessageBouncedEvent` | Email bounced |
-| `message_complained` | `MessageComplainedEvent` | `AgentMail.MessageComplainedEvent` | Email marked as spam |
-| `message_rejected` | `MessageRejectedEvent` | `AgentMail.MessageRejectedEvent` | Email was rejected |
-| `message_opened` | `MessageOpenedEvent` | `AgentMail.MessageOpenedEvent` | Tracked email was opened for the first time |
-| `message_security_completed` | `MessageSecurityCompletedEvent` | `AgentMail.MessageSecurityCompletedEvent` | [Agent Armor](/agent-armor) finished scanning a received message, in Monitor mode |
-| `message_security_review` | `MessageSecurityReviewEvent` | `AgentMail.MessageSecurityReviewEvent` | Agent Armor in [Hold mode](/agent-armor#hold-mode) held a received message for review |
-| `message_security_override` | `MessageSecurityOverrideEvent` | `AgentMail.MessageSecurityOverrideEvent` | Someone released a message Agent Armor held |
+| `message.received` | `MessageReceivedEvent` | `AgentMail.MessageReceivedEvent` | Email received. Spam, blocked, and unauthenticated email arrives in the same class with `event_type` `message.received.spam`, `message.received.blocked`, or `message.received.unauthenticated` |
+| `message.sent` | `MessageSentEvent` | `AgentMail.MessageSentEvent` | Email was sent |
+| `message.delivered` | `MessageDeliveredEvent` | `AgentMail.MessageDeliveredEvent` | Email was delivered |
+| `message.bounced` | `MessageBouncedEvent` | `AgentMail.MessageBouncedEvent` | Email bounced |
+| `message.complained` | `MessageComplainedEvent` | `AgentMail.MessageComplainedEvent` | Email marked as spam |
+| `message.rejected` | `MessageRejectedEvent` | `AgentMail.MessageRejectedEvent` | Email was rejected |
+| `message.opened` | `MessageOpenedEvent` | `AgentMail.MessageOpenedEvent` | Tracked email was opened for the first time |
+| `message.security.completed` | `MessageSecurityCompletedEvent` | `AgentMail.MessageSecurityCompletedEvent` | [Agent Armor](/agent-armor) finished scanning a received message, in Monitor mode |
+| `message.security.review` | `MessageSecurityReviewEvent` | `AgentMail.MessageSecurityReviewEvent` | Agent Armor in [Hold mode](/agent-armor#hold-mode) held a received message for review |
+| `message.security.override` | `MessageSecurityOverrideEvent` | `AgentMail.MessageSecurityOverrideEvent` | Someone released a message Agent Armor held |
 
 ### Domain Events
 
-| Event | Python | TypeScript | Description |
+| `event_type` | Python | TypeScript | Description |
 |-------|--------|------------|-------------|
-| `domain_verified` | `DomainVerifiedEvent` | `AgentMail.DomainVerifiedEvent` | Domain verification completed |
+| `domain.verified` | `DomainVerifiedEvent` | `AgentMail.DomainVerifiedEvent` | Domain verification completed |
 
 ### Calendar Events
 
 Calendar events require the `calendar_event_read` permission, and reach only subscriptions that name them in `event_types`. See [Calendar Webhooks](/calendar-webhooks) for payloads and timing.
 
-| Event | Python | TypeScript | Description |
+| `event_type` | Python | TypeScript | Description |
 |-------|--------|------------|-------------|
-| `calendar_event_created` | `CalendarEventCreatedEvent` | `AgentMail.CalendarEventCreatedEvent` | A calendar event was created, or a date of a recurring event was first edited |
-| `calendar_event_updated` | `CalendarEventUpdatedEvent` | `AgentMail.CalendarEventUpdatedEvent` | A calendar event or date changed, or a date was cancelled |
-| `calendar_event_deleted` | `CalendarEventDeletedEvent` | `AgentMail.CalendarEventDeletedEvent` | A calendar event was deleted |
-| `calendar_event_responded` | `CalendarEventRespondedEvent` | `AgentMail.CalendarEventRespondedEvent` | An attendee's response changed |
-| `calendar_event_starting` | `CalendarEventStartingEvent` | `AgentMail.CalendarEventStartingEvent` | A calendar event or date started |
-| `calendar_event_ending` | `CalendarEventEndingEvent` | `AgentMail.CalendarEventEndingEvent` | A calendar event or date ended |
+| `calendar.event.created` | `CalendarEventCreatedEvent` | `AgentMail.CalendarEventCreatedEvent` | A calendar event was created, or a date of a recurring event was first edited |
+| `calendar.event.updated` | `CalendarEventUpdatedEvent` | `AgentMail.CalendarEventUpdatedEvent` | A calendar event or date changed, or a date was cancelled |
+| `calendar.event.deleted` | `CalendarEventDeletedEvent` | `AgentMail.CalendarEventDeletedEvent` | A calendar event was deleted |
+| `calendar.event.responded` | `CalendarEventRespondedEvent` | `AgentMail.CalendarEventRespondedEvent` | An attendee's response changed |
+| `calendar.event.starting` | `CalendarEventStartingEvent` | `AgentMail.CalendarEventStartingEvent` | A calendar event or date started |
+| `calendar.event.ending` | `CalendarEventEndingEvent` | `AgentMail.CalendarEventEndingEvent` | A calendar event or date ended |
 
 ---
 
@@ -336,7 +338,7 @@ The `event.message` object contains:
 | `inbox_id` | `inboxId` | Inbox that received the email |
 | `message_id` | `messageId` | Unique message ID |
 | `thread_id` | `threadId` | Conversation thread ID |
-| `from_` | `from_` | Sender email address |
+| `from_` | `from` | Sender email address |
 | `to` | `to` | Recipients list |
 | `subject` | `subject` | Subject line |
 | `text` | `text` | Plain text body |
@@ -371,7 +373,7 @@ async def main():
 
 **TypeScript:**
 ```typescript
-import { AgentMailClient, AgentMail, AgentMailError } from "agentmail";
+import { AgentMailClient, AgentMailError } from "agentmail";
 
 const client = new AgentMailClient({
   apiKey: process.env.AGENTMAIL_API_KEY,
@@ -388,8 +390,8 @@ async function main() {
       });
     });
 
-    socket.on("message", (event: AgentMail.MessageReceivedEvent) => {
-      if (event.type === "message_received") {
+    socket.on("message", (event) => {
+      if (event.type === "event" && event.eventType === "message.received") {
         processEmail(event.message);
       }
     });
@@ -446,7 +448,8 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
    *
    * const socket = await client.websockets.connect();
    * socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: [...] }));
-   * socket.on("message", (e) => { if (e.type === "subscribed") ...; if (e.type === "message_received") ... });
+   * socket.on("message", (e) => { if (e.type === "subscribed") ...; if (e.type === "event" && e.eventType === "message.received") ... });
+   * Every event arrives with type "event"; tell events apart by eventType ("message.received", "message.sent", ...).
    * socket.on("close" | "error", ...);
    */
   import { AgentMailClient } from "agentmail";
@@ -458,7 +461,7 @@ Copy one of the blocks below into Cursor or Claude for WebSockets in one shot.
     socket.on("open", () => socket.sendSubscribe({ type: "subscribe", inboxIds: ["agent@agentmail.to"] }));
     socket.on("message", (e) => {
       if (e.type === "subscribed") console.log(e.inboxIds);
-      if (e.type === "message_received") console.log(e.message.subject);
+      if (e.type === "event" && e.eventType === "message.received") console.log(e.message.subject);
     });
   }
   main().catch(console.error);
