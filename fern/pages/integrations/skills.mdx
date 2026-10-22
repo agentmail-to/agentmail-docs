@@ -45,6 +45,26 @@ codex plugin add agentmail@agentmail
 
 Start a new session after installing. Plugin skills are namespaced in Claude Code, for example `/agentmail:check-email`, and use a `$` prefix in Codex, for example `$check-email`.
 
+#### Update an installed plugin
+
+Repository releases and marketplace publication can happen at different times.
+After a release is available on your client's marketplace, refresh it and start a
+new session:
+
+```bash title="Claude Code"
+claude plugin marketplace update agentmail
+claude plugin update agentmail@agentmail
+```
+
+Run `/reload-plugins` in an existing Claude Code session to apply the new package.
+
+```bash title="Codex"
+codex plugin marketplace upgrade agentmail
+```
+
+In Cursor, update AgentMail from the plugin marketplace after the reviewed update
+is published, then start a new chat.
+
 ### OpenClaw
 
 OpenClaw users should install the official plugin instead, which bundles this skill along with the email channel. See [OpenClaw](/integrations/openclaw).
@@ -61,9 +81,12 @@ You can also manually clone the skill repository:
 git clone https://github.com/agentmail-to/agentmail-skills.git ~/.skills/agentmail
 ```
 
-## Configuration
+## Standalone skill and SDK configuration
 
-After installation, configure your AgentMail API key. The method varies by platform:
+The plugin installations above authenticate the hosted MCP server with OAuth and
+do not need an AgentMail API key. Configure an API key when using the standalone
+skill with an SDK or CLI, or when using a platform-specific integration such as
+OpenClaw.
 
 ### Environment variable
 
