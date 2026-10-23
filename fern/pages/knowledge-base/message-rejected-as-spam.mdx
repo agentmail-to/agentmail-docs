@@ -1,0 +1,93 @@
+---
+title: "Why was my message rejected as spam before sending?"
+subtitle: What the "classified as high-confidence spam" error means, which accounts it applies to, and what to do about it.
+slug: knowledge-base/message-rejected-as-spam
+---
+
+On the Free plan, AgentMail checks the body of each outgoing message before sending it. If the message is classified as high-confidence spam, the send fails with a `403` and the code `message_rejected`, and nothing is sent. Revise the content before you try again: resending the same text fails the same way.
+
+## At a glance
+
+| | |
+| --- | --- |
+| Error | `403` `message_rejected` |
+| Who it applies to | Accounts on the Free plan. Paid plans, and agent accounts that have not been verified yet, are not checked |
+| What is checked | The message's text and HTML body |
+| Where | Every way of sending: send, reply, reply-all, forward, sending a draft, scheduled sends, and SMTP |
+| Is anything sent? | No. The rejected message does not count against your sending limits |
+
+## Symptoms
+
+The error `message` is one of these:
+
+| `message` | Meaning |
+| --- | --- |
+| `Message rejected: This message was classified as high-confidence spam.` | This message alone was refused |
+| Starts with `Message rejected: this message was classified as spam, and this organization has exceeded its budget of` | Your account has sent several messages today that were flagged as spam. Until the time given in the message (00:00 UTC), any message classified as spam is refused, not only high-confidence spam |
+
+The response also has a `fix` field. For a scheduled send, the draft's `send_status` becomes `failed` and the send is not retried.
+
+Other `message_rejected` errors have different causes. A `message` starting with `Message rejected: Recipient(s) blocked` comes from your send lists; see [How do I set up allowlists and blocklists?](https://docs.agentmail.to/knowledge-base/allowlists-blocklists) A suspended account returns the code `account_suspended` instead; see [Why was my account suspended?](https://docs.agentmail.to/knowledge-base/account-suspended)
+
+## Why
+
+Free accounts send from shared infrastructure, often the shared `agentmail.to` domain. Spam sent from one account hurts delivery for every other account sharing it, so AgentMail stops messages that are very likely spam before they reach a mail server. The daily budget is smaller for new accounts and for accounts with recent bounces or sending-limit errors. AgentMail does not publish the scores or counts behind these checks.
+
+## What to do
+
+1. **Don't retry the same message.** Each attempt that is flagged counts toward the day, so retrying unchanged content makes the daily block more likely.
+2. **Revise the content.** Check what your agent actually wrote: a model can produce text that reads like spam, such as pressure to act, offers, or a wall of links. Have a person review the message, or route rejected messages to a [human-in-the-loop](https://docs.agentmail.to/knowledge-base/human-in-the-loop) step.
+3. **Check who it's for.** Make sure the recipient expects to hear from your agent. AgentMail does not support cold outreach; see [Can my agent send cold outreach?](https://docs.agentmail.to/knowledge-base/cold-outreach)
+4. **For the daily block, wait or keep sending normal mail.** Messages that are not classified as spam still send. The block lifts at the time given in the error.
+
+Handle the rejection in your agent instead of retrying it:
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+from agentmail.core.api_error import ApiError
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+try:
+    client.inboxes.messages.send(
+        "agent@agentmail.to", to=["customer@example.com"], subject="Your refund", text="Your refund was issued today."
+    )
+except ApiError as error:
+    body = error.body if isinstance(error.body, dict) else {}
+    if error.status_code == 403 and body.get("code") == "message_rejected" and "spam" in body.get("message", ""):
+        # nothing was sent; hand the draft to a person instead of retrying the same text
+        print("rejected as spam:", body["message"], body.get("fix"))
+    else:
+        raise
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient, AgentMailError } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+try {
+    await client.inboxes.messages.send("agent@agentmail.to", {
+        to: ["customer@example.com"],
+        subject: "Your refund",
+        text: "Your refund was issued today.",
+    });
+} catch (error) {
+    if (!(error instanceof AgentMailError)) throw error;
+    const body = (error.body ?? {}) as { code?: string; message?: string; fix?: string };
+    if (error.statusCode === 403 && body.code === "message_rejected" && body.message?.includes("spam")) {
+        // nothing was sent; hand the draft to a person instead of retrying the same text
+        console.log("rejected as spam:", body.message, body.fix);
+    } else {
+        throw error;
+    }
+}
+```
+</CodeBlocks>
+
+## Get help
+
+If you believe a message was classified wrongly, email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID, the inbox ID, the time of the failed request, and the full error response. For messages that were sent but landed in spam folders, see [Why are my emails going to spam?](https://docs.agentmail.to/knowledge-base/emails-going-to-spam)
