@@ -96,13 +96,14 @@ A reply is only applied to the attendee whose address sent it, so one attendee c
 
 ## Receiving invitations
 
-When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the organizer the invitation names, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself.
+When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the organizer the invitation names, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, as well as the usual `message.received` for the email itself. An invitation that names a Windows time zone, as Outlook and Exchange do (`Eastern Standard Time`), gets the matching IANA zone (`America/New_York`).
 
 Once an email's invitation is applied, the email records its event in `calendar_event_id`, so you can go from an email (say, a `message.received` webhook) to its event with Get Event. Updates, cancellations and attendees' replies record it too; for an email about one date of a recurring event it is that date's event ID. The event is created a few seconds after the email arrives, so get the message again if the field is not there yet.
 
 Later emails from the organizer keep the event in sync:
 
 - An updated invitation (`REQUEST`) updates the event, or one date of it.
+- An updated invitation for one upcoming date of a recurring meeting the calendar doesn't have (the inbox was invited to that date alone, or the meeting's first invitation never reached the calendar) adds that date, as a recurring event with that one date. The organizer's next update to the whole meeting turns it into the full series.
 - A cancellation (`CANCEL`) sets the event, or one date of it, to `cancelled`.
 - Updates are ordered by iCalendar `SEQUENCE`, so an older update that arrives late does not overwrite a newer one. A change to one date is compared only with earlier changes to that same date.
 
@@ -118,7 +119,6 @@ Invitations that fail these checks leave the calendar unchanged. The email is st
 
 ### Current limitations
 
-- **Outlook time zones.** Invitations that name a Windows time zone (such as `Pacific Standard Time`) instead of an IANA zone are not imported.
 - **Recurring invitations with exceptions.** Invitations that bundle a series and its edited dates as several events in one file, as Google Calendar does for recurring meetings with exceptions, are not imported.
 - **All-day invitations** are stored with the `UTC` time zone.
 
