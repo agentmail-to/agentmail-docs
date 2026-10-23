@@ -113,6 +113,7 @@ To keep strangers from writing to your agent's calendar, an invitation is applie
 
 - The email passed sender authentication and is not labeled `spam`, `blocked` or `unauthenticated`. Messages held for a security review are processed if they are released.
 - The authenticated sender is the event's organizer, or a calendar service AgentMail recognizes as sending for its organizers: iCloud or Luma. For iCloud, `organizer_email` is an `imip.me.com` relay address Apple assigns, not the organizer's own address. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
+    - For an event on a Google Calendar shared calendar (`organizer_email` ends in `@group.calendar.google.com`), the calendar's address sends no mail, so its first invitation's authenticated sender is trusted for that event instead. Later updates and cancellations apply only when they come from that same address; a change a teammate makes through the shared calendar is ignored. The sender writes the shared calendar's address, so it doesn't prove who sent the invitation: the invitation email's From does, which you can read through `origin_message_id`.
 - The invitation is a `text/calendar` or `application/ics` attachment of at most 1 MB, containing exactly one event.
 
 Invitations that fail these checks leave the calendar unchanged. The email is still delivered to the inbox like any other message.
