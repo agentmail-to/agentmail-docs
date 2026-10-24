@@ -1,0 +1,17 @@
+---
+tags: ["calendar-api", "webhooks", "enhancement"]
+---
+
+## Summary
+
+`message.received` for an email with a calendar invitation now arrives with `calendar_event_id` already set, so your agent can answer the invitation straight from the webhook instead of fetching the message again.
+
+### What's new?
+
+- **Invitation emails wait for their event:** for an email with a calendar attachment, `message.received` (webhook and WebSocket) waits until the invitation has been added to the inbox's calendar, at most 20 seconds, and the message carries `calendar_event_id`.
+- **Other email is unchanged:** only emails with a calendar attachment wait, typically a second or two.
+- **No `calendar_event_id`** means the invitation wasn't added: a reply or cancellation for an event the calendar doesn't have, a sender that couldn't be verified as the organizer, or a slow import. Get the message again later to check.
+
+<Note>
+  Answer an invitation with [Respond to Event](https://docs.agentmail.to/api-reference/inboxes/calendar/respond-to-event) using the message's `calendar_event_id`. See [Invitations](https://docs.agentmail.to/calendar-invitations).
+</Note>
