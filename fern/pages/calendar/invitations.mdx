@@ -94,6 +94,47 @@ When an attendee accepts, declines or tentatively accepts, their calendar app em
 
 A reply is only applied to the attendee whose address sent it, so one attendee cannot answer for another.
 
+## Invitations you send yourself
+
+If your agent already builds its own `.ics` invitations and attaches them to an ordinary send, those meetings go on the inbox's calendar too. AgentMail reads the inbox's sent mail and imports an invitation when:
+
+- it is a `text/calendar` or `application/ics` attachment, or any attachment whose file name ends in `.ics`, of at most 1 MB, containing exactly one event;
+- its `METHOD` is `REQUEST` or `CANCEL`;
+- its `ORGANIZER` is the inbox's own address;
+- it is about the whole event, with no `RECURRENCE-ID`;
+- timed `DTSTART` and `DTEND` carry a `TZID` or are in UTC (ending in `Z`).
+
+The imported event is the inbox's own, as if you had created it with Create Event:
+
+- `source: api`, with `organizer_email` set to the inbox and `origin_message_id` set to the email you sent;
+- your file's `UID` and `SEQUENCE`;
+- every attendee listed in it.
+
+The sent email records the event in `calendar_event_id`, and a `calendar.event.created` webhook is sent. AgentMail emails nobody: the invitation already went out in your email.
+
+From then on, attendees' replies update their `status` and send `calendar.event.responded`, as for any event the inbox organizes ([Attendee replies](#attendee-replies)). Your own later emails keep the event in sync:
+
+- A `REQUEST` with a higher `SEQUENCE` updates the event. It adds any new attendees and keeps the responses attendees have already given.
+- A `CANCEL` with `STATUS:CANCELLED` cancels the event. A `CANCEL` without it that names only some attendees removes those attendees. One naming all of them, or none, cancels the event (the inbox listing itself doesn't count).
+- An email that would change nothing, or that carries an older `SEQUENCE`, is ignored.
+
+You can switch to the API at any time. `PATCH` the event with `send_invites: true` and attendees receive the update under your original `UID` at the next `SEQUENCE`, so their calendar apps update the same meeting.
+
+Not imported:
+- `PUBLISH` files, which are "add to calendar" announcements without attendees;
+- replies (`REPLY`);
+- invitations that name someone else as `ORGANIZER`;
+- changes to a single date of a recurring event;
+- times with no time zone (floating).
+
+Invitations sent by the Calendar API itself (`send_invites`) are never imported a second time.
+
+To bound bulk senders, an inbox imports at most 100 new events a day, and an organization at most 200 a day. New events also stop being imported while the calendar holds 90% of its event limit. Updates and cancellations to events already imported still apply. An imported event keeps at most 100 attendees.
+
+<Tip>
+  Creating the event with `send_invites: true` is still the simpler path. It sends standard invitations for you, and changes and cancellations are one request each.
+</Tip>
+
 ## Receiving invitations
 
 When the inbox receives an email with a calendar invitation attached, AgentMail adds the event to the inbox's calendar automatically. The new event has `source: email`, `organizer_email` set to the organizer the invitation names, the `attendees` listed in the invitation, and `origin_message_id` pointing at the email. A `calendar.event.created` webhook follows, and the email's own `message.received` waits for the event (see below). An invitation that names a Windows time zone, as Outlook and Exchange do (`Eastern Standard Time`), gets the matching IANA zone (`America/New_York`).

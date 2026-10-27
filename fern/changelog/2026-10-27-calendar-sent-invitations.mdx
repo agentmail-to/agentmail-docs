@@ -1,0 +1,19 @@
+---
+tags: ["calendar-api", "enhancement"]
+---
+
+## Summary
+
+Calendar invitations your agent builds itself and sends from an inbox now go on that inbox's calendar. Attendees' replies are tracked on the event, the same as for invitations sent with the Calendar API.
+
+### What's new?
+
+- **Your own `.ics` invitations land on your calendar:** an invitation the inbox sends as an attachment, with `METHOD:REQUEST` and the inbox as `ORGANIZER`, becomes an event with `source: api`. The sent email gets `calendar_event_id`, and a `calendar.event.created` webhook is sent. AgentMail emails nobody, because your email already went out.
+- **Replies apply:** attendees' accept, decline and tentative replies update the event and send `calendar.event.responded`, where before they were ignored.
+- **Your later emails sync it:** a newer `REQUEST` updates the event, and a `CANCEL` cancels it or removes the attendees it names.
+- **Move to the API whenever you like:** `PATCH` the event with `send_invites: true` and attendees get the update under your original `UID`.
+- **Limits:** up to 100 new imported events per inbox and 200 per organization each day. `PUBLISH` files, replies, single-date changes and invitations organized by someone else are not imported.
+
+<Note>
+  See [Invitations you send yourself](https://docs.agentmail.to/calendar-invitations#invitations-you-send-yourself) for the exact rules. Creating events with `send_invites: true` remains the simplest way to invite people.
+</Note>

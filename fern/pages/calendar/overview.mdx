@@ -81,7 +81,7 @@ Two endpoints answer two different questions:
 | Question | Request | Returns |
 | --- | --- | --- |
 | "What have I created?" | `GET /calendar/events` | One item per one-off and recurring event, plus each individually edited date. Most recently updated first. |
-| "What is on the calendar?" | `GET /calendar/agenda` | Every date in a time window (default: the next 90 days), with recurring events expanded and cancelled dates left out. In start order. Recurring events' dates are included only up to about 90 days from now. |
+| "What is on the calendar?" | `GET /calendar/agenda` | Every date in a time window (default: the next 90 days), with recurring events expanded and cancelled dates left out. In start order. Recurring events' dates are included at least 58 days ahead, and usually up to about 90. |
 
 ## Quick start
 
