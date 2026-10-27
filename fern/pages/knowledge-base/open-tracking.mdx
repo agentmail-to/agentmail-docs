@@ -81,36 +81,36 @@ Either call adds a `link.<domain>` CNAME to the domain's `records`.
 
 ### Publish the CNAME record
 
-Publish every record at your DNS provider, then wait for the domain to report `VERIFIED`:
+Publish the `link` CNAME at your DNS provider, then wait for `tracking_status` to report `VERIFIED`:
 
 <CodeBlocks>
 ```python title="Python"
 domain = client.domains.get(domain_id="mail.yourcompany.com")
 
-print(domain.status)            # VERIFIED when ready
-print(domain.tracking_enabled)  # True
+print(domain.tracking_status)  # VERIFIED when open tracking is ready
+print(domain.tracking_reason)  # why it is not ready yet, if known
 ```
 
 ```typescript title="TypeScript"
 const domain = await client.domains.get("mail.yourcompany.com");
 
-console.log(domain.status); // VERIFIED when ready
-console.log(domain.trackingEnabled); // true
+console.log(domain.trackingStatus); // VERIFIED when open tracking is ready
+console.log(domain.trackingReason); // why it is not ready yet, if known
 ```
 </CodeBlocks>
 
-Once the CNAME resolves, AgentMail requests a TLS certificate for `link.<domain>`. Issuance usually takes a few minutes.
+Once the CNAME resolves, AgentMail requests a TLS certificate for `link.<domain>`. Issuance usually takes a few minutes. Until `tracking_status` is `VERIFIED`, sends with `track_opens` are rejected.
 
-<Warning>
-Turning on tracking for a domain that is already `VERIFIED` moves it back to `PENDING`. It returns to `VERIFIED` once the CNAME resolves and the certificate is issued. Until then, you cannot create new inboxes on the domain, and sends with `track_opens` are rejected. Sending without `track_opens` is not affected.
-</Warning>
+<Note>
+Open tracking never holds up the domain itself. Turning it on leaves the domain's `status` as it is, and the `link` and `CAA` records do not count toward domain verification. You can create inboxes and send without `track_opens` while tracking is still setting up.
+</Note>
 
 Two DNS settings commonly block the certificate:
 
-- **Proxied records.** If your DNS provider can proxy traffic, such as Cloudflare's orange cloud, set the `link` record to **DNS only**. A proxied record does not resolve to the CNAME target, so the domain cannot verify.
-- **CAA records.** If your domain or a parent domain has CAA records, they must allow Amazon to issue the certificate. Add `0 issue "amazon.com"` next to your existing CAA records. If you have no CAA records, there is nothing to change.
+- **Proxied records.** If your DNS provider can proxy traffic, such as Cloudflare's orange cloud, set the `link` record to **DNS only**. A proxied record does not resolve to the CNAME target, so open tracking cannot verify.
+- **CAA records.** If your domain or a parent domain has CAA records that leave Amazon out, `tracking_status` is `INVALID` with the reason `caa_blocked`, and `records` lists a `CAA` record to add: `0 issue "amazon.com"`, next to your existing CAA records. Some DNS providers, such as Vercel, add CAA records by default. Once the record is published, AgentMail requests the certificate again on its own within a few minutes. If you have no CAA records, no `CAA` record is listed and there is nothing to change.
 
-If the certificate is refused, the domain moves to `FAILED` with the reason `tracking_certificate_failed`. Fix the DNS, then turn tracking off and back on to request a new certificate.
+If the certificate is refused for another reason, `tracking_status` moves to `FAILED` with the reason `certificate_failed`. Fix the DNS, then turn tracking off and back on to request a new certificate.
 
 ## Sending a tracked message
 
