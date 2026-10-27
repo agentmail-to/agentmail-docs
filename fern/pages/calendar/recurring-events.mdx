@@ -130,7 +130,7 @@ A dated event has `kind: instance` and three extra fields:
 
 There are two ways to list dates:
 
-- `GET /calendar/agenda` lists every date of every event in a window. It includes recurring events' dates only up to about 90 days from now.
+- `GET /calendar/agenda` lists every date of every event in a window. It includes recurring events' dates at least 58 days ahead, and usually up to about 90.
 - `GET /calendar/events/{series_id}/instances` lists the dates of one series in a window. It computes them from the rule, so it works for any window up to 366 days, including far in the future.
 
 <CodeBlocks>
