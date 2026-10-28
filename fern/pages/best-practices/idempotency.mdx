@@ -23,18 +23,24 @@ When you provide a `client_id` with a `create` request, AgentMail checks if a re
 This allows you to safely retry requests without the risk of creating duplicate data.
 
 ```python
+from agentmail.inboxes import CreateInboxRequest
+
 # The first time this code is run, it creates a new inbox.
 inbox = client.inboxes.create(
-    username="idempotent-test",
-    client_id="user-123-inbox-primary"
+    request=CreateInboxRequest(
+        username="idempotent-test",
+        client_id="user-123-inbox-primary"
+    )
 )
 print(f"Created inbox: {inbox.id}")
 
 # If you run this exact same code again, it will NOT create a second
 # inbox. It will return the same inbox object from the first call.
 inbox_again = client.inboxes.create(
-    username="idempotent-test",
-    client_id="user-123-inbox-primary"
+    request=CreateInboxRequest(
+        username="idempotent-test",
+        client_id="user-123-inbox-primary"
+    )
 )
 print(f"Retrieved same inbox: {inbox_again.id}")
 # The inbox.id will be identical in both calls.

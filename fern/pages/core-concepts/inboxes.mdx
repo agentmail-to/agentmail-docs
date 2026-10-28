@@ -155,15 +155,19 @@ Values may be a string, number, or boolean. An `Inbox` can hold up to 256 keys, 
 <CodeBlocks>
 
 ```python title="Python"
+from agentmail.inboxes import CreateInboxRequest
+
 # Attach metadata when creating an inbox; values may be a string, int, float, or boolean
 inbox = client.inboxes.create(
-    username="support-agent",
-    metadata={
-        "tenant_id": "acme",       # string
-        "seat_count": 5,           # int
-        "monthly_spend": 19.99,    # float
-        "active": True,            # boolean
-    },
+    request=CreateInboxRequest(
+        username="support-agent",
+        metadata={
+            "tenant_id": "acme",       # string
+            "seat_count": 5,           # int
+            "monthly_spend": 19.99,    # float
+            "active": True,            # boolean
+        },
+    ),
 )
 
 # Read it back from any inbox response
@@ -408,7 +412,7 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.create(username?, domain?, display_name?, client_id?, pause_at?, metadata?) — client_id for idempotent retries; metadata is custom key-value data
+  - inboxes.create(request=CreateInboxRequest(username?, domain?, display_name?, client_id?, pause_at?, metadata?)) — client_id for idempotent retries; metadata is custom key-value data
   - inboxes.get(inbox_id)
   - inboxes.list(limit?, page_token?)
   - inboxes.update(inbox_id, display_name?, status?, pause_at?, metadata?) — at least one field required; metadata is merged, not replaced
@@ -424,12 +428,13 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   import os
   from dotenv import load_dotenv
   from agentmail import AgentMail
+  from agentmail.inboxes import CreateInboxRequest
 
   load_dotenv()
   client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
   # Create (client_id for idempotent retries)
-  inbox = client.inboxes.create(client_id="my-inbox-v1")
+  inbox = client.inboxes.create(request=CreateInboxRequest(client_id="my-inbox-v1"))
 
   # Get, list
   retrieved = client.inboxes.get(inbox.inbox_id)
