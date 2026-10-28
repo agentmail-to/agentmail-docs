@@ -75,13 +75,18 @@ groups:
             #   fast-uri >=3.1.5   GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc,
             #                      GHSA-7p8r-x3mc-p8w7, GHSA-v2hh-gcrm-f6hx,
             #                      GHSA-4c8g-83qw-93j6
+            #   vitest   ^4.1.12   GHSA-qxg6-89mg-rqv8, GHSA-82fw-gwwq-j7x9 (@vitest/mocker)
+            #   browserslist >=4.28.7  GHSA-c83g-rgw3-j3cx, GHSA-73wf-gq98-2v4g
+            #   baseline-browser-mapping >=2.11.12  GHSA-w5vr-8v7q-w6rv
             devDependencies:
               vite: ^8.0.16
+              vitest: ^4.1.12
             pnpm:
               overrides:
                 postcss: ">=8.5.23"
                 fast-uri: ">=3.1.5"
                 browserslist: ">=4.28.7"
+                baseline-browser-mapping: ">=2.11.12"
             description:
               "The email inbox API for AI agents. Send, receive, reply, and
               manage threaded email conversations programmatically."
