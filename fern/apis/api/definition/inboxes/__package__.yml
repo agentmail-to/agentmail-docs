@@ -69,6 +69,14 @@ types:
       delivered and not bounced, then or on resume. Mail already in the inbox,
       its drafts, and its API keys are kept. Set `active` to resume.
 
+  PauseAt:
+    type: datetime
+    docs: |
+      When the inbox pauses itself. Within about five minutes after this time,
+      the inbox becomes paused exactly as if `status` had been set to `paused`,
+      and `pause_at` is cleared. Must be in the future; returned in UTC. A
+      manual pause or resume does not change it.
+
   Inbox:
     properties:
       pod_id: pods.PodId
@@ -82,6 +90,11 @@ types:
           `paused` when the inbox is paused. Omitted when the inbox is active.
           Treat any value other than `paused` as an inbox that sends and
           receives normally.
+      pause_at:
+        type: optional<PauseAt>
+        docs: |
+          When the inbox is scheduled to pause. Omitted when no pause is
+          scheduled, and cleared once the pause happens.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata attached to the inbox.
@@ -126,6 +139,9 @@ types:
       status:
         type: optional<InboxStatus>
         docs: Set `paused` to create the inbox paused.
+      pause_at:
+        type: optional<PauseAt>
+        docs: Schedule the inbox to pause at this time, for example when a fixed term ends.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata to attach to the inbox.
@@ -139,6 +155,12 @@ types:
           `paused` stops the inbox sending and receiving mail; `active` resumes
           it. Mail that arrived while the inbox was paused is not delivered on
           resume.
+      pause_at:
+        type: optional<nullable<PauseAt>>
+        docs: |
+          Schedule a pause, or move one already scheduled. Send null to cancel
+          it. Only an organization- or pod-scoped API key can change it; an
+          inbox-scoped key gets `403`.
       metadata:
         type: optional<nullable<UpdateMetadata>>
         docs: |
@@ -147,7 +169,7 @@ types:
           single key, send it with a null value. To clear all metadata, send
           `metadata` as null. Sending an empty object is rejected; use null to
           clear. Each update must include at least one of `display_name`,
-          `status`, or `metadata`.
+          `status`, `pause_at`, or `metadata`.
 
   AuthorizeInboxRequest:
     docs: |
@@ -257,13 +279,14 @@ service:
         ```
 
         To pause an inbox, set `status` to `paused`; set it back to `active` to
-        resume. See [Pausing an inbox](/inboxes#pausing-an-inbox).
+        resume. To pause it later, set `pause_at`. See
+        [Pausing an inbox](/inboxes#pausing-an-inbox).
       path-parameters:
         inbox_id: InboxId
       request:
         body:
           type: UpdateInboxRequest
-          docs: Expects an object; provide at least one of `display_name`, `status`, or `metadata`.
+          docs: Expects an object; provide at least one of `display_name`, `status`, `pause_at`, or `metadata`.
       response: Inbox
       errors:
         - global.NotFoundError

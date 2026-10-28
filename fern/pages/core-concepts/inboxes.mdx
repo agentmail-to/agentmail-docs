@@ -258,9 +258,25 @@ While an inbox is paused:
 
 A paused inbox has `status: "paused"`. Treat any other value, or no `status` field, as an inbox that sends and receives normally.
 
-The current SDK releases do not accept `status` yet, so call the API directly:
+<CodeBlocks>
 
-```bash
+```python title="Python"
+# pause the inbox
+client.inboxes.update(inbox_id="support-agent@agentmail.to", status="paused")
+
+# resume it
+client.inboxes.update(inbox_id="support-agent@agentmail.to", status="active")
+```
+
+```typescript title="TypeScript"
+// pause the inbox
+await client.inboxes.update("support-agent@agentmail.to", { status: "paused" });
+
+// resume it
+await client.inboxes.update("support-agent@agentmail.to", { status: "active" });
+```
+
+```bash title="cURL"
 # pause the inbox
 curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
   -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
@@ -274,9 +290,80 @@ curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
   -d '{"status": "active"}'
 ```
 
+</CodeBlocks>
+
 To check whether an inbox is paused, read `status` from `GET /v0/inboxes/{inbox_id}`. If two requests change the status at once, one returns `409` with code [`race_condition`](/errors#race_condition): read the inbox again before retrying.
 
 You can also create an inbox already paused by passing `status: "paused"` to create.
+
+### Scheduling a pause
+
+Set `pause_at` to have the inbox pause itself later, for example when a fixed-term inbox reaches the end of its term. Within about five minutes after `pause_at`, the inbox becomes paused exactly as if you had set `status` to `paused`, and `pause_at` is cleared. Until then it sends, receives, and is billed as usual.
+
+<CodeBlocks>
+
+```python title="Python"
+from datetime import datetime, timezone
+
+# create an inbox that pauses on December 28
+inbox = client.inboxes.create(
+    username="support-agent",
+    pause_at=datetime(2026, 12, 28, tzinfo=timezone.utc),
+)
+
+# move the pause later, before it happens
+client.inboxes.update(
+    inbox_id="support-agent@agentmail.to",
+    pause_at=datetime(2027, 2, 28, tzinfo=timezone.utc),
+)
+
+# cancel the scheduled pause
+client.inboxes.update(inbox_id="support-agent@agentmail.to", pause_at=None)
+
+# after the pause has happened: resume and schedule the next one
+client.inboxes.update(
+    inbox_id="support-agent@agentmail.to",
+    status="active",
+    pause_at=datetime(2027, 2, 28, tzinfo=timezone.utc),
+)
+```
+
+```typescript title="TypeScript"
+// create an inbox that pauses on December 28
+const inbox = await client.inboxes.create({
+  username: "support-agent",
+  pauseAt: new Date("2026-12-28T00:00:00Z"),
+});
+
+// move the pause later, before it happens
+await client.inboxes.update("support-agent@agentmail.to", {
+  pauseAt: new Date("2027-02-28T00:00:00Z"),
+});
+
+// cancel the scheduled pause
+await client.inboxes.update("support-agent@agentmail.to", { pauseAt: null });
+
+// after the pause has happened: resume and schedule the next one
+await client.inboxes.update("support-agent@agentmail.to", {
+  status: "active",
+  pauseAt: new Date("2027-02-28T00:00:00Z"),
+});
+```
+
+```bash title="cURL"
+# move the pause later, before it happens
+curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"pause_at": "2027-02-28T00:00:00Z"}'
+```
+
+</CodeBlocks>
+
+- **It must be in the future.** A past time returns `400`. To pause now, set `status` to `paused`.
+- **Any ISO 8601 time works.** It is returned in UTC, and omitted when no pause is scheduled.
+- **It is separate from `status`.** Pausing or resuming by hand leaves a scheduled `pause_at` in place.
+- **Only organization- and pod-scoped API keys can change it** on an existing inbox; an inbox-scoped key gets `403`. An inbox-scoped key can still resume its own inbox after the pause, so do not rely on `pause_at` to cut off a key you have handed to someone else.
 
 ## Inbox-scoped API keys
 
@@ -318,11 +405,12 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.create(username?, domain?, display_name?, client_id?, metadata?) — client_id for idempotent retries; metadata is custom key-value data
+  - inboxes.create(username?, domain?, display_name?, client_id?, pause_at?, metadata?) — client_id for idempotent retries; metadata is custom key-value data
   - inboxes.get(inbox_id)
   - inboxes.list(limit?, page_token?)
-  - inboxes.update(inbox_id, display_name?, metadata?) — at least one field required; metadata is merged, not replaced
-  - pause/resume: not in the SDK yet; PATCH /v0/inboxes/{inbox_id} with {"status": "paused"} stops sending and receiving, {"status": "active"} resumes
+  - inboxes.update(inbox_id, display_name?, status?, pause_at?, metadata?) — at least one field required; metadata is merged, not replaced
+  - pause/resume: status="paused" stops sending and receiving, status="active" resumes
+  - pause_at: a future datetime when the inbox pauses itself (within ~5 min); None cancels; organization- or pod-scoped keys only
   - inboxes.delete(inbox_id)
   - inboxes.api_keys.create(inbox_id, name) — inbox-scoped key
   - inboxes.api_keys.list(inbox_id)
@@ -353,11 +441,12 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
    * API reference:
-   * - inboxes.create({ username?, domain?, displayName?, clientId?, metadata? }) — metadata is custom key-value data
+   * - inboxes.create({ username?, domain?, displayName?, clientId?, pauseAt?, metadata? }) — metadata is custom key-value data
    * - inboxes.get(inboxId)
    * - inboxes.list({ limit?, pageToken? })
-   * - inboxes.update(inboxId, { displayName?, metadata? }) — at least one field required
-   * - pause/resume: not in the SDK yet; PATCH /v0/inboxes/{inbox_id} with {"status": "paused"} stops sending and receiving, {"status": "active"} resumes
+   * - inboxes.update(inboxId, { displayName?, status?, pauseAt?, metadata? }) — at least one field required
+   * - pause/resume: status: "paused" stops sending and receiving, status: "active" resumes
+   * - pauseAt: a future Date when the inbox pauses itself (within ~5 min); null cancels; organization- or pod-scoped keys only
    * - inboxes.delete(inboxId)
    * - inboxes.apiKeys.create(inboxId, { name }) — inbox-scoped key
    * - inboxes.apiKeys.list(inboxId)
