@@ -48,7 +48,8 @@ pod = client.pods.create(
 # create an inbox in the pod
 inbox = client.pods.inboxes.create(
     pod_id=pod.pod_id,
-    inbox_id="sales@example.com"
+    username="sales",
+    domain="example.com"
 )
 
 # list all pods

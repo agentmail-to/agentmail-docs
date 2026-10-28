@@ -28,13 +28,16 @@ Build agents that:
 
 ```python title="Python"
 from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
 
 client = AgentMail(api_key="your-api-key")
 
 # attach metadata when creating an inbox
 inbox = client.inboxes.create(
-    username="support-agent",
-    metadata={"tenant_id": "acme", "tier": "pro", "active": True},
+    request=CreateInboxRequest(
+        username="support-agent",
+        metadata={"tenant_id": "acme", "tier": "pro", "active": True},
+    ),
 )
 
 # merge in a change; omitted keys are preserved

@@ -81,6 +81,7 @@ import asyncio
 import websockets
 import json
 from agentmail import AgentMail #Import the AgentMail client
+from agentmail.inboxes import CreateInboxRequest
 import os
 from dotenv import load_dotenv
 
@@ -109,8 +110,10 @@ async def connect_to_agent(address: str):
     client = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
 
     client.inboxes.create(
-        username = address, # Optional, will randomly generate if not provided
-        domain = 'agentmail.to' # Optional, defaults to agentmail.to can use custom domain
+        request=CreateInboxRequest(
+            username = address, # Optional, will randomly generate if not provided
+            domain = 'agentmail.to' # Optional, defaults to agentmail.to can use custom domain
+        )
         ) # Our first sdk call!!!
     print(f"Connected to agent for {email_address}")
     print("Waiting for new emails...")
