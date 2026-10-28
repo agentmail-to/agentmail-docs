@@ -304,11 +304,14 @@ Set `pause_at` to have the inbox pause itself later, for example when a fixed-te
 
 ```python title="Python"
 from datetime import datetime, timezone
+from agentmail.inboxes import CreateInboxRequest
 
 # create an inbox that pauses on December 28
 inbox = client.inboxes.create(
-    username="support-agent",
-    pause_at=datetime(2026, 12, 28, tzinfo=timezone.utc),
+    request=CreateInboxRequest(
+        username="support-agent",
+        pause_at=datetime(2026, 12, 28, tzinfo=timezone.utc),
+    ),
 )
 
 # move the pause later, before it happens
