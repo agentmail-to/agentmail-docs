@@ -1,0 +1,18 @@
+---
+tags: ["inboxes-api", "new-feature"]
+---
+
+## Summary
+
+Inboxes can now pause themselves at a time you choose. Set `pause_at` when you create an inbox, or later, and AgentMail pauses it when that time comes, with no scheduler on your side. This is built for inboxes sold or provisioned for a fixed term.
+
+### What's new?
+
+- **`pause_at` on create and update:** within about five minutes after it, the inbox becomes paused exactly as if you had set `status` to `paused`, and `pause_at` is cleared.
+- **Renew or cancel:** update `pause_at` to move the pause, or send `null` to cancel it. After the pause has happened, set `status` to `active` with a new `pause_at`.
+- **Returned on the inbox:** `pause_at` appears on inbox responses, in UTC, while a pause is scheduled.
+- **Scoped to the account holder:** only organization- and pod-scoped API keys can change `pause_at` on an existing inbox.
+
+<Note>
+  See [Scheduling a pause](https://docs.agentmail.to/inboxes#scheduling-a-pause) for examples.
+</Note>
