@@ -24,6 +24,12 @@ groups:
           pyproject_python_version: "^3.10"
           extra_dependencies:
             anyio: ">=4.14.2"
+          # CI only. pydantic 2.14 makes the pinned mypy reject three lines of this generator's
+          # core/pydantic_utilities.py (var-annotated; fixed upstream in fern-python-sdk 5.39.2), so
+          # the SDK repo's compile job fails and nothing publishes. A dev-group pin keeps the lock
+          # file below 2.14 while the package itself still accepts any pydantic >= 1.9.2.
+          extra_dev_dependencies:
+            pydantic: "<2.14"
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
@@ -117,6 +123,12 @@ groups:
           pyproject_python_version: "^3.10"
           extra_dependencies:
             anyio: ">=4.14.2"
+          # CI only. pydantic 2.14 makes the pinned mypy reject three lines of this generator's
+          # core/pydantic_utilities.py (var-annotated; fixed upstream in fern-python-sdk 5.39.2), so
+          # the SDK repo's compile job fails and nothing publishes. A dev-group pin keeps the lock
+          # file below 2.14 while the package itself still accepts any pydantic >= 1.9.2.
+          extra_dev_dependencies:
+            pydantic: "<2.14"
           pydantic_config:
             skip_validation: true
           should_generate_websocket_clients: true
