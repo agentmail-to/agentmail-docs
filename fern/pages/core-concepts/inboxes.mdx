@@ -142,6 +142,48 @@ agentmail inboxes list
   domains](/managing-domains).
 </Tip>
 
+## Signatures
+
+Give an inbox a signature and AgentMail adds it to every message the inbox sends, so your agent never has to remember it. It applies to sends, replies, reply-alls, forwards, and drafts, including scheduled ones, whether they come from the API, the MCP server, or SMTP.
+
+- **Placement:** right after your content, above any quoted or forwarded message.
+- **No duplicates:** if your message body already contains the signature, it is not added again.
+- **Text and HTML:** `text` goes in the plain-text part. `html` is optional; without it, the HTML part gets `text` with its line breaks. Link a logo by URL rather than embedding it: `text` is limited to 1,000 characters and `html` to 4,000.
+- **Visa TAP messages** are sent exactly as written, without the signature.
+
+Set it when you create the inbox or later with an update. Send `signature: null` to remove it.
+
+<CodeBlocks>
+
+```typescript title="TypeScript"
+// set the inbox signature
+await client.inboxes.update("support-agent@agentmail.to", {
+  signature: {
+    text: "Ava, Acme Support\nacme.com",
+    html: '<b>Ava</b>, Acme Support<br><a href="https://acme.com">acme.com</a>',
+  },
+});
+
+// remove it
+await client.inboxes.update("support-agent@agentmail.to", { signature: null });
+```
+
+```bash title="cURL"
+# set the inbox signature
+curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"signature": {"text": "Ava, Acme Support\nacme.com", "html": "<b>Ava</b>, Acme Support<br><a href=\"https://acme.com\">acme.com</a>"}}'
+
+# remove it
+curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"signature": null}'
+```
+
+</CodeBlocks>
+
 ## Profile pictures
 
 The recipient's email provider controls the picture displayed beside your emails. AgentMail does not currently expose a profile-picture field; `display_name` changes the sender name only. See [Inbox profile pictures](/knowledge-base/inbox-profile-pictures) for Google account photos, BIMI logos, and their requirements.

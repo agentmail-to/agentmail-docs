@@ -1,0 +1,24 @@
+---
+tags: ["inboxes-api", "new-feature"]
+---
+
+## Summary
+
+Inboxes can now carry a signature that AgentMail adds to every message they send. Your agents no longer have to remember to append contact details or branding, and every message from the inbox looks the same whether it was sent through the API, the MCP server, or SMTP.
+
+### What's new?
+
+- **`signature` on create and update:** an object with `text` and an optional `html`. Send `null` on update to remove it.
+- **Every send path:** sends, replies, reply-alls, forwards, and drafts, including scheduled ones, get the signature right after your content and above any quoted or forwarded message.
+- **No duplicates:** a message whose body already contains the signature is sent as written.
+- **Returned on the inbox:** `signature` appears on inbox responses when one is set.
+
+### Use cases
+
+- Build support agents whose replies always end with the team's name, hours, and help-center link.
+- Give sales agents a consistent signature with a logo linked by URL, without changing agent prompts.
+- Update one inbox setting to change the signature on every agent that sends from it.
+
+<Note>
+  See [Signatures](https://docs.agentmail.to/inboxes#signatures) for examples.
+</Note>

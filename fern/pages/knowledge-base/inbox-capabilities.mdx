@@ -17,6 +17,7 @@ Features marked **Labs** are in AgentMail Labs. An organization admin joins Labs
 - **HTML and plain text.** Send both `text` and `html` so every email client can display the message. See [Messages](https://docs.agentmail.to/messages).
 - **Attachments.** Provide each file as Base64 `content` or as a `url` that AgentMail downloads. Inline content is limited to 6 MB for the whole request; URL attachments can total around 30 MB per message. See [Attachments](https://docs.agentmail.to/attachments).
 - **Display name.** Set `display_name` on the inbox to control the sender name recipients see. See [Inboxes](https://docs.agentmail.to/inboxes).
+- **Signature.** Set `signature` on the inbox and AgentMail adds it to every message the inbox sends, above any quoted or forwarded message. See [Signatures](https://docs.agentmail.to/inboxes#signatures).
 - **Drafts.** Create a draft, let a person or another process review and edit it, then send it. Drafts can also be replies and forwards. See [Drafts](https://docs.agentmail.to/drafts).
 - **Scheduled send.** Set `send_at` on a draft and AgentMail sends it at that time, with no cron job on your side. Update `send_at` to reschedule, or set it to `null` to keep the draft unsent. Scheduling is a draft feature: Send Message always sends immediately. See [Scheduled sending](https://docs.agentmail.to/drafts#scheduled-sending).
 - **Safe retries.** Send an `Idempotency-Key` header so a retried send request does not send the email twice. See [Idempotency](https://docs.agentmail.to/idempotency).
