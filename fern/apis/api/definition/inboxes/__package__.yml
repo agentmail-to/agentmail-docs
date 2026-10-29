@@ -77,6 +77,24 @@ types:
       and `pause_at` is cleared. Must be in the future; returned in UTC. A
       manual pause or resume does not change it.
 
+  InboxSignature:
+    docs: |
+      A signature AgentMail adds to every message the inbox sends: send,
+      reply, reply-all, forward, and drafts, including scheduled ones. It goes
+      right after your content, above any quoted or forwarded message. It is
+      not added again when your body already contains it, and it is not added
+      to Visa TAP messages.
+    properties:
+      text:
+        type: string
+        docs: Signature for the plain-text part. At most 1,000 characters.
+      html:
+        type: optional<string>
+        docs: |
+          Signature for the HTML part. At most 4,000 characters, so link images
+          by URL rather than embedding them. When omitted, the HTML part gets
+          `text` with its line breaks.
+
   Inbox:
     properties:
       pod_id: pods.PodId
@@ -95,6 +113,9 @@ types:
         docs: |
           When the inbox is scheduled to pause. Omitted when no pause is
           scheduled, and cleared once the pause happens.
+      signature:
+        type: optional<InboxSignature>
+        docs: The signature added to messages this inbox sends. Omitted when none is set.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata attached to the inbox.
@@ -142,6 +163,9 @@ types:
       pause_at:
         type: optional<PauseAt>
         docs: Schedule the inbox to pause at this time, for example when a fixed term ends.
+      signature:
+        type: optional<InboxSignature>
+        docs: Signature to add to every message the inbox sends.
       metadata:
         type: optional<Metadata>
         docs: Custom metadata to attach to the inbox.
@@ -161,6 +185,9 @@ types:
           Schedule a pause, or move one already scheduled. Send null to cancel
           it. Only an organization- or pod-scoped API key can change it; an
           inbox-scoped key gets `403`.
+      signature:
+        type: optional<nullable<InboxSignature>>
+        docs: Set or replace the inbox's signature. Send null to remove it.
       metadata:
         type: optional<nullable<UpdateMetadata>>
         docs: |
@@ -169,7 +196,7 @@ types:
           single key, send it with a null value. To clear all metadata, send
           `metadata` as null. Sending an empty object is rejected; use null to
           clear. Each update must include at least one of `display_name`,
-          `status`, `pause_at`, or `metadata`.
+          `status`, `pause_at`, `signature`, or `metadata`.
 
   AuthorizeInboxRequest:
     docs: |
@@ -286,7 +313,7 @@ service:
       request:
         body:
           type: UpdateInboxRequest
-          docs: Expects an object; provide at least one of `display_name`, `status`, `pause_at`, or `metadata`.
+          docs: Expects an object; provide at least one of `display_name`, `status`, `pause_at`, `signature`, or `metadata`.
       response: Inbox
       errors:
         - global.NotFoundError
