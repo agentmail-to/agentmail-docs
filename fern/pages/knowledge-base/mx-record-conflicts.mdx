@@ -19,7 +19,7 @@ Your agents send and receive from addresses like `support@agents.yourcompany.com
 
 ## How to set it up
 
-When adding your domain in AgentMail, use the subdomain:
+When adding your domain in AgentMail, use the exact subdomain and leave "enable subdomains" off (`subdomains_enabled: false`, the default). This setup does not require a wildcard MX record, so it also works with DNS providers that do not support wildcard MX records.
 
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";

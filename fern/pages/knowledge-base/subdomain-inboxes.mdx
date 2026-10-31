@@ -12,6 +12,15 @@ For example, registering `example.com` with subdomains enabled lets you create:
 - `sales@west.example.com`
 - `assistant@customer.eu.example.com`
 
+## Choose the setup you need
+
+| Goal | What to register | Wildcard MX required? |
+| --- | --- | --- |
+| Use one specific subdomain, such as `support.example.com` | Register that exact subdomain as a domain and leave "enable subdomains" off | No |
+| Use subdomains without registering each one separately | Register the parent domain and enable subdomains | Yes |
+
+You do not need to enable subdomains just because the domain you are registering contains a subdomain. For the first option, follow the [individual subdomain setup](https://docs.agentmail.to/knowledge-base/mx-record-conflicts#how-to-set-it-up). The rest of this guide covers the second option.
+
 ## How it works
 
 When you enable subdomains, AgentMail adds a wildcard MX record to the domain's required DNS records. The wildcard routes incoming mail for subdomains to AgentMail. Subdomain inboxes use the parent domain's sending identity and DKIM configuration.
@@ -180,7 +189,7 @@ You do not need to register `support.example.com` as another domain. AgentMail a
 ## Important behavior
 
 - The parent domain must be `VERIFIED` before you create an inbox on one of its subdomains. Otherwise inbox creation returns a `403` error with code `domain_not_verified`.
-- Creating a subdomain inbox without enabling subdomains returns a `422` error.
+- Creating an inbox on a subdomain that is not registered separately requires subdomains to be enabled on its registered parent. Otherwise, creation returns a `422` error.
 - Only registered domains appear in the Domains list. Subdomain addresses appear in the Inboxes list.
 - Subdomain inboxes share the parent domain's sending identity, DKIM configuration, and sending reputation.
 - Register a subdomain separately if it needs an isolated sending reputation.
@@ -196,13 +205,24 @@ This is expected after enabling subdomains. Publish the new wildcard MX record a
 
 Check whether your DNS provider expects `*`, `*.example.com`, or another relative form. Copy the name and value shown by AgentMail whenever possible, then confirm with the `dig` commands in step 3.
 
+### My DNS provider does not support wildcard MX records
+
+You can still use a specific subdomain without a wildcard MX:
+
+1. Add the exact subdomain, such as `support.example.com`, as its own domain in AgentMail.
+2. Leave "enable subdomains" off on that new domain (`subdomains_enabled: false`).
+3. Publish all DNS records AgentMail generates for it, including its receiving MX, MAIL FROM records, DKIM, and DMARC.
+4. Once that domain is `VERIFIED`, create inboxes using `support.example.com` as their domain.
+
+An MX record for `support.example.com` does not satisfy the `*.example.com` requirement when subdomains are enabled on `example.com`. Registering the specific subdomain separately gives it its own verification flow without a wildcard requirement.
+
 ### Mail to one subdomain does not arrive while others work
 
 A wildcard record only applies to subdomains that have no DNS records of their own. If the subdomain already has records, such as an `A` record for a website, add an MX record for that subdomain with the same value as the wildcard. A subdomain with a `CNAME` record cannot also have an MX record, so use a different subdomain for inboxes.
 
 ### Inbox creation returns a `422` error
 
-Confirm that `subdomains_enabled` is `true` on the parent domain. If tracking is enabled, also confirm that the requested address is not on the reserved `link` subdomain.
+If you are using the parent domain's subdomain feature, confirm that `subdomains_enabled` is `true` on the parent. For an individual subdomain, register and verify that exact domain instead; it does not need subdomains enabled. If tracking is enabled, also confirm that the requested address is not on the reserved `link` subdomain.
 
 ### Inbox creation returns a `403` error with code `domain_not_verified`
 
