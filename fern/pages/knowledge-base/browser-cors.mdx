@@ -1,0 +1,65 @@
+---
+title: "Can I call the AgentMail API from the browser?"
+subtitle: Browser requests to the API fail their CORS preflight, so call AgentMail from your server and keep your API key there.
+slug: knowledge-base/browser-cors
+---
+
+No. Before a cross-origin request that carries an `Authorization` header or a JSON body, the browser sends a CORS preflight (`OPTIONS`), and the AgentMail API answers it with `404`. The browser then blocks the real request. Call the API from your own server, API route, or serverless function, and have your frontend call that instead.
+
+## At a glance
+
+| Where the call runs | Result |
+| --- | --- |
+| Browser `fetch`, or the TypeScript SDK in a browser bundle | Blocked: the preflight returns `404` |
+| Your backend, an API route, or a serverless function | Works |
+
+Even if the browser allowed it, the call would put your API key in front of every visitor. Anyone can read it from the browser's developer tools, and an API key is also the IMAP and SMTP password for the inboxes it covers. The WebSocket endpoint accepts the key in its URL and is not subject to CORS, but connecting from a browser exposes the key the same way.
+
+## Call AgentMail from your server
+
+Expose only the actions your frontend needs, check who is asking before you call AgentMail, and keep the key in a server-side environment variable:
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])  # stays on the server
+
+
+@app.post("/api/contact")
+def contact():
+    # check that the visitor may send this before calling AgentMail
+    sent = client.inboxes.messages.send(
+        "contact@yourdomain.com", to=["team@yourdomain.com"], subject="New contact form", text=request.json["message"]
+    )
+    return jsonify(message_id=sent.message_id)
+```
+
+```typescript title="TypeScript"
+// app/api/contact/route.ts (Next.js)
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY }); // stays on the server
+
+export async function POST(request: Request) {
+    // check that the visitor may send this before calling AgentMail
+    const { message } = await request.json();
+    const sent = await client.inboxes.messages.send("contact@yourdomain.com", {
+        to: ["team@yourdomain.com"],
+        subject: "New contact form",
+        text: message,
+    });
+    return Response.json({ messageId: sent.messageId });
+}
+```
+</CodeBlocks>
+
+Avoid a pass-through proxy that forwards any request to AgentMail with your key: it gives every visitor the same access the key has. If you build on Vercel, see the [Vercel integration](https://docs.agentmail.to/integrations/vercel).
+
+## Get help
+
+If a request from your server fails, read the `code`, `message`, and `fix` fields on the error. See [What should I do if an API key leaks?](https://docs.agentmail.to/knowledge-base/api-key-leaked) if a key was ever shipped to a browser.

@@ -567,6 +567,12 @@ navigation:
           - page: Getting your API key
             icon: fa-solid fa-key
             path: pages/knowledge-base/getting-api-key.mdx
+          - page: Do I need an inbox for every address my agent sends from?
+            icon: fa-solid fa-at
+            path: pages/knowledge-base/inbox-per-address.mdx
+          - page: Can I call the AgentMail API from the browser?
+            icon: fa-regular fa-window-maximize
+            path: pages/knowledge-base/browser-cors.mdx
           - page: Claiming your agent's inbox
             icon: fa-solid fa-hand-holding
             path: pages/knowledge-base/claiming-agent-inbox.mdx
@@ -578,12 +584,18 @@ navigation:
           - page: Why was my account suspended?
             icon: fa-solid fa-user-slash
             path: pages/knowledge-base/account-suspended.mdx
+          - page: What are AgentMail's plans, quotas, and limits?
+            icon: fa-solid fa-gauge-high
+            path: pages/knowledge-base/rate-limits.mdx
           - page: How do I upgrade, downgrade, or cancel my plan?
             icon: fa-solid fa-credit-card
             path: pages/knowledge-base/change-plan-billing.mdx
           - page: Security and compliance FAQ
             icon: fa-solid fa-lock
             path: pages/knowledge-base/security-compliance.mdx
+          - page: What should I do if an API key leaks?
+            icon: fa-solid fa-unlock-keyhole
+            path: pages/knowledge-base/api-key-leaked.mdx
       - section: Agent Patterns
         contents:
           - page: Handling inbound emails
@@ -592,6 +604,12 @@ navigation:
           - page: Allowlists & blocklists
             icon: fa-solid fa-filter
             path: pages/knowledge-base/allowlists-blocklists.mdx
+          - page: How do I protect my agent from prompt injection in email?
+            icon: fa-solid fa-user-shield
+            path: pages/knowledge-base/prompt-injection.mdx
+          - page: How does my agent receive verification codes and magic links?
+            icon: fa-solid fa-hashtag
+            path: pages/knowledge-base/verification-codes.mdx
           - page: Managing threaded conversations
             icon: fa-regular fa-comments
             path: pages/knowledge-base/threaded-conversations.mdx
@@ -635,9 +653,6 @@ navigation:
           - page: API 403 error
             icon: fa-solid fa-ban
             path: pages/knowledge-base/api-403-error.mdx
-          - page: Rate limits
-            icon: fa-solid fa-gauge-high
-            path: pages/knowledge-base/rate-limits.mdx
           - page: Preventing duplicate sends
             icon: fa-solid fa-clone
             path: pages/knowledge-base/preventing-duplicate-sends.mdx
@@ -650,6 +665,12 @@ navigation:
           - page: Why are my emails not showing up?
             icon: fa-solid fa-envelope-circle-check
             path: pages/knowledge-base/inbound-emails-missing.mdx
+          - page: "My agent missed events: how do I find and catch up?"
+            icon: fa-solid fa-clock-rotate-left
+            path: pages/knowledge-base/missed-events.mdx
+          - page: Why was my message rejected as spam before sending?
+            icon: fa-solid fa-filter-circle-xmark
+            path: pages/knowledge-base/message-rejected-as-spam.mdx
       - section: DNS Guides
         contents:
           - page: Cloudflare
@@ -664,4 +685,7 @@ navigation:
           - page: Namecheap
             icon: fa-solid fa-n
             path: pages/knowledge-base/dns-namecheap.mdx
+          - page: Vercel
+            icon: fa-solid fa-caret-up
+            path: pages/knowledge-base/dns-vercel.mdx
   - tab: changelog

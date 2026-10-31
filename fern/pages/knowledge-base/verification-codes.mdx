@@ -1,0 +1,77 @@
+---
+title: "How does my agent receive verification codes and magic links?"
+subtitle: Wait for the email to arrive, read the code or link from its text, and make sure your lists don't block the sender.
+slug: knowledge-base/verification-codes
+---
+
+Give the service your agent's inbox address, then wait for the email instead of sleeping for a fixed time: react to the `message.received` event, or list the inbox's new messages every few seconds. Read the code or link from the message's `extracted_text`, falling back to `text`.
+
+## Steps
+
+1. **Note the time** just before your agent submits its address.
+2. **Wait for the message.** Use a [webhook](https://docs.agentmail.to/webhooks-overview) or [WebSocket](https://docs.agentmail.to/websockets) subscription to `message.received`, or list messages received after that time.
+3. **Read the body.** Take `extracted_text`, or `text` if it is empty. An event for a large message leaves the body out; [get the message](https://docs.agentmail.to/api-reference/inboxes/messages/get) in that case.
+4. **Pull out the code or link**, with a pattern or with your model.
+5. **Use it once, right away.** Magic links are usually single-use and expire quickly. Don't pass the link through a tool that opens or previews URLs before your agent uses it, since that can use it up.
+
+<CodeBlocks>
+```python title="Python"
+import os
+import re
+import time
+from datetime import datetime, timezone
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+inbox_id = "signup-agent@agentmail.to"
+
+requested_at = datetime.now(timezone.utc)
+# ... your agent submits inbox_id on the sign-up form here ...
+
+code = None
+for _ in range(36):  # wait up to 3 minutes
+    for item in client.inboxes.messages.list(inbox_id, labels=["received"], after=requested_at).messages:
+        message = client.inboxes.messages.get(inbox_id, item.message_id)
+        match = re.search(r"\b\d{6}\b", message.extracted_text or message.text or "")
+        if match:
+            code = match.group()
+    if code:
+        break
+    time.sleep(5)
+
+print(code)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+const inboxId = "signup-agent@agentmail.to";
+
+const requestedAt = new Date();
+// ... your agent submits inboxId on the sign-up form here ...
+
+let code: string | undefined;
+for (let attempt = 0; attempt < 36 && !code; attempt++) {
+    const { messages } = await client.inboxes.messages.list(inboxId, { labels: ["received"], after: requestedAt });
+    for (const item of messages) {
+        const message = await client.inboxes.messages.get(inboxId, item.messageId);
+        code = (message.extractedText || message.text || "").match(/\b\d{6}\b/)?.[0] ?? code;
+    }
+    if (!code) await new Promise((resolve) => setTimeout(resolve, 5000)); // wait up to 3 minutes
+}
+
+console.log(code);
+```
+</CodeBlocks>
+
+## If the email never shows up
+
+| Cause | What happens | Fix |
+| --- | --- | --- |
+| A receive allow list is set on the inbox, its pod, or your organization | Mail from anyone not on the list is labeled `blocked` and fires `message.received.blocked` instead of `message.received`. It is not delayed: it never reaches an agent waiting for `message.received` | Add the service's domain to the allow list before requesting the code, or list with `include_blocked` |
+| The message was labeled `spam` or `unauthenticated` | It fires `message.received.spam` or `message.received.unauthenticated`, and lists leave it out | List with `include_spam` or `include_unauthenticated`, using a key with the matching `label_*_read` permission |
+| The sender's domain fails DMARC under an enforcing policy | AgentMail drops the message | See [Why are my emails not showing up?](https://docs.agentmail.to/knowledge-base/inbound-emails-missing) |
+
+See [How do I set up allowlists and blocklists?](https://docs.agentmail.to/knowledge-base/allowlists-blocklists) to manage your lists.
