@@ -1,0 +1,14 @@
+<Warning title="Route 53: DKIM records over 255 characters">
+  **AWS Route 53 caps each TXT string at 255 characters.** Domains created before AgentMail moved to 1024-bit DKIM keys have a DKIM record of about 400 characters, which Route 53 rejects as a single string (`CharacterStringTooLong`). Domains created since then have a record that fits in one string: if your DKIM value is under 255 characters, enter it as one quoted string and skip the split below. See [Why are AgentMail DKIM keys 1024-bit?](/knowledge-base/dkim-key-size) for the background.
+
+  **If your DKIM value is over 255 characters, do the following in the Route 53 UI.**
+  1. Split the value into two quoted strings.
+    a. e.g.: "abcd" -> "ab" "cd"
+  2. Keep both quoted strings on the **same line**. A space between them is fine; a line break is not.
+
+  **Correct:** `"first-part-of-value" "second-part-of-value"` (with or without the space between the strings)
+
+  **Wrong:** the two quoted strings on separate lines
+
+  Each line in the Route 53 **Value** box is a separate TXT record. If you press Enter between the strings, Route 53 creates **two separate TXT records** instead of one record with two strings, neither record holds the full key, and the DKIM record fails verification. Email authentication then fails, and providers like **Gmail will reject your emails**.
+</Warning>
