@@ -74,7 +74,7 @@ Route 53 name servers typically pick up changes within **60 seconds**, but full 
 
 - **Multiple values in one record:** Route 53 lets you add multiple values to a single record. If you need to add a second MX entry on the same name, add it as a new line in the same MX record rather than creating a separate record. This does not apply to the `mail` MX record, which must hold only the AgentMail value.
 
-- **DKIM TXT record too long (CharacterStringTooLong error):** DKIM public keys are often longer than the 255-character limit that Route 53 enforces per string segment. You will see an error like `CharacterStringTooLong (Value is too long)`. To fix this, split the value into two quoted strings within a single record. The split point should be near the middle of the `p=` value. Both quoted strings must be on the **same line**; a space between them is fine, a line break is not. For example:
+- **DKIM TXT record too long (CharacterStringTooLong error):** Domains created before AgentMail moved to [1024-bit DKIM keys](/knowledge-base/dkim-key-size) have a DKIM record of about 400 characters, longer than the 255-character limit that Route 53 enforces per string segment, and you will see an error like `CharacterStringTooLong (Value is too long)`. Newer domains have a record under 255 characters and need no split. To fix the error on a longer record, split the value into two quoted strings within a single record. The split point should be near the middle of the `p=` value. Both quoted strings must be on the **same line**; a space between them is fine, a line break is not. For example:
 
   ```
   "v=DKIM1; k=rsa; p=MIIBIjANBgkqhki...firsthalf" "secondhalf...wIDAQAB"
