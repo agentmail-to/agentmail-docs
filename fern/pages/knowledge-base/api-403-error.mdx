@@ -84,7 +84,7 @@ An empty or missing path parameter is not a cause of a 403 from the API. A path 
 
 ## 4. Sending to a suppressed address
 
-AgentMail automatically suppresses addresses that have previously bounced, been rejected, or filed a spam complaint. If you try to send to a suppressed address, the API returns a `403` with `code: "message_rejected"`; the `fix` names the matched block entry and the exact remedy (deletable entries get a `DELETE` path; suppression entries added from bounces or complaints are read-only and go through support review).
+AgentMail automatically suppresses addresses that have previously bounced, been rejected, or filed a spam complaint. If you try to send to a suppressed address, the API returns a `403` with `code: "message_rejected"`; the `fix` names the matched block entry and the exact remedy (deletable entries get a `DELETE` path; suppression entries added from bounces or complaints are read-only: an organization admin can reactivate a hard bounce once from the Lists page in the [Console](https://console.agentmail.to/dashboard/lists), and complaints go through support review).
 
 **How to fix:** Read the `fix` field on the response. See [message_rejected](/errors#message_rejected) in the Error Reference and [Emails bouncing](/knowledge-base/emails-bouncing) for how suppression works.
 
