@@ -178,20 +178,7 @@ A BIND zone file is a text file that contains DNS resource records in a standard
     </Frame>
     4. Review the records and click **"Import"**
 
-    <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
-          **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)
-
-          **When entering TXT values in the Route 53 UI, you MUST do the following.**
-          1. Split the value into two quoted strings.
-            a. e.g.: "abcd" -> "ab" "cd"
-          2. Keep both quoted strings on the **same line**. A space between them is fine; a line break is not.
-
-          **Correct:** `"first-part-of-value" "second-part-of-value"` (with or without the space between the strings)
-
-          **Wrong:** the two quoted strings on separate lines
-
-          Each line in the Route 53 **Value** box is a separate TXT record. If you press Enter between the strings, Route 53 creates **two separate TXT records** instead of one record with two strings, neither record holds the full key, and the DKIM record fails verification. Email authentication then fails, and providers like **Gmail will reject your emails**.
-        </Warning>
+    <Markdown src="../../../snippets/route53-dkim-split.mdx" />
 
   </Tab>
   <Tab title="Porkbun">
@@ -275,20 +262,7 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
           - **Record name:** Copy the **Name** value directly from the console (e.g., `_dmarc` or `mail` or `selector._domainkey`).
           - **Value:** Copy the **Value** from the console, ensuring it is enclosed in quotes.
 
-        <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
-          **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)
-
-          **When entering TXT values in the Route 53 UI, you MUST do the following.**
-          1. Split the value into two quoted strings.
-            a. e.g.: "abcd" -> "ab" "cd"
-          2. Keep both quoted strings on the **same line**. A space between them is fine; a line break is not.
-
-          **Correct:** `"first-part-of-value" "second-part-of-value"` (with or without the space between the strings)
-
-          **Wrong:** the two quoted strings on separate lines
-
-          Each line in the Route 53 **Value** box is a separate TXT record. If you press Enter between the strings, Route 53 creates **two separate TXT records** instead of one record with two strings, neither record holds the full key, and the DKIM record fails verification. Email authentication then fails, and providers like **Gmail will reject your emails**.
-        </Warning>
+        <Markdown src="../../../snippets/route53-dkim-split.mdx" />
 
         - **MX:**
           - **Record name:** Enter the **Name** exactly as we return it (for example `mail`). Leave the field blank when the name is `@`.
@@ -327,20 +301,7 @@ Below are detailed instructions for AWS Route53, CloudFlare, and Namecheap. The 
           - **Record name:** Enter the `name` from the API (e.g., `_dmarc`, `mail`, or `selector._domainkey`).
           - **Value:** Copy paste the `value` from the API, ensuring it is enclosed in quotes.
 
-        <Warning title="CRITICAL: Route 53 TXT Record 255 Character Limit">
-          **AWS Route 53 has a 255 character maximum per string.** It will get angry at the DKIM record since it is longer than 255 chars (we use more secure encryption key so we get better deliverability with Gmail!)
-
-          **When entering TXT values in the Route 53 UI, you MUST do the following.**
-          1. Split the value into two quoted strings.
-            a. e.g.: "abcd" -> "ab" "cd"
-          2. Keep both quoted strings on the **same line**. A space between them is fine; a line break is not.
-
-          **Correct:** `"first-part-of-value" "second-part-of-value"` (with or without the space between the strings)
-
-          **Wrong:** the two quoted strings on separate lines
-
-          Each line in the Route 53 **Value** box is a separate TXT record. If you press Enter between the strings, Route 53 creates **two separate TXT records** instead of one record with two strings, neither record holds the full key, and the DKIM record fails verification. Email authentication then fails, and providers like **Gmail will reject your emails**.
-        </Warning>
+        <Markdown src="../../../snippets/route53-dkim-split.mdx" />
 
         - **MX:**
           - **Record name:** Enter the `name` from the API (for example `mail`). Leave the field blank when the name is `@`.

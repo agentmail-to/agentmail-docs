@@ -618,6 +618,9 @@ navigation:
           - page: SPF, DKIM, and DMARC setup
             icon: fa-solid fa-shield-halved
             path: pages/knowledge-base/spf-dkim-dmarc.mdx
+          - page: Why DKIM keys are 1024-bit
+            icon: fa-solid fa-key
+            path: pages/knowledge-base/dkim-key-size.mdx
           - page: Emails going to spam
             icon: fa-solid fa-triangle-exclamation
             path: pages/knowledge-base/emails-going-to-spam.mdx

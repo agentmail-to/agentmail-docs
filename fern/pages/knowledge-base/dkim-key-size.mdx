@@ -1,0 +1,34 @@
+---
+title: "Why are AgentMail DKIM keys 1024-bit?"
+subtitle: What the key size means for DNS setup, deliverability, and security scanner warnings.
+slug: knowledge-base/dkim-key-size
+---
+
+AgentMail signs email from your custom domain with a 1024-bit RSA DKIM key. If a DNS or email security scanner flags that size, this page explains why we chose it and what it does and does not affect.
+
+## The DNS record has to fit everywhere
+
+Your DKIM public key is published as a single TXT record at `<selector>._domainkey.yourdomain.com`. A 2048-bit key makes that record about 400 characters long. The DNS standard allows a TXT value to be split into several strings of up to 255 characters each, but many DNS editors do not support the split: Shopify, Squarespace, Wix, and a number of registrar control panels cap the whole value at 255 characters and reject anything longer. On those hosts, a 2048-bit key could not be entered at all, and the domain could never verify.
+
+A 1024-bit key makes the record about 234 characters, including the `v=DKIM1; k=rsa; p=` prefix. That fits in one string on every DNS host we know of, with no splitting and no special handling.
+
+## It makes no difference to deliverability
+
+Receiving providers check that your DKIM signature verifies and aligns with your From domain. They do not rank messages by key length.
+
+- Gmail, Yahoo, and Microsoft require DKIM keys of at least 1024 bits in their sender guidelines, and 1024 meets that requirement.
+- RFC 8301, the standard that governs DKIM key sizes, sets 1024 bits as the minimum signers must use and the size verifiers must accept.
+- Amazon SES, which AgentMail sends through, accepts 1024-bit and 2048-bit keys for custom-domain signing.
+- Resend, another email API, signs only with 1024-bit keys.
+
+If a message from your domain lands in spam, the cause is somewhere else. See [Why are my emails going to spam?](/knowledge-base/emails-going-to-spam).
+
+## What the scanner warning means
+
+Tools such as MXToolbox, dmarcian, and EasyDMARC flag 1024-bit DKIM keys as a warning. The warning comes from NIST guidance on long-term cryptographic margin, which recommends 2048-bit RSA for new signing keys. It does not describe a known attack: no 1024-bit RSA key has ever been publicly factored, and the warning does not mean your domain is being spoofed or that your mail is at risk of rejection.
+
+If your organization has a policy that requires 2048-bit keys, contact `support@agentmail.cc`.
+
+## Domains created before the change
+
+Domains added before AgentMail moved to 1024-bit keys keep their existing 2048-bit key. Nothing changes for them, and you do not need to update your DNS. If your DKIM record is longer than 255 characters and your DNS host needs it split into two strings, the [Route 53 guide](/knowledge-base/dns-route53) shows how.

@@ -49,6 +49,8 @@ TXT | selector._domainkey | v=DKIM1; k=rsa; p=(public key provided by AgentMail)
 
 AgentMail provides the selector name and public key value for your domain. Once you add the TXT record, every email from your domain is signed with the matching private key. Publish exactly one TXT record at the selector host; remove any older record at the same name.
 
+The key is 1024-bit RSA, so the record fits in a single TXT string on every DNS host. See [Why are AgentMail DKIM keys 1024-bit?](/knowledge-base/dkim-key-size) for what that means for deliverability and security scanners.
+
 <Note>
 Use the exact selector host shown in the AgentMail Console or API response. Many DNS providers append your domain automatically, so you may need to enter only the `selector._domainkey` portion.
 </Note>
