@@ -1,0 +1,86 @@
+---
+title: HydraDB
+subtitle: Give your agent persistent memory over its inbox
+slug: integrations/hydradb
+description: AgentMail's HydraDB integration
+---
+
+## Getting started
+
+[HydraDB](https://hydradb.com) is a context layer for AI agents. The [`hydradb-agentmail-plugin`](https://github.com/hydra-db/hydradb-agentmail-plugin) syncs an AgentMail inbox into HydraDB as an app source, so an agent can recall past email before it replies. Each message is stored as app-source knowledge and queried back through the context API.
+
+Other integrations give an agent an inbox. This one connects an inbox you already have to a memory layer. Point it at one inbox or every inbox on the account.
+
+## Use cases
+
+- **Recall before replying:** Query past threads, decisions, and files across the whole inbox, not just the current thread.
+- **Thread-aware memory:** Every message links to its thread and to its parent through `in_reply_to`, so a conversation is recalled together with its reply and thread links intact, not as loose records.
+- **Cross-session memory:** Email synced once stays queryable across agent runs and sessions.
+- **Attachment-aware search:** Attachment names and types are indexed alongside the body, so "which email had the signed PDF" is answerable.
+
+## Prerequisites
+
+1. An [AgentMail account](https://agentmail.to/) with an API key from the [AgentMail Console](https://console.agentmail.to).
+2. A [HydraDB account](https://hydradb.com) with an API key and a target database.
+3. Python 3.9+.
+
+## Setup
+
+Install the connector:
+
+```bash
+pip install hydradb-agentmail-plugin
+```
+
+Set your keys and target database:
+
+```bash
+export AGENTMAIL_API_KEY="your-agentmail-key"
+export HYDRADB_API_KEY="your-hydradb-key"
+export HYDRADB_DATABASE="your-database"
+```
+
+## Quickstart
+
+Sync every inbox on the account:
+
+```bash
+agentmail-sync
+```
+
+Or scope to a single inbox:
+
+```bash
+agentmail-sync agent@agentmail.to
+```
+
+Call it from your own code, for example from an AgentMail webhook handler:
+
+```python title="Python"
+from agentmail import AgentMailConfig, HydraDBConfig, sync
+
+count = sync(
+    AgentMailConfig(api_key="your-agentmail-key"),
+    HydraDBConfig(api_key="your-hydradb-key", database="your-database"),
+    inbox_id="agent@agentmail.to",  # omit for every inbox
+)
+print(f"Synced {count} messages into HydraDB")
+```
+
+## Recall
+
+Query HydraDB with `query_apps` enabled (the default) to search the synced email alongside your other app sources:
+
+```bash title="cURL"
+curl https://api.hydradb.com/query \
+  -H "Authorization: Bearer $HYDRADB_API_KEY" \
+  -H "API-Version: 2" \
+  -H "Content-Type: application/json" \
+  -d '{"database": "your-database", "query": "what pricing did we agree on?", "query_apps": true}'
+```
+
+Results carry the source email as app knowledge, with thread and reply relations intact.
+
+## Keep it live
+
+Run the sync on a schedule for a backfill, or drive it from an AgentMail `message.received` or `message.sent` webhook to ingest each email as it lands. `message_to_item` and `ingest_items` are importable for the webhook path.
