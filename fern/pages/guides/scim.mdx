@@ -1,0 +1,149 @@
+---
+title: "Guide: SCIM Provisioning"
+subtitle: "Create, suspend and delete agent inboxes from Okta, Microsoft Entra ID or any SCIM 2.0 identity provider."
+slug: scim
+description: "Set up SCIM 2.0 provisioning so your identity provider manages AgentMail inboxes: base URL, API key, attribute mapping, and Okta and Entra walkthroughs."
+---
+
+AgentMail exposes a SCIM 2.0 `/Users` endpoint. One SCIM user is one inbox: when your identity provider (IdP) assigns a user to the AgentMail app, the inbox is created; when it deactivates the user, the inbox is suspended; when it deletes the user, the inbox is deleted.
+
+<Note>
+SCIM provisioning is enabled per organization and is available to organizations on usage billing (no inbox limit). Contact [support@agentmail.to](mailto:support@agentmail.to) to enable it.
+</Note>
+
+## What you need
+
+<Steps>
+  <Step title="The base URL">
+    `https://api.agentmail.to/v0/scim`
+
+    Use the API base URL for your account's region. To provision into one pod instead of the whole organization, see [Pod-scoped SCIM](#pod-scoped-scim-for-platforms).
+  </Step>
+  <Step title="An API key">
+    Navigate to **Dashboard → API Keys** and create an organization key with the **Manage inboxes** access preset. It grants exactly `inbox_read`, `inbox_create`, `inbox_update` and `inbox_delete`: the team that holds it can open and close inboxes, but cannot read mail or manage other keys.
+
+    The IdP sends the key as `Authorization: Bearer <key>`. Any organization- or pod-scoped key with those four permissions works; inbox-scoped keys are refused.
+  </Step>
+  <Step title="A domain">
+    Each `userName` the IdP sends must be an address on `agentmail.to` or on a [custom domain](/custom-domains) verified in your organization. Decide which domain your agents' addresses live on before mapping attributes.
+  </Step>
+</Steps>
+
+## Attribute mapping
+
+| SCIM attribute | In AgentMail |
+| --- | --- |
+| `userName` | The inbox address. Required, immutable. |
+| `externalId` | The IdP's own id for the user. Required on create, immutable, at most 128 bytes. Okta sends its user id by itself; Entra needs a mapping (below). |
+| `displayName` | The inbox's display name. Without one, `name.givenName` and `name.familyName` are used. |
+| `active` | `false` suspends the inbox; `true` resumes it. |
+| `name.*`, enterprise extension (`department`, `manager`, …) | Stored as inbox metadata, for your own lookups. |
+| `emails`, `password`, `phoneNumbers` and everything else | Ignored, never an error. The address is `userName`. |
+
+## What each operation does
+
+| IdP action | SCIM request | Effect |
+| --- | --- | --- |
+| Assign a user | `POST /Users` | Creates the inbox. A retried create returns the same inbox. An address held by another inbox answers `409`. |
+| Update profile | `PUT` or `PATCH /Users/{id}` | Updates the display name and stored attributes. Changing `userName` or `externalId` answers `400 mutability`. |
+| Deactivate or unassign | `PATCH /Users/{id}` with `active: false` | **Suspends** the inbox: it stops sending, inbound mail is dropped, and every credential scoped to the inbox (inbox API keys, AgentID credentials) is revoked. Organization and pod keys keep reading it. |
+| Reactivate | `PATCH /Users/{id}` with `active: true` | Resumes the inbox. Revoked credentials are not restored; issue new ones. |
+| Delete | `DELETE /Users/{id}` | Deletes the inbox as [`DELETE /inboxes/{inbox_id}`](/api-reference/inboxes/delete) does, and retires its address permanently: no later inbox, created by any means, can take it. |
+
+The SCIM `id` is an opaque identifier, not the address. `GET /Users` supports `filter=userName eq "…"` and `filter=externalId eq "…"`, and pages with `startIndex` and `count` (at most 100 per page). A scope with more than 5,000 inboxes cannot be listed unfiltered; split it into pods.
+
+## Okta
+
+<Steps>
+  <Step title="Create the app integration">
+    In the Okta admin console, go to **Applications → Browse App Catalog** and add **SCIM 2.0 Test App (Header Auth)**, or enable **SCIM provisioning** on an existing custom app integration (**General → App Settings → Provisioning**).
+  </Step>
+  <Step title="Configure the connector">
+    On the **Provisioning** tab, open **Integration** and set:
+
+    - **SCIM connector base URL**: `https://api.agentmail.to/v0/scim`
+    - **Unique identifier field for users**: `userName`
+    - **Supported provisioning actions**: Push New Users, Push Profile Updates
+    - **Authentication Mode**: HTTP Header, with your API key as the bearer token
+
+    **Test Connector Configuration** should succeed.
+  </Step>
+  <Step title="Enable the provisioning actions">
+    Under **Provisioning → To App**, enable **Create Users**, **Update User Attributes** and **Deactivate Users**.
+  </Step>
+  <Step title="Map the address">
+    Under **Attribute Mappings**, map `userName` to the address each agent should have, on a domain verified in AgentMail. Okta sends `externalId` (its user id), `displayName` and `name` without further setup.
+  </Step>
+</Steps>
+
+<Callout intent="info" title="Okta never deletes">
+Deactivating or unassigning a user suspends its inbox; Okta does not send `DELETE`. A suspended inbox stays, and keeps counting toward usage, until you delete it in the console or with [`DELETE /inboxes/{inbox_id}`](/api-reference/inboxes/delete).
+</Callout>
+
+## Microsoft Entra ID
+
+Automatic provisioning to a non-gallery application needs Microsoft Entra ID P1 or P2.
+
+<Steps>
+  <Step title="Create the application">
+    In the Microsoft Entra admin center, go to **Enterprise applications → New application → Create your own application**, name it, and choose **Integrate any other application you don't find in the gallery (Non-gallery)**.
+  </Step>
+  <Step title="Connect provisioning">
+    Open the application's **Provisioning** page, choose **Automatic**, and under **Admin Credentials** set:
+
+    - **Tenant URL**: `https://api.agentmail.to/v0/scim`
+    - **Secret Token**: your API key
+
+    **Test Connection** should succeed.
+  </Step>
+  <Step title="Map the attributes">
+    Under **Mappings → Provision Microsoft Entra ID Users**, keep these mappings and remove the rest:
+
+    | Entra attribute | SCIM attribute |
+    | --- | --- |
+    | `userPrincipalName`, or the attribute holding the agent's address | `userName` |
+    | `objectId` | `externalId` |
+    | `Switch([IsSoftDeleted], , "False", "True", "True", "False")` | `active` |
+    | `displayName` | `displayName` |
+    | `givenName` | `name.givenName` |
+    | `surname` | `name.familyName` |
+
+    The default `externalId` mapping is `mailNickname`; change it to `objectId`, so the id stays the same if the user is renamed.
+  </Step>
+  <Step title="Assign users and start">
+    Set **Scope** to **Sync only assigned users and groups**, assign the users (or a group) under **Users and groups**, and turn provisioning **On**. The first cycle runs within about 40 minutes; use **Provision on demand** to provision one user immediately.
+  </Step>
+</Steps>
+
+Unassigning or soft-deleting a user in Entra suspends its inbox. Thirty days after a user is deleted in Entra, Entra sends `DELETE`, and the inbox is deleted with its address retired.
+
+## Pod-scoped SCIM for platforms
+
+If you run a platform where each of your customers wants to manage their own agents from their own IdP, give each customer a [pod](/pods) and a pod-scoped key:
+
+- **Base URL**: `https://api.agentmail.to/v0/pods/{pod_id}/scim`
+- **API key**: a key scoped to that pod, created with the **Manage inboxes** preset
+
+The customer's IdP then sees and manages only that pod's inboxes. `externalId` values are namespaced per pod, so two customers' IdPs can send the same ids without colliding. Your own organization-scoped key still sees every inbox, and can also use `/v0/pods/{pod_id}/scim` for any pod.
+
+## Errors
+
+Every error uses the SCIM error body:
+
+```json
+{
+  "schemas": ["urn:ietf:params:scim:api:messages:2.0:Error"],
+  "status": "400",
+  "scimType": "invalidValue",
+  "detail": "externalId is required"
+}
+```
+
+| Status | `scimType` | When |
+| --- | --- | --- |
+| `400` | `invalidValue` | An address on a domain your organization cannot use, a missing or over-long `externalId`, or an organization with an inbox limit. `detail` says which. |
+| `400` | `mutability` | A change to `userName` or `externalId`. |
+| `400` | `invalidFilter` | A filter other than `userName eq` or `externalId eq`. |
+| `403` | | An inbox-scoped key, a key without the needed permission, or an organization without SCIM enabled. |
+| `409` | `uniqueness` | The address is held by another inbox, or the `externalId` is already provisioned at another address. |
+| `429` | | Rate limited; retry after `Retry-After`. |

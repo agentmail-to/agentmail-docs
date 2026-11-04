@@ -405,6 +405,9 @@ navigation:
           - page: Multi-Tenancy
             icon: fa-solid fa-building
             path: pages/guides/multi-tenancy.mdx
+          - page: SCIM Provisioning
+            icon: fa-solid fa-users-gear
+            path: pages/guides/scim.mdx
           # - page: Semantic Search
           #   path: pages/guides/semantic-search.mdx
           # - page: Automatic Labeling
