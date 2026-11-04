@@ -109,6 +109,14 @@ redirects:
   - source: /agent-auth-quickstart
     destination: /agent-onboarding
     permanent: true
+  # The agentmail.to homepage setup prompt used to send agents to /get-started/agent-signup,
+  # which never existed. Copies of that prompt are still in agents' context and users' notes.
+  - source: /get-started/agent-signup
+    destination: /agent-onboarding
+    permanent: true
+  - source: /agent-signup
+    destination: /agent-onboarding
+    permanent: true
 
   - source: /agentid-browser-enrollment
     destination: /agentid-sign-in
@@ -117,8 +125,16 @@ redirects:
   - source: /integrations/moltbot
     destination: /integrations/openclaw
     permanent: true
+  # The page's slug is bare (/agent-onboarding) even though its file sits in pages/integrations/.
+  # /integrations/agent-onboarding never served a page, so the old redirect here landed on a 404.
   - source: /integrations/ai-onboarding
-    destination: /integrations/agent-onboarding
+    destination: /agent-onboarding
+    permanent: true
+  - source: /integrations/agent-onboarding
+    destination: /agent-onboarding
+    permanent: true
+  - source: /ai-onboarding
+    destination: /agent-onboarding
     permanent: true
   - source: /talon-reply-extraction
     destination: /reply-extraction
@@ -241,6 +257,12 @@ redirects:
     destination: /quickstart
   - source: /pods/
     destination: /documentation/core-concepts/pods
+  # No page lives under /get-started/: its pages use bare slugs (/welcome, /quickstart,
+  # /agent-onboarding). Keep this last so the specific /get-started/* redirects above win.
+  - source: /get-started/:slug*
+    destination: /:slug*
+  - source: /get-started
+    destination: /welcome
 
 navigation:
   - tab: docs
