@@ -109,6 +109,13 @@ redirects:
   - source: /agent-auth-quickstart
     destination: /agent-onboarding
     permanent: true
+  # Guessed agent sign-up URLs (one was emailed to a user) land on the page with the sign-up flow.
+  - source: /get-started/agent-signup
+    destination: /agent-onboarding
+    permanent: true
+  - source: /agent-signup
+    destination: /agent-onboarding
+    permanent: true
 
   - source: /agentid-browser-enrollment
     destination: /agentid-sign-in
@@ -241,6 +248,10 @@ redirects:
     destination: /quickstart
   - source: /pods/
     destination: /documentation/core-concepts/pods
+  # No page lives under /get-started/: its pages use bare slugs (/welcome, /quickstart,
+  # /agent-onboarding). Keep this last so the specific /get-started/* redirects above win.
+  - source: /get-started/:slug*
+    destination: /:slug*
 
 navigation:
   - tab: docs
