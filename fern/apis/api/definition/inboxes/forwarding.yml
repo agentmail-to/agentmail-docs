@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  inboxes: __package__.yml
+  forwarding: ../forwarding.yml
+
+service:
+  url: Http
+  base-path: /inboxes/{inbox_id}/forwarding
+  path-parameters:
+    inbox_id: inboxes.InboxId
+  auth: true
+
+  endpoints:
+    get:
+      method: GET
+      path: ""
+      display-name: Get Forwarding
+      docs: |
+        Get the forwarding this inbox sets. When the inbox sets nothing, `destinations` is `null` and
+        the inbox uses its pod's forwarding, or the organization's when the pod sets none.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes forwarding get --inbox-id <inbox_id>
+        ```
+      response: forwarding.Forwarding
+      errors:
+        - global.NotFoundError
+        - forwarding.ForwardingForbiddenError
+
+    update:
+      method: PUT
+      path: ""
+      display-name: Update Forwarding
+      docs: |
+        Set the addresses this inbox forwards to. The list replaces the inbox's current one and any pod
+        or organization list for this inbox; lists are never combined. Send an empty list to stop this
+        inbox forwarding even when its pod or the organization forwards. An address that is not
+        verified is saved but receives nothing until it is verified.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes forwarding update --inbox-id <inbox_id> --destinations ops@example.com
+        ```
+      request: forwarding.UpdateForwardingRequest
+      response: forwarding.UpdateForwardingResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - forwarding.ForwardingForbiddenError
+
+    delete:
+      method: DELETE
+      path: ""
+      display-name: Delete Forwarding
+      docs: |
+        Remove this inbox's own forwarding, so the inbox uses its pod's or the organization's forwarding
+        again. Verified addresses stay verified. Returns `not_found` when the inbox sets no forwarding.
+
+        **CLI:**
+        ```bash
+        agentmail inboxes forwarding delete --inbox-id <inbox_id>
+        ```
+      response: forwarding.Forwarding
+      errors:
+        - global.NotFoundError
+        - forwarding.ForwardingForbiddenError

@@ -58,7 +58,7 @@ Joining AgentMail Labs (`POST /v0/organizations/labs`) is stricter: it needs an 
 
 ### forbidden
 
-The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar endpoints also return `forbidden` in EU production (`api.agentmail.eu`), where Calendar isn't available yet; a different key won't fix that.
+The authenticated API key is not allowed to perform this action, usually because of its scope (organization, pod, or inbox). Retry with a key whose scope and permissions cover this resource. Calendar endpoints also return `forbidden` in EU production (`api.agentmail.eu`), where Calendar isn't available yet; a different key won't fix that. Confirming an [auto-forwarding](/auto-forwarding) address returns `forbidden` when the code is wrong, with `message` saying how many attempts remain, or when no code is outstanding for the address. Check the code and submit it again while attempts remain; when none remain or no code is outstanding, call `POST /v0/forwarding/verifications` for a new code.
 
 ## Request errors (400 / 404 / 422)
 
@@ -90,7 +90,7 @@ The requested value (for example, an inbox username) is already in use. Choose a
 
 ### limit_exceeded
 
-A resource limit has been reached (for example, the webhook endpoint limit). Remove an existing resource before adding another, or email support@agentmail.cc to raise your limit. For agent-verification OTP attempts, the `fix` distinguishes the two states: while the exhausted code is still live, every submission is rejected (even the correct code) until it expires 24 hours from issue, after which `POST /v0/agent/sign-up` issues a fresh code with a reset attempt count; if the code has already expired, sign up again immediately.
+A resource limit has been reached (for example, the webhook endpoint limit). Remove an existing resource before adding another, or email support@agentmail.cc to raise your limit. For agent-verification OTP attempts, the `fix` distinguishes the two states: while the exhausted code is still live, every submission is rejected (even the correct code) until it expires 24 hours from issue, after which `POST /v0/agent/sign-up` issues a fresh code with a reset attempt count; if the code has already expired, sign up again immediately. An [auto-forwarding](/auto-forwarding) confirmation code that has used its 10 attempts is rejected even when correct; call `POST /v0/forwarding/verifications` for a new code.
 
 ### domain_not_verified
 
@@ -98,7 +98,7 @@ The sending domain has not completed DNS verification. Add the DNS records retur
 
 ### conflict
 
-The request conflicts with another request under the same `Idempotency-Key`. Either the original send is still in progress — wait briefly and retry the identical request: once the first attempt completes the retry returns its send, and if the first attempt failed without completing, the key becomes retryable again after a short window — or the key was already used for a different message (generate a new key for new messages). See [Idempotency](/idempotency).
+The request conflicts with another request under the same `Idempotency-Key`. Either the original send is still in progress — wait briefly and retry the identical request: once the first attempt completes the retry returns its send, and if the first attempt failed without completing, the key becomes retryable again after a short window — or the key was already used for a different message (generate a new key for new messages). See [Idempotency](/idempotency). Confirming an [auto-forwarding](/auto-forwarding) address also returns `conflict` when another request for the same address committed first; get the level's forwarding to see whether the address is verified, or start the verification again.
 
 ### race_condition
 
@@ -237,7 +237,7 @@ A calendar request body is larger than its limit: 128 KB for events, 8 KB for ca
 
 ### rate_limit_exceeded
 
-You are sending requests too quickly or have hit a usage limit, including the send limits that calendar invitation emails count toward. Honor the `Retry-After` header when present, and retry with exponential backoff. A calendar request rejected for its invitation emails changed nothing; retry it later, or without `send_invites`.
+You are sending requests too quickly or have hit a usage limit, including the send limits that calendar invitation emails count toward. Honor the `Retry-After` header when present, and retry with exponential backoff. A calendar request rejected for its invitation emails changed nothing; retry it later, or without `send_invites`. Auto-forwarding verification codes are limited per address and per organization, and that response has no `Retry-After` header; see [Verifying an address](/auto-forwarding#verifying-an-address).
 
 ### service_unavailable
 
