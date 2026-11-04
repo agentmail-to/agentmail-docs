@@ -325,14 +325,56 @@ service:
       path: /{inbox_id}
       display-name: Delete Inbox
       docs: |
+        Deletion is asynchronous. A `202` means it has started. While it runs, requests for this inbox return `409` `resource_deleting`. Poll `GET /v0/inboxes/{inbox_id}` until it returns `404`, then the address is free. If the inbox still has its own API keys, delete returns `409` `cannot_delete`: revoke those keys first.
+
         **CLI:**
         ```bash
         agentmail inboxes delete --inbox-id <inbox_id>
         ```
       path-parameters:
         inbox_id: InboxId
+      response:
+        status-code: 202
+        docs: Deletion started. The inbox is removed in the background.
       errors:
         - global.NotFoundError
+        - error: global.ConflictError
+          docs: |
+            `resource_deleting`: the inbox is still being deleted.
+            `cannot_delete`: the inbox still has its own API keys. Revoke them first.
+      examples:
+        - path-parameters:
+            inbox_id: my-agent@agentmail.to
+          code-samples:
+            - language: curl
+              code: |
+                curl -i -X DELETE https://api.agentmail.to/v0/inboxes/my-agent@agentmail.to \
+                  -H "Authorization: Bearer $AGENTMAIL_API_KEY"
+                # HTTP/2 202 with no body: deletion has started
+            - language: python
+              code: |
+                import os
+                import requests
+
+                url = "https://api.agentmail.to/v0/inboxes/my-agent@agentmail.to"
+                headers = {"Authorization": f"Bearer {os.environ['AGENTMAIL_API_KEY']}"}
+
+                response = requests.delete(url, headers=headers)
+
+                # 202 has no body, so print the status code instead of calling response.json()
+                print(response.status_code)
+            - language: javascript
+              code: |
+                const url = "https://api.agentmail.to/v0/inboxes/my-agent@agentmail.to";
+                const options = {
+                  method: "DELETE",
+                  headers: { Authorization: `Bearer ${process.env.AGENTMAIL_API_KEY}` },
+                };
+
+                const response = await fetch(url, options);
+
+                // 202 has no body, so log the status code instead of calling response.json()
+                console.log(response.status);
 
     authorize:
       method: POST

@@ -149,9 +149,48 @@ Attaching a human is only possible until the organization is verified. Until the
 - Calling it with a different email replaces the attached human, for example to fix a typo. An organization can replace its human at most 2 times.
 - For up to 5 minutes after attaching, sends to the human can still be rejected with a `429` daily send limit error while the API key's cached limits catch up. Wait and retry: this is not your real limit.
 
+## Use a key a human gave you
+
+API keys start with `am_`. Send the key as a bearer token on every request:
+
+```bash
+curl https://api.agentmail.to/v0/inboxes \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY"
+```
+
+The SDKs read `AGENTMAIL_API_KEY` from the environment automatically, so you can create a client with no arguments.
+
+<CodeBlocks>
+
+```python title="Python"
+# pip install agentmail
+from agentmail import AgentMail
+
+client = AgentMail()  # reads AGENTMAIL_API_KEY
+```
+
+```typescript title="TypeScript"
+// npm install agentmail
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient(); // reads AGENTMAIL_API_KEY
+```
+
+</CodeBlocks>
+
+<Warning>
+  Never paste API keys into chat. Load them from an environment variable or a secrets manager. To limit what a key can do, create a scoped key: see [Permissions](/permissions).
+</Warning>
+
+## Testing
+
+No sandbox address needed. An agent that signs up with its owner's email can email that owner right away, so you test against a real inbox you control, with real delivery, from the first minute. Once the owner verifies, you can email other recipients too; new accounts ramp up how many distinct recipients they can reach.
+
 ## AgentMail MCP Server
 
 MCP (Model Context Protocol) is an open protocol that standardizes how applications provide context to LLMs. The AgentMail MCP server gives your AI agent tools to create inboxes, send emails, manage threads, and more.
+
+Connect your MCP client to `https://mcp.agentmail.to/mcp`. In clients that support MCP OAuth, such as Claude and ChatGPT, it signs in with OAuth, so the agent never handles a key. See the [MCP integration](/integrations/mcp) for client setup.
 
 ### Setup
 
@@ -409,6 +448,10 @@ Unlike traditional email APIs that are built for one-way transactional email, Ag
 | WebSocket events | ✅ Real-time streaming | ❌ Webhooks only |
 | IMAP/SMTP access | ✅ Full protocol support | ❌ API-only |
 | Usage-based pricing | ✅ Pay per email | ❌ Per-inbox subscriptions |
+
+## Machine-readable version
+
+A machine-readable version of this guide is at [https://www.agentmail.to/auth.md](https://www.agentmail.to/auth.md).
 
 ## Next Steps
 
