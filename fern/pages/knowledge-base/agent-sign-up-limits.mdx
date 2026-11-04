@@ -11,7 +11,7 @@ An agent that signs up through the API starts with a restricted account: 1 inbox
 | | After agent sign-up | After verification or claim (Free plan) |
 | --- | --- | --- |
 | Inboxes | 1 | 3 |
-| Custom domains | None | None: custom domains need a paid plan |
+| Custom domains | None | 1 |
 | Emails per day | 10 | 100 |
 | Who the agent can email | Only the attached human. Nobody, if no human is attached | Anyone, up to 3 distinct new recipients in the first hour, 5 in the first day, and 10 in the first week |
 | Receiving email | Yes | Yes |
@@ -23,7 +23,7 @@ An agent that signs up through the API starts with a restricted account: 1 inbox
 | `Message rejected: Recipient(s) blocked: bob@example.com (not in allow list)` | `403` `message_rejected` | Before verification, a send to anyone other than the attached human. With no human attached, any send |
 | `Daily send limit exceeded` | `429` `rate_limit_exceeded` | A send that would take the day past 10 emails before verification, or past 100 on Free. Each recipient counts as one email. The `Retry-After` header says when the window resets |
 | `Inbox limit exceeded` | `403` `limit_exceeded` | Creating a second inbox before verification, or a fourth on Free |
-| `Domain limit exceeded` | `403` `limit_exceeded` | Adding a custom domain on either plan |
+| `Domain limit exceeded` | `403` `limit_exceeded` | Adding a custom domain before verification, or a second one on Free |
 | Starts with `Recipient limit exceeded` | `429` `rate_limit_exceeded` | After verification, emailing more new recipients than the first hour, day, or week allows. The message says when the limit rises |
 | Varies by endpoint | `403` `missing_permission` | Before verification, creating API keys, list entries, or pods. See [agent verification](https://docs.agentmail.to/permissions#agent-verification) |
 
