@@ -106,6 +106,9 @@ redirects:
   - source: /auth.md
     destination: https://www.agentmail.to/auth.md
     permanent: true
+  - source: /agent-auth-quickstart
+    destination: /agent-onboarding
+    permanent: true
 
   - source: /agentid-browser-enrollment
     destination: /agentid-sign-in
@@ -253,9 +256,9 @@ navigation:
           - page: Quickstart
             icon: fa-solid fa-bolt
             path: pages/get-started/quickstart.mdx
-          - page: Agent Auth Quickstart
-            icon: fa-solid fa-key
-            path: pages/get-started/agent-auth-quickstart.mdx
+          - page: Agent Onboarding
+            icon: fa-solid fa-user-plus
+            path: pages/integrations/agent-onboarding.mdx
           # - page: What is AgentMail?
           #   path: pages/get-started/what-is-agentmail.mdx
       - section: Core Concepts
@@ -323,9 +326,6 @@ navigation:
             availability: beta
       - section: Integrations
         contents:
-          - page: Agent Onboarding
-            icon: fa-solid fa-user-plus
-            path: pages/integrations/agent-onboarding.mdx
           # - page: Overview
           #   icon: fa-solid fa-list
           #   path: pages/integrations/overview.mdx
