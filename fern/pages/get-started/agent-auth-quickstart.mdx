@@ -1,0 +1,91 @@
+---
+title: Agent Auth Quickstart
+subtitle: How an agent gets and uses an AgentMail API key
+slug: agent-auth-quickstart
+description: Get an AgentMail API key with no human in the loop, use a key a human gave you, or connect through the CLI or MCP.
+---
+
+An agent can authenticate with AgentMail in two ways: sign itself up and get its own API key, or use a key a human already created. The CLI and MCP server cover the same ground from a terminal or an MCP client.
+
+## Get a key yourself (no human needed)
+
+<Steps>
+  <Step title="Sign up">
+    Call `POST /v0/agent/sign-up` with a `username` and your owner's `human_email`. The response includes an `api_key`, `inbox_id`, and `organization_id`. The API key is returned once, so store it right away.
+
+    ```bash
+    curl -X POST https://api.agentmail.to/v0/agent/sign-up \
+      -H "Content-Type: application/json" \
+      -d '{
+        "username": "my-agent",
+        "human_email": "you@example.com"
+      }'
+    ```
+
+    Until the owner verifies, the agent can send only to its owner's address, up to 10 emails a day.
+  </Step>
+
+  <Step title="Verify with the owner's code">
+    The owner receives a 6 digit code by email. Submit it to lift the limit.
+
+    ```bash
+    curl -X POST https://api.agentmail.to/v0/agent/verify \
+      -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"otp_code": "123456"}'
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Leaving out `human_email` gives a receive-only inbox. Add the owner later with `POST /v0/agent/human`, then verify with the code they receive.
+</Note>
+
+See the [Agent Sign Up API reference](/api-reference/agent/sign-up) for every field, and [Why can my agent only email its human?](/knowledge-base/agent-sign-up-limits) for the full list of limits before and after verification.
+
+## Use a key a human gave you
+
+Send the key as a bearer token on every request:
+
+```bash
+curl https://api.agentmail.to/v0/inboxes \
+  -H "Authorization: Bearer $AGENTMAIL_API_KEY"
+```
+
+The SDKs read `AGENTMAIL_API_KEY` from the environment automatically, so you can create a client with no arguments.
+
+<CodeBlocks>
+  ```python title="Python"
+  # pip install agentmail
+  from agentmail import AgentMail
+
+  client = AgentMail()  # reads AGENTMAIL_API_KEY
+  ```
+
+  ```typescript title="TypeScript"
+  // npm install agentmail
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient(); // reads AGENTMAIL_API_KEY
+  ```
+</CodeBlocks>
+
+<Warning>
+  Never paste API keys into chat. Load them from an environment variable or a secrets manager. To limit what a key can do, create a scoped key: see [Permissions](/permissions).
+</Warning>
+
+## CLI
+
+The AgentMail CLI signs up, verifies, and calls every endpoint from a terminal. See the [CLI integration](/integrations/cli).
+
+## MCP
+
+Connect your MCP client to `https://mcp.agentmail.to/mcp`. In clients that support MCP OAuth, such as Claude and ChatGPT, it signs in with OAuth, so the agent never handles a key. See the [MCP integration](/integrations/mcp) for client setup.
+
+## Testing
+
+No sandbox address needed. Every new agent account can already email its owner, so you test against a real inbox you control, with real delivery, from the first minute. Once the owner verifies, you can send to anyone.
+
+## Machine-readable version
+
+A machine-readable version of this guide is at [https://www.agentmail.to/auth.md](https://www.agentmail.to/auth.md).
