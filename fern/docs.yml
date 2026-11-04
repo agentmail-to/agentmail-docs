@@ -261,6 +261,8 @@ redirects:
   # /agent-onboarding). Keep this last so the specific /get-started/* redirects above win.
   - source: /get-started/:slug*
     destination: /:slug*
+  - source: /get-started
+    destination: /welcome
 
 navigation:
   - tab: docs
