@@ -109,7 +109,7 @@ redirects:
   - source: /agent-auth-quickstart
     destination: /agent-onboarding
     permanent: true
-  # Guessed agent sign-up URLs (one was emailed to a user) land on the page with the sign-up flow.
+  # Older AgentID landing copy linked /get-started/agent-signup as the agent sign-up guide.
   - source: /get-started/agent-signup
     destination: /agent-onboarding
     permanent: true
