@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+
+imports:
+  global: ../__package__.yml
+  pods: __package__.yml
+  forwarding: ../forwarding.yml
+
+service:
+  url: Http
+  base-path: /pods/{pod_id}/forwarding
+  path-parameters:
+    pod_id: pods.PodId
+  auth: true
+
+  endpoints:
+    get:
+      method: GET
+      path: ""
+      display-name: Get Forwarding
+      docs: |
+        Get the forwarding this pod sets. Its inboxes that set no forwarding of their own use this
+        list. When the pod sets nothing, `destinations` is `null` and the pod uses the organization's
+        forwarding.
+
+        **CLI:**
+        ```bash
+        agentmail pods forwarding get --pod-id <pod_id>
+        ```
+      response: forwarding.Forwarding
+      errors:
+        - global.NotFoundError
+        - forwarding.ForwardingForbiddenError
+
+    update:
+      method: PUT
+      path: ""
+      display-name: Update Forwarding
+      docs: |
+        Set the addresses this pod forwards to. The list replaces the pod's current one and the
+        organization's list for this pod; lists are never combined. Send an empty list to stop
+        forwarding in this pod even when the organization forwards. An address that is not verified is
+        saved but receives nothing until it is verified.
+
+        **CLI:**
+        ```bash
+        agentmail pods forwarding update --pod-id <pod_id> --destinations ops@example.com
+        ```
+      request: forwarding.UpdateForwardingRequest
+      response: forwarding.UpdateForwardingResponse
+      errors:
+        - global.ValidationError
+        - global.NotFoundError
+        - forwarding.ForwardingForbiddenError
+
+    delete:
+      method: DELETE
+      path: ""
+      display-name: Delete Forwarding
+      docs: |
+        Remove this pod's own forwarding, so the pod uses the organization's forwarding again. Verified
+        addresses stay verified. Returns `not_found` when the pod sets no forwarding.
+
+        **CLI:**
+        ```bash
+        agentmail pods forwarding delete --pod-id <pod_id>
+        ```
+      response: forwarding.Forwarding
+      errors:
+        - global.NotFoundError
+        - forwarding.ForwardingForbiddenError

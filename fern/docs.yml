@@ -271,6 +271,9 @@ navigation:
           - page: Lists
             icon: fa-solid fa-filter
             path: pages/core-concepts/lists.mdx
+          - page: Auto-forwarding
+            icon: fa-solid fa-share
+            path: pages/core-concepts/auto-forwarding.mdx
           - page: Attachments
             icon: fa-solid fa-paperclip
             path: pages/core-concepts/attachments.mdx
@@ -542,6 +545,7 @@ navigation:
           - websockets
           - domains
           - lists
+          - forwarding
           - metrics
           - api-keys
           - apps

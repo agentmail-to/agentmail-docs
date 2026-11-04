@@ -1137,3 +1137,58 @@ paths:
       - inboxes
       - messages
       x-fern-sdk-method-name: release-agent-armor-message
+  /v0/forwarding:
+    get:
+      x-fern-sdk-group-name:
+      - forwarding
+      x-fern-sdk-method-name: get
+    put:
+      x-fern-sdk-group-name:
+      - forwarding
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - forwarding
+      x-fern-sdk-method-name: delete
+  /v0/forwarding/verifications:
+    post:
+      x-fern-sdk-group-name:
+      - forwarding
+      x-fern-sdk-method-name: start-verification
+  /v0/forwarding/verifications/confirm:
+    post:
+      x-fern-sdk-group-name:
+      - forwarding
+      x-fern-sdk-method-name: confirm-verification
+  /v0/pods/{pod_id}/forwarding:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - forwarding
+      x-fern-sdk-method-name: get
+    put:
+      x-fern-sdk-group-name:
+      - pods
+      - forwarding
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - forwarding
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/forwarding:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - forwarding
+      x-fern-sdk-method-name: get
+    put:
+      x-fern-sdk-group-name:
+      - inboxes
+      - forwarding
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - forwarding
+      x-fern-sdk-method-name: delete

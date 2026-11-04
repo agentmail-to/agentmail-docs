@@ -1,0 +1,349 @@
+---
+title: Auto-forwarding
+subtitle: Send a copy of every email an inbox receives to addresses you have verified.
+slug: auto-forwarding
+description: Learn how to forward the email your inboxes receive to verified addresses, for a whole organization, a pod, or a single inbox.
+---
+
+## What is auto-forwarding?
+
+Auto-forwarding sends a copy of each email an inbox receives to up to 5 other addresses. Use it to keep a person in the loop on what an agent receives, to copy mail into an archive or a team mailbox, or to hand mail to another system that reads email.
+
+Every address must be verified before it receives anything. AgentMail emails the address a code, and whoever reads that mailbox gives you the code to confirm. This keeps an organization from forwarding mail to an address whose owner never agreed to it.
+
+<Note>
+  Auto-forwarding runs in the US region (`api.agentmail.to`) only for now. Settings saved in the EU region (`api.agentmail.eu`) don't forward any mail.
+</Note>
+
+## Levels
+
+You can set forwarding at three levels. The nearest level that sets a list wins, and lists are never combined:
+
+- **Organization**: forwards for every inbox that has no pod or inbox list of its own. Manage with `client.forwarding`.
+- **Pod**: forwards for the inboxes in the pod and replaces the organization's list for them. Manage with `client.pods.forwarding`.
+- **Inbox**: forwards for one inbox and replaces any pod or organization list for it. Manage with `client.inboxes.forwarding`.
+
+Each level is in one of three states. Get Forwarding shows which one in `destinations`:
+
+| `destinations` | Meaning |
+| --- | --- |
+| `null` | The level sets nothing and uses the level above. An organization in this state forwards nothing. |
+| `[]` | Forwarding is turned off at this level, even when a level above forwards. |
+| A list of addresses | The level forwards to these addresses, instead of any list above it. |
+
+Update Forwarding replaces the level's whole list, and an empty list turns the level off. Delete Forwarding removes the level's own setting so it goes back to using the level above. Delete returns `not_found` when the level sets nothing.
+
+For example, if the organization forwards to `archive@example.com` and one pod sets `["support-leads@example.com"]`, inboxes in that pod forward only to `support-leads@example.com`. An inbox in that pod that sets `[]` forwards nothing.
+
+## Verifying an address
+
+1. Call Start Verification with the address. AgentMail emails it a 10-character code, shown as `XXXXX-XXXXX`, with the subject "Confirm a forwarding address for AgentMail". The response's `expires_at` says when the code stops working, 24 hours after it was sent.
+2. The person or system that reads that mailbox gives you the code.
+3. Call Confirm Verification with the address and the code. Case, spaces and the dash don't matter.
+
+Verification belongs to the organization. Once an address is verified, you can use it at the organization, in any pod, and in any inbox, and it stays verified when you remove it from a list. Each spelling is its own address: `ops+alerts@example.com` and `ops@example.com` are verified separately.
+
+You can add an address to a list before it is verified. It is saved but receives nothing until it is verified. Get Forwarding lists these addresses in `unverified`. An address also shows up in `unverified` again if it is an AgentMail inbox that was deleted and then created again by someone else, and it needs to be verified again before it receives mail.
+
+A code allows 10 wrong attempts. After that it stops working, even with the right code, and Start Verification sends a new one. Starting again for the same address replaces the code already sent. Codes are limited per address and per organization: an address gets one code every 5 minutes and up to 5 a day, and an organization can send up to 25 a day, counted together with pod owner confirmation emails.
+
+Start Verification refuses an address with `unprocessable` when AgentMail can't send mail to it, for example after mail to it bounced, or its owner marked mail from your organization as spam or unsubscribed.
+
+## What is forwarded
+
+AgentMail forwards the email an inbox receives, including mail [Agent Armor](/agent-armor) held, once it is released. It doesn't forward:
+
+- Messages the inbox sends.
+- Mail labeled `spam`, `blocked` or `unauthenticated`.
+- Standard bounce notifications.
+- Auto-replies, such as out-of-office messages sent with `Auto-Submitted: auto-replied`.
+- Mail the destination sent.
+- Mail that was already forwarded by this inbox, by the destination, or by another inbox in the same organization. This stops forwarding loops.
+
+When one email reaches several inboxes in an organization that forward to the same address, that address gets one copy.
+
+## What the forwarded email looks like
+
+- **From:** the inbox's own address, with the display name `<original sender> via <inbox address>`, for example `Jane Doe via support@example.agentmail.to`.
+- **Reply-To:** the original sender, so a reply from the destination goes back to them and not into the inbox.
+- **Subject:** unchanged, with no `Fwd:` prefix.
+- **Body and attachments:** the original text, HTML and attachments. AgentMail adds no footer.
+- **Headers:** `Auto-Submitted: auto-generated`, plus `X-AgentMail-Forwarded-By` and `X-AgentMail-Forward-Hops`, which AgentMail uses to detect loops.
+- **Threading:** the forward doesn't reference the original conversation, so a reply-all in the inbox's thread never includes the forwarding address.
+
+<Warning>
+  Some helpdesk tools treat email with `Auto-Submitted: auto-generated` as automated and hold or reject it. If you forward into a helpdesk, check its settings for automated mail first.
+</Warning>
+
+## Sending and limits
+
+- Forwards are sent shortly after an email arrives. A change to a list can take up to a minute to apply.
+- Each forward is sent from the inbox, so it appears in the inbox as a sent message and fires the `message.sent` [webhook](/webhooks-overview) event.
+- Each forward counts toward the inbox's send limits and usage like any other message it sends, once per address.
+- AgentMail retries temporary failures. A forward refused for a lasting reason, such as a paused inbox, a suspended account, or a send limit, isn't sent.
+- A level can forward to at most 5 addresses, each up to 320 characters, with no repeats.
+
+## Permissions
+
+| Action | Permission | Keys that can do it |
+| --- | --- | --- |
+| Get the organization's forwarding | `organization_read` | Organization-scoped |
+| Update or delete the organization's forwarding | `pod_update` and `organization_read` | Organization-scoped |
+| Get a pod's forwarding | `pod_read` | Organization- or pod-scoped |
+| Update or delete a pod's forwarding | `pod_update` | Organization- or pod-scoped |
+| Get an inbox's forwarding | `inbox_read` | Any key that can reach the inbox |
+| Update or delete an inbox's forwarding | `inbox_update` | Any key that can reach the inbox |
+| Start or confirm a verification | `pod_update` | Organization- or pod-scoped |
+
+`pod_update` is one of the permissions an organization created through agent sign-up gets only after it completes [agent verification](/permissions#agent-verification).
+
+## SDK examples
+
+### Verify an address
+
+Start the verification, then confirm it with the code the address received.
+
+<CodeBlocks>
+```python title="Python"
+started = client.forwarding.start_verification(destination="ops@example.com")
+print(started.expires_at)
+
+# the owner of ops@example.com reads you the code
+client.forwarding.confirm_verification(
+    destination="ops@example.com", code="7KQ2M-XW9PD"
+)
+```
+
+```typescript title="TypeScript"
+const started = await client.forwarding.startVerification({
+  destination: "ops@example.com",
+});
+console.log(started.expiresAt);
+
+// the owner of ops@example.com reads you the code
+await client.forwarding.confirmVerification({
+  destination: "ops@example.com",
+  code: "7KQ2M-XW9PD",
+});
+```
+
+```bash title="CLI"
+# email a code to the address
+agentmail forwarding start-verification --destination ops@example.com
+
+# confirm it with the code the address received
+agentmail forwarding confirm-verification \
+  --destination ops@example.com \
+  --code 7KQ2M-XW9PD
+```
+</CodeBlocks>
+
+### Forward for the organization
+
+Set the addresses every inbox forwards to, unless its pod or the inbox sets its own.
+
+<CodeBlocks>
+```python title="Python"
+client.forwarding.update(destinations=["ops@example.com", "archive@example.com"])
+```
+
+```typescript title="TypeScript"
+await client.forwarding.update({
+  destinations: ["ops@example.com", "archive@example.com"],
+});
+```
+
+```bash title="CLI"
+# forward every inbox's mail to two addresses
+agentmail forwarding update \
+  --destinations ops@example.com \
+  --destinations archive@example.com
+```
+</CodeBlocks>
+
+### Check which addresses are verified
+
+<CodeBlocks>
+```python title="Python"
+forwarding = client.forwarding.get()
+print(forwarding.destinations)  # ["ops@example.com", "archive@example.com"]
+print(forwarding.unverified)  # ["archive@example.com"]
+```
+
+```typescript title="TypeScript"
+const forwarding = await client.forwarding.get();
+console.log(forwarding.destinations); // ["ops@example.com", "archive@example.com"]
+console.log(forwarding.unverified); // ["archive@example.com"]
+```
+
+```bash title="CLI"
+# read the organization's forwarding
+agentmail forwarding get
+```
+</CodeBlocks>
+
+### Forward for a pod or an inbox
+
+A pod or inbox list replaces the list above it for that pod or inbox. An empty list turns forwarding off there.
+
+<CodeBlocks>
+```python title="Python"
+# this pod forwards only to the support leads
+client.pods.forwarding.update("pod_id", destinations=["support-leads@example.com"])
+
+# this inbox forwards nothing, whatever its pod or the organization sets
+client.inboxes.forwarding.update("inbox_id", destinations=[])
+```
+
+```typescript title="TypeScript"
+// this pod forwards only to the support leads
+await client.pods.forwarding.update("pod_id", {
+  destinations: ["support-leads@example.com"],
+});
+
+// this inbox forwards nothing, whatever its pod or the organization sets
+await client.inboxes.forwarding.update("inbox_id", { destinations: [] });
+```
+
+```bash title="CLI"
+# this pod forwards only to the support leads
+agentmail pods forwarding update \
+  --pod-id pod_id \
+  --destinations support-leads@example.com
+```
+</CodeBlocks>
+
+### Go back to the level above
+
+Delete a pod's or inbox's own forwarding to use the list above it again. Deleting the organization's forwarding stops every inbox that has no list of its own.
+
+<CodeBlocks>
+```python title="Python"
+client.inboxes.forwarding.delete("inbox_id")
+```
+
+```typescript title="TypeScript"
+await client.inboxes.forwarding.delete("inbox_id");
+```
+
+```bash title="CLI"
+# the inbox uses its pod's or the organization's forwarding again
+agentmail inboxes forwarding delete --inbox-id inbox_id
+```
+</CodeBlocks>
+
+## Errors
+
+| Status | `code` | When | What to do |
+| --- | --- | --- | --- |
+| 400 | `validation_error` | An address is invalid or over 320 characters, a list has more than 5 addresses or a repeat, or the code isn't 10 characters | Fix the field named in `errors` |
+| 403 | `missing_permission` | The key's scope or permissions don't cover the action | See [Permissions](#permissions) |
+| 403 | `account_suspended` | Start Verification: the organization is suspended | See [account_suspended](/errors#account_suspended) |
+| 403 | `forbidden` | Confirm Verification: the code is wrong, and `message` says how many attempts remain, or no code is outstanding for the address | Check the code, or start the verification again |
+| 403 | `limit_exceeded` | Confirm Verification: the code used all 10 attempts | Start the verification again |
+| 404 | `not_found` | Delete Forwarding on a level that sets nothing, or a pod or inbox your key can't see | Get the level's forwarding first |
+| 409 | `conflict` | Confirm Verification raced another request for the same address | Get Forwarding to see whether the address is verified, or start again |
+| 422 | `unprocessable` | Start Verification: AgentMail can't send mail to the address | Use a different address, or contact support@agentmail.cc |
+| 429 | `rate_limit_exceeded` | Start Verification: too many codes for the address or the organization | Wait, then try again |
+
+See the [Error Reference](/errors) for every code.
+
+## Copy for Cursor / Claude
+
+Copy one of the blocks below into Cursor or Claude for complete auto-forwarding API knowledge in one shot.
+
+<CodeBlocks>
+  ```python title="Python"
+  """
+  AgentMail auto-forwarding, copy into Cursor/Claude.
+
+  Forwards a copy of each received email to up to 5 verified addresses.
+  Levels: organization, pod, inbox. The nearest level that sets a list wins; lists never combine.
+  destinations: None = use the level above, [] = off at this level, list = forward to these.
+
+  API reference:
+  - forwarding.start_verification(destination) -> expires_at. Emails a code, valid 24 hours.
+  - forwarding.confirm_verification(destination, code) -> verified_at. 10 attempts per code.
+  - forwarding.get() -> destinations (list or None), unverified (list)
+  - forwarding.update(destinations) replaces the whole list
+  - forwarding.delete() removes the level's own setting (404 when it sets nothing)
+  Pod-level: pods.forwarding.get/update/delete(pod_id, ...).
+  Inbox-level: inboxes.forwarding.get/update/delete(inbox_id, ...).
+
+  Verification is per organization and per exact address; it is kept when an address is removed.
+  Unverified addresses can be saved but receive nothing; get() lists them in unverified.
+  Not forwarded: sent mail, spam/blocked/unauthenticated, bounces, auto-replies, already-forwarded mail.
+  US region only for now.
+  """
+  from agentmail import AgentMail
+
+  client = AgentMail(api_key="YOUR_API_KEY")
+
+  # verify an address
+  client.forwarding.start_verification(destination="ops@example.com")
+  client.forwarding.confirm_verification(destination="ops@example.com", code="7KQ2M-XW9PD")
+
+  # organization, pod and inbox lists
+  client.forwarding.update(destinations=["ops@example.com"])
+  client.pods.forwarding.update("pod_id", destinations=["support-leads@example.com"])
+  client.inboxes.forwarding.update("inbox_id", destinations=[])
+
+  # read a level and see which addresses are not verified yet
+  forwarding = client.forwarding.get()
+  print(forwarding.destinations, forwarding.unverified)
+
+  # go back to the level above
+  client.inboxes.forwarding.delete("inbox_id")
+  ```
+
+  ```typescript title="TypeScript"
+  /**
+   * AgentMail auto-forwarding, copy into Cursor/Claude.
+   *
+   * Forwards a copy of each received email to up to 5 verified addresses.
+   * Levels: organization, pod, inbox. The nearest level that sets a list wins; lists never combine.
+   * destinations: null = use the level above, [] = off at this level, list = forward to these.
+   *
+   * API reference:
+   * - forwarding.startVerification({ destination }) -> expiresAt. Emails a code, valid 24 hours.
+   * - forwarding.confirmVerification({ destination, code }) -> verifiedAt. 10 attempts per code.
+   * - forwarding.get() -> destinations (array or null), unverified (array)
+   * - forwarding.update({ destinations }) replaces the whole list
+   * - forwarding.delete() removes the level's own setting (404 when it sets nothing)
+   * Pod-level: pods.forwarding.get/update/delete(podId, ...).
+   * Inbox-level: inboxes.forwarding.get/update/delete(inboxId, ...).
+   *
+   * Verification is per organization and per exact address; it is kept when an address is removed.
+   * Unverified addresses can be saved but receive nothing; get() lists them in unverified.
+   * Not forwarded: sent mail, spam/blocked/unauthenticated, bounces, auto-replies, already-forwarded mail.
+   * US region only for now.
+   */
+  import { AgentMailClient } from "agentmail";
+
+  const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+  async function main() {
+    // verify an address
+    await client.forwarding.startVerification({ destination: "ops@example.com" });
+    await client.forwarding.confirmVerification({
+      destination: "ops@example.com",
+      code: "7KQ2M-XW9PD",
+    });
+
+    // organization, pod and inbox lists
+    await client.forwarding.update({ destinations: ["ops@example.com"] });
+    await client.pods.forwarding.update("pod_id", {
+      destinations: ["support-leads@example.com"],
+    });
+    await client.inboxes.forwarding.update("inbox_id", { destinations: [] });
+
+    // read a level and see which addresses are not verified yet
+    const forwarding = await client.forwarding.get();
+    console.log(forwarding.destinations, forwarding.unverified);
+
+    // go back to the level above
+    await client.inboxes.forwarding.delete("inbox_id");
+  }
+  main();
+  ```
+</CodeBlocks>

@@ -1,0 +1,59 @@
+---
+tags: ["forwarding-api", "new-feature", "docs"]
+---
+
+## Summary
+
+Inboxes can now forward a copy of every email they receive to up to 5 verified addresses. Keep a person in the loop on what your agents receive, or copy mail into an archive or another system, without writing a webhook handler.
+
+### What's new?
+
+**New endpoints:**
+
+- `POST /v0/forwarding/verifications` emails a confirmation code to an address, and `POST /v0/forwarding/verifications/confirm` verifies it with that code. A verified address can be used anywhere in the organization.
+- `GET`, `PUT` and `DELETE` on `/v0/forwarding`, `/v0/pods/{pod_id}/forwarding` and `/v0/inboxes/{inbox_id}/forwarding` read, replace and remove the addresses an organization, a pod or an inbox forwards to.
+
+**New features:**
+
+- **Nearest level wins:** an inbox's list replaces its pod's, and a pod's replaces the organization's. An empty list turns forwarding off at that level.
+- **Verified addresses only:** an address receives nothing until whoever reads it confirms the emailed code. `unverified` on the read lists the addresses still waiting.
+- **Never forwarded:** sent mail, spam, bounces, auto-replies, and mail that was already forwarded, so forwards can't loop.
+- **US region only for now:** forwarding runs on `api.agentmail.to`.
+
+### Use cases
+
+- Build support agents whose incoming mail also reaches a team lead's mailbox.
+- Copy every email a pod of agents receives into a compliance archive.
+- Hand incoming mail to a system that already reads email, while the agent keeps working in its inbox.
+
+<CodeBlocks>
+```python title="Python"
+from agentmail import AgentMail
+
+client = AgentMail(api_key="YOUR_API_KEY")
+
+# email a code to the address, then confirm it
+client.forwarding.start_verification(destination="ops@example.com")
+client.forwarding.confirm_verification(destination="ops@example.com", code="7KQ2M-XW9PD")
+
+# forward this inbox's mail to the verified address
+client.inboxes.forwarding.update("support@example.com", destinations=["ops@example.com"])
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: "YOUR_API_KEY" });
+
+// email a code to the address, then confirm it
+await client.forwarding.startVerification({ destination: "ops@example.com" });
+await client.forwarding.confirmVerification({ destination: "ops@example.com", code: "7KQ2M-XW9PD" });
+
+// forward this inbox's mail to the verified address
+await client.inboxes.forwarding.update("support@example.com", { destinations: ["ops@example.com"] });
+```
+</CodeBlocks>
+
+<Note>
+  See [Auto-forwarding](https://docs.agentmail.to/auto-forwarding) for levels, verification, and what a forwarded email looks like.
+</Note>
