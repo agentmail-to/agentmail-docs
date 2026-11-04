@@ -109,7 +109,8 @@ redirects:
   - source: /agent-auth-quickstart
     destination: /agent-onboarding
     permanent: true
-  # Older AgentID landing copy linked /get-started/agent-signup as the agent sign-up guide.
+  # The agentmail.to homepage setup prompt used to send agents to /get-started/agent-signup,
+  # which never existed. Copies of that prompt are still in agents' context and users' notes.
   - source: /get-started/agent-signup
     destination: /agent-onboarding
     permanent: true
@@ -124,8 +125,16 @@ redirects:
   - source: /integrations/moltbot
     destination: /integrations/openclaw
     permanent: true
+  # The page's slug is bare (/agent-onboarding) even though its file sits in pages/integrations/.
+  # /integrations/agent-onboarding never served a page, so the old redirect here landed on a 404.
   - source: /integrations/ai-onboarding
-    destination: /integrations/agent-onboarding
+    destination: /agent-onboarding
+    permanent: true
+  - source: /integrations/agent-onboarding
+    destination: /agent-onboarding
+    permanent: true
+  - source: /ai-onboarding
+    destination: /agent-onboarding
     permanent: true
   - source: /talon-reply-extraction
     destination: /reply-extraction

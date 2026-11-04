@@ -22,7 +22,7 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
       ```
 
       ```bash title="cURL"
-      curl -X POST https://api.agentmail.to/agent/sign-up \
+      curl -X POST https://api.agentmail.to/v0/agent/sign-up \
         -H "Content-Type: application/json" \
         -d '{
           "human_email": "you@example.com",
@@ -35,7 +35,7 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
       The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
     </Info>
     <Note>
-      No human email yet? Leave `human_email` out to get a receive-only inbox, then attach a human later with `POST /agent/human`, or, for a US-region inbox, have your human claim it at [console.agentmail.to/claim](https://console.agentmail.to/claim) with the API key. Share the key only with your human, over a channel you already use with them, never by email. See [Sign up without a human email](/agent-onboarding#sign-up-without-a-human-email).
+      No human email yet? Leave `human_email` out to get a receive-only inbox, then attach a human later with `POST /v0/agent/human`, or, for a US-region inbox, have your human claim it at [console.agentmail.to/claim](https://console.agentmail.to/claim) with the API key. Share the key only with your human, over a channel you already use with them, never by email. See [Sign up without a human email](/agent-onboarding#sign-up-without-a-human-email).
     </Note>
   </Step>
 
@@ -49,7 +49,7 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
       ```
 
       ```bash title="cURL"
-      curl -X POST https://api.agentmail.to/agent/verify \
+      curl -X POST https://api.agentmail.to/v0/agent/verify \
         -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
         -H "Content-Type: application/json" \
         -d '{ "otp_code": "123456" }'
@@ -74,14 +74,14 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
 
       ```bash title="cURL"
       # create an inbox (client_id enables safe retries)
-      curl -X POST https://api.agentmail.to/inboxes \
+      curl -X POST https://api.agentmail.to/v0/inboxes \
         -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
         -H "Content-Type: application/json" \
         -d '{ "client_id": "my-agent-inbox-v1" }'
       # returns { inbox_id, ... }
 
       # send an email (replace <inbox_id> with the id from above)
-      curl -X POST https://api.agentmail.to/inboxes/<inbox_id>/messages/send \
+      curl -X POST https://api.agentmail.to/v0/inboxes/<inbox_id>/messages/send \
         -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
         -H "Content-Type: application/json" \
         -d '{
