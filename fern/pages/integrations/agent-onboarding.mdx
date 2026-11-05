@@ -186,6 +186,8 @@ const client = new AgentMailClient(); // reads AGENTMAIL_API_KEY
 
 No sandbox address needed. An agent that signs up with its owner's email can email that owner right away, so you test against a real inbox you control, with real delivery, from the first minute. Once the owner verifies, you can email other recipients too; new accounts ramp up how many distinct recipients they can reach.
 
+Want to test without emailing a person? Create a second AgentMail inbox and send to it. Once your account is verified, inbox-to-inbox mail is the fastest way to test sending and receiving end to end.
+
 ## AgentMail MCP Server
 
 MCP (Model Context Protocol) is an open protocol that standardizes how applications provide context to LLMs. The AgentMail MCP server gives your AI agent tools to create inboxes, send emails, manage threads, and more.
