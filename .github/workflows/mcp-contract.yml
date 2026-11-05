@@ -1,0 +1,25 @@
+name: Check MCP contract drift
+
+on:
+  schedule:
+    - cron: "37 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Regenerate from the canonical MCP manifest
+        run: python3 scripts/generate_mcp_tool_catalog.py --fetch
+
+      - name: Require a documentation update for contract drift
+        run: git diff --exit-code -- scripts/mcp-manifest.json fern/snippets/mcp-tool-catalog.mdx
