@@ -6,7 +6,7 @@ slug: knowledge-base/open-tracking
 
 When you send with `track_opens`, AgentMail adds an invisible 1x1 pixel to your HTML body, served from your own domain. The first time a recipient's mail client loads that pixel, the message is marked as opened.
 
-You can see opens two ways: the `opened` label on the message, which you can poll or filter on, and the `message.opened` event, which is pushed to your webhook the moment it happens.
+You can see opens two ways: on the message itself, as the `opened` label (which you can filter on) and the `opened_at` time, and as the `message.opened` event, which is pushed to your webhook the moment it happens.
 
 Open tracking is included on every plan at no extra cost. You turn it on per domain, in the console or through the API.
 
@@ -145,7 +145,7 @@ If the domain is not ready, the send is rejected with a `422` rather than going 
 
 ## Checking whether a message was opened
 
-On the first open we add the `opened` system label to the message and to its thread. It shows up wherever you already read messages, with no extra call:
+On the first open we add the `opened` system label to the message and to its thread, and set the message's `opened_at` to the time of that open. A message that carried the pixel also has `track_opens: true`, so you can tell a tracked message nobody has opened yet from one that was never tracked. All three show up wherever you already read messages, with no extra call:
 
 <CodeBlocks>
 ```python title="Python"
@@ -154,15 +154,23 @@ message = client.inboxes.messages.get(
     message_id=message_id,
 )
 
-if "opened" in message.labels:
-    print("Opened")
+if message.opened_at:
+    print("Opened at", message.opened_at)
+elif message.track_opens:
+    print("Tracked, not opened yet")
+else:
+    print("Not tracked")
 ```
 
 ```typescript title="TypeScript"
 const message = await client.inboxes.messages.get("agent@mail.yourcompany.com", messageId);
 
-if (message.labels.includes("opened")) {
-  console.log("Opened");
+if (message.openedAt) {
+  console.log("Opened at", message.openedAt);
+} else if (message.trackOpens) {
+  console.log("Tracked, not opened yet");
+} else {
+  console.log("Not tracked");
 }
 ```
 </CodeBlocks>
@@ -186,7 +194,7 @@ const opened = await client.inboxes.messages.list("agent@mail.yourcompany.com", 
 
 ## Reacting to an open in real time
 
-Subscribe to the `message.opened` event to be notified the moment it happens. The event payload carries the open time, which the label alone does not:
+Subscribe to the `message.opened` event to be notified the moment it happens, instead of checking back. The event's `open.timestamp` is the same time as the message's `opened_at`:
 
 <CodeBlocks>
 ```python title="Python"
@@ -284,14 +292,14 @@ See [Webhook events](https://docs.agentmail.to/events) for every event type and 
 
 Open tracking is a directional signal, not proof that someone read your email. This is true of every pixel-based implementation, not just ours, and it is worth designing around:
 
-- **Opens can be missed.** Many mail clients block remote images by default, and Apple Mail Privacy Protection can suppress loads. A message without the `opened` label was not necessarily unread.
-- **Opens can fire without a human.** Gmail and some security scanners pre-fetch images through a proxy, which can register an open within seconds of delivery. Treat a very fast open with suspicion.
+- **Opens can be missed.** Many mail clients block remote images by default. A message without the `opened` label was not necessarily unread.
+- **Opens can fire without a human.** Apple Mail Privacy Protection downloads every image when a message arrives, whether or not anyone reads it, and Gmail and many security scanners pre-fetch images through a proxy. Each of these registers an open, often within seconds of delivery, and on many messages the first open is one of them. Compare `opened_at` with the message's `timestamp`: an open a few seconds after sending is most likely a machine.
 
 If your agent takes action on an open, such as sending a follow-up, design it to tolerate both a missed open and a machine-triggered one.
 
 ## Current limits
 
-- **First open only.** The label and the event fire once per message. Repeat opens are not counted.
+- **First open only.** The label and `opened_at` are set, and the event fires, once per message, on the first load of the pixel. Repeat opens are not counted, so when a scanner loads the pixel first, `opened_at` is the scanner's time and a later human open is not recorded.
 - **One pixel per message, not per recipient.** A message sent to several recipients fires once when any of them opens it, and the event does not say which one. Send separate messages if you need per-recipient attribution.
 - **Immediate sends only.** `track_opens` is honored on send, reply, reply-all, and forward. It is not yet supported on drafts or scheduled sends.
 - **Custom domains only.** Tracking is not available on shared AgentMail domains.
