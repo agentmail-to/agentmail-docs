@@ -455,6 +455,9 @@ navigation:
               - page: Managing Existing Domains
                 icon: fa-solid fa-gear
                 path: pages/guides/domains/managing-domains.mdx
+          - page: Open Tracking
+            icon: fa-solid fa-envelope-open
+            path: pages/guides/open-tracking.mdx
           - page: Google Workspace
             icon: fa-brands fa-google
             path: pages/guides/google-workspace.mdx
@@ -643,7 +646,7 @@ navigation:
           - page: Using labels to track state
             icon: fa-solid fa-tags
             path: pages/knowledge-base/labels-track-state.mdx
-          - page: Knowing when an email is opened
+          - page: Open tracking
             icon: fa-solid fa-envelope-open
             path: pages/knowledge-base/open-tracking.mdx
       - section: Domains & Deliverability

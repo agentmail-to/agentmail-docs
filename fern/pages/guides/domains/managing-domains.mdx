@@ -37,7 +37,7 @@ Your domains are resources that can be fully managed through the API. Here are t
   </Accordion>
 
   <Accordion title="Update a Domain">
-    Use the `PATCH /domains/{domain}` endpoint to change a domain's settings. Provide at least one of `feedback_enabled` or `subdomains_enabled`; omitted fields are left unchanged.
+    Use the `PATCH /domains/{domain}` endpoint to change a domain's settings. Provide at least one of `feedback_enabled`, `inbound_enabled`, `subdomains_enabled`, or `tracking_enabled`; omitted fields are left unchanged.
 
     <EndpointRequestSnippet
       endpoint="PATCH /domains/{domain}"
@@ -46,6 +46,10 @@ Your domains are resources that can be fully managed through the API. Here are t
 
     <Callout type="info">
       Enabling `subdomains_enabled` adds a required wildcard MX record and returns a verified domain to `Pending` until that record is published and verified. See [Setting Up Subdomains](/custom-domains#setting-up-subdomains).
+    </Callout>
+
+    <Callout type="info">
+      Enabling `tracking_enabled` adds a `link.<domain>` CNAME record and leaves the domain's `status` as it is. Open tracking reports its own readiness in `tracking_status`. See [Open Tracking](/open-tracking).
     </Callout>
 
   </Accordion>

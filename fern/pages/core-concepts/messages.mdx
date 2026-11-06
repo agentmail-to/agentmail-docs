@@ -101,6 +101,10 @@ agentmail inboxes messages send \
   Messages sent on the free tier include a **Sent via AgentMail** footer appended to the bottom of the email. This footer is not added to messages sent on paid plans. [Upgrade your plan](https://agentmail.to/pricing) to remove it.
 </Callout>
 
+<Callout intent="info" title="Knowing when a message is opened">
+  Set `track_opens` on a send to find out when the recipient opens it: the message gets the `opened` label and an `opened_at` time, and a `message.opened` event fires. It needs a custom domain with open tracking turned on. See [Open Tracking](/open-tracking).
+</Callout>
+
 ### 3. List `Messages` in an `Inbox`
 
 You can retrieve a list of all `Messages` within a specific `Inbox`. This is useful for getting a history of all correspondence.
