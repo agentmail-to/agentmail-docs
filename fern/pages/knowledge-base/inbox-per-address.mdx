@@ -1,0 +1,63 @@
+---
+title: "Do I need an inbox for every address my agent sends from?"
+subtitle: Every email goes out from an inbox, so each From address your agent uses is an inbox you create.
+slug: knowledge-base/inbox-per-address
+---
+
+Yes. Every send goes through an inbox (`POST /inboxes/{inbox_id}/messages/send`, and the reply, forward, and draft endpoints), and the send request has no `from` field. The From address is the inbox's address, and the name shown beside it is the inbox's `display_name`. To send as `billing@yourdomain.com` and `support@yourdomain.com`, create both inboxes.
+
+This differs from sending-only email APIs, where you set any From address on a verified domain. In AgentMail each address is a real inbox, so replies to it arrive in that inbox where your agent can read them.
+
+## What you can set per message
+
+| Field | Where it's set | Notes |
+| --- | --- | --- |
+| From address | The inbox | Fixed: one address per inbox |
+| From name | The inbox's `display_name` | Change it with [Update Inbox](https://docs.agentmail.to/api-reference/inboxes/update) |
+| Reply-To | `reply_to` on each send | Any address or addresses, so replies can go somewhere other than the sending inbox |
+
+Over [SMTP](https://docs.agentmail.to/imap-smtp), the envelope sender (`MAIL FROM`) must be an inbox your API key can access, or the server answers `550 5.1.8 Sender address rejected`. Set the message's From header to that inbox's address too.
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+from agentmail.inboxes import CreateInboxRequest
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# one inbox per address; client_id makes this safe to rerun
+billing = client.inboxes.create(
+    request=CreateInboxRequest(username="acme-billing", display_name="Acme Billing", client_id="acme-billing")
+)
+
+# sent as "Acme Billing <acme-billing@agentmail.to>", with replies going to a person
+client.inboxes.messages.send(
+    billing.inbox_id, to=["customer@example.com"], reply_to="accounts@example.com", subject="Your invoice", text="Your October invoice is ready."
+)
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// one inbox per address; clientId makes this safe to rerun
+const billing = await client.inboxes.create({ username: "acme-billing", displayName: "Acme Billing", clientId: "acme-billing" });
+
+// sent as "Acme Billing <acme-billing@agentmail.to>", with replies going to a person
+await client.inboxes.messages.send(billing.inboxId, {
+    to: ["customer@example.com"],
+    replyTo: "accounts@example.com",
+    subject: "Your invoice",
+    text: "Your October invoice is ready.",
+});
+```
+</CodeBlocks>
+
+## How many inboxes you get
+
+Each inbox counts toward your plan's limit: 3 on Free, 10 on Developer, and 150 on Startup, and paid plans can add more for \$2 a month each. See [What are AgentMail's plans, quotas, and limits?](https://docs.agentmail.to/knowledge-base/rate-limits)
+
+To send from your own domain, [set up a custom domain](https://docs.agentmail.to/knowledge-base/custom-domain-setup) and create inboxes on it, including on [any subdomain](https://docs.agentmail.to/knowledge-base/subdomain-inboxes). For one inbox per customer or tenant, group them with [Pods](https://docs.agentmail.to/knowledge-base/pods-multi-tenant).

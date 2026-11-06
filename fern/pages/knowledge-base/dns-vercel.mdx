@@ -1,0 +1,97 @@
+---
+title: "DNS Guide: Vercel"
+subtitle: Step-by-step instructions for adding AgentMail DNS records in Vercel, with one-click setup or by hand.
+slug: knowledge-base/dns-vercel
+---
+
+Records you add in Vercel take effect only if your domain uses Vercel's nameservers (`ns1.vercel-dns.com` and `ns2.vercel-dns.com`). Check with `dig NS yourdomain.com +short`. If it shows another provider, add the records there instead.
+
+## One-click setup
+
+For a US-region domain whose DNS is on Vercel, AgentMail can add the records for you through Domain Connect:
+
+1. In the [AgentMail Console](https://console.agentmail.to), open your domain.
+2. Select **Set up with Vercel**.
+3. Sign in to Vercel, review the records, and approve them. Vercel writes them to your domain.
+4. Back in the Console, AgentMail starts verifying the domain.
+
+If the Console shows the records table without this button, add the records by hand as described below. One-click setup is not yet available for EU-region domains.
+
+Through the API, [Get Setup Link](https://docs.agentmail.to/api-reference/domains/get-setup-link) returns `supported: true`, `provider_name: "Vercel"`, and a signed `url` for the domain owner to open in a browser. When it returns `supported: false`, add the records by hand.
+
+## Steps
+
+1. Log in to the [Vercel dashboard](https://vercel.com/dashboard)
+2. Open **Domains** in the sidebar and select your domain
+3. Open the DNS record form. If Vercel shows **Enable Vercel DNS**, select it first
+4. Fill in each record AgentMail requires and select **Add**
+
+## Records to add
+
+<Markdown src="../../snippets/dns-records.mdx" />
+
+## Adding the TXT records (SPF, DKIM, DMARC)
+
+Add one TXT record for each row below:
+
+| Record | Name | Value |
+| --- | --- | --- |
+| SPF | `mail` | The SPF value from AgentMail |
+| DKIM | The DKIM selector host from AgentMail (e.g., `selector._domainkey`) | The DKIM value from AgentMail |
+| DMARC | `_dmarc` | The DMARC value from AgentMail |
+
+Set **Type** to `TXT` and leave **TTL** at its default of 60 seconds.
+
+Vercel adds your domain to the **Name** field for you. Enter only the prefix (e.g., `selector._domainkey`), not the full `selector._domainkey.yourdomain.com`.
+
+<Warning>
+Do **not** add anything to an existing SPF record on your root domain. AgentMail's SPF record goes on the `mail` host, which is a different hostname, so your existing SPF for Google Workspace or another service stays exactly as it is.
+</Warning>
+
+## Adding the MX records (receiving and bounces)
+
+Add one MX record for each row below:
+
+| Record | Name | Value | Priority |
+| --- | --- | --- | --- |
+| Receiving | Leave blank (your root domain) | The receiving MX value from AgentMail | `10` |
+| Bounces (MAIL FROM) | `mail` | The `feedback-smtp` MX value from AgentMail | `10` |
+
+Vercel shows the **Priority** field once you choose `MX` as the type. Skip the receiving MX if you created the domain as send-only (`inbound_enabled: false`). The `mail` MX must be the only MX record on the `mail` host.
+
+If you registered a subdomain such as `agents.yourdomain.com` to avoid conflicts with your existing email provider, add the subdomain to every name: `agents`, `mail.agents`, `_dmarc.agents`, and `selector._domainkey.agents`.
+
+## Using the Vercel CLI
+
+You can add the same records with [`vercel dns add`](https://vercel.com/docs/cli/dns). Use `'@'` for the root domain, put the MX priority last, and replace each value with the one AgentMail shows for your domain:
+
+```bash title="Bash"
+vercel dns add yourdomain.com '@' MX <receiving MX value> 10
+vercel dns add yourdomain.com mail MX <feedback-smtp MX value> 10
+vercel dns add yourdomain.com mail TXT "<SPF value>"
+vercel dns add yourdomain.com <selector>._domainkey TXT "<DKIM value>"
+vercel dns add yourdomain.com _dmarc TXT "<DMARC value>"
+```
+
+## Verification
+
+After adding all records, go back to the [AgentMail Console](https://console.agentmail.to) and click **Verify Domain**.
+
+Vercel says new records can take up to 24 hours to propagate. To see what Vercel is serving right away, ask its nameserver directly:
+
+```bash title="Bash"
+dig TXT mail.yourdomain.com +short @ns1.vercel-dns.com
+dig MX mail.yourdomain.com +short @ns1.vercel-dns.com
+```
+
+## Common Vercel Issues
+
+- **Domain not on Vercel nameservers:** Vercel lists your records, but nothing else on the internet sees them. Add the records at the DNS provider `dig NS` shows, or move your nameservers to Vercel.
+
+- **Existing SPF record on your root domain:** Leave it unchanged. Do not add `include:agentmail.to` or any other AgentMail value to it. If an earlier guide told you to add `include:agentmail.to`, remove that mechanism: `agentmail.to` publishes no SPF record, so the include causes an SPF permanent error.
+
+- **Name field:** Enter only the prefix, such as `mail`, not `mail.yourdomain.com`, and leave it blank for the root domain. Check the saved record shows the name you expect before you verify.
+
+- **Long DKIM value:** After saving the DKIM record, query it with `dig TXT <selector>._domainkey.yourdomain.com +short @ns1.vercel-dns.com` and check the full value comes back. One-click setup avoids copying it by hand.
+
+- **Duplicate records:** Keep only the current values AgentMail provides for each host. An old DKIM record at the same selector, or a second MX on `mail`, makes verification fail.

@@ -1,0 +1,151 @@
+---
+title: "My agent missed events: how do I find and catch up?"
+subtitle: Why a webhook or WebSocket event never reached your agent, how to turn a disabled webhook back on, and how to fetch what it missed.
+slug: knowledge-base/missed-events
+---
+
+Missing an event does not lose the message: it is stored in the inbox, so you can catch up from the API by listing messages received after the last one you processed. A webhook that fails for 5 days is disabled without any notification, and turning it back on does not redeliver what it missed. WebSocket events reach only connections that are open at that moment, so anything sent while your agent was disconnected is gone from the socket and must be fetched.
+
+## At a glance
+
+| Channel | While your agent is down | What you can recover |
+| --- | --- | --- |
+| Webhook | Each event gets 8 delivery attempts over about 27.5 hours. After 5 days of failures the webhook is disabled | Organization and pod webhooks: failed and missed events from the Console. Every webhook: the messages themselves, from the API |
+| WebSocket | Events are not delivered and not queued | The messages, from the API |
+| [Polling webhook](https://docs.agentmail.to/webhook-polling) (US region only) | Events wait in the queue | Everything since the polling webhook was created |
+
+## Why events go missing
+
+| Cause | How to tell | What to do |
+| --- | --- | --- |
+| Your endpoint was down or slow | Delivery attempts failed. A delivery succeeds only on a `2xx` status within 15 seconds; a redirect counts as a failure | Return `2xx` right away and process in the background |
+| The webhook was disabled | `enabled` is `false` when you get or list it | Fix the endpoint, re-enable the webhook, then catch up |
+| The message was labeled `spam`, `blocked`, or `unauthenticated` | It fired `message.received.spam`, `.blocked`, or `.unauthenticated` instead of `message.received` | Subscribe to those event types, or review them with the matching `include_*` flag. See [Why are my emails not showing up?](https://docs.agentmail.to/knowledge-base/inbound-emails-missing) |
+| [Agent Armor](https://docs.agentmail.to/agent-armor) is in Hold mode | `message.received` waits for the scan, and a message marked `review` is held until someone releases it | List threads labeled `agent-armor-held` |
+| The webhook covers other inboxes or pods | Its `inbox_ids` or `pod_ids` do not include the inbox | Update the webhook. `domain.verified` reaches only organization webhooks with no inbox or pod filter |
+| Your WebSocket was disconnected | Your client logged a close or error | Reconnect, subscribe again, and catch up |
+
+## Turn disabled webhooks back on
+
+AgentMail does not email you or send an event when a webhook is disabled, so check `enabled` from your monitoring. Re-enable a webhook by updating it with `enabled` set to `true`, and send its `event_types` in the same request. Your API key needs the read permission for any restricted event types the webhook subscribes to, such as `label_spam_read` for `message.received.spam`. Nothing is redelivered when you re-enable, so catch up afterwards.
+
+## Catch up from the API
+
+List the messages each inbox received after the last event you processed, oldest first, and fetch each one for its body. Add `include_spam`, `include_blocked`, or `include_unauthenticated` if your agent handles those messages too.
+
+<CodeBlocks>
+```python title="Python"
+import os
+from datetime import datetime, timezone
+
+from agentmail import AgentMail
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# turn disabled webhooks back on; this does not redeliver anything
+for webhook in client.webhooks.list().webhooks:
+    if not webhook.enabled:
+        client.webhooks.update(webhook.webhook_id, enabled=True, event_types=webhook.event_types)
+
+# fetch what arrived after the last message your agent processed
+last_processed = datetime(2026, 10, 14, 9, 30, tzinfo=timezone.utc)
+page_token = None
+while True:
+    page = client.inboxes.messages.list(
+        "agent@agentmail.to", labels=["received"], after=last_processed, ascending=True, page_token=page_token
+    )
+    for item in page.messages:
+        message = client.inboxes.messages.get(item.inbox_id, item.message_id)
+        print(message.subject, message.extracted_text or message.text)
+    page_token = page.next_page_token
+    if not page_token:
+        break
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// turn disabled webhooks back on; this does not redeliver anything
+const { webhooks } = await client.webhooks.list();
+for (const webhook of webhooks) {
+    if (!webhook.enabled) {
+        await client.webhooks.update(webhook.webhookId, { enabled: true, eventTypes: webhook.eventTypes });
+    }
+}
+
+// fetch what arrived after the last message your agent processed
+const lastProcessed = new Date("2026-10-14T09:30:00Z");
+let pageToken: string | undefined;
+do {
+    const page = await client.inboxes.messages.list("agent@agentmail.to", {
+        labels: ["received"],
+        after: lastProcessed,
+        ascending: true,
+        pageToken,
+    });
+    for (const item of page.messages) {
+        const message = await client.inboxes.messages.get(item.inboxId, item.messageId);
+        console.log(message.subject, message.extractedText ?? message.text);
+    }
+    pageToken = page.nextPageToken;
+} while (pageToken);
+```
+</CodeBlocks>
+
+Some of these messages may also arrive as events once your webhook is back, so skip what you have already handled:
+
+- **Events:** deduplicate on `event_id`. It is the same on every retry and on every webhook that receives the event. The `svix-id` header differs between organization, pod, and inbox webhooks, so do not use it.
+- **Messages:** match on `inbox_id` plus `message_id`. One email sent to several of your inboxes is a separate message in each, with the same `message_id`.
+
+Events are not delivered in order, so order by the timestamps in the payload, not by arrival.
+
+The [inbox events feed](https://docs.agentmail.to/api-reference/inboxes/events/list) is another way to catch up. It records a `label.added` event for each label on every new message, including `received`, and lists the newest first, so page back until you reach the last `event_id` you processed.
+
+## Recover webhook deliveries in the Console
+
+The **Webhooks** page in the [AgentMail Console](https://console.agentmail.to) shows every delivery attempt for organization webhooks, and for a pod's webhooks when you switch to that pod. From there you can resend a single event, retry everything that failed since a given time, or replay events that were never attempted, for example while the webhook was disabled.
+
+Webhooks created for a single inbox, through the inbox's webhook endpoints or with an inbox-scoped API key, are not in that view. For those, catch up from the API, or email support to recover the deliveries.
+
+## Reconnect WebSockets
+
+A WebSocket connection does not stay open forever, and AgentMail does not queue events for a closed one. Every time you connect:
+
+1. Subscribe again. Subscriptions belong to the connection, so a new connection starts with none.
+2. Catch up from the API for the time you were disconnected.
+
+The TypeScript SDK reconnects automatically, so send your subscription from the `open` handler, which runs again after each reconnect. The Python SDK does not reconnect, so wrap the connection in a loop:
+
+```python title="Python"
+import os
+import time
+
+from agentmail import AgentMail, MessageReceivedEvent, Subscribe
+
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+while True:
+    try:
+        with client.websockets.connect() as socket:
+            socket.send_subscribe(Subscribe(inbox_ids=["agent@agentmail.to"]))
+            for event in socket:
+                if isinstance(event, MessageReceivedEvent):
+                    print("new email:", event.message.subject)
+    except Exception as error:
+        print("disconnected:", error)
+    # catch up on mail from the gap (see above), then reconnect
+    time.sleep(5)
+```
+
+## Make the next outage cheaper
+
+- Store the timestamp of the last message you processed, so catching up is one call.
+- Alert when a webhook's `enabled` turns `false`.
+- For an agent that is often offline, use a [polling webhook](https://docs.agentmail.to/webhook-polling): events wait in its queue until the agent fetches them. Polling webhooks are available in the US region only for now.
+- See [Delivery, retries, and missed events](https://docs.agentmail.to/webhooks-overview#delivery-retries-and-missed-events) for the full delivery rules.
+
+## Get help
+
+To recover deliveries for an inbox webhook, or if messages you expected are not in the API either, email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID, the webhook ID or inbox ID, and the time range you missed. Check [status.agentmail.to](https://status.agentmail.to) for ongoing incidents.

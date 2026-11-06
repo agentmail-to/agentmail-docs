@@ -1,70 +1,132 @@
 ---
-title: "What are the rate limits?"
-subtitle: Understand AgentMail's sending limits and API rate limits, and how to work within them.
+title: "What are AgentMail's plans, quotas, and limits?"
+subtitle: Inboxes, domains, and sending limits for each plan, the new-account recipient limit, add-ons, and the errors you get when you reach a limit.
 slug: knowledge-base/rate-limits
 ---
 
-AgentMail is built for high-volume agent workflows. Two kinds of limits apply: how much email your plan can send, and how quickly you can call the API.
+The Free plan includes 3 inboxes and 100 emails a day, with no separate monthly cap and no custom domains. Developer (\$20 a month) raises that to 10 inboxes, 10 domains, and 1,000 emails a day, and Startup (\$200 a month) to 150 inboxes, 150 domains, and 15,000 emails a day. When you reach a sending limit the API returns `429` with a `Retry-After` header; when you reach an inbox or domain limit it returns `403` with the code `limit_exceeded`.
 
-## Sending limits by plan
+## At a glance
 
-| Plan | Emails per day | Emails per month | Inboxes | Custom domains |
+<Markdown src="../../snippets/plan-limits.mdx" />
+
+Each recipient counts as one email: a message with 2 addresses in `to` and 1 in `cc` uses 3. Inbound mail never counts. The [pricing page](https://www.agentmail.to/pricing) lists 3,000 emails a month for Free: that is 100 a day over a month, not a separate limit.
+
+An account an agent creates for itself through [agent sign-up](https://docs.agentmail.to/agent-onboarding) starts smaller: 1 inbox, no custom domains, 10 emails a day, and it can email only the human attached to it. Verifying or claiming the account moves it to Free. See [Why can my agent only email its human?](https://docs.agentmail.to/knowledge-base/agent-sign-up-limits)
+
+## How the sending windows reset
+
+The daily, 5-minute, and 30-day limits are fixed windows, not rolling ones:
+
+- The **5-minute** window starts on the clock's 5-minute marks (for example 12:00, 12:05, 12:10 UTC).
+- The **daily** window resets at 00:00 UTC.
+- The **30-day** window is a fixed 30-day period. It does not follow calendar months or your billing date.
+
+The `Retry-After` header on a `429` gives the seconds until the window that blocked you resets. AgentMail emails your organization when it has used 80% of its 30-day limit.
+
+## The new-account recipient limit
+
+On the Free plan, a new account can email only a few new people at first. Paid plans do not have this limit, and upgrading removes it right away.
+
+| Account | First hour | First 24 hours | First week |
+| --- | --- | --- | --- |
+| Free | 5 recipients | 10 recipients | 25 recipients |
+| Free, after an agent account is verified or claimed | 3 recipients | 5 recipients | 10 recipients |
+
+- The counts are distinct recipients, counted from when the account was created, or from verification for an agent account.
+- Replies to people who have emailed your account do not count.
+- Variants of one mailbox count once: `jo+test1@example.com` and `jo+test2@example.com` are the same recipient.
+- A Free account that has not sent anything for 10 days or more starts the limit again on its next send.
+
+Going over returns `429` with the code `rate_limit_exceeded` and a `message` that starts with "New account recipient limit exceeded" (or "Recipient limit exceeded" after a restart). The message says when the limit rises and when it lifts, and `Retry-After` gives the seconds until it rises.
+
+## Add-ons
+
+On Developer and Startup you can buy more capacity without changing plans, in the **Add-ons** section of the Billing page in the Console:
+
+| Add-on | Monthly price | On a yearly plan | What you get |
+| --- | --- | --- | --- |
+| Inbox | \$2 | \$19.20 a year | 1 more inbox |
+| Domain | \$2 | \$19.20 a year | 1 more custom domain |
+| Monthly sends | \$2 | \$19.20 a year | 1,000 more emails per 30 days, plus 100 more a day and 10 more per 5 minutes |
+| Seat | \$5 | \$48 a year | 1 more organization member |
+
+See [How do I upgrade, downgrade, or cancel my plan?](https://docs.agentmail.to/knowledge-base/change-plan-billing) for how add-ons are billed.
+
+## API request rate
+
+AgentMail also limits how fast each organization can call the API, so one runaway client cannot slow the API down for everyone. The limits sit well above normal agent traffic, and higher plans get higher limits. Each pod and inbox gets a share of the organization's limit, so one busy inbox can be limited while the rest keep working.
+
+## Errors when you reach a limit
+
+| What you reached | Status and `code` | `message` | Extra fields in the body | Headers |
 | --- | --- | --- | --- | --- |
-| Free | 100 | No monthly cap | 3 | None |
-| Developer | 1,000 | 10,000 | 10 | 10 |
-| Startup | 15,000 | 150,000 | 150 | 150 |
-| Enterprise | Custom | Custom | Custom | Custom |
+| A sending limit | `429` `rate_limit_exceeded` | `Daily send limit exceeded`, `Five minute send limit exceeded`, or `Monthly send limit exceeded` | `resource` (`send`), `window` (`five_minute`, `daily`, or `monthly`), `limit`, `upgrade_url` | `Retry-After`, `ratelimit-limit`, `ratelimit-reset` |
+| The new-account recipient limit | `429` `rate_limit_exceeded` | Starts with "New account recipient limit exceeded" or "Recipient limit exceeded" | None | `Retry-After` |
+| The API request rate | `429` `rate_limit_exceeded` | Varies | `resource` (`request`), `scope` (`organization`, `pod`, or `inbox`), `exceeded` | `Retry-After` |
+| Your inbox or domain limit | `403` `limit_exceeded` | `Inbox limit exceeded` or `Domain limit exceeded` | `resource` (`inbox` or `domain`), `upgrade_url`, and `limit` when known | `x-agentmail-resource`, plus `x-agentmail-limit` and `x-agentmail-remaining` when the limit is known |
 
-The Free tier requires no credit card.
+Every error body also has a `fix` field that says what to change. Other `limit_exceeded` errors, such as too many webhooks or labels, are fixed product limits: they have no `upgrade_url`, and a plan change does not raise them.
 
-An agent that signs itself up through the [agent sign-up API](/agent-onboarding) starts with 1 inbox, no custom domains, and 10 emails per day, which it can send only to the human attached at sign-up. Once the human verifies or claims the organization, it moves to the Free plan.
+The SDKs retry a `429` twice by default, waiting for `Retry-After` up to a minute. That clears a request-rate `429`, but a daily or 30-day limit will not reset in time, so catch the error and check `window`:
 
-For full plan details, see the [pricing page](https://agentmail.to/pricing).
+<CodeBlocks>
+```python title="Python"
+import os
 
-## API rate limits
+from agentmail import AgentMail
+from agentmail.core.api_error import ApiError
 
-AgentMail limits how quickly each organization can call the API. The limits keep the API fast and reliable for everyone: one runaway client cannot slow it down for other customers.
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
 
-The limits are generous. They sit well above what agent workloads normally use, short bursts are absorbed, and almost no customer ever reaches them. Higher plans come with higher limits.
-
-### If you receive a 429
-
-When a client goes over the limit, the API responds with `429 Too Many Requests` and a `Retry-After` header, usually `1` second. The response body's `message` and `fix` fields say which limit was reached and what to change.
-
-The official SDKs retry `429` responses automatically and wait for `Retry-After`. If you call the API directly, do the same:
-
-```typescript title="TypeScript"
-async function withRetry<T>(call: () => Promise<T>, maxRetries = 3): Promise<T> {
-  for (let attempt = 0; ; attempt++) {
-    try {
-      return await call();
-    } catch (error: any) {
-      if (error.statusCode !== 429 || attempt >= maxRetries) throw error;
-      const retryAfter = parseInt(error.headers?.["retry-after"] || "1");
-      await new Promise((r) => setTimeout(r, retryAfter * 1000 * 2 ** attempt));
-    }
-  }
-}
+try:
+    client.inboxes.messages.send(
+        "agent@agentmail.to", to=["customer@example.com"], subject="Your order shipped", text="It's on the way."
+    )
+except ApiError as error:
+    body = error.body if isinstance(error.body, dict) else {}
+    if error.status_code == 429:
+        # window is five_minute, daily, or monthly for sending limits
+        print("try again in", (error.headers or {}).get("retry-after"), "seconds:", body.get("window"), body.get("message"))
+    elif error.status_code == 403 and body.get("code") == "limit_exceeded":
+        print("plan limit reached:", body.get("resource"), body.get("upgrade_url"))
+    else:
+        raise
 ```
 
-If you receive `429` responses regularly, the tips below almost always resolve it.
+```typescript title="TypeScript"
+import { AgentMailClient, AgentMailError } from "agentmail";
 
-## Tips for high-volume agents
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
 
-**Use webhooks or WebSockets instead of polling.** Polling an inbox in a tight loop is the most common way to reach the rate limit, and it is never needed: [webhooks](/webhooks-overview) and [WebSockets](/websockets) deliver new messages as they arrive.
+try {
+    await client.inboxes.messages.send("agent@agentmail.to", {
+        to: ["customer@example.com"],
+        subject: "Your order shipped",
+        text: "It's on the way.",
+    });
+} catch (error) {
+    if (!(error instanceof AgentMailError)) throw error;
+    const body = (error.body ?? {}) as { code?: string; message?: string; window?: string; resource?: string; upgrade_url?: string };
+    if (error.statusCode === 429) {
+        // window is five_minute, daily, or monthly for sending limits
+        console.log("try again in", error.rawResponse?.headers.get("retry-after"), "seconds:", body.window, body.message);
+    } else if (error.statusCode === 403 && body.code === "limit_exceeded") {
+        console.log("plan limit reached:", body.resource, body.upgrade_url);
+    } else {
+        throw error;
+    }
+}
+```
+</CodeBlocks>
 
-**If you do poll, poll slowly.** One list call every few seconds per inbox is plenty.
+## Staying under the limits
 
-**Spread scheduled jobs out.** A job that reads many threads or messages at once should pace itself over a few minutes rather than sending every request in the first second.
+- **Use webhooks or WebSockets instead of polling.** Listing an inbox in a tight loop is the most common way to reach the request rate. [Webhooks](https://docs.agentmail.to/webhooks-overview) and [WebSockets](https://docs.agentmail.to/websockets) tell you about new mail as it arrives.
+- **Spread out batch jobs.** Pace a job that reads or sends a lot over a few minutes instead of firing every request at once.
+- **Make retries safe.** Pass an `idempotency_key` when you send, so a retried request does not send the email twice. See [How do I prevent duplicate sends?](https://docs.agentmail.to/knowledge-base/preventing-duplicate-sends)
+- **Watch your usage.** In the [AgentMail Console](https://console.agentmail.to), **Settings**, then **Usage** shows your inboxes, custom domains, and members against your plan's limits.
 
-**Honor `Retry-After`.** Wait the number of seconds it gives before retrying, and back off further on consecutive `429` responses.
+## Get help
 
-**Distribute sends across inboxes.** Sending from multiple inboxes improves deliverability and avoids per-address throttling by mailbox providers. Instead of 1,000 emails from 1 inbox, send 10 emails each from 100 inboxes.
-
-**Use idempotency keys for resource creation.** The `clientId` parameter on create operations (inboxes, pods, webhooks, drafts) prevents duplicate resources on retries. For preventing duplicate email sends, track sent message IDs in your application or use the [draft workflow](/knowledge-base/preventing-duplicate-sends).
-
-**Monitor your usage.** Track your sending volume against your plan limits. You can view usage in the [AgentMail Console](https://console.agentmail.to).
-
-## Need higher limits?
-
-[Upgrading your plan](https://console.agentmail.to/dashboard/upgrade) raises your API rate limits along with your sending limits. For enterprise volumes, contact [support@agentmail.cc](mailto:support@agentmail.cc) or visit the [pricing page](https://agentmail.to/pricing).
+To raise a limit, [upgrade your plan](https://console.agentmail.to/dashboard/upgrade) or add an add-on. For more than Startup offers, see Enterprise on the [pricing page](https://www.agentmail.to/pricing) or email [support@agentmail.cc](mailto:support@agentmail.cc). If you get a `429` or `403` that does not match your plan more than 5 minutes after a plan change, email support with your organization ID, the full error response, and the time of the request.
