@@ -203,17 +203,17 @@ No change to the request clears this, so retrying keeps failing until the suspen
 
 ### inbox_suspended
 
-Sending from this inbox is suspended for its bounce or complaint rate (`403`); `suspended_reason` says which. Other inboxes in your organization are unaffected and keep sending. The inbox still receives mail, and webhooks and WebSocket events for it still fire. A scheduled draft from the inbox fails instead of sending. Resuming a paused inbox does not lift a suspension; email [support@agentmail.cc](mailto:support@agentmail.cc).
+Sending from this inbox is suspended for its bounce or complaint rate (`403`); `suspended_reason` says which. Other inboxes in your organization are unaffected and keep sending. The inbox still receives mail, and webhooks and WebSocket events for it still fire. A scheduled draft from the inbox fails instead of sending. Reactivating a deactivated inbox does not lift a suspension; email [support@agentmail.cc](mailto:support@agentmail.cc).
 
 ### pod_suspended
 
 Sending from the inboxes in this pod is suspended for the pod's bounce or complaint rate (`403`); `suspended_reason` says which. Other pods in your organization are unaffected and keep sending. Inboxes in the pod still receive mail, and webhooks and WebSocket events still fire. Email [support@agentmail.cc](mailto:support@agentmail.cc) to resolve it.
 
-### inbox_paused
+### inbox_deactivated
 
-The inbox is paused, so it cannot send. Resume it with `PATCH /v0/inboxes/{inbox_id}` and `{"status": "active"}` using a key with the `inbox_update` permission, then send again. Mail that arrived while the inbox was paused was dropped and is not delivered on resume. See [Pausing an inbox](/inboxes#pausing-an-inbox).
+The inbox is deactivated, so it cannot send. Reactivate it with `PATCH /v0/inboxes/{inbox_id}` and `{"status": "active"}` using a key with the `inbox_update` permission, then send again. Mail that arrived while the inbox was deactivated was dropped and is not delivered on reactivation. See [Deactivating an inbox](/inboxes#deactivating-an-inbox).
 
-If the inbox has also been suspended for its bounce or complaint rate, the send reports that suspension instead. A suspension of the inbox's pod is reported only after the inbox is resumed. Resuming the inbox does not lift either suspension: email support@agentmail.cc.
+If the inbox has also been suspended for its bounce or complaint rate, the send reports that suspension instead. A suspension of the inbox's pod is reported only after the inbox is reactivated. Reactivating the inbox does not lift either suspension: email support@agentmail.cc.
 
 ## Request too large (413)
 

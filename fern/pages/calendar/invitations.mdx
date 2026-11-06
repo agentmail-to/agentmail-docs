@@ -84,7 +84,7 @@ Invitation emails count toward the same organization, pod and inbox send limits 
 
 If the charge would exceed a limit, the request returns `429` `rate_limit_exceeded` and the event is not created or changed. Wait for the `Retry-After` header when present, or retry without `send_invites` to save the change without emailing anyone.
 
-The charge is taken after the request passes validation and any `If-Match` check, so a `400` or `412` is not charged, but a request that fails after that (for example with `409`) is. A create retried with the same `client_id` that returns the original event is not charged again. While the inbox is paused or suspended, nothing is charged and no invitations are sent.
+The charge is taken after the request passes validation and any `If-Match` check, so a `400` or `412` is not charged, but a request that fails after that (for example with `409`) is. A create retried with the same `client_id` that returns the original event is not charged again. While the inbox is deactivated or suspended, nothing is charged and no invitations are sent.
 
 Invitations also pass the same outbound checks as other mail, such as spam checks and the recipient limits for new senders. An invitation those checks refuse is not sent or retried; the event itself is still saved.
 

@@ -285,51 +285,51 @@ await client.inboxes.update("support-agent@agentmail.to", {
 
 </CodeBlocks>
 
-## Pausing an inbox
+## Deactivating an inbox
 
-Pause an inbox to stop it sending and receiving mail without deleting it. The address stays yours, and you can resume the inbox at any time. Pausing and resuming need the `inbox_update` permission.
+Deactivate an inbox to stop it sending and receiving mail without deleting it. The address stays yours, and you can reactivate the inbox at any time. Deactivating and reactivating need the `inbox_update` permission.
 
 <Warning>
-  Mail sent to a paused inbox is not delivered. It is not bounced, the sender
-  is not told, and it is not delivered when you resume the inbox.
+  Mail sent to a deactivated inbox is not delivered. It is not bounced, the
+  sender is not told, and it is not delivered when you reactivate the inbox.
 </Warning>
 
-While an inbox is paused:
+While an inbox is deactivated:
 
-- **Sending is blocked.** Send, reply, forward, and sending a draft return `403` with code [`inbox_paused`](/errors#inbox_paused). A retry of a send that already completed before the pause, with the same `Idempotency-Key`, still returns the original result; it sends nothing.
-- **Scheduled drafts fail.** A draft scheduled to send while the inbox is paused is not sent and its `send_status` becomes `failed`. Resuming the inbox does not retry it.
+- **Sending is blocked.** Send, reply, forward, and sending a draft return `403` with code [`inbox_deactivated`](/errors#inbox_deactivated). A retry of a send that already completed before the deactivation, with the same `Idempotency-Key`, still returns the original result; it sends nothing.
+- **Scheduled drafts fail.** A draft scheduled to send while the inbox is deactivated is not sent and its `send_status` becomes `failed`. Reactivating the inbox does not retry it.
 - **Incoming mail is not delivered**, and no `message.received` event is sent for it. A message also addressed to other inboxes is still delivered to them.
 - **AgentID sign-ins are refused** for the inbox.
 - **Everything already in the inbox is kept.** Its threads, messages, drafts, and API keys stay in place.
 
-A paused inbox has `status: "paused"`. Treat any other value, or no `status` field, as an inbox that sends and receives normally.
+A deactivated inbox has `status: "deactivated"`. Treat any other value, or no `status` field, as an inbox that sends and receives normally.
 
 <CodeBlocks>
 
 ```python title="Python"
-# pause the inbox
-client.inboxes.update(inbox_id="support-agent@agentmail.to", status="paused")
+# deactivate the inbox
+client.inboxes.update(inbox_id="support-agent@agentmail.to", status="deactivated")
 
-# resume it
+# reactivate it
 client.inboxes.update(inbox_id="support-agent@agentmail.to", status="active")
 ```
 
 ```typescript title="TypeScript"
-// pause the inbox
-await client.inboxes.update("support-agent@agentmail.to", { status: "paused" });
+// deactivate the inbox
+await client.inboxes.update("support-agent@agentmail.to", { status: "deactivated" });
 
-// resume it
+// reactivate it
 await client.inboxes.update("support-agent@agentmail.to", { status: "active" });
 ```
 
 ```bash title="cURL"
-# pause the inbox
+# deactivate the inbox
 curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
   -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"status": "paused"}'
+  -d '{"status": "deactivated"}'
 
-# resume it
+# reactivate it
 curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
   -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
@@ -338,13 +338,13 @@ curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
 
 </CodeBlocks>
 
-To check whether an inbox is paused, read `status` from `GET /v0/inboxes/{inbox_id}`. If two requests change the status at once, one returns `409` with code [`race_condition`](/errors#race_condition): read the inbox again before retrying.
+To check whether an inbox is deactivated, read `status` from `GET /v0/inboxes/{inbox_id}`. If two requests change the status at once, one returns `409` with code [`race_condition`](/errors#race_condition): read the inbox again before retrying.
 
-You can also create an inbox already paused by passing `status: "paused"` to create.
+You can also create an inbox already deactivated by passing `status: "deactivated"` to create.
 
-### Scheduling a pause
+### Scheduling a deactivation
 
-Set `pause_at` to have the inbox pause itself later, for example when a fixed-term inbox reaches the end of its term. Within about five minutes after `pause_at`, the inbox becomes paused exactly as if you had set `status` to `paused`, and `pause_at` is cleared. Until then it sends, receives, and is billed as usual.
+Set `deactivate_at` to have the inbox deactivate itself later, for example when a fixed-term inbox reaches the end of its term. Within about five minutes after `deactivate_at`, the inbox becomes deactivated exactly as if you had set `status` to `deactivated`, and `deactivate_at` is cleared. Until then it sends, receives, and is billed as usual.
 
 <CodeBlocks>
 
@@ -352,67 +352,67 @@ Set `pause_at` to have the inbox pause itself later, for example when a fixed-te
 from datetime import datetime, timezone
 from agentmail.inboxes import CreateInboxRequest
 
-# create an inbox that pauses on December 28
+# create an inbox that deactivates on December 28
 inbox = client.inboxes.create(
     request=CreateInboxRequest(
         username="support-agent",
-        pause_at=datetime(2026, 12, 28, tzinfo=timezone.utc),
+        deactivate_at=datetime(2026, 12, 28, tzinfo=timezone.utc),
     ),
 )
 
-# move the pause later, before it happens
+# move the deactivation later, before it happens
 client.inboxes.update(
     inbox_id="support-agent@agentmail.to",
-    pause_at=datetime(2027, 2, 28, tzinfo=timezone.utc),
+    deactivate_at=datetime(2027, 2, 28, tzinfo=timezone.utc),
 )
 
-# cancel the scheduled pause
-client.inboxes.update(inbox_id="support-agent@agentmail.to", pause_at=None)
+# cancel the scheduled deactivation
+client.inboxes.update(inbox_id="support-agent@agentmail.to", deactivate_at=None)
 
-# after the pause has happened: resume and schedule the next one
+# after the deactivation has happened: reactivate and schedule the next one
 client.inboxes.update(
     inbox_id="support-agent@agentmail.to",
     status="active",
-    pause_at=datetime(2027, 2, 28, tzinfo=timezone.utc),
+    deactivate_at=datetime(2027, 2, 28, tzinfo=timezone.utc),
 )
 ```
 
 ```typescript title="TypeScript"
-// create an inbox that pauses on December 28
+// create an inbox that deactivates on December 28
 const inbox = await client.inboxes.create({
   username: "support-agent",
-  pauseAt: new Date("2026-12-28T00:00:00Z"),
+  deactivateAt: new Date("2026-12-28T00:00:00Z"),
 });
 
-// move the pause later, before it happens
+// move the deactivation later, before it happens
 await client.inboxes.update("support-agent@agentmail.to", {
-  pauseAt: new Date("2027-02-28T00:00:00Z"),
+  deactivateAt: new Date("2027-02-28T00:00:00Z"),
 });
 
-// cancel the scheduled pause
-await client.inboxes.update("support-agent@agentmail.to", { pauseAt: null });
+// cancel the scheduled deactivation
+await client.inboxes.update("support-agent@agentmail.to", { deactivateAt: null });
 
-// after the pause has happened: resume and schedule the next one
+// after the deactivation has happened: reactivate and schedule the next one
 await client.inboxes.update("support-agent@agentmail.to", {
   status: "active",
-  pauseAt: new Date("2027-02-28T00:00:00Z"),
+  deactivateAt: new Date("2027-02-28T00:00:00Z"),
 });
 ```
 
 ```bash title="cURL"
-# move the pause later, before it happens
+# move the deactivation later, before it happens
 curl -X PATCH "https://api.agentmail.to/v0/inboxes/support-agent@agentmail.to" \
   -H "Authorization: Bearer $AGENTMAIL_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"pause_at": "2027-02-28T00:00:00Z"}'
+  -d '{"deactivate_at": "2027-02-28T00:00:00Z"}'
 ```
 
 </CodeBlocks>
 
-- **It must be in the future.** A past time returns `400`. To pause now, set `status` to `paused`.
-- **Any ISO 8601 time works.** It is returned in UTC, and omitted when no pause is scheduled.
-- **It is separate from `status`.** Pausing or resuming by hand leaves a scheduled `pause_at` in place.
-- **Only organization- and pod-scoped API keys can change it** on an existing inbox; an inbox-scoped key gets `403`. An inbox-scoped key can still resume its own inbox after the pause, so do not rely on `pause_at` to cut off a key you have handed to someone else.
+- **It must be in the future.** A past time returns `400`. To deactivate now, set `status` to `deactivated`.
+- **Any ISO 8601 time works.** It is returned in UTC, and omitted when no deactivation is scheduled.
+- **It is separate from `status`.** Deactivating or reactivating by hand leaves a scheduled `deactivate_at` in place.
+- **Only organization- and pod-scoped API keys can change it** on an existing inbox; an inbox-scoped key gets `403`. An inbox-scoped key can still reactivate its own inbox after the deactivation, so do not rely on `deactivate_at` to cut off a key you have handed to someone else.
 
 ## Inbox-scoped API keys
 
@@ -454,12 +454,12 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
   Setup: pip install agentmail python-dotenv. Set AGENTMAIL_API_KEY in .env.
 
   API reference:
-  - inboxes.create(request=CreateInboxRequest(username?, domain?, display_name?, client_id?, pause_at?, metadata?)) — client_id for idempotent retries; metadata is custom key-value data
+  - inboxes.create(request=CreateInboxRequest(username?, domain?, display_name?, client_id?, deactivate_at?, metadata?)) — client_id for idempotent retries; metadata is custom key-value data
   - inboxes.get(inbox_id)
   - inboxes.list(limit?, page_token?)
-  - inboxes.update(inbox_id, display_name?, status?, pause_at?, metadata?) — at least one field required; metadata is merged, not replaced
-  - pause/resume: status="paused" stops sending and receiving, status="active" resumes
-  - pause_at: a future datetime when the inbox pauses itself (within ~5 min); None cancels; organization- or pod-scoped keys only
+  - inboxes.update(inbox_id, display_name?, status?, deactivate_at?, metadata?) — at least one field required; metadata is merged, not replaced
+  - deactivate/reactivate: status="deactivated" stops sending and receiving, status="active" reactivates
+  - deactivate_at: a future datetime when the inbox deactivates itself (within ~5 min); None cancels; organization- or pod-scoped keys only
   - inboxes.delete(inbox_id)
   - inboxes.api_keys.create(inbox_id, name) — inbox-scoped key
   - inboxes.api_keys.list(inbox_id)
@@ -491,12 +491,12 @@ Copy one of the blocks below into Cursor or Claude for complete Inboxes API know
    * Setup: npm install agentmail dotenv. Set AGENTMAIL_API_KEY in .env.
    *
    * API reference:
-   * - inboxes.create({ username?, domain?, displayName?, clientId?, pauseAt?, metadata? }) — metadata is custom key-value data
+   * - inboxes.create({ username?, domain?, displayName?, clientId?, deactivateAt?, metadata? }) — metadata is custom key-value data
    * - inboxes.get(inboxId)
    * - inboxes.list({ limit?, pageToken? })
-   * - inboxes.update(inboxId, { displayName?, status?, pauseAt?, metadata? }) — at least one field required
-   * - pause/resume: status: "paused" stops sending and receiving, status: "active" resumes
-   * - pauseAt: a future Date when the inbox pauses itself (within ~5 min); null cancels; organization- or pod-scoped keys only
+   * - inboxes.update(inboxId, { displayName?, status?, deactivateAt?, metadata? }) — at least one field required
+   * - deactivate/reactivate: status: "deactivated" stops sending and receiving, status: "active" reactivates
+   * - deactivateAt: a future Date when the inbox deactivates itself (within ~5 min); null cancels; organization- or pod-scoped keys only
    * - inboxes.delete(inboxId)
    * - inboxes.apiKeys.create(inboxId, { name }) — inbox-scoped key
    * - inboxes.apiKeys.list(inboxId)

@@ -79,7 +79,7 @@ for (const [rateType, points] of Object.entries(rates)) {
 
 ## What to do
 
-Retrying, creating new API keys, or pausing and resuming inboxes does not lift a suspension. Before you contact support about a bounce or complaint suspension, fix the cause:
+Retrying, creating new API keys, or deactivating and reactivating inboxes does not lift a suspension. Before you contact support about a bounce or complaint suspension, fix the cause:
 
 - Validate addresses before sending, and never let the model guess or construct an address.
 - Handle the `message.bounced` and `message.complained` [events](https://docs.agentmail.to/events), and stop emailing addresses that bounce or complain.
