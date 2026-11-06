@@ -56,7 +56,7 @@ On workspace plans, your admin controls which plugins and event-triggered tasks 
 
 ## The `message.received` event
 
-`message.received` fires when an email arrives in the inbox you subscribed to. Mail classified as spam, blocked, or unauthenticated does not trigger it.
+`message.received` fires when an email arrives in the inbox you subscribed to. Mail classified as spam, blocked, or unauthenticated does not trigger it. Neither does mail the inbox sends to itself, so a task that acts on an event cannot trigger itself in a loop. To test a subscription, send from a different address.
 
 **Subscription arguments**
 
@@ -99,7 +99,7 @@ The hosted server implements the webhook delivery mode of the MCP Events extensi
 - The secret must start with `whsec_` and decode to 24 to 64 bytes. If a refresh supplies a new secret, deliveries are signed with both the old and the new secret for 24 hours.
 - `cursor` is always `null`: events are not replayed, and `truncated` is always `false`.
 
-**Callback verification.** Before the first delivery, the server sends a signed `POST` with the body `{"type": "verification", "challenge": "..."}`. Answer with any 2xx status and the JSON body `{"challenge": "..."}` echoing the same value. A successful verification is reused for 7 days when the same subscription is refreshed. If verification fails, `events/subscribe` returns error `-32015` (`CallbackEndpointError`) with `data.reason` set to `challenge_failed`, `timeout`, `unreachable`, or `blocked_address`.
+**Callback verification.** Before the first delivery, the server sends a signed `POST` with the body `{"type": "verification", "challenge": "..."}`. Answer with any 2xx status and the JSON body `{"challenge": "..."}` echoing the same value. The request also carries the challenge in a `webhook-challenge` header, so a receiver that implements the Standard Webhooks [endpoint verification extension](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/extensions/endpoint-verification.md) can answer with its `webhook-challenge-response` header instead. A successful verification is reused for 7 days when the same subscription is refreshed. If verification fails, `events/subscribe` returns error `-32015` (`CallbackEndpointError`) with `data.reason` set to `challenge_failed`, `timeout`, `unreachable`, or `blocked_address`.
 
 **Delivery.** Each event is one `POST` with a JSON body:
 
@@ -138,7 +138,7 @@ Any 2xx response acknowledges the event. `408`, `429`, `5xx`, and network errors
 
 **ChatGPT says it could not set up the notification.** Confirm the AgentMail plugin is installed and signed in to the organization that owns the inbox, and that your account can create webhooks for it.
 
-**An email did not trigger the task.** Mail classified as spam, blocked, or unauthenticated does not fire `message.received`. Check the message's labels in the inbox. Subscriptions also end after their lifetime if the client stops renewing them; ask the assistant to set the notification up again.
+**An email did not trigger the task.** Mail classified as spam, blocked, or unauthenticated does not fire `message.received`, and neither does mail the inbox sent to itself. Check the message's labels in the inbox. Subscriptions also end after their lifetime if the client stops renewing them; ask the assistant to set the notification up again.
 
 ## Resources
 
