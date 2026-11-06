@@ -32,7 +32,7 @@ AgentMail supports twenty webhook event types. When creating a webhook, you list
 - **`message.bounced`** — Message failed to deliver and bounced back
 - **`message.complained`** — Recipient marked your message as spam
 - **`message.rejected`** — Message rejected before send (validation or policy)
-- **`message.opened`** — A tracked message was opened for the first time (requires [open tracking](/knowledge-base/open-tracking))
+- **`message.opened`** — A tracked message was opened for the first time (requires [open tracking](/open-tracking))
 - **`message.security.completed`** — [Agent Armor](/agent-armor) reached a verdict on a received message, in Monitor mode (requires `message_read`)
 - **`message.security.review`** — Agent Armor in [Hold mode](/agent-armor#hold-mode) held a received message for review (requires `message_read`)
 - **`message.security.override`** — someone released a message Agent Armor held (requires `message_read`)

@@ -89,11 +89,12 @@ The content of your email plays a huge role in whether it's seen as a valuable m
     sale in the first email.
   </Step>
   <Step title="Be Strategic with images">
-    Any type of image that isn't an attachment but included in the message body
-    actually sets off the spam alarms. Don't do it. Also get rid of your
-    open-tracker while you're at it because how EVERY service checks if the
-    recipient of your email opened your message is by encoding a small image
-    into the body. Hurts deliverability!!
+    Images embedded in the message body, rather than attached, set off spam
+    filters, especially in a first message to someone who has never heard from
+    you. Open tracking works by embedding a small image too, so send your first
+    cold message without `track_opens` and track replies and follow-ups
+    instead. Tracking is off unless you set `track_opens` on a send. See
+    [Open Tracking](/open-tracking).
   </Step>
   <Step title="CTA Selection">
     Email providers are wary of emails links, especially in the first message of
