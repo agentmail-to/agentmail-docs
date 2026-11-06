@@ -80,7 +80,7 @@ When one email reaches several inboxes in an organization that forward to the sa
 - Forwards are sent shortly after an email arrives. A change to a list can take up to a minute to apply.
 - Each forward is sent from the inbox, so it appears in the inbox as a sent message and fires the `message.sent` [webhook](/webhooks-overview) event.
 - Each forward counts toward the inbox's send limits and usage like any other message it sends, once per address.
-- AgentMail retries temporary failures. A forward refused for a lasting reason, such as a paused inbox, a suspended account, or a send limit, isn't sent.
+- AgentMail retries temporary failures. A forward refused for a lasting reason, such as a deactivated inbox, a suspended account, or a send limit, isn't sent.
 - A level can forward to at most 5 addresses, each up to 320 characters, with no repeats.
 
 ## Permissions

@@ -63,20 +63,21 @@ types:
   InboxStatus:
     enum:
       - active
-      - paused
+      - deactivated
     docs: |
-      Whether the inbox sends and receives mail. `paused` stops both: sends
-      return `403` with code `inbox_paused`, and incoming mail is not
-      delivered and not bounced, then or on resume. Mail already in the inbox,
-      its drafts, and its API keys are kept. Set `active` to resume.
+      Whether the inbox sends and receives mail. `deactivated` stops both:
+      sends return `403` with code `inbox_deactivated`, and incoming mail is
+      not delivered and not bounced, then or on reactivation. Mail already in
+      the inbox, its drafts, and its API keys are kept. Set `active` to
+      reactivate.
 
-  PauseAt:
+  DeactivateAt:
     type: datetime
     docs: |
-      When the inbox pauses itself. Within about five minutes after this time,
-      the inbox becomes paused exactly as if `status` had been set to `paused`,
-      and `pause_at` is cleared. Must be in the future; returned in UTC. A
-      manual pause or resume does not change it.
+      When the inbox deactivates itself. Within about five minutes after this
+      time, the inbox becomes deactivated exactly as if `status` had been set
+      to `deactivated`, and `deactivate_at` is cleared. Must be in the future;
+      returned in UTC. A manual deactivation or reactivation does not change it.
 
   InboxSignature:
     docs: |
@@ -106,14 +107,14 @@ types:
       status:
         type: optional<InboxStatus>
         docs: |
-          `paused` when the inbox is paused. Omitted when the inbox is active.
-          Treat any value other than `paused` as an inbox that sends and
-          receives normally.
-      pause_at:
-        type: optional<PauseAt>
+          `deactivated` when the inbox is deactivated. Omitted when the inbox
+          is active. Treat any value other than `deactivated` as an inbox that
+          sends and receives normally.
+      deactivate_at:
+        type: optional<DeactivateAt>
         docs: |
-          When the inbox is scheduled to pause. Omitted when no pause is
-          scheduled, and cleared once the pause happens.
+          When the inbox is scheduled to deactivate. Omitted when no
+          deactivation is scheduled, and cleared once it happens.
       signature:
         type: optional<InboxSignature>
         docs: The signature added to messages this inbox sends. Omitted when none is set.
@@ -160,10 +161,10 @@ types:
       client_id: optional<ClientId>
       status:
         type: optional<InboxStatus>
-        docs: Set `paused` to create the inbox paused.
-      pause_at:
-        type: optional<PauseAt>
-        docs: Schedule the inbox to pause at this time, for example when a fixed term ends.
+        docs: Set `deactivated` to create the inbox deactivated.
+      deactivate_at:
+        type: optional<DeactivateAt>
+        docs: Schedule the inbox to deactivate at this time, for example when a fixed term ends.
       signature:
         type: optional<InboxSignature>
         docs: Signature to add to every message the inbox sends.
@@ -177,15 +178,15 @@ types:
       status:
         type: optional<InboxStatus>
         docs: |
-          `paused` stops the inbox sending and receiving mail; `active` resumes
-          it. Mail that arrived while the inbox was paused is not delivered on
-          resume.
-      pause_at:
-        type: optional<nullable<PauseAt>>
+          `deactivated` stops the inbox sending and receiving mail; `active`
+          reactivates it. Mail that arrived while the inbox was deactivated is
+          not delivered on reactivation.
+      deactivate_at:
+        type: optional<nullable<DeactivateAt>>
         docs: |
-          Schedule a pause, or move one already scheduled. Send null to cancel
-          it. Only an organization- or pod-scoped API key can change it; an
-          inbox-scoped key gets `403`.
+          Schedule a deactivation, or move one already scheduled. Send null to
+          cancel it. Only an organization- or pod-scoped API key can change it;
+          an inbox-scoped key gets `403`.
       signature:
         type: optional<nullable<InboxSignature>>
         docs: Set or replace the inbox's signature. Send null to remove it.
@@ -197,7 +198,7 @@ types:
           single key, send it with a null value. To clear all metadata, send
           `metadata` as null. Sending an empty object is rejected; use null to
           clear. Each update must include at least one of `display_name`,
-          `status`, `pause_at`, `signature`, or `metadata`.
+          `status`, `deactivate_at`, `signature`, or `metadata`.
 
   AuthorizeInboxRequest:
     docs: |
@@ -306,15 +307,15 @@ service:
         agentmail inboxes update --inbox-id <inbox_id> --display-name "Updated Name"
         ```
 
-        To pause an inbox, set `status` to `paused`; set it back to `active` to
-        resume. To pause it later, set `pause_at`. See
-        [Pausing an inbox](/inboxes#pausing-an-inbox).
+        To deactivate an inbox, set `status` to `deactivated`; set it back to
+        `active` to reactivate it. To deactivate it later, set `deactivate_at`.
+        See [Deactivating an inbox](/inboxes#deactivating-an-inbox).
       path-parameters:
         inbox_id: InboxId
       request:
         body:
           type: UpdateInboxRequest
-          docs: Expects an object; provide at least one of `display_name`, `status`, `pause_at`, `signature`, or `metadata`.
+          docs: Expects an object; provide at least one of `display_name`, `status`, `deactivate_at`, `signature`, or `metadata`.
       response: Inbox
       errors:
         - global.NotFoundError
