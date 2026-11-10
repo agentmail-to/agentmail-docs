@@ -33,7 +33,7 @@ To authenticate with x402 instead of an API key, you must use the x402-specific 
 - A crypto wallet with USDC funds (EVM-compatible wallet on Polygon or Base, or a Solana wallet)
 - Node.js installed
 
-The x402 client applies a default spend control of $1 per payment. Inbox creation is priced at $2.00, so raise the cap with `setSpendControls` before your first request or the client will reject the payment before it is sent.
+The x402 client applies a default spend control of $1 per payment. Two requests cost more than that: creating an inbox costs $2.00 and creating a domain costs $10.00. Before your first request, raise the cap with `setSpendControls` to the largest payment your agent will make, or the client will reject the payment before it is sent.
 
 ### Install dependencies
 
@@ -67,6 +67,7 @@ The x402 client applies a default spend control of $1 per payment. Inbox creatio
     x402.register("eip155:*", new ExactEvmScheme(signer));
 
     // inbox creation is priced at $2.00, above the client's $1 default cap
+    // (use "$10" if your agent will also create domains, which cost $10.00)
     x402.setSpendControls({ maxAmountPerPayment: "$2" });
 
 
@@ -123,6 +124,7 @@ The x402 client applies a default spend control of $1 per payment. Inbox creatio
     x402.register("solana:*", new ExactSvmScheme(toClientSvmSigner(keypair)));
 
     // inbox creation is priced at $2.00, above the client's $1 default cap
+    // (use "$10" if your agent will also create domains, which cost $10.00)
     x402.setSpendControls({ maxAmountPerPayment: "$2" });
 
 
