@@ -35,14 +35,13 @@
       return found ? found.slice(name.length + 1) : undefined;
     };
     // Consent: an explicit answer wins. Without one, a Global Privacy Control
-    // signal refuses, and a visitor the landing site placed in an opt-in region
-    // waits for the banner. Everyone else is captured.
+    // signal refuses, and only a visitor the landing site has placed in an
+    // opt-out region is captured; anyone else waits for the banner.
     var consent = cookie("agentmail_consent_v1");
     if (consent !== undefined && consent !== "1" && consent !== "true") return;
     if (consent === undefined) {
       if (navigator.globalPrivacyControl) return;
-      var region = cookie("agentmail_consent_region");
-      if (region !== undefined && region !== "opt-out") return;
+      if (cookie("agentmail_consent_region") !== "opt-out") return;
     }
     var now = Date.now();
     var path = location.pathname;
