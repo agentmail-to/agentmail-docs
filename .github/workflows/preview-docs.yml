@@ -13,8 +13,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Fern
-        run: npm install -g fern-api
+      - name: Install Fern (version pinned in fern/fern.config.json)
+        run: npm install -g "fern-api@$(jq -r .version fern/fern.config.json)"
 
       - name: Generate preview URL
         id: generate-docs

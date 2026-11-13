@@ -22,8 +22,8 @@ jobs:
       - name: Check API key permission lists
         run: python3 scripts/check_permissions.py --check
 
-      - name: Install Fern
-        run: npm install -g fern-api
+      - name: Install Fern (version pinned in fern/fern.config.json)
+        run: npm install -g "fern-api@$(jq -r .version fern/fern.config.json)"
 
       - name: Check API is valid
         run: fern check
