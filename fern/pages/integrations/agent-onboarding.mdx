@@ -22,7 +22,7 @@ Your agent can sign up programmatically using the Agent API. No console access n
 from agentmail import AgentMail
 
 client = AgentMail()
-response = client.agent.sign_up(human_email="you@example.com", username="my-agent")
+response = client.agent.sign_up(human_email="you@example.com", username="my-agent", referrer="https://docs.agentmail.to/agent-onboarding")
 # response.api_key  -> store this securely
 # response.inbox_id -> my-agent@agentmail.to
 ```
@@ -31,13 +31,13 @@ response = client.agent.sign_up(human_email="you@example.com", username="my-agen
 import { AgentMailClient } from "agentmail";
 
 const client = new AgentMailClient();
-const response = await client.agent.signUp({ humanEmail: "you@example.com", username: "my-agent" });
+const response = await client.agent.signUp({ humanEmail: "you@example.com", username: "my-agent", referrer: "https://docs.agentmail.to/agent-onboarding" });
 // response.apiKey  -> store this securely
 // response.inboxId -> my-agent@agentmail.to
 ```
 
 ```bash title="CLI"
-agentmail agent sign-up --human-email you@example.com --username my-agent
+agentmail agent sign-up --human-email you@example.com --username my-agent --referrer https://docs.agentmail.to/agent-onboarding
 ```
 
 </CodeBlocks>
@@ -78,7 +78,7 @@ agentmail agent verify --otp-code 123456
   **Some domains cannot be used for agent signup.** Common placeholder domains (e.g., `example.com`) and certain provider-specific domains are blocklisted. If signup fails, use a real email address from your own domain or a standard email provider.
 </Warning>
 
-Alternatively, a human can create an account at [console.agentmail.to](https://console.agentmail.to) and generate an API key from the dashboard.
+Alternatively, a human can create an account at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=agent-onboarding) and generate an API key from the dashboard.
 
 <Info>
   An agent that signs up starts with 1 inbox, no custom domains, and 10 emails per day, which it can send only to the attached human until the organization is verified or claimed. Verifying or claiming moves it to the Free plan: 3 inboxes, 1 custom domain and 100 emails per day, at first to at most 3 distinct recipients in the first hour, 5 in the first day, and 10 in the first week. No credit card is required, and your agent can start building immediately.
@@ -92,18 +92,18 @@ If your agent doesn't have a human's email yet, leave `human_email` out. The age
 
 ```python title="Python"
 client = AgentMail()
-response = client.agent.sign_up(username="my-agent")
+response = client.agent.sign_up(username="my-agent", referrer="https://docs.agentmail.to/agent-onboarding")
 # response.api_key  -> store this durably, it cannot be recovered
 ```
 
 ```typescript title="TypeScript"
 const client = new AgentMailClient();
-const response = await client.agent.signUp({ username: "my-agent" });
+const response = await client.agent.signUp({ username: "my-agent", referrer: "https://docs.agentmail.to/agent-onboarding" });
 // response.apiKey  -> store this durably, it cannot be recovered
 ```
 
 ```bash title="CLI"
-agentmail agent sign-up --username my-agent
+agentmail agent sign-up --username my-agent --referrer https://docs.agentmail.to/agent-onboarding
 ```
 
 </CodeBlocks>
@@ -114,7 +114,7 @@ agentmail agent sign-up --username my-agent
 
 Then connect a human, in either of two ways.
 
-**The human claims the inbox in the Console.** This is available for inboxes in the US region, whose keys start with `am_us_`. The agent gives its API key to the human it works for, over a channel they already use (never by email: anyone can email the agent's inbox). The human opens [console.agentmail.to/claim](https://console.agentmail.to/claim), signs in or signs up, and pastes the key. The agent's organization becomes one the human owns, on the Free plan, sending is unlocked (at first to at most 3 distinct recipients in the first hour, 5 in the first day, and 10 in the first week), and the agent's key keeps working, though it can take up to 5 minutes to pick up the claim. See [How do I claim my agent's inbox?](/knowledge-base/claiming-agent-inbox) for the human's steps and the errors they can see.
+**The human claims the inbox in the Console.** This is available for inboxes in the US region, whose keys start with `am_us_`. The agent gives its API key to the human it works for, over a channel they already use (never by email: anyone can email the agent's inbox). The human opens [console.agentmail.to/claim](https://console.agentmail.to/claim?utm_source=docs&utm_medium=docs&utm_campaign=agent-onboarding), signs in or signs up, and pastes the key. The agent's organization becomes one the human owns, on the Free plan, sending is unlocked (at first to at most 3 distinct recipients in the first hour, 5 in the first day, and 10 in the first week), and the agent's key keeps working, though it can take up to 5 minutes to pick up the claim. See [How do I claim my agent's inbox?](/knowledge-base/claiming-agent-inbox) for the human's steps and the errors they can see.
 
 If the claim page refuses the human's account because it cannot create another organization, the human already has a Console account. They create an API key for the agent in their organization instead. That key belongs to their organization, not the one the agent signed up into, so the agent creates a new inbox with it, under a different username: the sign-up inbox stays behind, receiving but unable to send unless a different human claims it or is attached.
 
@@ -307,7 +307,7 @@ from agentmail.inboxes import CreateInboxRequest
 
 # sign up (no API key needed)
 client = AgentMail()
-response = client.agent.sign_up(human_email="you@example.com", username="my-agent")
+response = client.agent.sign_up(human_email="you@example.com", username="my-agent", referrer="https://docs.agentmail.to/agent-onboarding")
 
 # after verifying with the OTP sent to your email:
 client = AgentMail(api_key=response.api_key)
@@ -330,7 +330,7 @@ import { AgentMailClient } from "agentmail";
 
 // sign up (no API key needed)
 const client = new AgentMailClient();
-const response = await client.agent.signUp({ humanEmail: "you@example.com", username: "my-agent" });
+const response = await client.agent.signUp({ humanEmail: "you@example.com", username: "my-agent", referrer: "https://docs.agentmail.to/agent-onboarding" });
 
 // after verifying with the OTP sent to your email:
 const authedClient = new AgentMailClient({ apiKey: response.apiKey });
@@ -349,7 +349,7 @@ await authedClient.inboxes.messages.send(inbox.inboxId, {
 
 ```bash title="CLI"
 # sign up and verify
-agentmail agent sign-up --human-email you@example.com --username my-agent
+agentmail agent sign-up --human-email you@example.com --username my-agent --referrer https://docs.agentmail.to/agent-onboarding
 agentmail agent verify --otp-code 123456
 
 # create an inbox
