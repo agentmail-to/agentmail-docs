@@ -3,14 +3,14 @@ css: ./styles.css
 js: ./custom.js
 
 instances:
-  - url: https://agentmail-production.docs.buildwithfern.com
+  - url: agentmail-production.docs.buildwithfern.com
     custom-domain: docs.agentmail.to
     edit-this-page:
       github:
         owner: agentmail-to
         repo: agentmail-docs
         branch: main
-  - url: https://agentmail-production.docs.buildwithfern.com/docs
+  - url: agentmail-production.docs.buildwithfern.com/docs
     custom-domain: agentmail.to/docs
     edit-this-page:
       github:
