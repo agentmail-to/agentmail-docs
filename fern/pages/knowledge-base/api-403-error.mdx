@@ -18,7 +18,7 @@ Branch on `code`, not on `message`: many 403s keep the message `Forbidden` for b
 
 | `code` | What it means | How to fix |
 | --- | --- | --- |
-| None (body is `{"message":"Forbidden"}`) | The API gateway rejected your credential: the key is incomplete, unknown, revoked, or expired, or the `Authorization` header is not in the `Bearer <api_key>` form. | Check the header format, then create a new key in the [Console](https://console.agentmail.to) if needed and copy the whole value. See cause 1. |
+| None (body is `{"message":"Forbidden"}`) | The API gateway rejected your credential: the key is incomplete, unknown, revoked, or expired, or the `Authorization` header is not in the `Bearer <api_key>` form. | Check the header format, then create a new key in the [Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/api-403-error) if needed and copy the whole value. See cause 1. |
 | `missing_permission` | Your key lacks a permission this endpoint needs. The `fix` names it. | Retry with a key that holds that permission. See cause 5. |
 | `forbidden` | Your key's scope does not cover this route (for example, an inbox-scoped key on a pod route), or a Calendar request went to EU production, where Calendar isn't available yet. | Use a key whose scope covers the resource. For Calendar, use US production (`api.agentmail.to`): a different key will not help. See [forbidden](/errors#forbidden). |
 | `permission_escalation`, `unrestricted_key_required` | You tried to create or change an API key with more access than the key making the request. | Retry with a key that already holds those permissions, or with an unrestricted key. |
@@ -37,7 +37,7 @@ The most common cause. Your API key may be missing characters, revoked, or expir
 
 **How to fix:**
 
-- Go to the [AgentMail Console](https://console.agentmail.to) and generate a new API key
+- Go to the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/api-403-error) and generate a new API key
 - When you generate a new key, **copy the entire key immediately**. It is only shown once and starts with `am_`
 - Make sure you are passing the key in the `Authorization` header as `Bearer am_...`
 - If the key has an expiry that has passed, create a new key. Expiry cannot be extended
@@ -84,7 +84,7 @@ An empty or missing path parameter is not a cause of a 403 from the API. A path 
 
 ## 4. Sending to a suppressed address
 
-AgentMail automatically suppresses addresses that have previously bounced, been rejected, or filed a spam complaint. If you try to send to a suppressed address, the API returns a `403` with `code: "message_rejected"`; the `fix` names the matched block entry and the exact remedy (deletable entries get a `DELETE` path; suppression entries added from bounces or complaints are read-only: an organization admin can reactivate a hard bounce once from the Lists page in the [Console](https://console.agentmail.to/dashboard/lists), and complaints go through support review).
+AgentMail automatically suppresses addresses that have previously bounced, been rejected, or filed a spam complaint. If you try to send to a suppressed address, the API returns a `403` with `code: "message_rejected"`; the `fix` names the matched block entry and the exact remedy (deletable entries get a `DELETE` path; suppression entries added from bounces or complaints are read-only: an organization admin can reactivate a hard bounce once from the Lists page in the [Console](https://console.agentmail.to/dashboard/lists?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/api-403-error), and complaints go through support review).
 
 **How to fix:** Read the `fix` field on the response. See [message_rejected](/errors#message_rejected) in the Error Reference and [Emails bouncing](/knowledge-base/emails-bouncing) for how suppression works.
 

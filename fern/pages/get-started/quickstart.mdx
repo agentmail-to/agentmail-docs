@@ -18,7 +18,8 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
 
       agentmail agent sign-up \
         --human-email you@example.com \
-        --username my-agent
+        --username my-agent \
+        --referrer https://docs.agentmail.to/quickstart
       ```
 
       ```bash title="cURL"
@@ -26,7 +27,8 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
         -H "Content-Type: application/json" \
         -d '{
           "human_email": "you@example.com",
-          "username": "my-agent"
+          "username": "my-agent",
+          "referrer": "https://docs.agentmail.to/quickstart"
         }'
       # returns { api_key, inbox_id, organization_id }
       ```
@@ -35,7 +37,7 @@ For agents that sign themselves up programmatically, no Console or dashboard nee
       The sign-up endpoint is idempotent. Calling it again with the same email rotates the API key and resends the OTP if expired.
     </Info>
     <Note>
-      No human email yet? Leave `human_email` out to get a receive-only inbox, then attach a human later with `POST /v0/agent/human`, or, for a US-region inbox, have your human claim it at [console.agentmail.to/claim](https://console.agentmail.to/claim) with the API key. Share the key only with your human, over a channel you already use with them, never by email. See [Sign up without a human email](/agent-onboarding#sign-up-without-a-human-email).
+      No human email yet? Leave `human_email` out to get a receive-only inbox, then attach a human later with `POST /v0/agent/human`, or, for a US-region inbox, have your human claim it at [console.agentmail.to/claim](https://console.agentmail.to/claim?utm_source=docs&utm_medium=docs&utm_campaign=quickstart) with the API key. Share the key only with your human, over a channel you already use with them, never by email. See [Sign up without a human email](/agent-onboarding#sign-up-without-a-human-email).
     </Note>
   </Step>
 
@@ -100,7 +102,7 @@ For developers who want to try AgentMail from the Console.
 
 <Steps>
   <Step title="Sign up and get an API key">
-    Go to the [AgentMail Console](https://console.agentmail.to), create an account, and generate an API key from the dashboard.
+    Go to the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=quickstart), create an account, and generate an API key from the dashboard.
     Signing up is free: 3 inboxes and 100 emails per day, no credit card required.
     ![API Key Creation Screenshot](/assets/api-key-creation.png)
   </Step>

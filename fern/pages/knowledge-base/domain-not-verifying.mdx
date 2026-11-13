@@ -8,7 +8,7 @@ If your domain is stuck in a pending or failed verification state, start by read
 
 ## Start with the domain's status and reason
 
-The domain's `status` says where verification is, and its `reason` says why it has not finished. Each entry in `records` has its own `status` (`MISSING`, `INVALID`, or `VALID`), and an `INVALID` record has a `reason` too. The [AgentMail Console](https://console.agentmail.to) shows the same information under **Domains**.
+The domain's `status` says where verification is, and its `reason` says why it has not finished. Each entry in `records` has its own `status` (`MISSING`, `INVALID`, or `VALID`), and an `INVALID` record has a `reason` too. The [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/domain-not-verifying) shows the same information under **Domains**.
 
 <CodeBlocks>
 ```python title="Python"
@@ -65,7 +65,7 @@ Clicking **Verify Domain** in the Console does the same as the [Verify Domain](h
 
 DNS changes can take anywhere from a few minutes to 48 hours to propagate, depending on your provider. Most providers propagate within 30 minutes, but some take longer.
 
-**What to do:** Wait 30 minutes, then click **Verify Domain** in the [AgentMail Console](https://console.agentmail.to) to trigger a recheck. You can also use [dnschecker.org](https://dnschecker.org) to confirm your records are visible globally before retrying.
+**What to do:** Wait 30 minutes, then click **Verify Domain** in the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/domain-not-verifying) to trigger a recheck. You can also use [dnschecker.org](https://dnschecker.org) to confirm your records are visible globally before retrying.
 
 | DNS provider | Typical propagation time |
 | --- | --- |
@@ -134,7 +134,7 @@ If your domain's nameservers are pointed to a different provider than where you 
 
 ## Verification statuses
 
-You can check your domain's status in the [AgentMail Console](https://console.agentmail.to):
+You can check your domain's status in the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/domain-not-verifying):
 
 | Status | Meaning |
 | --- | --- |
