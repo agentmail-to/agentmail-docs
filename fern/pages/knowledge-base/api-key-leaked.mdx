@@ -1,0 +1,87 @@
+---
+title: "What should I do if an API key leaks?"
+subtitle: Delete the key, replace it, and check what it could reach while it was exposed.
+slug: knowledge-base/api-key-leaked
+---
+
+Delete the leaked key right away, in the Console or with the API: it stops working as soon as it is deleted. Then create a replacement, deploy it, and check what the key could do while it was exposed. An AgentMail API key is also the password for IMAP and SMTP, so a leaked key exposes those too, for every inbox it covers.
+
+## At a glance
+
+| Step | How |
+| --- | --- |
+| 1. Find the key | Match the start of the leaked key against each key's `prefix` on the **API Keys** page or in [List API Keys](https://docs.agentmail.to/api-reference/api-keys/list) |
+| 2. Delete it | The trash icon on the key's row, or [Delete API Key](https://docs.agentmail.to/api-reference/api-keys/delete) |
+| 3. Replace it | Create a new key with the same scope and only the permissions you need, then update your app's secret |
+| 4. Check the damage | Unknown keys, webhooks, list entries, inboxes, and sent mail since the leak |
+
+## Find the key
+
+API keys start with `am_` followed by the region, for example `am_us_`. Every key has a `prefix`, its first 12 characters, plus a name, its scope (`inbox_id` or `pod_id`, or neither for an organization key), `created_at`, and `used_at`, roughly when it was last used. Keys scoped to an inbox all share the same 12 characters (for example `am_us_inbox_`), so for those match on the scope and name instead.
+
+## Delete it
+
+In the [AgentMail Console](https://console.agentmail.to), open **API Keys** and select the trash icon on the key's row. If your role cannot delete keys, ask an organization admin. Through the API, delete it with any other key that has the `api_key_delete` permission and covers the leaked key's scope.
+
+Deleting a key revokes it at once: requests with it are refused, and WebSocket connections opened with it are closed. AgentMail keys are not rotated in place, so replacing one means creating a new key and deleting the old one. If production depends on the key, create the replacement first, but do not wait on your deploy to delete the leaked key.
+
+<CodeBlocks>
+```python title="Python"
+import os
+
+from agentmail import AgentMail
+
+# use a key other than the one that leaked
+client = AgentMail(api_key=os.environ["AGENTMAIL_API_KEY"])
+
+# find the leaked key, and any key created since the leak that you don't recognize
+for key in client.api_keys.list(type="bearer").api_keys:
+    if key.type == "bearer":
+        print(key.api_key_id, key.prefix, key.name, key.inbox_id or key.pod_id or "organization", key.created_at, key.used_at)
+
+# delete it: it stops working right away
+client.api_keys.delete("3c9d8e7f-6a5b-4c3d-9e2f-1a0b9c8d7e6f")
+```
+
+```typescript title="TypeScript"
+import { AgentMailClient } from "agentmail";
+
+// use a key other than the one that leaked
+const client = new AgentMailClient({ apiKey: process.env.AGENTMAIL_API_KEY });
+
+// find the leaked key, and any key created since the leak that you don't recognize
+const { apiKeys } = await client.apiKeys.list({ type: "bearer" });
+for (const key of apiKeys) {
+    if (key.type === "bearer") {
+        console.log(key.apiKeyId, key.prefix, key.name, key.inboxId ?? key.podId ?? "organization", key.createdAt, key.usedAt);
+    }
+}
+
+// delete it: it stops working right away
+await client.apiKeys.delete("3c9d8e7f-6a5b-4c3d-9e2f-1a0b9c8d7e6f");
+```
+</CodeBlocks>
+
+## Check what the key could reach
+
+A key can do what its scope and permissions allow. A key created without a `permissions` object has full access within its scope: an organization key like that can read every inbox, send as every inbox, and change your setup. Look at what changed between the leak and the deletion:
+
+- **API keys.** A key with `api_key_create` can create more keys, and deleting the leaked key does not delete them. Delete any key you don't recognize, especially ones created after the leak.
+- **Webhooks.** A new webhook pointing at an unfamiliar URL can copy your incoming mail elsewhere. List your webhooks and delete any you didn't create.
+- **Lists.** Check your allow and block lists for entries you didn't add.
+- **Inboxes and domains.** Look for inboxes or domains you didn't create.
+- **Sent mail.** List messages with the `sent` label for mail your agents didn't send.
+
+If the key was exposed through your agent, for example an injected email that got the agent to reply with its own configuration, also see [How do I protect my agent from prompt injection in email?](https://docs.agentmail.to/knowledge-base/prompt-injection)
+
+## Make the next leak smaller
+
+- **Scope keys narrowly.** Give each agent a key scoped to its own inbox or pod, so a leak exposes only that inbox or pod.
+- **Grant only the permissions it needs.** See [Permissions](https://docs.agentmail.to/permissions).
+- **Set an expiry.** Pass `expires_at` when you create a key so a forgotten copy stops working on its own. A key cannot create another key that outlives it.
+- **Keep keys on the server.** Read them from an environment variable or a secret manager, never from browser code or a repository. See [Can I call the AgentMail API from the browser?](https://docs.agentmail.to/knowledge-base/browser-cors)
+- **Keep keys out of your agent's context.** A model cannot repeat a secret it never saw.
+
+## Get help
+
+If you see activity you can't explain after deleting the key, email [support@agentmail.cc](mailto:support@agentmail.cc) with your organization ID, the deleted key's `api_key_id` and `prefix`, and when the leak happened. Never include a full API key in an email.
