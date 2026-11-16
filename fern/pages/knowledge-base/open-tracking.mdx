@@ -14,7 +14,7 @@ You see the open in three places:
 
 Open tracking is included on every plan at no extra cost. Setting it up takes three steps:
 
-1. **Turn it on for a custom domain.** In the [AgentMail Console](https://console.agentmail.to), open **Domains**, choose **View DNS records** from the domain's actions menu, and turn on the **Open tracking** switch. Or set `tracking_enabled` when you create or update the domain through the API.
+1. **Turn it on for a custom domain.** In the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/open-tracking), open **Domains**, choose **View DNS records** from the domain's actions menu, and turn on the **Open tracking** switch. Or set `tracking_enabled` when you create or update the domain through the API.
 2. **Publish the `link.<domain>` CNAME** at your DNS provider, set to DNS only (not proxied), and wait for the domain's `tracking_status` to be `VERIFIED`.
 3. **Send with `track_opens`** on a message that has an HTML body.
 

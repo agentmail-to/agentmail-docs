@@ -22,23 +22,23 @@ Branch on `code`, not on `name` or `message`: the `name` and `message` fields ke
 
 ### missing_authorization
 
-The `Authorization` header was missing, did not use the required case-sensitive `Bearer ` scheme, used the scheme correctly but carried no key value after `Bearer `, or carried whitespace inside the key value (no credential contains whitespace) — the message states which. Send your API key as `Authorization: Bearer <api_key>`. Create a key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+The `Authorization` header was missing, did not use the required case-sensitive `Bearer ` scheme, used the scheme correctly but carried no key value after `Bearer `, or carried whitespace inside the key value (no credential contains whitespace) — the message states which. Send your API key as `Authorization: Bearer <api_key>`. Create a key at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=errors) or via `POST /v0/api-keys`.
 
 ### invalid_token_type
 
-The endpoint requires an API key, but the request carried a console session token (JWT). Authenticate with an API key instead: keys start with `am_`. Create one at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+The endpoint requires an API key, but the request carried a console session token (JWT). Authenticate with an API key instead: keys start with `am_`. Create one at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=errors) or via `POST /v0/api-keys`.
 
 ### unknown_api_key
 
-The API key was not recognized. Confirm you copied the full value (keys start with `am_`) and that the key has not been revoked. Create a new key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+The API key was not recognized. Confirm you copied the full value (keys start with `am_`) and that the key has not been revoked. Create a new key at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=errors) or via `POST /v0/api-keys`.
 
 ### api_key_expired
 
-The API key is valid but its `expires_at` has passed, so it no longer authenticates. Expiry is set when a key is created and cannot be extended or changed. Create a new key at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`, choosing its lifetime with `expires_at`, and retry with it. Depending on how the request is routed, an expired key can instead be refused with a bare `403` whose body is `{"message":"Forbidden"}`; the remedy is the same.
+The API key is valid but its `expires_at` has passed, so it no longer authenticates. Expiry is set when a key is created and cannot be extended or changed. Create a new key at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=errors) or via `POST /v0/api-keys`, choosing its lifetime with `expires_at`, and retry with it. Depending on how the request is routed, an expired key can instead be refused with a bare `403` whose body is `{"message":"Forbidden"}`; the remedy is the same.
 
 ### unauthorized
 
-Generic authentication failure. Send a valid API key in the `Authorization: Bearer <api_key>` header. Create or rotate keys at [console.agentmail.to](https://console.agentmail.to) or via `POST /v0/api-keys`.
+Generic authentication failure. Send a valid API key in the `Authorization: Bearer <api_key>` header. Create or rotate keys at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=errors) or via `POST /v0/api-keys`.
 
 ## Authorization (403)
 
@@ -174,7 +174,7 @@ The date ended more than 30 days ago and its record is no longer kept, or it was
 
 The message was not sent. The message names the reason, and the `fix` states which case applies:
 
-- **Recipients on a send block list** — remove them from the request, or delete the matched block entry. The `fix` names the stored entry (which may be a domain rather than the recipient address) and the exact `DELETE /v0/…/lists/send/block/{entry}` path at the scope where it lives. Deleting an entry at a broader scope than your key (an organization-level block hit by a pod- or inbox-scoped key) requires a key scoped at that level. Read-only entries — added automatically from bounces, complaints, and unsubscribes — cannot be deleted via the API. An organization admin can reactivate a hard-bounced address once, within 90 days of the bounce, from the Lists page in the [Console](https://console.agentmail.to/dashboard/lists); for complaints, unsubscribes, and older bounces, email support@agentmail.cc to have one reviewed.
+- **Recipients on a send block list** — remove them from the request, or delete the matched block entry. The `fix` names the stored entry (which may be a domain rather than the recipient address) and the exact `DELETE /v0/…/lists/send/block/{entry}` path at the scope where it lives. Deleting an entry at a broader scope than your key (an organization-level block hit by a pod- or inbox-scoped key) requires a key scoped at that level. Read-only entries — added automatically from bounces, complaints, and unsubscribes — cannot be deleted via the API. An organization admin can reactivate a hard-bounced address once, within 90 days of the bounce, from the Lists page in the [Console](https://console.agentmail.to/dashboard/lists?utm_source=docs&utm_medium=docs&utm_campaign=errors); for complaints, unsubscribes, and older bounces, email support@agentmail.cc to have one reviewed.
 - **Recipients missing from an active send allow list** — add them via `POST /v0/lists/send/allow` (there is no block entry to delete). On an agent organization that has not completed verification, sending is restricted to the human's email and list entries cannot be created yet — complete `POST /v0/agent/verify` instead. If no human email is attached yet, sending is blocked for every recipient until one is attached with `POST /v0/agent/human`.
 - A suspended account, inbox, or pod is not `message_rejected`: it returns [`account_suspended`](#account_suspended), [`inbox_suspended`](#inbox_suspended), or [`pod_suspended`](#pod_suspended).
 - **An unfetchable attachment URL** — use a URL that AgentMail can download without custom authentication headers or cookies, or send the attachment inline as Base64. Redirects and pre-signed URLs are supported, and the final response must be a successful 2xx response.

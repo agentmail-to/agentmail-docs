@@ -12,14 +12,14 @@ Every plan includes custom domains: the **Free plan includes 1**, and Developer 
 
 ## Steps
 
-1. Add your domain in the [AgentMail Console](https://console.agentmail.to) or via the API
+1. Add your domain in the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/custom-domain-setup) or via the API
 2. Add the DNS records AgentMail provides to your DNS provider
 3. Wait for verification
 4. Create inboxes on your custom domain
 
 ## Adding a domain
 
-You can add a domain through the [AgentMail Console](https://console.agentmail.to) (go to **Domains** and click **Add Domain**) or via the API:
+You can add a domain through the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/custom-domain-setup) (go to **Domains** and click **Add Domain**) or via the API:
 
 ```typescript title="TypeScript"
 import { AgentMailClient } from "agentmail";
@@ -68,7 +68,7 @@ After adding DNS records, verify your domain:
 await client.domains.verify(domain.domainId);
 ```
 
-You can also verify from the [AgentMail Console](https://console.agentmail.to) by navigating to the Domains section and clicking **Verify Domain**.
+You can also verify from the [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=knowledge-base/custom-domain-setup) by navigating to the Domains section and clicking **Verify Domain**.
 
 Verification status will progress through these stages:
 

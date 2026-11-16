@@ -44,7 +44,7 @@ ChatGPT asks you to confirm write actions, such as sending mail or connecting an
 
 ### Cursor (API key)
 
-1. Generate an API key at [console.agentmail.to](https://console.agentmail.to) under **Settings**, then **API Keys**.
+1. Generate an API key at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=integrations/mcp) under **Settings**, then **API Keys**.
 2. Open Cursor settings, go to **MCP**, and add a server with this config:
 
 ```json
@@ -100,14 +100,14 @@ MCP clients discover the live tool catalog from the hosted server. The canonical
 
 **The assistant does not list the AgentID or calendar tools.** Disconnect and reconnect the AgentMail connector so the client reloads the tool list, then ask `List AgentID apps`.
 
-**OAuth opens `console.agentmail.to` but says you do not have an account.** Sign up at [console.agentmail.to](https://console.agentmail.to) first, then retry the connector flow.
+**OAuth opens `console.agentmail.to` but says you do not have an account.** Sign up at [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=integrations/mcp) first, then retry the connector flow.
 
 **You picked the wrong organization on the consent screen.** Open **Settings**, then **Connectors**, disconnect the AgentMail connector, and connect again. The consent screen will let you choose a different organization.
 
-**API key requests return an authentication error.** Verify the key in [console.agentmail.to](https://console.agentmail.to) under **Settings**, then **API Keys**. Confirm the key has not been revoked and that you copied the full value, including the `am_` prefix.
+**API key requests return an authentication error.** Verify the key in [console.agentmail.to](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=integrations/mcp) under **Settings**, then **API Keys**. Confirm the key has not been revoked and that you copied the full value, including the `am_` prefix.
 
 ## Resources
 
-- [AgentMail Console](https://console.agentmail.to) to manage API keys and organizations.
+- [AgentMail Console](https://console.agentmail.to?utm_source=docs&utm_medium=docs&utm_campaign=integrations/mcp) to manage API keys and organizations.
 - [Support](/support) for help with installation or auth issues.
 - [agentmail-mcp on GitHub](https://github.com/agentmail-to/agentmail-mcp) for the hosted server, compatibility bridges, and generated contract.
