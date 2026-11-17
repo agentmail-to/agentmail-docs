@@ -1083,6 +1083,12 @@ paths:
       - webhooks
       - polling
       x-fern-sdk-method-name: delete
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: update
   /v0/pods/{pod_id}/webhooks/polling:
     get:
       x-fern-sdk-group-name:
@@ -1109,6 +1115,12 @@ paths:
       - webhooks
       - polling
       x-fern-sdk-method-name: delete
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: update
   /v0/webhooks/polling:
     get:
       x-fern-sdk-group-name:
@@ -1131,6 +1143,11 @@ paths:
       - webhooks
       - polling
       x-fern-sdk-method-name: delete
+    patch:
+      x-fern-sdk-group-name:
+      - webhooks
+      - polling
+      x-fern-sdk-method-name: update
   /v0/inboxes/{inbox_id}/messages/{message_id}/agent-armor/release:
     post:
       x-fern-sdk-group-name:
