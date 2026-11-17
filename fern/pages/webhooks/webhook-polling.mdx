@@ -27,7 +27,7 @@ Use a polling webhook when your agent cannot accept inbound HTTP or stay connect
 
 1. Create a polling webhook with a `client_id`, the `event_types` you want, and optionally the inboxes or pods to cover. The response carries a one-time `token`.
 2. Hand the token to the Svix SDK's `AutoConfigConsumer`. `receive` returns queued events; `commit` marks them processed so they are not returned again.
-3. On restart, create again with the same `client_id`. You get the same subscription with a new token, and the previous token stops working immediately.
+3. On restart, create again with the same `client_id`. You get the same subscription with a new token, and the previous token stops working immediately. While the polling webhook is paused, this create returns `409` (see [Pausing a polling webhook](#pausing-a-polling-webhook)).
 4. Delete the polling webhook when the agent retires. Its token stops working and its slot is freed.
 
 ## Step 1: Create a polling webhook
@@ -196,6 +196,45 @@ const webhook = await client.webhooks.polling.get("support-agent");
 await client.webhooks.polling.delete("support-agent");
 ```
 </CodeBlocks>
+
+## Pausing a polling webhook
+
+Set `enabled` to `false` to stop a polling webhook without deleting it, and back to `true` to resume it. Use it when someone other than the agent needs to stop the agent's access, from a dashboard or an admin script for example. The subscription, its `client_id` and its event types stay as they are.
+
+<CodeBlocks>
+```python title="Python"
+# pause: the current token stops working at once
+client.webhooks.polling.update("support-agent", enabled=False)
+
+# resume, then create again with the same client_id for a new token
+client.webhooks.polling.update("support-agent", enabled=True)
+subscription = client.webhooks.polling.create(
+    client_id="support-agent",
+    event_types=["message.received"],
+)
+```
+
+```typescript title="TypeScript"
+// pause: the current token stops working at once
+await client.webhooks.polling.update("support-agent", { enabled: false });
+
+// resume, then create again with the same clientId for a new token
+await client.webhooks.polling.update("support-agent", { enabled: true });
+const subscription = await client.webhooks.polling.create({
+  clientId: "support-agent",
+  eventTypes: ["message.received"],
+});
+```
+</CodeBlocks>
+
+While a polling webhook is paused:
+
+- Its token stops working immediately: `receive` and `subscribe` return `401`. Pausing revokes the token, so whoever holds it cannot turn the polling webhook back on.
+- Matching events are kept. After you resume it, the new token reads them from where your consumer left off. This is different from a disabled webhook, whose events from that time are not redelivered.
+- A create with its `client_id` returns `409`. An agent that creates on startup can treat that as paused and retry later.
+- `get` and `list` show `enabled: false`.
+
+Resuming needs the `webhook_update` permission and the read permission for every restricted event type the polling webhook receives, the same rule as for webhooks. Pod and inbox polling webhooks are paused through their own routes, for example `client.pods.webhooks.polling.update(pod_id, webhook_id, ...)`.
 
 ## Next Steps
 
