@@ -13,14 +13,15 @@ types:
       (`AutoConfigConsumer` in the `svix` package for TypeScript and Python): `receive` returns the events
       queued since your last commit, `commit` marks them as processed. Returned by create only and never
       readable afterward. Create again with the same `client_id` to get a new token; the previous one stops
-      working immediately.
+      working immediately. Disabling the polling webhook also stops the current token.
 
   PollingClientId:
     type: webhooks.ClientId
     docs: |
       Required. Idempotency key of the subscription: creating again with the same `client_id` through the
       same route returns the existing subscription with a fresh token instead of a second subscription, so a
-      restarted agent resumes where it left off. Also accepted in place of `webhook_id` on get and delete.
+      restarted agent resumes where it left off. Also accepted in place of `webhook_id` on get, update and
+      delete.
 
   PollingWebhook:
     docs: |
@@ -43,6 +44,11 @@ types:
         docs: |
           ID of the inbox the subscription belongs to, if it was created for an inbox. This is not the
           list of inboxes it receives events for; see `inbox_ids`.
+      enabled:
+        type: boolean
+        docs: |
+          Whether the subscription hands out events. A disabled one keeps the events that arrive and has no
+          working token until it is enabled again; see Update Polling Webhook.
       updated_at:
         type: datetime
         docs: Time at which the subscription was last updated.
@@ -67,6 +73,20 @@ types:
           Ordered by `created_at` descending. Lists the subscriptions created through this route
           (organization, pod, or inbox); subscriptions created through a pod or inbox route are listed
           through that route.
+
+  UpdatePollingWebhookRequest:
+    docs: Pause or resume a polling webhook. Fields left out are left as they are.
+    properties:
+      enabled:
+        type: optional<boolean>
+        docs: |
+          Set to false to pause the subscription: its token stops working at once, and the events that arrive
+          while it is disabled are kept. While it is disabled, a create with its `client_id` returns `409`.
+          Set to true to resume it, then create again with the same `client_id` to get a new token, which reads
+          the kept events from where your consumer left off. Re-enabling requires the read permission for every
+          restricted event type the subscription receives: `label_spam_read`, `label_blocked_read`, or
+          `label_unauthenticated_read` for the received variants, `message_read` for `message.security.*`, and
+          `calendar_event_read` for `calendar.event.*`.
 
   # Create requests mirror the webhook ones: the inbox-scoped body is the smallest shape, each wider
   # scope adds the channel fields it additionally accepts.
@@ -149,7 +169,8 @@ service:
       docs: |
         Creates a subscription the agent polls for events, and returns the `token` that reads it. Each
         organization, pod, and inbox holds at most 10 polling webhooks; a repeat create with the same
-        `client_id` re-issues the token of the existing one instead of counting against that limit.
+        `client_id` re-issues the token of the existing one instead of counting against that limit. While
+        that one is disabled, the repeat create returns `409`: enable it first.
 
         **CLI:**
         ```bash
@@ -160,6 +181,26 @@ service:
       errors:
         - global.ValidationError
         - global.ConflictError
+
+    update:
+      method: PATCH
+      path: /{webhook_id}
+      display-name: Update Polling Webhook
+      docs: |
+        Pause or resume a polling webhook with `enabled`. Disabling stops handing out events and revokes the
+        current token; the subscription, its event types and the events that arrive meanwhile are kept.
+
+        **CLI:**
+        ```bash
+        agentmail webhooks polling update --webhook-id <webhook_id> --enabled=false
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      request: UpdatePollingWebhookRequest
+      response: PollingWebhook
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
 
     delete:
       method: DELETE

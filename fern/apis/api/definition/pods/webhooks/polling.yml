@@ -67,6 +67,25 @@ service:
         - global.ValidationError
         - global.ConflictError
 
+    update:
+      method: PATCH
+      path: /{webhook_id}
+      display-name: Update Polling Webhook
+      docs: |
+        Pause or resume a polling webhook created through this pod route.
+
+        **CLI:**
+        ```bash
+        agentmail pods webhooks polling update --pod-id <pod_id> --webhook-id <webhook_id> --enabled=false
+        ```
+      path-parameters:
+        webhook_id: webhooks.WebhookId
+      request: polling.UpdatePollingWebhookRequest
+      response: polling.PollingWebhook
+      errors:
+        - global.NotFoundError
+        - global.ValidationError
+
     delete:
       method: DELETE
       path: /{webhook_id}
