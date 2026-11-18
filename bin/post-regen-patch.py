@@ -24,6 +24,12 @@ WHAT IT PATCHES
                      spam-flagged; support ticket open). REMOVE THIS PATCH
                      once npm clears it — cargo-dist still ships the Windows
                      binary via the GitHub Release either way.
+    4. mac runner    build aarch64-apple-darwin on macos-latest in release.yml.
+                     The generated dist-workspace.toml pins cargo-dist 0.31.0,
+                     whose default runner for that target is macos-14, an image
+                     GitHub has retired: the build is cancelled and no GitHub
+                     Release is created (v1.10.1, 2026-11-17). REMOVE once the
+                     generator emits a cargo-dist whose default is still live.
 
     Dropped on 2026-08-31, fixed upstream in generator 0.38.10 and verified:
       - packageIdentity now reaches the launcher package.json (description,
@@ -172,11 +178,47 @@ def patch_windows(root):
     APPLIED.append("windows deferral")
 
 
+# ── 4. macOS arm64 release runner ─────────────────────────────────────────────
+# release.yml takes its build matrix from `dist plan`, which reads
+# dist-workspace.toml at run time, so the runner is set there, not in the YAML.
+# dist 0.31.0 maps macos-latest to an arm64 host (platform/github_runners.rs),
+# so the target still builds natively. ci.yml's npm publish already builds
+# darwin on macos-latest.
+MAC_RUNNER_TABLE = "[dist.github-custom-runners]"
+MAC_RUNNER_LINE = 'aarch64-apple-darwin = "macos-latest"'
+MAC_RUNNER_BLOCK = f"""
+# GitHub retired the macos-14 image, which is dist 0.31.0's default runner for
+# aarch64-apple-darwin, so that build never gets a runner and the release is
+# cancelled. dist maps macos-latest to an arm64 host, and ci.yml's npm publish
+# builds darwin on macos-latest too.
+{MAC_RUNNER_TABLE}
+{MAC_RUNNER_LINE}
+"""
+
+
+def patch_mac_runner(root):
+    dw = root / "dist-workspace.toml"
+    if not dw.exists():
+        sys.exit(f"ABORT [mac runner]: {dw} not found.")
+    s = dw.read_text()
+    if MAC_RUNNER_LINE in s:
+        SKIPPED.append("mac runner (already applied)")
+        return
+    if MAC_RUNNER_TABLE in s:
+        # Appending a second table would be invalid TOML. The generator now
+        # sets runners itself; reconcile by hand instead of forcing this in.
+        sys.exit("ABORT [mac runner]: dist-workspace.toml already has a "
+                 f"{MAC_RUNNER_TABLE} table. Check which runner it gives "
+                 "aarch64-apple-darwin and update or drop this patch.")
+    dw.write_text(s.rstrip("\n") + "\n" + MAC_RUNNER_BLOCK)
+    APPLIED.append("mac runner")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("repo", help="path to an agentmail-cli checkout")
     ap.add_argument("--skip", action="append", default=[],
-                    choices=["assets", "pkgjson", "windows"],
+                    choices=["assets", "pkgjson", "windows", "macrunner"],
                     help="skip a patch (e.g. --skip windows once npm unblocks the name)")
     args = ap.parse_args()
 
@@ -191,6 +233,8 @@ def main():
         patch_pkgjson(root)
     if "windows" not in args.skip:
         patch_windows(root)
+    if "macrunner" not in args.skip:
+        patch_mac_runner(root)
 
     print("applied:")
     for a in APPLIED:
