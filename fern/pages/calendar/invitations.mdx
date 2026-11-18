@@ -146,7 +146,7 @@ Later emails from the organizer keep the event in sync:
 - An updated invitation (`REQUEST`) updates the event, or one date of it.
 - An updated invitation for one upcoming date of a recurring meeting the calendar doesn't have (the inbox was invited to that date alone, or the meeting's first invitation never reached the calendar) adds that date, as a recurring event with that one date. The organizer's next update to the whole meeting turns it into the full series.
 - A cancellation (`CANCEL`) sets the event, or one date of it, to `cancelled`.
-- Updates are ordered by iCalendar `SEQUENCE`, so an older update that arrives late does not overwrite a newer one. A change to one date is compared only with earlier changes to that same date.
+- AgentMail applies a `REQUEST` or `CANCEL` when its `SEQUENCE` is higher than the last one applied, or when the sequence is equal and its `DTSTAMP` is later. For example, a rename with `SEQUENCE:0` can update an invitation that also had `SEQUENCE:0`. If both values match, AgentMail ignores the duplicate. A change to one date is compared only with earlier changes to that same date.
 
 ### Which invitations are accepted
 
