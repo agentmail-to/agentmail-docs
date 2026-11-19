@@ -98,7 +98,7 @@ A reply is only applied to the attendee whose address sent it, so one attendee c
 
 If your agent already builds its own `.ics` invitations and attaches them to an ordinary send, those meetings go on the inbox's calendar too. AgentMail reads the inbox's sent mail and imports an invitation when:
 
-- it is a `text/calendar` or `application/ics` attachment, or any attachment whose file name ends in `.ics`, of at most 1 MB, containing exactly one event;
+- it is a `text/calendar` or `application/ics` attachment, or any attachment whose file name ends in `.ics`, of at most 1 MB, with one event UID;
 - its `METHOD` is `REQUEST` or `CANCEL`;
 - its `ORGANIZER` is the inbox's own address;
 - it is about the whole event, with no `RECURRENCE-ID`;
@@ -124,7 +124,7 @@ Not imported:
 - `PUBLISH` files, which are "add to calendar" announcements without attendees;
 - replies (`REPLY`);
 - invitations that name someone else as `ORGANIZER`;
-- changes to a single date of a recurring event;
+- changes to individual dates of a recurring event, even when the same sent file also contains the series. In that case, the series itself is imported;
 - times with no time zone (floating).
 
 Invitations sent by the Calendar API itself (`send_invites`) are never imported a second time.
@@ -148,6 +148,12 @@ Later emails from the organizer keep the event in sync:
 - A cancellation (`CANCEL`) sets the event, or one date of it, to `cancelled`.
 - AgentMail applies a `REQUEST` or `CANCEL` when its `SEQUENCE` is higher than the last one applied, or when the sequence is equal and its `DTSTAMP` is later. For example, a rename with `SEQUENCE:0` can update an invitation that also had `SEQUENCE:0`. If both values match, AgentMail ignores the duplicate. A change to one date is compared only with earlier changes to that same date.
 
+### Recurring invitations with changed dates
+
+An organizer can send a recurring series and its changed dates in one `.ics` attachment. For example, if Wednesday’s meeting moves to Thursday, the file can contain the weekly series and a second `VEVENT` whose `RECURRENCE-ID` identifies the original Wednesday occurrence. Both components share the same `UID`.
+
+AgentMail applies the series first, then its individual changes. The email’s `calendar_event_id` points to the series. If the invitation creates a series and moves one date, expect one `calendar.event.created` webhook for the series and one `calendar.event.updated` webhook for the moved date. Webhooks can arrive out of order.
+
 ### Which invitations are accepted
 
 To keep strangers from writing to your agent's calendar, an invitation is applied only when all of these hold:
@@ -155,14 +161,13 @@ To keep strangers from writing to your agent's calendar, an invitation is applie
 - The email passed sender authentication and is not labeled `spam`, `blocked` or `unauthenticated`. Messages held for a security review are processed if they are released.
 - The authenticated sender is the event's organizer, or a calendar service AgentMail recognizes as sending for its organizers: iCloud or Luma. For iCloud, `organizer_email` is an `imip.me.com` relay address Apple assigns, not the organizer's own address. A forwarded invitation, or a cancellation sent by anyone other than the organizer, is ignored.
     - For an event on a Google Calendar shared calendar (`organizer_email` ends in `@group.calendar.google.com`), the calendar's address sends no mail, so its first invitation's authenticated sender is trusted for that event instead. Later updates and cancellations apply only when they come from that same address; a change a teammate makes through the shared calendar is ignored. The sender writes the shared calendar's address, so it doesn't prove who sent the invitation: the invitation email's From does, which you can read through `origin_message_id`.
-- The invitation is a `text/calendar` or `application/ics` attachment of at most 1 MB, containing exactly one event.
+- The invitation is a `text/calendar` or `application/ics` attachment of at most 1 MB. All `VEVENT` components in one attachment must share a `UID`. The series can appear once, and each changed date must have a distinct `RECURRENCE-ID`.
 
 Invitations that fail these checks leave the calendar unchanged. The email is still delivered to the inbox like any other message.
 
 ### Current limitations
 
-- **Recurring invitations with exceptions.** Invitations that bundle a series and its edited dates as several events in one file, as Google Calendar does for recurring meetings with exceptions, are not imported.
-- **All-day invitations** are stored with the `UTC` time zone.
+- **All-day invitations** are stored with the `UTC` time zone. Use a date such as `UNTIL=20260818` for the inclusive last day of an all-day series. Exchange invitations can also express this cutoff as a UTC timestamp. AgentMail converts it to a date in the time zone identified by the invitation. For example, `20260817T220000Z` is August 18 in Berlin. If the invitation supplies no zone, AgentMail uses UTC. If it supplies multiple possible zones without identifying which to use, the invitation is rejected.
 
 ## Responding to an invitation
 
