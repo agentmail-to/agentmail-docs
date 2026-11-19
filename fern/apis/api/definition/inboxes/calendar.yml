@@ -645,7 +645,7 @@ service:
           every date that has not been edited individually.
         - **Dated ID (`<uuid>_<slot>`):** changes one date (`mode=single`, the default) or that date
           and every later date (`mode=future`). `all_day`, `timezone` and `recurrence` cannot be sent
-          for a dated ID.
+          for a dated ID. Including any of these fields returns `400`, even if the value is unchanged.
 
         Once a date has started, its start can no longer change (409 `event_already_started`), but
         its end and status can; for a one-off or series UUID, send the unchanged `start` with the new
@@ -671,7 +671,9 @@ service:
             type: optional<string>
             docs: The event's or date's current `etag`, from the latest read or write response. Optional; makes the update conditional; `*` matches any current version.
         query-parameters:
-          mode: optional<calendar.InstanceMutationMode>
+          mode:
+            type: optional<calendar.InstanceMutationMode>
+            docs: For a dated ID, use `single` (default) for that occurrence or `future` for that occurrence and all later ones. Omit `mode` for a one-off or series UUID. Supplying it with a UUID returns `400`, even for `mode=single`.
         body:
           extends: calendar.UpdateCalendarEventRequest
           properties: {}
@@ -840,7 +842,9 @@ service:
               unique across your organization: reusing one to delete a different event returns
               `409` `idempotency_conflict`.
         query-parameters:
-          mode: optional<calendar.InstanceMutationMode>
+          mode:
+            type: optional<calendar.InstanceMutationMode>
+            docs: For a dated ID, use `single` (default) for that occurrence or `future` for that occurrence and all later ones. Omit `mode` for a one-off or series UUID. Supplying it with a UUID returns `400`, even for `mode=single`.
           send_invites:
             type: optional<boolean>
             docs: When `true`, emails a cancellation (iCalendar `CANCEL`) to every attendee. Only the organizer can send. Defaults to `false`.
