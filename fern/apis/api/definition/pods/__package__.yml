@@ -11,6 +11,7 @@ navigation:
   - metrics.yml
   - api-keys.yml
   - accounts.yml
+  - credentials.yml
 
 imports:
   global: ../__package__.yml

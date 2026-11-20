@@ -13,6 +13,7 @@ navigation:
   - accounts.yml
   - calendar.yml
   - files.yml
+  - credentials.yml
 
 imports:
   global: ../__package__.yml
