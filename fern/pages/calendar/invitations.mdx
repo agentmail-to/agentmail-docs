@@ -152,7 +152,7 @@ Later emails from the organizer keep the event in sync:
 
 An organizer can send a recurring series and its changed dates in one `.ics` attachment. For example, if Wednesday’s meeting moves to Thursday, the file can contain the weekly series and a second `VEVENT` whose `RECURRENCE-ID` identifies the original Wednesday occurrence. Both components share the same `UID`.
 
-AgentMail applies the series first, then its individual changes. The email’s `calendar_event_id` points to the series. If the invitation creates a series and moves one date, expect one `calendar.event.created` webhook for the series and one `calendar.event.updated` webhook for the moved date. Webhooks can arrive out of order.
+AgentMail applies the series first, then its individual changes. The email’s `calendar_event_id` points to the series. If the invitation creates a series and moves one date, expect two `calendar.event.created` webhooks, one for the series and one for the moved occurrence. If a later invitation moves that occurrence again, its `calendar.event.updated` webhook carries the same occurrence ID. Webhooks can arrive out of order.
 
 ### Which invitations are accepted
 
