@@ -5,6 +5,7 @@ navigation:
   - messages.yml
   - drafts.yml
   - webhooks.yml
+  - credentials.yml
   - lists.yml
   - forwarding.yml
   - metrics.yml
