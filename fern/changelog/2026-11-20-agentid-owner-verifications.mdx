@@ -1,0 +1,69 @@
+---
+tags: ["agentid", "new-feature", "breaking-change"]
+---
+
+## Summary
+
+Apps that use AgentID can now require the agent's owner, and learn whether that owner is a verified human. A new `owner_verifications` scope tells an app which identity checks the owner has passed, starting with World ID, and `access_requirements` lets an app turn away agents whose owner does not meet its conditions. Requested owner scopes are now optional, so an agent that cannot share its owner still signs in, without those details.
+
+### What's new?
+
+**New features:**
+
+- **`owner_verifications` scope and claim:** returns `{ "worldid_personhood": { "id": "..." } }` when the owner verified with World ID, or `{}` when they have passed no check. The `id` is the same for every agent that person owns and different in every app, so an app can count people rather than agents.
+- **`access_requirements` app setting:** a list of groups, all of which must be met, each met by any one of its terms. `agentmail_owner` needs a designated owner with a name and a verified email; `worldid_personhood` needs that owner to have verified with World ID. Checked on every sign-in, for new and existing accounts.
+- **Optional owner scopes:** `owner_profile`, `owner_email` and `owner_verifications` are each left out of the grant when the sign-in cannot share them (the key lacks `app_share_owner`, the owner has no such value, or the pod has its own owner). The sign-in is no longer handed to the organization owner for approval.
+- **`AppAccessRequirementsError`:** connect and Authorize Inbox return a `403` with this `name` when the app's requirements are not met. Its `message` names the requirements and its `fix` says what each one needs.
+
+### Breaking changes
+
+⚠️ `owner_profile` no longer carries `owner_human_verified` or `owner_human_id`. Request the `owner_verifications` scope instead. Its World ID `id` has the same value `owner_human_id` had for each person, so stored ids keep matching.
+
+Before:
+
+```json
+{ "owner_name": "Maya Chen", "owner_human_verified": true, "owner_human_id": "hQ3sV8nK..." }
+```
+
+After, with `owner_verifications` granted:
+
+```json
+{ "owner_name": "Maya Chen", "owner_verifications": { "worldid_personhood": { "id": "hQ3sV8nK..." } } }
+```
+
+### Use cases
+
+Build agents and apps that:
+
+- Admit only agents whose owner is a verified human, with `worldid_personhood`
+- Offer one free trial per person, keyed on the World ID `id`, even across organizations
+- Let agents without owner-sharing permission sign in with a basic profile instead of failing
+
+<CodeBlocks>
+```python title="Python"
+import os
+import httpx
+
+# the access token from an AgentID sign-in that granted owner_verifications
+userinfo = httpx.get(
+    "https://auth.agentid.com/v0/userinfo",
+    headers={"Authorization": f"Bearer {os.environ['AGENTID_ACCESS_TOKEN']}"},
+).json()
+person = userinfo["owner_verifications"].get("worldid_personhood")
+print("verified owner" if person else "no verified owner", person)
+```
+
+```typescript title="TypeScript"
+// the access token from an AgentID sign-in that granted owner_verifications
+const res = await fetch("https://auth.agentid.com/v0/userinfo", {
+  headers: { Authorization: `Bearer ${process.env.AGENTID_ACCESS_TOKEN}` },
+});
+const userinfo = await res.json();
+const person = userinfo.owner_verifications.worldid_personhood;
+console.log(person ? "verified owner" : "no verified owner", person);
+```
+</CodeBlocks>
+
+<Note>
+  See the [AgentID Sign-In guide](https://docs.agentmail.to/agentid-sign-in) for how agents sign in to apps.
+</Note>
