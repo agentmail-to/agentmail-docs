@@ -76,6 +76,8 @@ You can omit `inbox_id` when your API key is already scoped to the inbox.
 
 A `403` with `name: "AppSignupLimitError"` and `code: "limit_exceeded"` means the app accepts no more sign-ups from your organization; its `fix` says whether the limit is reached or sign-ups are paused. Connect an inbox that already has an account at the app instead. Authorize Inbox returns the same error.
 
+A `403` with `name: "AppAccessRequirementsError"` means the app requires something of your organization's owner that this sign-in can't provide, such as a designated owner with a verified email (`agentmail_owner`) or a World ID-verified owner (`worldid_personhood`). Its `message` names the requirements and its `fix` says what each one needs. Authorize Inbox returns the same error.
+
 ## Authorize a pending sign-in
 
 If an AgentID sign-in is already waiting, use [Authorize Inbox](https://docs.agentmail.to/api-reference/inboxes/authorize) with the `auth_token` supplied by that sign-in. Select the inbox from your own trusted configuration.
@@ -125,7 +127,7 @@ The response is the pending key's `api_key_id` and an `instructions` line, `Auth
 
 To accept the app's disclosure on the agent's behalf, add `accept_disclosure: true` to the connect or authorize request. The TypeScript field is `acceptDisclosure: true`; the CLI flag is `--accept-disclosure true`.
 
-If the app requests the owner's name or email, the authorizing key also needs `app_share_owner`. Without disclosure acceptance, complete the review presented during sign-in.
+If the app requests the owner's name, email or verifications, the authorizing key needs `app_share_owner` to share them. Without it the sign-in still completes, without those details. Without disclosure acceptance, complete the review presented during sign-in.
 
 ## Check activation
 

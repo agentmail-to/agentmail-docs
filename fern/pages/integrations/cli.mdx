@@ -181,8 +181,9 @@ keys. Upgrade with `npm install -g agentmail-cli@latest` to use these commands:
 | Rename a key | `agentmail api-keys update --api-key-id <api_key_id> --name <name>` |
 | Revoke a key or cancel a pending sign-in key | `agentmail api-keys delete --api-key-id <api_key_id>` |
 
-Connect and authorize require `app_connect`. Accepting a disclosure that
-shares the owner's name or email also requires `app_share_owner`. Connect
+Connect and authorize require `app_connect`. Sharing the owner's name, email
+or verifications also requires `app_share_owner`; without it, the sign-in
+completes without them. Connect
 automatically supplies an idempotency key; use `--idempotency-key` to reuse the
 same attempt across manual runs.
 
