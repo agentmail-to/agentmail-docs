@@ -579,11 +579,11 @@ navigation:
           - webhooks
           - websockets
           - domains
+          - credentials
           - lists
           - forwarding
           - metrics
           - api-keys
-          - credentials
           - apps
           - accounts
           - pods
