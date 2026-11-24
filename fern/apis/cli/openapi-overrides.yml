@@ -1209,3 +1209,181 @@ paths:
       - inboxes
       - forwarding
       x-fern-sdk-method-name: delete
+  /v0/credentials:
+    get:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: create
+  /v0/credentials/{credential_id}:
+    get:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: delete
+  /v0/credentials/register:
+    post:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: register
+  /v0/credentials/{credential_id}/rotate:
+    post:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: rotate
+  /v0/credentials/{credential_id}/retrieve:
+    post:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: retrieve
+  /v0/credentials/{credential_id}/sign:
+    post:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: sign
+  /v0/credentials/assert:
+    post:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: assert
+  /v0/credentials/{credential_id}/proxy:
+    post:
+      x-fern-sdk-group-name:
+      - credentials
+      x-fern-sdk-method-name: proxy
+  /v0/inboxes/{inbox_id}/credentials:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: create
+  /v0/inboxes/{inbox_id}/credentials/register:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: register
+  /v0/inboxes/{inbox_id}/credentials/assert:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: assert
+  /v0/inboxes/{inbox_id}/credentials/{credential_id}:
+    get:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: delete
+  /v0/inboxes/{inbox_id}/credentials/{credential_id}/rotate:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: rotate
+  /v0/inboxes/{inbox_id}/credentials/{credential_id}/retrieve:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: retrieve
+  /v0/inboxes/{inbox_id}/credentials/{credential_id}/sign:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: sign
+  /v0/inboxes/{inbox_id}/credentials/{credential_id}/proxy:
+    post:
+      x-fern-sdk-group-name:
+      - inboxes
+      - credentials
+      x-fern-sdk-method-name: proxy
+  /v0/pods/{pod_id}/credentials:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: list
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: create
+  /v0/pods/{pod_id}/credentials/register:
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: register
+  /v0/pods/{pod_id}/credentials/assert:
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: assert
+  /v0/pods/{pod_id}/credentials/{credential_id}:
+    get:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: get
+    patch:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: update
+    delete:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: delete
+  /v0/pods/{pod_id}/credentials/{credential_id}/rotate:
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: rotate
+  /v0/pods/{pod_id}/credentials/{credential_id}/retrieve:
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: retrieve
+  /v0/pods/{pod_id}/credentials/{credential_id}/sign:
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: sign
+  /v0/pods/{pod_id}/credentials/{credential_id}/proxy:
+    post:
+      x-fern-sdk-group-name:
+      - pods
+      - credentials
+      x-fern-sdk-method-name: proxy
