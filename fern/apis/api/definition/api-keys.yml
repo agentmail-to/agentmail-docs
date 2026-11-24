@@ -301,6 +301,18 @@ types:
       file_delete:
         type: optional<boolean>
         docs: Reserved; not released yet.
+      credential_read:
+        type: optional<boolean>
+      credential_create:
+        type: optional<boolean>
+      credential_update:
+        type: optional<boolean>
+      credential_delete:
+        type: optional<boolean>
+      credential_retrieve:
+        type: optional<boolean>
+      credential_use:
+        type: optional<boolean>
 
   BearerApiKey:
     docs: An API key presented as a bearer token in the `Authorization` header.

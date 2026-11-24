@@ -26,6 +26,19 @@ UNDOCUMENTED = {"owner_profile", "owner_email"}
 # SDKs are generated from ApiKeyPermissions, so it keeps them; the permissions page doesn't list them.
 UNRELEASED = {"file_read", "file_create", "file_update", "file_delete"}
 
+# Agent Vault's permissions: in ApiKeyPermissions, so the SDKs can set them, but not yet on the permissions page.
+REFERENCE_ONLY = {
+    "credential_read",
+    "credential_create",
+    "credential_update",
+    "credential_delete",
+    "credential_retrieve",
+    "credential_use",
+}
+
+# Permissions of features the docs don't cover yet: neither ApiKeyPermissions nor the permissions page lists them.
+UNCOVERED = {"browser_read", "browser_create", "browser_delete", "audit_log_read"}
+
 
 def gh(*args):
     result = subprocess.run(["gh", "api", *args], capture_output=True, text=True)
@@ -89,7 +102,12 @@ def validate(manifest):
         names = manifest.get(key)
         if not isinstance(names, list) or not names or not set(names) <= set(permissions):
             raise ValueError(f"manifest {key} must be a non-empty subset of permissions")
-    for name, names in (("UNDOCUMENTED", UNDOCUMENTED), ("UNRELEASED", UNRELEASED)):
+    for name, names in (
+        ("UNDOCUMENTED", UNDOCUMENTED),
+        ("UNRELEASED", UNRELEASED),
+        ("REFERENCE_ONLY", REFERENCE_ONLY),
+        ("UNCOVERED", UNCOVERED),
+    ):
         stale = names - set(permissions)
         if stale:
             raise ValueError(f"{name} names permissions the API no longer has: {', '.join(sorted(stale))}")
@@ -120,7 +138,7 @@ def opt_in_notes(block):
 def doc_lists(manifest):
     definition = DEFINITION.read_text(encoding="utf-8")
     page = PAGE.read_text(encoding="utf-8")
-    documented = set(manifest["permissions"]) - UNDOCUMENTED - UNRELEASED
+    documented = set(manifest["permissions"]) - UNDOCUMENTED - UNRELEASED - REFERENCE_ONLY - UNCOVERED
     opt_in = set(manifest["opt_in"])
     full_access = documented - opt_in
     reads = {p for p in full_access if p.endswith("_read")}
@@ -139,7 +157,7 @@ def doc_lists(manifest):
             f"{DEFINITION.relative_to(ROOT)} ApiKeyPermissions",
             every,
             set(re.findall(r"^      ([a-z_]+):$", section(definition, r"^  ApiKeyPermissions:$", r"^  \S"), re.M)),
-            documented | UNRELEASED,
+            documented | UNRELEASED | REFERENCE_ONLY,
         ),
         (
             f"{page_name} reference tables",
@@ -165,7 +183,7 @@ def doc_lists(manifest):
             f"{page_name} Agent verification list",
             "verification-gated permissions",
             set(re.findall(r"`([a-z_]+)`", "\n".join(re.findall(r"^- .*$", verification, re.M)))),
-            set(manifest["verification_gated"]) - UNRELEASED,
+            set(manifest["verification_gated"]) & documented,
         ),
     ]
     for key, example, rule, expected in (
