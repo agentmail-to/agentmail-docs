@@ -36,9 +36,6 @@ REFERENCE_ONLY = {
     "credential_use",
 }
 
-# Permissions of features the docs don't cover yet: neither ApiKeyPermissions nor the permissions page lists them.
-UNCOVERED = {"browser_read", "browser_create", "browser_delete", "audit_log_read"}
-
 
 def gh(*args):
     result = subprocess.run(["gh", "api", *args], capture_output=True, text=True)
@@ -102,12 +99,7 @@ def validate(manifest):
         names = manifest.get(key)
         if not isinstance(names, list) or not names or not set(names) <= set(permissions):
             raise ValueError(f"manifest {key} must be a non-empty subset of permissions")
-    for name, names in (
-        ("UNDOCUMENTED", UNDOCUMENTED),
-        ("UNRELEASED", UNRELEASED),
-        ("REFERENCE_ONLY", REFERENCE_ONLY),
-        ("UNCOVERED", UNCOVERED),
-    ):
+    for name, names in (("UNDOCUMENTED", UNDOCUMENTED), ("UNRELEASED", UNRELEASED)):
         stale = names - set(permissions)
         if stale:
             raise ValueError(f"{name} names permissions the API no longer has: {', '.join(sorted(stale))}")
@@ -138,7 +130,7 @@ def opt_in_notes(block):
 def doc_lists(manifest):
     definition = DEFINITION.read_text(encoding="utf-8")
     page = PAGE.read_text(encoding="utf-8")
-    documented = set(manifest["permissions"]) - UNDOCUMENTED - UNRELEASED - REFERENCE_ONLY - UNCOVERED
+    documented = set(manifest["permissions"]) - UNDOCUMENTED - UNRELEASED - REFERENCE_ONLY
     opt_in = set(manifest["opt_in"])
     full_access = documented - opt_in
     reads = {p for p in full_access if p.endswith("_read")}
@@ -183,7 +175,7 @@ def doc_lists(manifest):
             f"{page_name} Agent verification list",
             "verification-gated permissions",
             set(re.findall(r"`([a-z_]+)`", "\n".join(re.findall(r"^- .*$", verification, re.M)))),
-            set(manifest["verification_gated"]) & documented,
+            set(manifest["verification_gated"]) - UNRELEASED - REFERENCE_ONLY,
         ),
     ]
     for key, example, rule, expected in (

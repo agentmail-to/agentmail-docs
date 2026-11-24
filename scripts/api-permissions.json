@@ -1,5 +1,5 @@
 {
-  "source": "agentmail-to/agentmail-api@a1755ac934dfa17e9bf55b37bf505e7961022e05",
+  "source": "agentmail-to/agentmail-api@27b726f57264a46a435c4e59dbe4b5a18e73149a",
   "permissions": [
     "inbox_read",
     "inbox_create",
@@ -33,7 +33,6 @@
     "list_entry_create",
     "list_entry_delete",
     "metrics_read",
-    "audit_log_read",
     "app_connect",
     "app_share_owner",
     "api_key_read",
@@ -54,15 +53,6 @@
     "file_create",
     "file_update",
     "file_delete",
-    "credential_read",
-    "credential_create",
-    "credential_update",
-    "credential_delete",
-    "credential_retrieve",
-    "credential_use",
-    "browser_read",
-    "browser_create",
-    "browser_delete",
     "owner_profile",
     "owner_email"
   ],
@@ -72,8 +62,6 @@
     "list_entry_create",
     "list_entry_delete",
     "file_create",
-    "credential_create",
-    "browser_create",
     "pod_create",
     "pod_update",
     "pod_delete"
