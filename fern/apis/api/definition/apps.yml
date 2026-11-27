@@ -13,7 +13,6 @@ types:
 
   AppCategory:
     enum:
-      - ai
       - search
       - scraping
       - browser
